@@ -1,0 +1,3 @@
+{% url "timary:update_invoice" invoice.id as update_invoice_url %}
+
+{% include 'partials/_htmx_put_form.html' with form=edit_invoice url=update_invoice_url target=invoice_target swap="outerHTML" cancel_url="/invoices/new/" id="invoice-form" btn_title='Update' %}

@@ -1,0 +1,14 @@
+{#<div class="flex justify-evenly my-2 md:block md:m-4"#}
+{#     hx-get="{% url 'timary:dashboard_stats' %}"#}
+{#     hx-trigger="newHours from:body"#}
+{#     hx-swap="outerHTML">#}
+{#    <div class="md:text-xl md:m-2">Hours: <span class="font-bold"> {{ dashboard.total_hours }} </span></div>#}
+{#    <div class="md:text-xl md:m-2">Earnings: <span class="font-bold">${{ dashboard.total_amount }}</span></div>#}
+{#</div>#}
+<div class="shadow stats">
+  <div class="stat">
+    <div class="stat-title">Hours logged</div>
+    <div class="stat-value">{{ dashboard.total_hours }}</div>
+    <div class="stat-desc">estimated earnings: ${{ dashboard.total_amount }}</div>
+  </div>
+</div>

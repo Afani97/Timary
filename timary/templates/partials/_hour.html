@@ -1,0 +1,26 @@
+<li class="bg-green-100 shadow-md rounded p-8 my-5"
+    id="{{hour.slug_id}}">
+    <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0">
+        <div>
+            <div class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked }} for {{ hour.invoice.title }}</div>
+            {% if hour.notes %}
+                <div class="text-sm">{{ hour.notes }}</div>
+            {% endif %}
+        </div>
+        <div class="space-x-10">
+            <a class="bg-gray-300 hover:bg-gray-600 text-black hover:text-white p-2 rounded"
+                hx-get="{% url 'timary:edit_hours' hour.id %}"
+                hx-target="#hours-form" hx-swap="outerHTML">
+                Edit
+            </a>
+
+            <a class="bg-red-300 hover:bg-red-600 text-black hover:text-white p-2 rounded"
+               hx-delete="{% url 'timary:delete_hours' hour.id %}"
+               hx-confirm="Are you sure you want to delete these hours?"
+               hx-target="closest li"
+               hx-swap="outerHTML">
+                Remove
+            </a>
+        </div>
+    </div>
+</li>

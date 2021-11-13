@@ -1,0 +1,27 @@
+{% extends 'timary/base.html' %}
+
+{% block content %}
+    <h1 class="text-3xl mb-8">Your current invoices</h1>
+    <div class="lg:flex lg:justify-between">
+        <ul class="lg:w-1/2 lg:mr-4" id="invoices-list">
+            {% for invoice in invoices %}
+                {% include 'partials/_invoice.html' with invoice=invoice %}
+            {% endfor %}
+        </ul>
+
+        <div class="md:w-1/2" id="invoice-div">
+            {% include 'partials/_htmx_post_form.html' with form=new_invoice url="/invoices/" target="#invoices-list" swap="beforeend" btn_title='Add new invoice' id="invoice-form" %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+      document.body.addEventListener('htmx:afterRequest', (event) => {
+          if (event.target.id === "invoice-form") {
+              htmx.ajax("GET", "/invoices/new/", "#invoice-div")
+          }
+      })
+    </script>
+{% endblock %}

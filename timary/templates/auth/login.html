@@ -1,0 +1,23 @@
+{% extends 'timary/base.html' %}
+
+{% block title %} Login {% endblock %}
+
+{% block content %}
+
+<div class="max-w-xl mx-auto">
+
+    <h1 class="text-3xl mb-4">Login</h1>
+
+    {% if form.errors %}
+        <p class="text-red-600 font-bold">Email or password are not correct</p>
+    {% endif %}
+
+    {% include 'partials/_form.html' with btn_title='Login' %}
+
+    <p class="flex justify-center">
+        <a class="text-sm underline" href="{% url 'timary:register' %}">Register?</a>
+    </p>
+
+</div>
+
+{% endblock %}

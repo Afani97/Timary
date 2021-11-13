@@ -1,0 +1,3 @@
+{% url "timary:update_hours" hour.id as update_hours_url %}
+
+{% include 'partials/_htmx_put_form.html' with form=edit_hours url=update_hours_url target=hours_target swap="outerHTML" cancel_url="/hours/new/" id="update-hours-form" btn_title='Update' %}
