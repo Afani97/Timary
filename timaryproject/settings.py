@@ -23,14 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY", default="abc123")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")]
+    "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
-print(ALLOWED_HOSTS)
 
 
 # Application definition
@@ -169,11 +168,13 @@ Q_CLUSTER = {
     "sync": False,
 }
 
-DEFAULT_FROM_EMAIL = f"Ari From Timary {config('NAMECHEAP_EMAIL')}"
+DEFAULT_FROM_EMAIL = (
+    f"Ari From Timary {config('NAMECHEAP_EMAIL', default='test@test.com')}"
+)
 EMAIL_HOST = "mail.privateemail.com"
 EMAIL_PORT = 587
-EMAIL_HOST_USER = config("NAMECHEAP_EMAIL")
-EMAIL_HOST_PASSWORD = config("NAMECHEAP_PASSWORD")
+EMAIL_HOST_USER = config("NAMECHEAP_EMAIL", default="test@test.com")
+EMAIL_HOST_PASSWORD = config("NAMECHEAP_PASSWORD", default="abc123")
 EMAIL_USE_TLS = True
 
 
