@@ -1,10 +1,9 @@
 {% extends 'timary/base.html' %}
 
 {% block content %}
-    <h1 class="text-3xl mb-8">Your profile</h1>
-    <div>
-        <a class="hover:bg-gray-200 md:text-lg font-bold py-2 px-4 rounded border-2 border-gray-300 border-opacity-100"
-                       href="{%  url 'timary:logout' %}">Logout</a>
+    <div class="max-w-xl mx-auto">
+        <h1 class="text-3xl my-6 text-center">Your profile</h1>
+        {% include "partials/_profile.html" %}
+        <a class="flex self-center btn btn-ghost" href="{%  url 'timary:logout' %}">Logout</a>
     </div>
-
 {% endblock %}
