@@ -1,11 +1,11 @@
 {% load filters %}
 
-<form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<form method="post">
     {% csrf_token %}
     {% for field in form %}
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2"> {{ field.label }}</label>
-            {{ field | addclass:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
+        <div class="form-control">
+            <label class="label"><span class="label-text">{{ field.label }}</span> </label>
+            {{ field | addclass:"input input-bordered" }}
             {% for error in field.errors %}
                 <div class="text-red-600">
                     <strong>{{ error|escape }}</strong>
@@ -13,13 +13,10 @@
             {% endfor %}
         </div>
     {% endfor %}
-    <div class="flex content-center justify-between justify-around">
+    <div class="form-control mt-6">
         {% if cancel_url %}
             <a class="self-center" href="{% url cancel_url %}">Cancel</a>
         {% endif %}
-        <button class="bg-green-600 hover:bg-green-900 text-white text-lg font-bold py-2 px-4 rounded"
-                type="submit">
-            {{btn_title}}
-        </button>
+        <button class="btn btn-primary btn-active" type="submit">{{ btn_title }}</button>
     </div>
 </form>

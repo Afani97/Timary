@@ -1,0 +1,26 @@
+<div class="navbar mb-2 shadow-lg bg-neutral text-neutral-content rounded-box">
+  <div class="flex-1 px-2 mx-2">
+    <a class="text-lg font-bold" href="{% url 'timary:index' %}">
+        Timary
+  </a>
+  </div>
+  <div class="flex-none hidden px-2 mx-2 lg:flex">
+    <div class="flex items-stretch" hx-boost="true">
+        {% if request.user.is_authenticated %}
+            <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:manage_invoices' %}">
+                Invoices
+            </a>
+            <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:user_profile' %}">
+                Profile
+            </a>
+        {% else %}
+            <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:login' %}">
+                Login
+            </a>
+            <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:register' %}">
+                Signup
+            </a>
+        {% endif %}
+    </div>
+  </div>
+</div>

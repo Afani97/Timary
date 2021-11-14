@@ -25,6 +25,8 @@ def register_user(request):
                 user_profile.save()
                 login(request, authenticated_user)
                 return redirect(reverse("timary:index"))
+            else:
+                form.add_error("email", "Unable to create account with credentials")
         else:
             return render(request, "auth/signup.html", {"form": form}, status=400)
     else:
@@ -42,6 +44,8 @@ def login_user(request):
             if user:
                 login(request, user)
                 return redirect(reverse("timary:index"))
+            else:
+                form.add_error("email", "Unable to verify credentials")
         return render(request, "auth/login.html", {"form": form}, status=400)
     else:
         form = LoginForm()

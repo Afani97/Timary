@@ -1,28 +1,30 @@
 {% load filters %}
 
-<form hx-put="{{url}}" hx-target="{{target}}" hx-swap="{{swap}}" id="{{id}}"
-      class="bg-white shadow-md rounded p-8 w-auto">
-
+<form class="card p-5 bg-base-200 bordered"
+      hx-put="{{url}}"
+      hx-target="{{target}}"
+      hx-swap="{{swap}}"
+      id="{{id}}">
     {% csrf_token %}
 
-    <div class="grid grid-flow-col grid-col-5 gap-4">
-    {% for field in form.visible_fields %}
-        <div class="mb-6">
-            {% if field.field.widget.attrs.collapse %}
-                <details>
-                    <summary class="mb-4">Add {{ field.label }}?</summary>
-                    <div>
-                        {{ field | addclass:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
-                        {% for error in field.errors %}
-                            <div class="text-red-600">
-                                <strong>{{ error|escape }}</strong>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </details>
-            {% else %}
-                    <label class="block text-gray-700 text-sm font-bold"> {{ field.label }}</label>
-                    {{ field | addclass:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
+    <div class="card-body">
+        {% for field in form.visible_fields %}
+            <div class="form-control">
+                {% if field.field.widget.attrs.collapse %}
+                    <details>
+                        <summary class="label"><span class="label-text">Add {{ field.label }}?</span></summary>
+                        <div>
+                            {{ field | addclass:"input input-bordered" }}
+                            {% for error in field.errors %}
+                                <div class="text-red-600">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% else %}
+                    <label class="label"><span class="label-text">{{ field.label }}</span></label>
+                    {{ field | addclass:"input input-bordered" }}
 
                     {% for error in field.errors %}
                         <div class="text-red-600">
@@ -30,18 +32,14 @@
                         </div>
                     {% endfor %}
 
-            {% endif %}
-          </div>
-    {% endfor %}
-    </div>
+                {% endif %}
+              </div>
+        {% endfor %}
 
-    <div class="flex justify-between mt-4">
-        <button hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML">Cancel</button>
-        <button class="bg-green-600 hover:bg-green-900 text-white text-lg font-bold py-2 px-4 rounded"
-                type="submit">
-            {{ btn_title }}
-        </button>
+        <div class="card-actions flex justify-center">
+            <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
+            <button class="btn btn-primary btn-active" type="submit"> {{ btn_title }} </button>
+        </div>
     </div>
-
 
 </form>

@@ -3,7 +3,13 @@ import uuid
 
 from django.test import TestCase
 
-from timary.forms import DailyHoursForm, InvoiceForm, LoginForm, RegisterForm
+from timary.forms import (
+    DailyHoursForm,
+    InvoiceForm,
+    LoginForm,
+    RegisterForm,
+    UserProfileForm,
+)
 from timary.tests.factories import InvoiceFactory, UserFactory, UserProfilesFactory
 
 
@@ -303,5 +309,69 @@ class TestDailyHours(TestCase):
                 "hours": ["This field is required."],
                 "invoice": ["This field is required."],
                 "date_tracked": ["This field is required."],
+            },
+        )
+
+
+class TestUserProfile(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = UserFactory()
+
+    def test_userprofile_success(self):
+        form = UserProfileForm(
+            data={
+                "email": "user@test.com",
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+            }
+        )
+        self.assertEqual(form.errors, {})
+
+    def test_userprofile_missing_email_error(self):
+        form = UserProfileForm(
+            data={
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+            }
+        )
+        self.assertEqual(form.errors, {"email": ["This field is required."]})
+
+    def test_userprofile_missing_first_name_error(self):
+        form = UserProfileForm(
+            data={
+                "email": "user@test.com",
+                "last_name": self.user.last_name,
+            }
+        )
+        self.assertEqual(form.errors, {"first_name": ["This field is required."]})
+
+    def test_userprofile_already_present_email_error(self):
+        form = UserProfileForm(
+            data={
+                "email": self.user.email,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+            }
+        )
+        self.assertEqual(form.errors, {"email": ["Email already registered!"]})
+
+    def test_userprofile_already_invalid_name_error(self):
+        form = UserProfileForm(
+            data={
+                "email": "user@test.com",
+                "first_name": self.user.first_name + "123",
+                "last_name": self.user.last_name,
+            }
+        )
+        self.assertEqual(form.errors, {"first_name": ["Only valid names allowed."]})
+
+    def test_userprofile_missing_fields_error(self):
+        form = UserProfileForm(data={})
+        self.assertEqual(
+            form.errors,
+            {
+                "email": ["This field is required."],
+                "first_name": ["This field is required."],
             },
         )

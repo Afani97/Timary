@@ -80,6 +80,42 @@ class DailyHoursForm(forms.ModelForm):
     field_order = ["hours", "date_tracked", "invoice"]
 
 
+class UserProfileForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ["email", "first_name", "last_name"]
+        widgets = {
+            "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
+            "first_name": forms.TextInput(attrs={"placeholder": "John"}),
+            "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
+        }
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get("first_name")
+        if not first_name.isalpha():
+            raise ValidationError("Only valid names allowed.")
+        return first_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if (
+            email != self.instance.email
+            and User.objects.filter(username=email, email=email).count() != 0
+        ):
+            raise ValidationError("Email already registered!")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = user.email
+        if commit:
+            user.save()
+        return user
+
+
 class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",
