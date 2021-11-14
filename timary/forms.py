@@ -81,6 +81,9 @@ class DailyHoursForm(forms.ModelForm):
 
 
 class UserProfileForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(required=True)
+
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name"]

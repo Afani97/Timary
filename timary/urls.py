@@ -10,6 +10,11 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("test-async", views.test_async, name="test-async"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
+]
+
+
+# PROFILE URLS
+urlpatterns += [
     path("profile/", views.user_profile, name="user_profile"),
     path("profile/partial", views.profile_partial, name="user_profile_partial"),
     path("profile/update/", views.update_user_profile, name="update_user_profile"),
