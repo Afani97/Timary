@@ -17,8 +17,8 @@ class TestUserProfiles(BaseTest):
         self.assertContains(
             response,
             f"""
-    <h2 class="card-title text-center">{self.profile.user.first_name} {self.profile.user.last_name}</h2>
-    <p class="text-center">{self.profile.user.email}</p>""",
+        <h2 class="card-title text-center">{self.profile.user.first_name} {self.profile.user.last_name}</h2>
+        <p class="text-center">{self.profile.user.email}</p>""",
         )
 
     def test_get_profile_page_redirect(self):
@@ -65,8 +65,8 @@ class TestUserProfiles(BaseTest):
         self.assertContains(
             response,
             """
-    <h2 class="card-title text-center">Test Test</h2>
-    <p class="text-center">user@test.com</p>""",
+        <h2 class="card-title text-center">Test Test</h2>
+        <p class="text-center">user@test.com</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_profile.html")
         self.assertEqual(response.status_code, 200)
