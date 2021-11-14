@@ -8,7 +8,7 @@
             {% include 'partials/_dashboard_stats.html' %}
 
             <a class="bg-green-600 hover:bg-green-900 text-white md:text-lg font-bold py-1 px-2 md:py-2 md:px-4 rounded"
-               href="{% url 'timary:test-async' %}">
+                href="{% url 'timary:test-async' %}">
                 Test Async
             </a>
         </div>
@@ -29,13 +29,13 @@
 
 {% block js %}
     <script>
-      document.body.addEventListener('htmx:afterRequest', (event) => {
-          if (event.target.id === "hours-form") {
-              document.getElementById("hours-form").reset()
-          }
-          if (event.target.id === "update-hours-form") {
-            htmx.ajax("GET", "/hours/new/", "#hours-div")
-          }
-      })
+        document.body.addEventListener('htmx:afterRequest', (event) => {
+            if (event.target.id === "hours-form") {
+                document.getElementById("hours-form").reset()
+            }
+            if (event.target.id === "update-hours-form") {
+                htmx.ajax("GET", "/hours/new/", "#hours-div")
+            }
+        })
     </script>
 {% endblock %}

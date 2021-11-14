@@ -1,23 +1,32 @@
 fail_fast: true
 
 repos:
-  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: v4.0.1
     hooks:
       - id: debug-statements
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: requirements-txt-fixer
-  - repo: 'https://github.com/pycqa/isort'
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.6.2
+    hooks:
+      - id: bandit
+        args: [ '-iii', '-ll' ]
+  - repo: https://github.com/rtts/djhtml
+    rev: main
+    hooks:
+      - id: djhtml
+  - repo: "https://github.com/pycqa/isort"
     rev: 5.10.1
     hooks:
       - id: isort
         args: ["--profile", "black"]
-  - repo: 'https://gitlab.com/pycqa/flake8'
+  - repo: "https://gitlab.com/pycqa/flake8"
     rev: 3.9.2
     hooks:
       - id: flake8
-  - repo: 'https://github.com/psf/black'
+  - repo: "https://github.com/psf/black"
     rev: 21.10b0
     hooks:
       - id: black

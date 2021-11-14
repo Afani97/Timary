@@ -1,14 +1,14 @@
 <div class="p-10 card bg-base-200 lg:card-side bordered" id="user-profile">
-  <div class="card-body">
-    <h2 class="card-title text-center">{{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
-    <p class="text-center">{{ profile.user.email }}</p>
-    <div class="card-actions flex justify-center">
-        <button class="btn btn-primary btn-active"
+    <div class="card-body">
+        <h2 class="card-title text-center">{{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
+        <p class="text-center">{{ profile.user.email }}</p>
+        <div class="card-actions flex justify-center">
+            <button class="btn btn-primary btn-active"
                 hx-get="{% url 'timary:edit_user_profile' %}"
                 hx-target="#user-profile"
                 hx-swap="outerHTML">
-            Edit Profile
-        </button>
+                Edit Profile
+            </button>
+        </div>
     </div>
-  </div>
 </div>

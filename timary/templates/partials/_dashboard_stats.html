@@ -2,9 +2,9 @@
     hx-get="{% url 'timary:dashboard_stats' %}"
     hx-trigger="newHours from:body"
     hx-swap="outerHTML">
-  <div class="stat">
-    <div class="stat-title">Hours logged</div>
-    <div class="stat-value">{{ dashboard.total_hours }}</div>
-    <div class="stat-desc">estimated earnings: ${{ dashboard.total_amount }}</div>
-  </div>
+    <div class="stat">
+        <div class="stat-title">Hours logged</div>
+        <div class="stat-value">{{ dashboard.total_hours }}</div>
+        <div class="stat-desc">estimated earnings: ${{ dashboard.total_amount }}</div>
+    </div>
 </div>

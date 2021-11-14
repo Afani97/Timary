@@ -18,10 +18,10 @@
 
 {% block js %}
     <script>
-      document.body.addEventListener('htmx:afterRequest', (event) => {
-          if (event.target.id === "invoice-form") {
-              htmx.ajax("GET", "/invoices/new/", "#invoice-div")
-          }
-      })
+        document.body.addEventListener('htmx:afterRequest', (event) => {
+            if (event.target.id === "invoice-form") {
+                htmx.ajax("GET", "/invoices/new/", "#invoice-div")
+            }
+        })
     </script>
 {% endblock %}

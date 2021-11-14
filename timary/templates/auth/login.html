@@ -3,18 +3,18 @@
 
 {% block content %}
 
-<div class="max-w-xl mx-auto mt-6">
-    <h1 class="text-3xl mb-4 text-center">Login</h1>
+    <div class="max-w-xl mx-auto mt-6">
+        <h1 class="text-3xl mb-4 text-center">Login</h1>
 
-    <div class="p-10 card bg-base-200">
-        <div class="card-body">
-            {% include 'partials/_form.html' with btn_title='Login' %}
+        <div class="p-10 card bg-base-200">
+            <div class="card-body">
+                {% include 'partials/_form.html' with btn_title='Login' %}
+            </div>
         </div>
-    </div>
 
-    <p class="flex justify-center">
-        <a class="text-sm btn-link" href="{% url 'timary:register' %}">Register?</a>
-    </p>
-</div>
+        <p class="flex justify-center">
+            <a class="text-sm btn-link" href="{% url 'timary:register' %}">Register?</a>
+        </p>
+    </div>
 
 {% endblock %}

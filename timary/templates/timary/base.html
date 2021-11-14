@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="emerald">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>Hello from Timary!</title>
-</head>
-<body class="md:mx-10 mt-2">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css" rel="stylesheet" type="text/css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <title>Hello from Timary!</title>
+    </head>
+    <body class="md:mx-10 mt-2">
 
-    {% include "partials/_navbar.html" %}
+        {% include "partials/_navbar.html" %}
 
-    {# Main Content  #}
-    <main class="md:w-5/6 mx-auto px-1 md:px-10 pb-5">
-       {% block content %}{% endblock %}
-    </main>
+        {# Main Content  #}
+        <main class="md:w-5/6 mx-auto px-1 md:px-10 pb-5">
+            {% block content %}{% endblock %}
+        </main>
 
 
-    {# Third Part JS #}
-    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
-    <script>
-      document.body.addEventListener('htmx:configRequest', (event) => {
-        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-      })
+        {# Third Part JS #}
+        <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+        <script>
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            })
 
-    </script>
+        </script>
 
-    {% block js %}{% endblock %}
-</body>
+        {% block js %}{% endblock %}
+    </body>
 </html>

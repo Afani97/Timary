@@ -1,10 +1,10 @@
 {% load filters %}
 
 <form class="card p-5 bg-base-200 bordered"
-      hx-put="{{url}}"
-      hx-target="{{target}}"
-      hx-swap="{{swap}}"
-      id="{{id}}">
+    hx-put="{{url}}"
+    hx-target="{{target}}"
+    hx-swap="{{swap}}"
+    id="{{id}}">
     {% csrf_token %}
 
     <div class="card-body">
@@ -33,7 +33,7 @@
                     {% endfor %}
 
                 {% endif %}
-              </div>
+            </div>
         {% endfor %}
 
         <div class="card-actions flex justify-center">

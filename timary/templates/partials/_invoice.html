@@ -12,16 +12,16 @@
         <div class="space-x-5">
 
             <a class="bg-gray-300 hover:bg-gray-600 text-black hover:text-white p-2 rounded"
-               hx-get="{% url 'timary:edit_invoice' invoice.id %}"
-               hx-target="#invoice-form" hx-swap="outerHTML">
+                hx-get="{% url 'timary:edit_invoice' invoice.id %}"
+                hx-target="#invoice-form" hx-swap="outerHTML">
                 Edit
             </a>
 
             <a class="bg-red-300 hover:bg-red-600 text-black hover:text-white p-2 rounded"
-               hx-delete="{% url 'timary:delete_invoice' invoice.id %}"
-               hx-confirm="Are you sure you want to delete this invoice?"
-               hx-target="closest li"
-               hx-swap="outerHTML">
+                hx-delete="{% url 'timary:delete_invoice' invoice.id %}"
+                hx-confirm="Are you sure you want to delete this invoice?"
+                hx-target="closest li"
+                hx-swap="outerHTML">
                 Remove
             </a>
 
