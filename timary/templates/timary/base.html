@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="emerald" class="dark">
+<html lang="en" data-theme="emerald">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta charset="UTF-8" />
@@ -8,26 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Hello from Timary!</title>
 </head>
-<body class="md:mx-10 bg-white">
-    {# Nav Bar #}
-    <nav hx-boost="true" class="bg-white px-2 pt-5 md:p-5 md:text-2xl mb-10">
-        <div class="flex flex-row justify-between">
-            <a href="{% url 'timary:index' %}">Timary</a>
-            <div class="space-x-2 md:space-x-5">
-               {% if request.user.is_authenticated %}
-                    <a class="bg-green-300 hover:bg-green-700 text-black hover:text-white md:text-lg font-bold py-2 px-4 rounded"
-                       href="{% url 'timary:manage_invoices' %}">Invoices</a>
-                    <a class="bg-green-600 hover:bg-green-900 text-white md:text-lg font-bold py-2 px-4 rounded"
-                       href="{% url 'timary:user_profile' %}">Profile</a>
-                {% else %}
-                    <a class="bg-green-300 hover:bg-green-700 text-black hover:text-white md:text-lg font-bold py-2 px-4 rounded"
-                       href="{%  url 'timary:login' %}">Login</a>
-                    <a class="bg-green-600 hover:bg-green-900 text-white md:text-lg font-bold py-2 px-4 rounded"
-                       href="{%  url 'timary:register' %}">Signup</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
+<body class="md:mx-10 mt-2">
+
+    {% include "partials/_navbar.html" %}
 
     {# Main Content  #}
     <main class="md:w-5/6 mx-auto px-1 md:px-10 pb-5">
