@@ -24,7 +24,7 @@ def send_invoice(invoice_id):
     msg_subject = render_to_string(
         "email/invoice_subject.html",
         {"invoice": invoice, "current_month": current_month},
-    )
+    ).strip()
 
     msg_body = render_to_string(
         "email/styled_email.html",
