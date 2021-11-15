@@ -35,6 +35,8 @@ ALLOWED_HOSTS = config(
 # Application definition
 
 INSTALLED_APPS = [
+    # TIMARY
+    "timary",
     # DJANGO
     "django.contrib.admin",
     "django.contrib.auth",
@@ -42,8 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # TIMARY
-    "timary",
     # 3RD PARTY
     "django_q",
 ]
@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -109,6 +110,7 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
 
 
 # Password validation
@@ -168,6 +170,7 @@ Q_CLUSTER = {
     "sync": False,
 }
 
+# EMAIL
 DEFAULT_FROM_EMAIL = (
     f"Ari From Timary {config('NAMECHEAP_EMAIL', default='test@test.com')}"
 )
@@ -176,6 +179,31 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = config("NAMECHEAP_EMAIL", default="test@test.com")
 EMAIL_HOST_PASSWORD = config("NAMECHEAP_PASSWORD", default="abc123")
 EMAIL_USE_TLS = True
+
+# Content Security Policy
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = (
+    "'self'",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+    "'unsafe-inline'",
+)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+    "https://unpkg.com",
+    "'unsafe-inline'",
+)
+CSP_IMG_SRC = ("'self'",)
+CSP_FONT_SRC = ("'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'none'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_FORM_ACTION = ("'self'",)
+CSP_INCLUDE_NONCE_IN = ("script-src",)
+CSP_MEDIA_SRC = ("'self'",)
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
