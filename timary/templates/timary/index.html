@@ -26,13 +26,3 @@
     </ul>
 
 {% endblock %}
-
-{% block js %}
-    <script>
-        document.body.addEventListener('htmx:afterRequest', (event) => {
-            if (event.target.id === "hours-form") {
-                document.getElementById("hours-form").reset()
-            }
-        })
-    </script>
-{% endblock %}

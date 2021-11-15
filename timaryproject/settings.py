@@ -190,7 +190,8 @@ CSP_STYLE_SRC = (
 )
 CSP_SCRIPT_SRC = (
     "'self'",
-    "'unsafe-inline'",
+    "'nonce-base'",
+    "'nonce-manage-invoices'",
     "https://unpkg.com/htmx.org@1.5.0",
 )
 CSP_IMG_SRC = ("'self'",)

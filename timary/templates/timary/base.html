@@ -20,7 +20,7 @@
 
         {# Third Part JS #}
         <script src="https://unpkg.com/htmx.org@1.5.0"></script>
-        <script>
+        <script nonce="base">
             document.body.addEventListener('htmx:configRequest', (event) => {
                 event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
             })

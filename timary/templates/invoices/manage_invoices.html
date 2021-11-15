@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block js %}
-    <script>
+    <script nonce="manage-invoices">
         document.body.addEventListener('htmx:afterRequest', (event) => {
             if (event.target.id === "invoice-form") {
                 htmx.ajax("GET", "/invoices/new/", "#invoice-div")
