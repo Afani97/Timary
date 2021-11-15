@@ -47,6 +47,8 @@ class DateInput(forms.DateInput):
 
 
 class DailyHoursForm(forms.ModelForm):
+    hours = forms.DecimalField(initial=1)
+
     def __init__(self, *args, **kwargs):
         userprofile = kwargs.pop("userprofile") if "userprofile" in kwargs else None
 
@@ -64,7 +66,12 @@ class DailyHoursForm(forms.ModelForm):
         labels = {"invoice": "Invoice"}
         widgets = {
             "hours": forms.NumberInput(
-                attrs={"value": 1, "max": 23.5, "min": 0.5, "classes": "col-span-1"}
+                attrs={
+                    "value": 1,
+                    "max": 23.5,
+                    "min": 0.5,
+                    "classes": "col-span-1",
+                }
             ),
             "date_tracked": DateInput(
                 attrs={"value": datetime.date.today(), "classes": "col-span-2"}
@@ -78,6 +85,12 @@ class DailyHoursForm(forms.ModelForm):
         }
 
     field_order = ["hours", "date_tracked", "invoice"]
+
+    def clean_date_tracked(self):
+        date_tracked = self.cleaned_data.get("date_tracked")
+        if date_tracked > datetime.date.today():
+            raise ValidationError("Cannot set date into the future!")
+        return date_tracked
 
 
 class UserProfileForm(forms.ModelForm):

@@ -3,8 +3,7 @@
 <form class="card p-5 bg-base-200 bordered"
     hx-put="{{url}}"
     hx-target="{{target}}"
-    hx-swap="{{swap}}"
-    id="{{id}}">
+    hx-swap="{{swap}}">
     {% csrf_token %}
 
     <div class="card-body">
@@ -37,8 +36,8 @@
         {% endfor %}
 
         <div class="card-actions flex justify-center">
-            <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
             <button class="btn btn-primary btn-active" type="submit"> {{ btn_title }} </button>
+            <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
         </div>
     </div>
 

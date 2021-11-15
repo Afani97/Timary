@@ -69,7 +69,7 @@ class TestDailyHours(BaseTest):
             response,
             f'<option value="{hours.invoice.id}" selected>{hours.invoice.title}</option>',
         )
-        self.assertEqual(response.templates[0].name, "hours/edit_hours.html")
+        self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_daily_hours_error(self):
@@ -83,7 +83,7 @@ class TestDailyHours(BaseTest):
         hours = DailyHoursFactory()
         url_params = {
             "hours": random.randint(1, 23),
-            "date_tracked": datetime.date.today() + datetime.timedelta(days=1),
+            "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
             "invoice": str(hours.invoice.id),
         }
         response = self.client.put(
@@ -111,7 +111,7 @@ class TestDailyHours(BaseTest):
         response = self.client.delete(
             reverse("timary:delete_hours", kwargs={"hours_id": hours.id})
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
 
     def test_delete_daily_hours_error(self):
         response = self.client.delete(

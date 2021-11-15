@@ -42,14 +42,6 @@ def get_invoice(request, invoice_id):
 
 
 @login_required()
-@require_http_methods(["DELETE"])
-def delete_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
-    invoice.delete()
-    return HttpResponse("", status=204)
-
-
-@login_required()
 @require_http_methods(["GET"])
 def new_invoice(request):
     return render(request, "invoices/new_invoice.html", {"new_invoice": InvoiceForm()})
@@ -81,5 +73,12 @@ def update_invoice(request, invoice_id):
         invoice.calculate_next_date(update_last=False)
         return render(request, "partials/_invoice.html", {"invoice": invoice})
     else:
-        print(invoice_form.errors)
         raise Http404
+
+
+@login_required()
+@require_http_methods(["DELETE"])
+def delete_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice.delete()
+    return HttpResponse("", status=200)

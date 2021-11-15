@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
@@ -37,21 +38,26 @@ def new_hours(request):
     )
 
 
+def render_hours_form(request, hour_instance, hour_form):
+    context = {
+        "form": hour_form,
+        "url": reverse("timary:update_hours", kwargs={"hours_id": hour_instance.id}),
+        "target": "this",
+        "swap": "outerHTML",
+        "cancel_url": reverse(
+            "timary:get_single_hours", kwargs={"hours_id": hour_instance.id}
+        ),
+        "btn_title": "Update hours",
+    }
+    return render(request, "partials/_htmx_put_form.html", context)
+
+
 @login_required()
 @require_http_methods(["GET"])
 def edit_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    return render(
-        request,
-        "hours/edit_hours.html",
-        {
-            "hour": hours,
-            "edit_hours": DailyHoursForm(
-                instance=hours, userprofile=request.user.userprofile
-            ),
-            "hours_target": f"#{hours.slug_id}",
-        },
-    )
+    hours_form = DailyHoursForm(instance=hours, userprofile=request.user.userprofile)
+    return render_hours_form(request, hour_instance=hours, hour_form=hours_form)
 
 
 @login_required()
@@ -67,8 +73,7 @@ def update_hours(request, hours_id):
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
         response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
         return response
-    else:
-        raise Http404
+    return render_hours_form(request, hour_instance=hours, hour_form=hours_form)
 
 
 @login_required()
@@ -76,6 +81,6 @@ def update_hours(request, hours_id):
 def delete_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
     hours.delete()
-    response = HttpResponse("", status=204)
+    response = HttpResponse("", status=200)
     response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
     return response

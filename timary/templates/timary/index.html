@@ -33,9 +33,6 @@
             if (event.target.id === "hours-form") {
                 document.getElementById("hours-form").reset()
             }
-            if (event.target.id === "update-hours-form") {
-                htmx.ajax("GET", "/hours/new/", "#hours-div")
-            }
         })
     </script>
 {% endblock %}

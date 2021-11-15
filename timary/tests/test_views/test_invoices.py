@@ -45,8 +45,6 @@ class TestInvoices(BaseTest):
     def test_manage_invoices(self):
         invoice = InvoiceFactory(user=self.user)
         response = self.client.get(reverse("timary:manage_invoices"))
-        # invoice.refresh_from_db()
-        # print(response.content.decode())
         self.assertContains(
             response,
             f'<p class="text-xl">{invoice.title} - Rate: ${invoice.hourly_rate}</p>',
@@ -79,7 +77,7 @@ class TestInvoices(BaseTest):
         response = self.client.delete(
             reverse("timary:delete_invoice", kwargs={"invoice_id": invoice.id})
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
 
     def test_delete_daily_hours_error(self):
         response = self.client.delete(

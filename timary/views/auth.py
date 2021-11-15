@@ -8,6 +8,8 @@ from timary.models import UserProfile
 
 
 def register_user(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("timary:index"))
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -35,6 +37,8 @@ def register_user(request):
 
 
 def login_user(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("timary:index"))
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
