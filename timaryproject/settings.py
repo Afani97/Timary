@@ -181,19 +181,17 @@ EMAIL_HOST_PASSWORD = config("NAMECHEAP_PASSWORD", default="abc123")
 EMAIL_USE_TLS = True
 
 # Content Security Policy
-CSP_DEFAULT_SRC = ("'self'",)
+CSP_DEFAULT_SRC = ("'none'",)
 CSP_STYLE_SRC = (
     "'self'",
-    "https://cdn.jsdelivr.net",
-    "https://cdnjs.cloudflare.com",
     "'unsafe-inline'",
+    "https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css",
 )
 CSP_SCRIPT_SRC = (
     "'self'",
-    "https://cdn.jsdelivr.net",
-    "https://cdnjs.cloudflare.com",
-    "https://unpkg.com",
     "'unsafe-inline'",
+    "https://unpkg.com/htmx.org@1.5.0",
 )
 CSP_IMG_SRC = ("'self'",)
 CSP_FONT_SRC = ("'self'",)
