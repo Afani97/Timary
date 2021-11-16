@@ -1,0 +1,32 @@
+{# templates/admin/custom_page.html #}
+
+{% extends 'admin/change_list.html' %}
+
+{% block extrastyle %}
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block pagination %}{% endblock %}
+{% block filters %}{% endblock filters %}
+{% block object-tools %}{% endblock object-tools %}
+{% block search %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">Home</a>
+        {% if page_name %} &rsaquo; {{ page_name }}{% endif %}
+    </div>
+{% endblock %}
+
+{% block result_list %}
+    <div>
+        <div class="text-3xl text-center mb-8">Send Email To Users</div>
+        <div class="p-10 card bg-base-200">
+            <div class="card-body">
+                {% include 'partials/_form.html' with btn_title='Send emails' %}
+            </div>
+        </div>
+    </div>
+
+{% endblock result_list %}

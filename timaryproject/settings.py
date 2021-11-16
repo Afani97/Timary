@@ -172,7 +172,7 @@ Q_CLUSTER = {
 
 # EMAIL
 DEFAULT_FROM_EMAIL = (
-    f"Ari From Timary {config('NAMECHEAP_EMAIL', default='test@test.com')}"
+    f"Ari From Timary <{config('NAMECHEAP_EMAIL', default='test@test.com')}>"
 )
 EMAIL_HOST = "mail.privateemail.com"
 EMAIL_PORT = 587

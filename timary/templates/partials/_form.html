@@ -4,13 +4,23 @@
     {% csrf_token %}
     {% for field in form %}
         <div class="form-control">
-            <label class="label"><span class="label-text">{{ field.label }}</span> </label>
-            {{ field | addclass:"input input-bordered" }}
-            {% for error in field.errors %}
-                <div class="text-red-600">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
+            {% if field.field.widget.attrs.textarea %}
+                <label class="label"><span class="label-text">{{ field.label }}</span> </label>
+                {{ field | addclass:"textarea h-48 textarea-bordered" }}
+                {% for error in field.errors %}
+                    <div class="text-red-600">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <label class="label"><span class="label-text">{{ field.label }}</span> </label>
+                {{ field | addclass:"input input-bordered" }}
+                {% for error in field.errors %}
+                    <div class="text-red-600">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
     {% endfor %}
     <div class="form-control mt-6">
