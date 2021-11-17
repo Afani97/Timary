@@ -98,28 +98,32 @@ class TestSendInvoice(TestCase):
 
         html_message = TestSendInvoice.extract_html()
 
-        next_weeks_date = (
-            localtime(now()).date() + datetime.timedelta(weeks=1)
-        ).strftime("%b. %d, %Y")
-        msg = (
-            f'<span class="preheader">This is an invoice for '
-            f"{invoice.user.user.first_name}'s services. "
-            f"Please submit payment by {next_weeks_date}</span>"
-        )
-        self.assertInHTML(msg, html_message)
+        with self.subTest("Testing header"):
+            next_weeks_date = (
+                localtime(now()).date() + datetime.timedelta(weeks=1)
+            ).strftime("%b. %d, %Y")
+            msg = (
+                f'<span class="preheader">This is an invoice for '
+                f"{invoice.user.user.first_name}'s services. "
+                f"Please submit payment by {next_weeks_date}</span>"
+            )
+            self.assertInHTML(msg, html_message)
 
-        msg = f"""
-        <h1>Hi {invoice.email_recipient_name},</h1>
-        <p>Thanks for using Timary. This is an invoice for {invoice.user.user.first_name}'s services.</p>
-        """
-        self.assertInHTML(msg, html_message)
+        with self.subTest("Testing title"):
+            msg = f"""
+            <h1>Hi {invoice.email_recipient_name},</h1>
+            <p>Thanks for using Timary. This is an invoice for {invoice.user.user.first_name}'s services.</p>
+            """
+            self.assertInHTML(msg, html_message)
 
-        msg = "<strong>Amount Due: $150</strong>"
-        self.assertInHTML(msg, html_message)
+        with self.subTest("Testing amount due"):
+            msg = "<strong>Amount Due: $150</strong>"
+            self.assertInHTML(msg, html_message)
 
-        formatted_date = hours_1.date_tracked.strftime("%b %-d")
-        msg = f"""
-        <td width="80%" class="purchase_item"><span class="f-fallback">1.0 hours on { formatted_date }</span></td>
-        <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
-        """
-        self.assertInHTML(msg, html_message)
+        with self.subTest("Testing one day details"):
+            formatted_date = hours_1.date_tracked.strftime("%b %-d")
+            msg = f"""
+            <td width="80%" class="purchase_item"><span class="f-fallback">1.0 hours on { formatted_date }</span></td>
+            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
+            """
+            self.assertInHTML(msg, html_message)
