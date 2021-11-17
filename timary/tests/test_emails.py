@@ -6,9 +6,8 @@ from django.core import mail
 from django.test import TestCase
 from django.utils.timezone import localtime, now
 
-from timary.models import Invoice
 from timary.tasks import gather_invoices, send_invoice
-from timary.tests.factories import DailyHoursFactory
+from timary.tests.factories import DailyHoursFactory, InvoiceFactory
 
 
 class TestGatherInvoices(TestCase):
@@ -52,15 +51,75 @@ class TestGatherInvoices(TestCase):
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:
-        DailyHoursFactory()
-        self.invoice = Invoice.objects.first()
         self.todays_date = localtime(now()).date()
         self.current_month = date.strftime(self.todays_date, "%m/%Y")
 
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
+
     def test_send_one_invoice(self):
-        send_invoice(self.invoice.id)
+        hours = DailyHoursFactory()
+        send_invoice(hours.invoice.id)
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{self.invoice.title}'s Invoice from {self.invoice.user.user.first_name} for {self.current_month}",
+            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.user.first_name} for {self.current_month}",
         )
+
+    def test_send_two_invoice_and_subjects(self):
+        hours1 = DailyHoursFactory()
+        hours2 = DailyHoursFactory()
+        send_invoice(hours1.invoice.id)
+        send_invoice(hours2.invoice.id)
+        self.assertEquals(len(mail.outbox), 2)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.user.first_name} for {self.current_month}",
+        )
+        self.assertEquals(
+            mail.outbox[1].subject,
+            f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.user.first_name} for {self.current_month}",
+        )
+
+    def test_invoice_context(self):
+        invoice = InvoiceFactory(hourly_rate=25)
+        # Save last date before it's updated in send_invoice method to test email contents below
+        hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
+        DailyHoursFactory(invoice=invoice, hours=2)
+        DailyHoursFactory(invoice=invoice, hours=3)
+
+        send_invoice(invoice.id)
+        invoice.refresh_from_db()
+
+        html_message = TestSendInvoice.extract_html()
+
+        next_weeks_date = (
+            localtime(now()).date() + datetime.timedelta(weeks=1)
+        ).strftime("%b. %d, %Y")
+        msg = (
+            f'<span class="preheader">This is an invoice for '
+            f"{invoice.user.user.first_name}'s services. "
+            f"Please submit payment by {next_weeks_date}</span>"
+        )
+        self.assertInHTML(msg, html_message)
+
+        msg = f"""
+        <h1>Hi {invoice.email_recipient_name},</h1>
+        <p>Thanks for using Timary. This is an invoice for {invoice.user.user.first_name}'s services.</p>
+        """
+        self.assertInHTML(msg, html_message)
+
+        msg = "<strong>Amount Due: $150</strong>"
+        self.assertInHTML(msg, html_message)
+
+        formatted_date = hours_1.date_tracked.strftime("%b %-d")
+        msg = f"""
+        <td width="80%" class="purchase_item"><span class="f-fallback">1.0 hours on { formatted_date }</span></td>
+        <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
+        """
+        self.assertInHTML(msg, html_message)

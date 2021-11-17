@@ -19,7 +19,6 @@ def send_invoice(invoice_id):
     ]
     todays_date = localtime(now()).date()
     current_month = date.strftime(todays_date, "%m/%Y")
-    invoice.calculate_next_date()
 
     msg_subject = render_to_string(
         "email/invoice_subject.html",
@@ -37,10 +36,8 @@ def send_invoice(invoice_id):
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "todays_date": todays_date,
-            "total_hours_worked": total_hours_worked,
         },
     )
-
     send_mail(
         msg_subject,
         None,
@@ -49,6 +46,7 @@ def send_invoice(invoice_id):
         fail_silently=False,
         html_message=msg_body,
     )
+    invoice.calculate_next_date()
 
 
 def gather_invoices():
