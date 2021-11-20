@@ -1,18 +1,30 @@
 {% extends 'timary/base.html' %}
 
 {% block content %}
-    <h1 class="text-3xl mb-8">Your current invoices</h1>
-    <div class="lg:flex lg:justify-between">
-        <ul class="lg:w-1/2 lg:mr-4" id="invoices-list">
+    <div class="flex justify-between">
+        <h1 class="text-3xl mb-8">Your current invoices</h1>
+        <a href="#new-invoice-modal" class="btn btn-primary">New invoice</a>
+    </div>
+
+    <div class="">
+        <ul class="" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}
             {% endfor %}
         </ul>
+    </div>
 
-        <div class="md:w-1/2" id="invoice-div">
+    {# New invoice modal #}
+    <div id="new-invoice-modal" class="modal">
+        <div class="modal-box">
             {% include 'partials/_htmx_post_form.html' with form=new_invoice url="/invoices/" target="#invoices-list" swap="beforeend" btn_title='Add new invoice' id="invoice-form" %}
+            <div class="modal-action">
+                <a href="#" class="btn btn-primary">Accept</a>
+                <a href="#" class="btn">Close</a>
+            </div>
         </div>
     </div>
+    {# New invoice modal #}
 
 {% endblock %}
 

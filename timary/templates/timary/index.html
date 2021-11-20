@@ -1,28 +1,38 @@
 {% extends 'timary/base.html' %}
 
 {% block content %}
-    <div class="flex flex-col md:flex-row justify-around">
-        <div class="bg-gray-50 dark:bg-red-200 shadow-md rounded p-4 md:p-8">
-            <h1 class="hidden md:block md:text-3xl">Dashboard</h1>
-            <h3 class="md:text-lg">Current total stats:</h3>
-            {% include 'partials/_dashboard_stats.html' %}
+    <h1 class="hidden md:block md:text-3xl text-center mt-10">Dashboard</h1>
 
-            <a class="bg-green-600 hover:bg-green-900 text-white md:text-lg font-bold py-1 px-2 md:py-2 md:px-4 rounded"
-                href="{% url 'timary:test-async' %}">
-                Test Async
-            </a>
+    <div class="grid grid-flow-row md:grid-flow-col md:grid-cols-6 gap-3 mt-10">
+        <div class="col-span-3 md:col-span-2">
+            <div class="flex flex-col justify-between items-center">
+                {# Dashboard stats #}
+                <div class="rounded">
+                    <h3 class="md:text-lg uppercase text-center mb-2">Current total stats</h3>
+                    {% include 'partials/_dashboard_stats.html' %}
+                </div>
+                {# Dashboard stats #}
+
+                {# New hours modal #}
+                <div id="my-modal" class="modal">
+                    <div class="modal-box">
+                        {% include 'partials/_htmx_post_form.html' with form=new_hours url="/hours/" target="#hours-list" swap="beforeend" btn_title='Add new hours' id="hours-form" %}
+                        <div class="modal-action">
+                            <a href="#" class="btn btn-primary">Accept</a>
+                            <a href="#" class="btn">Close</a>
+                        </div>
+                    </div>
+                </div>
+                {# New hours modal #}
+            </div>
         </div>
-        <div class="md:w-1/3 mt-4 md:mt-0" id="hours-div">
-            {% include 'partials/_htmx_post_form.html' with form=new_hours url="/hours/" target="#hours-list" swap="afterbegin" btn_title='Add new hours' id="hours-form" %}
-        </div>
+
+        <ul id="hours-list" class="col-span-3 mt-10 md:mt-0 md:col-span-4">
+            {% for hour in hours %}
+                {% include 'partials/_hour.html' with hour=hour %}
+            {% endfor %}
+        </ul>
     </div>
 
-    <hr class="my-4">
-
-    <ul id="hours-list">
-        {% for hour in hours %}
-            {% include 'partials/_hour.html' with hour=hour %}
-        {% endfor %}
-    </ul>
 
 {% endblock %}

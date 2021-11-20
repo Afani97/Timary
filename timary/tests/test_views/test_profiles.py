@@ -43,12 +43,12 @@ class TestUserProfiles(BaseTest):
         self.assertContains(
             response,
             f'<input type="email" name="email" value="{self.profile.user.email}" '
-            f'class="input input-bordered" required id="id_email">',
+            f'class="input input-bordered md:w-32" required id="id_email">',
         )
         self.assertContains(
             response,
             f'<input type="text" name="first_name" value="{self.profile.user.first_name}" '
-            f'class="input input-bordered" required id="id_first_name">',
+            f'class="input input-bordered md:w-32" required id="id_first_name">',
         )
 
     def test_update_user_profile(self):
@@ -86,7 +86,7 @@ class TestUserProfiles(BaseTest):
             response,
             f"""
                     <input type="email" name="email" value="{profile.user.email}"
-                    class="input input-bordered" required id="id_email">
+                    class="input input-bordered md:w-32" required id="id_email">
 
                         <div class="text-red-600">
                             <strong>Email already registered!</strong>

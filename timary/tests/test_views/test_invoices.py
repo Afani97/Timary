@@ -91,7 +91,7 @@ class TestInvoices(BaseTest):
         response = self.client.get(
             reverse("timary:edit_invoice", kwargs={"invoice_id": invoice.id}),
         )
-        self.assertEqual(response.templates[0].name, "invoices/edit_invoice.html")
+        self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_invoice_error(self):

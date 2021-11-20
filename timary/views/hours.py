@@ -28,16 +28,6 @@ def get_hours(request, hours_id):
     return render(request, "partials/_hour.html", {"hour": hours})
 
 
-@login_required()
-@require_http_methods(["GET"])
-def new_hours(request):
-    return render(
-        request,
-        "hours/new_hours.html",
-        {"new_hours": DailyHoursForm(userprofile=request.user.userprofile)},
-    )
-
-
 def render_hours_form(request, hour_instance, hour_form):
     context = {
         "form": hour_form,

@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
@@ -47,18 +48,29 @@ def new_invoice(request):
     return render(request, "invoices/new_invoice.html", {"new_invoice": InvoiceForm()})
 
 
+def render_invoices_form(request, invoice_instance, invoice_form):
+    context = {
+        "form": invoice_form,
+        "url": reverse(
+            "timary:update_invoice", kwargs={"invoice_id": invoice_instance.id}
+        ),
+        "target": "this",
+        "swap": "outerHTML",
+        "cancel_url": reverse(
+            "timary:get_single_invoice", kwargs={"invoice_id": invoice_instance.id}
+        ),
+        "btn_title": "Update invoice",
+    }
+    return render(request, "partials/_htmx_put_form.html", context)
+
+
 @login_required()
 @require_http_methods(["GET"])
 def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    return render(
-        request,
-        "invoices/edit_invoice.html",
-        {
-            "invoice": invoice,
-            "edit_invoice": InvoiceForm(instance=invoice),
-            "invoice_target": f"#{invoice.slug_title}",
-        },
+    invoice_form = InvoiceForm(instance=invoice)
+    return render_invoices_form(
+        request, invoice_instance=invoice, invoice_form=invoice_form
     )
 
 
@@ -72,8 +84,9 @@ def update_invoice(request, invoice_id):
         invoice = invoice_form.save()
         invoice.calculate_next_date(update_last=False)
         return render(request, "partials/_invoice.html", {"invoice": invoice})
-    else:
-        raise Http404
+    return render_invoices_form(
+        request, invoice_instance=invoice, invoice_form=invoice_form
+    )
 
 
 @login_required()

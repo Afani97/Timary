@@ -12,7 +12,6 @@ admin.site.__class__ = TimaryAdminSite
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("test-async", views.test_async, name="test-async"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
 ]
 
@@ -29,7 +28,6 @@ urlpatterns += [
 # HOURS URLS
 urlpatterns += [
     path("hours/", views.create_daily_hours, name="create_hours"),
-    path("hours/new/", views.new_hours, name="new_hours"),
     path("hours/<uuid:hours_id>/", views.get_hours, name="get_single_hours"),
     path("hours/<uuid:hours_id>/edit/", views.edit_hours, name="edit_hours"),
     path("hours/<uuid:hours_id>/update/", views.update_hours, name="update_hours"),

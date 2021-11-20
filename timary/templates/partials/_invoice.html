@@ -1,4 +1,4 @@
-<li class="bg-green-100 shadow-md rounded p-8 my-5"
+<li class="shadow-md rounded my-5"
     id="{{invoice.slug_title}}">
 
     <div class="flex flex-col lg:flex-row justify-between space-y-2 md:space-y-0">
@@ -9,11 +9,12 @@
             <div class="text-sm">Next date sent is: {{ invoice.next_date }}</div>
         </div>
 
-        <div class="space-x-5">
+        <div class="">
 
             <a class="bg-gray-300 hover:bg-gray-600 text-black hover:text-white p-2 rounded"
                 hx-get="{% url 'timary:edit_invoice' invoice.id %}"
-                hx-target="#invoice-form" hx-swap="outerHTML">
+                hx-target="closest li"
+                hx-swap="outerHTML">
                 Edit
             </a>
 
