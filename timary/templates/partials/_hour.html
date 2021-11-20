@@ -1,20 +1,16 @@
-<li class="shadow-md rounded" id="{{hour.slug_id}}">
-    <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0">
-        <div>
-            <div class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked }} for {{ hour.invoice.title }}</div>
-            {% if hour.notes %}
-                <div class="text-sm">{{ hour.notes }}</div>
-            {% endif %}
-        </div>
-        <div class="">
-            <a class="btn btn-info btn-xs md:btn-md"
+<li class="card shadow-lg bordered px-6 md:px-0" id="[{hour.slug_id}}">
+    <div class="card-body">
+        <h2 class="card-title">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked }}</h2>
+        <p>{{ hour.invoice.title }}</p>
+        <div class="card-actions">
+            <a class="btn btn-sm md:btn-md btn-primary"
                 hx-get="{% url 'timary:edit_hours' hour.id %}"
                 hx-target="closest li"
                 hx-swap="outerHTML">
                 Edit
             </a>
 
-            <a class="btn btn-outline btn-accent btn-xs md:btn-md"
+            <a class="btn btn-sm md:btn-md btn-outline btn-accent"
                 hx-delete="{% url 'timary:delete_hours' hour.id %}"
                 hx-confirm="Are you sure you want to delete these hours?"
                 hx-target="closest li"
