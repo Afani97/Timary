@@ -93,8 +93,7 @@ class TestDailyHours(BaseTest):
         hours.refresh_from_db()
         self.assertContains(
             response,
-            f'<div class="text-xl">{int(hours.hours)} hrs on '
-            f'{hours.date_tracked.strftime("%b. %d, %Y")} for {hours.invoice.title}</div>',
+            f'<h2 class="card-title">{int(hours.hours)} hrs on {hours.date_tracked.strftime("%b. %d, %Y")}</h2>',
         )
         self.assertEqual(response.templates[0].name, "partials/_hour.html")
         self.assertEqual(response.status_code, 200)

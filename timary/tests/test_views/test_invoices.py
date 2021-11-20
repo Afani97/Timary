@@ -33,11 +33,9 @@ class TestInvoices(BaseTest):
         self.assertContains(
             response,
             f"""
-        <div>
-            <p class="text-xl">{invoice.title} - Rate: ${invoice.hourly_rate}</p>
-            <div class="text-sm">Invoice is sent daily to {inv_name} ({inv_email})</div>
-            <div class="text-sm">Next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</div>
-        </div>""",
+        <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+        <p>sent daily to {inv_name} ({inv_email})</p>
+        <p>next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -47,7 +45,7 @@ class TestInvoices(BaseTest):
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertContains(
             response,
-            f'<p class="text-xl">{invoice.title} - Rate: ${invoice.hourly_rate}</p>',
+            f'<h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>',
         )
         self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -120,11 +118,9 @@ class TestInvoices(BaseTest):
         self.assertContains(
             response,
             f"""
-        <div>
-            <p class="text-xl">{invoice.title} - Rate: ${invoice.hourly_rate}</p>
-            <div class="text-sm">Invoice is sent daily to {inv_name} ({inv_email})</div>
-            <div class="text-sm">Next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</div>
-        </div>""",
+        <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+        <p>sent daily to {inv_name} ({inv_email})</p>
+        <p>next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
