@@ -17,6 +17,7 @@ repos:
     rev: main
     hooks:
       - id: djhtml
+        exclude: '^staticfiles/'
   - repo: "https://github.com/pycqa/isort"
     rev: 5.10.1
     hooks:
@@ -30,7 +31,6 @@ repos:
     rev: 21.10b0
     hooks:
       - id: black
-
   - repo: local
     hooks:
       - id: django-check

@@ -12,6 +12,9 @@ run:
 	python manage.py runserver & python manage.py qcluster
 .PHONY: run
 
+static:
+	python manage.py collectstatic --no-input
+.PHONY: static
 
 test:
 	python manage.py test --failfast

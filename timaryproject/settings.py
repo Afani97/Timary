@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    # WHITENOISE
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     # 3RD PARTY
     "django_q",
@@ -50,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -205,6 +208,9 @@ CSP_FRAME_ANCESTORS = ("'none'",)
 CSP_FORM_ACTION = ("'self'",)
 CSP_INCLUDE_NONCE_IN = ("script-src",)
 CSP_MEDIA_SRC = ("'self'",)
+
+# WHITENOISE
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
