@@ -44,6 +44,7 @@ def render_hours_form(request, hour_instance, hour_form):
         "cancel_url": reverse(
             "timary:get_single_hours", kwargs={"hours_id": hour_instance.id}
         ),
+        "md_size": True,
         "btn_title": "Update hours",
     }
     return render(request, "partials/_htmx_put_form.html", context)

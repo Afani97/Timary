@@ -9,8 +9,14 @@
     {% csrf_token %}
 
     <div class="card-body">
+        {# Should the put htmx form be responsive to screen size #}
+        {% if md_size %}
+            <div class="flex flex-row space-x-5 justify-center">
+        {% else %}
+            <div class="md:block">
+        {% endif %}
         {% for field in form.visible_fields %}
-            <div class="form-control {{field.field.widget.attrs.classes}}">
+            <div class="form-control">
                 {% if field.field.widget.attrs.collapse %}
                     <details>
                         <summary class="label"><span class="label-text">Add {{ field.label }}?</span></summary>
@@ -37,14 +43,15 @@
             </div>
         {% endfor %}
     </div>
-    <div class="card-actions flex justify-center">
-        {% if modal %}
-            <a href="#" class="btn" id="{{ close_link_id }}">Close</a>
-        {% endif %}
-        {% if cancel_url %}
-            <button class="btn btn-ghost" hx-get="{{cancel_url}}" hx-trigger="click" hx-target="closest form" hx-swap="outerHTML">Cancel</button>
-        {% endif %}
-        <button hx-trigger="enterKey, click" class="btn btn-primary" type="submit"> {{ btn_title }}</button>
-    </div>
+</div>
+<div class="card-actions flex justify-center">
+    {% if modal %}
+        <a href="#" class="btn" id="{{ close_link_id }}">Close</a>
+    {% endif %}
+    {% if cancel_url %}
+        <button class="btn btn-ghost" hx-get="{{cancel_url}}" hx-trigger="click" hx-target="closest form" hx-swap="outerHTML">Cancel</button>
+    {% endif %}
+    <button hx-trigger="enterKey, click" class="btn btn-primary" type="submit"> {{ btn_title }}</button>
+</div>
 
 </form>

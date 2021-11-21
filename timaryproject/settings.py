@@ -193,6 +193,7 @@ CSP_STYLE_SRC = (
 )
 CSP_SCRIPT_SRC = (
     "'self'",
+    "'unsafe-eval'",
     "'nonce-base'",
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",

@@ -19,19 +19,21 @@ class InvoiceForm(forms.ModelForm):
         ]
         widgets = {
             "title": forms.TextInput(
-                attrs={"placeholder": "New Saas App...", "classes": "col-span-5"}
+                attrs={
+                    "placeholder": "New Saas App...",
+                }
             ),
             "hourly_rate": forms.NumberInput(
-                attrs={"value": 50, "min": 1, "max": 1000, "classes": "col-span-2"}
+                attrs={
+                    "value": 50,
+                    "min": 1,
+                    "max": 1000,
+                }
             ),
-            "invoice_interval": forms.Select(
-                attrs={"label": "Invoice", "classes": "col-span-2"}
-            ),
-            "email_recipient_name": forms.TextInput(
-                attrs={"placeholder": "John", "classes": "col-span-3"}
-            ),
+            "invoice_interval": forms.Select(attrs={"label": "Invoice"}),
+            "email_recipient_name": forms.TextInput(attrs={"placeholder": "John"}),
             "email_recipient": forms.EmailInput(
-                attrs={"placeholder": "john@company.com", "classes": "col-span-3"}
+                attrs={"placeholder": "john@company.com"}
             ),
         }
 
@@ -72,16 +74,11 @@ class DailyHoursForm(forms.ModelForm):
             "date_tracked": DateInput(
                 attrs={
                     "value": datetime.date.today(),
-                    "classes": "col-span-2",
                     "max": datetime.date.today(),
                 }
             ),
-            "invoice": forms.Select(
-                attrs={"label": "Invoice", "classes": "col-span-2"}
-            ),
-            "notes": forms.Textarea(
-                attrs={"rows": 4, "cols": 30, "collapse": True, "classes": "col-span-5"}
-            ),
+            "invoice": forms.Select(attrs={"label": "Invoice"}),
+            "notes": forms.Textarea(attrs={"rows": 4, "cols": 30, "collapse": True}),
         }
 
     field_order = ["hours", "date_tracked", "invoice"]

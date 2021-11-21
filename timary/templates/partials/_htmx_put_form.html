@@ -7,39 +7,45 @@
     {% csrf_token %}
 
     <div class="card-body">
-        <div class="md:flex md:flex-row md:space-x-5 md:justify-center">
-            {% for field in form.visible_fields %}
-                <div class="form-control">
-                    {% if field.field.widget.attrs.collapse %}
-                        <details>
-                            <summary class="label"><span class="label-text">Add {{ field.label }}?</span></summary>
-                            <div>
-                                {{ field | addclass:"input input-bordered md:w-32" }}
-                                {% for error in field.errors %}
-                                    <div class="text-red-600">
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </details>
-                    {% else %}
-                        <label class="label"><span class="label-text">{{ field.label }}</span></label>
-                        {{ field | addclass:"input input-bordered md:w-32" }}
+        {# Should the put htmx form be responsive to screen size #}
+        {% if md_size %}
+            <div class="flex flex-row space-x-5 justify-center">
+        {% else %}
+            <div class="md:flex md:flex-row md:space-x-5 md:justify-center">
+        {% endif %}
 
-                        {% for error in field.errors %}
-                            <div class="text-red-600">
-                                <strong>{{ error|escape }}</strong>
-                            </div>
-                        {% endfor %}
+        {% for field in form.visible_fields %}
+            <div class="form-control">
+                {% if field.field.widget.attrs.collapse %}
+                    <details>
+                        <summary class="label"><span class="label-text">Add {{ field.label }}?</span></summary>
+                        <div>
+                            {{ field | addclass:"input input-bordered md:w-32" }}
+                            {% for error in field.errors %}
+                                <div class="text-red-600">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% else %}
+                    <label class="label"><span class="label-text">{{ field.label }}</span></label>
+                    {{ field | addclass:"input input-bordered md:w-32" }}
 
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-        <div class="card-actions flex justify-center">
-            <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
-            <button class="btn btn-primary" type="submit"> {{ btn_title }} </button>
-        </div>
+                    {% for error in field.errors %}
+                        <div class="text-red-600">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
+    <div class="card-actions flex justify-center">
+        <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
+        <button class="btn btn-primary" type="submit"> {{ btn_title }} </button>
+    </div>
+</div>
 
 </form>
