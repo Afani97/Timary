@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse, QueryDict
+from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -16,9 +16,16 @@ def create_daily_hours(request):
         hours = hours_form.save()
         response = render(request, "partials/_hour.html", {"hour": hours})
         response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         return response
-    else:
-        raise Http404
+    context = {
+        "form": hours_form,
+        "url": "/hours/",
+        "target": "#hours-list",
+        "swap": "afterbegin",
+        "btn_title": "Add new hours",
+    }
+    return render(request, "partials/_htmx_post_form.html", context, status=400)
 
 
 @login_required()

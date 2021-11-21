@@ -39,7 +39,7 @@ class DailyHoursInput(BaseModel):
         "timary.Invoice", on_delete=models.CASCADE, related_name="hours_tracked"
     )
     hours = models.DecimalField(
-        default=0,
+        default=1,
         max_digits=3,
         decimal_places=1,
         validators=[validate_less_than_24_hours, validate_greater_than_zero_hours],

@@ -4,12 +4,11 @@
     hx-post="{{url}}"
     hx-target="{{target}}"
     hx-swap="{{swap}}"
-    id="{{id}}" >
+    id="{{id}}">
 
     {% csrf_token %}
 
     <div class="card-body">
-
         {% for field in form.visible_fields %}
             <div class="form-control {{field.field.widget.attrs.classes}}">
                 {% if field.field.widget.attrs.collapse %}
@@ -39,11 +38,13 @@
         {% endfor %}
     </div>
     <div class="card-actions flex justify-center">
-        <button hx-trigger="enterKey, click" class="btn btn-primary btn-active" type="submit"> {{ btn_title }}</button>
+        {% if modal %}
+            <a href="#" class="btn" id="{{ close_link_id }}">Close</a>
+        {% endif %}
         {% if cancel_url %}
             <button class="btn btn-ghost" hx-get="{{cancel_url}}" hx-trigger="click" hx-target="closest form" hx-swap="outerHTML">Cancel</button>
         {% endif %}
-
+        <button hx-trigger="enterKey, click" class="btn btn-primary" type="submit"> {{ btn_title }}</button>
     </div>
 
 </form>

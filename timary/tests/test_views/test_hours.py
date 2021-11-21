@@ -43,7 +43,7 @@ class TestDailyHours(BaseTest):
             reverse("timary:create_hours"),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
     def test_get_hours(self):
         rendered_template = self.setup_template(

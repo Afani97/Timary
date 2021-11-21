@@ -30,7 +30,7 @@ class InvoiceForm(forms.ModelForm):
             "email_recipient_name": forms.TextInput(
                 attrs={"placeholder": "John", "classes": "col-span-3"}
             ),
-            "email_recipient": forms.TextInput(
+            "email_recipient": forms.EmailInput(
                 attrs={"placeholder": "john@company.com", "classes": "col-span-3"}
             ),
         }
@@ -47,8 +47,6 @@ class DateInput(forms.DateInput):
 
 
 class DailyHoursForm(forms.ModelForm):
-    hours = forms.DecimalField(initial=1)
-
     def __init__(self, *args, **kwargs):
         userprofile = kwargs.pop("userprofile") if "userprofile" in kwargs else None
 
@@ -63,18 +61,20 @@ class DailyHoursForm(forms.ModelForm):
     class Meta:
         model = DailyHoursInput
         fields = ["hours", "date_tracked", "invoice"]
-        labels = {"invoice": "Invoice"}
         widgets = {
             "hours": forms.NumberInput(
                 attrs={
-                    "value": 1,
-                    "max": 23.5,
-                    "min": 0.5,
-                    "classes": "col-span-1",
+                    "value": 1.0,
+                    "max": 24,
+                    "min": 1,
                 }
             ),
             "date_tracked": DateInput(
-                attrs={"value": datetime.date.today(), "classes": "col-span-2"}
+                attrs={
+                    "value": datetime.date.today(),
+                    "classes": "col-span-2",
+                    "max": datetime.date.today(),
+                }
             ),
             "invoice": forms.Select(
                 attrs={"label": "Invoice", "classes": "col-span-2"}

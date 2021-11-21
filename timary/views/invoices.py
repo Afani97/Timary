@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse, QueryDict
+from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -30,9 +30,17 @@ def create_invoice(request):
         invoice.user = user.userprofile
         invoice.calculate_next_date()
         invoice.save()
-        return render(request, "partials/_invoice.html", {"invoice": invoice})
-    else:
-        raise Http404
+        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        return response
+    context = {
+        "form": invoice_form,
+        "url": "/invoices/",
+        "target": "#invoices-list",
+        "swap": "beforeend",
+        "btn_title": "Add new invoice",
+    }
+    return render(request, "partials/_htmx_post_form.html", context, status=400)
 
 
 @login_required()

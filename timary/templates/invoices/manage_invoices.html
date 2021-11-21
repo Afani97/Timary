@@ -3,10 +3,10 @@
 {% block content %}
     <div class="flex flex-col md:flex-row justify-between mt-10">
         <h1 class="text-3xl mb-8 text-center">Your current invoices</h1>
-        <a href="#new-invoice-modal" class="btn btn-primary btn-active">New invoice</a>
+        <a href="#new-invoice-modal" class="btn btn-primary">New invoice</a>
     </div>
 
-    <div class="">
+    <div>
         <ul class="" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}
@@ -17,11 +17,7 @@
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box">
-            {% include 'partials/_htmx_post_form.html' with form=new_invoice url="/invoices/" target="#invoices-list" swap="beforeend" btn_title='Add new invoice' id="invoice-form" %}
-            <div class="modal-action">
-                <a href="#" class="btn btn-primary">Accept</a>
-                <a href="#" class="btn">Close</a>
-            </div>
+            {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend"  modal="true" btn_title='Add new invoice' close_link_id="close-invoice-modal" %}
         </div>
     </div>
     {# New invoice modal #}
@@ -29,11 +25,10 @@
 {% endblock %}
 
 {% block js %}
-    <script nonce="manage-invoices">
-        document.body.addEventListener('htmx:afterRequest', (event) => {
-            if (event.target.id === "invoice-form") {
-                htmx.ajax("GET", "/invoices/new/", "#invoice-div")
-            }
+    <script nonce="clear-invoice-modal">
+        document.body.addEventListener("clearModal", function(){
+            document.getElementById("close-invoice-modal").click();
+            document.getElementById("new-invoice-form").reset();
         })
     </script>
-{% endblock %}
+{% endblock  %}
