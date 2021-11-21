@@ -194,7 +194,6 @@ CSP_STYLE_SRC = (
 CSP_SCRIPT_SRC = (
     "'self'",
     "'nonce-base'",
-    "'nonce-manage-invoices'",
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",
     "https://unpkg.com/htmx.org@1.5.0",
