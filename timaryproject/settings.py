@@ -172,6 +172,7 @@ Q_CLUSTER = {
     "bulk": 10,
     "orm": "default",
     "sync": False,
+    "poll": 60 * 30,  # Every thirty minutes
 }
 
 # EMAIL
