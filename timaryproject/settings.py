@@ -104,6 +104,7 @@ if not DEBUG:
             "PORT": config("DB_PORT"),
         }
     }
+    CONN_MAX_AGE = None
 
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
