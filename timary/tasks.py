@@ -17,6 +17,10 @@ def send_invoice(invoice_id):
     total_hours_worked = hours_tracked.aggregate(total_hours=Sum("hours"))[
         "total_hours"
     ]
+    if hours_tracked.count() <= 0:
+        # There is nothing to invoice, update next date for invoice email.
+        invoice.calculate_next_date()
+        return
     todays_date = localtime(now()).date()
     current_month = date.strftime(todays_date, "%m/%Y")
 

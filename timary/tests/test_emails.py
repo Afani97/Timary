@@ -71,6 +71,22 @@ class TestSendInvoice(TestCase):
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.user.first_name} for {self.current_month}",
         )
 
+    def test_dont_send_invoice_if_no_tracked_hours(self):
+        hours = DailyHoursFactory(
+            date_tracked=(self.todays_date - datetime.timedelta(days=1))
+        )
+        hours.invoice.last_date = self.todays_date
+        hours.invoice.save()
+        hours.save()
+
+        send_invoice(hours.invoice.id)
+        self.assertEqual(len(mail.outbox), 0)
+
+        hours.invoice.refresh_from_db()
+        self.assertEqual(
+            hours.invoice.next_date, self.todays_date + hours.invoice.get_next_date()
+        )
+
     def test_send_two_invoice_and_subjects(self):
         hours1 = DailyHoursFactory()
         hours2 = DailyHoursFactory()
