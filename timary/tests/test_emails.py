@@ -117,7 +117,7 @@ class TestSendInvoice(TestCase):
         with self.subTest("Testing header"):
             next_weeks_date = (
                 localtime(now()).date() + datetime.timedelta(weeks=1)
-            ).strftime("%b. %d, %Y")
+            ).strftime("%b. %-d, %Y")
             msg = (
                 f'<span class="preheader">This is an invoice for '
                 f"{invoice.user.user.first_name}'s services. "
