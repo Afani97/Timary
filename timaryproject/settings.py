@@ -94,18 +94,6 @@ DATABASES = {
 }
 
 if not DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": config("DB_NAME"),
-            "USER": config("DB_USER"),
-            "PASSWORD": config("DB_PASS"),
-            "HOST": config("DB_HOST"),
-            "PORT": config("DB_PORT"),
-            "CONN_MAX_AGE": 600,
-        }
-    }
-
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -218,12 +206,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     Q_CLUSTER["sync"] = True
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-        }
-    }
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
