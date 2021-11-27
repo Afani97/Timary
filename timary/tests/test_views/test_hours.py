@@ -1,6 +1,5 @@
 import datetime
 import random
-import uuid
 
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -20,7 +19,8 @@ class TestDailyHours(BaseTest):
 
         self.user = UserProfilesFactory()
         self.client.force_login(self.user.user)
-        self.hours_1 = DailyHoursFactory()
+        self.hours = DailyHoursFactory(invoice__user=self.user)
+        self.hours_no_user = DailyHoursFactory()
 
     def test_create_daily_hours(self):
         DailyHoursInput.objects.all().delete()
@@ -47,74 +47,75 @@ class TestDailyHours(BaseTest):
 
     def test_get_hours(self):
         rendered_template = self.setup_template(
-            "partials/_hour.html", {"hour": self.hours_1}
+            "partials/_hour.html", {"hour": self.hours}
         )
         response = self.client.get(
-            reverse("timary:get_single_hours", kwargs={"hours_id": self.hours_1.id})
+            reverse("timary:get_single_hours", kwargs={"hours_id": self.hours.id})
         )
+        self.assertEqual(response.status_code, 200)
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_get_hours_error(self):
         response = self.client.get(
-            reverse("timary:get_single_hours", kwargs={"hours_id": uuid.uuid4()})
+            reverse(
+                "timary:get_single_hours", kwargs={"hours_id": self.hours_no_user.id}
+            )
         )
         self.assertEqual(response.status_code, 404)
 
     def test_edit_daily_hours(self):
-        hours = DailyHoursFactory(invoice__user=self.user)
         response = self.client.get(
-            reverse("timary:edit_hours", kwargs={"hours_id": hours.id}),
+            reverse("timary:edit_hours", kwargs={"hours_id": self.hours.id}),
         )
         self.assertContains(
             response,
-            f'<option value="{hours.invoice.id}" selected>{hours.invoice.title}</option>',
+            f'<option value="{self.hours.invoice.id}" selected>{self.hours.invoice.title}</option>',
         )
         self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_daily_hours_error(self):
         response = self.client.get(
-            reverse("timary:edit_hours", kwargs={"hours_id": uuid.uuid4()}),
+            reverse("timary:edit_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
         self.assertEqual(response.status_code, 404)
 
     def test_update_daily_hours(self):
-        hours = DailyHoursFactory()
         url_params = {
             "hours": random.randint(1, 23),
             "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
-            "invoice": str(hours.invoice.id),
+            "invoice": str(self.hours.invoice.id),
         }
         response = self.client.put(
-            reverse("timary:update_hours", kwargs={"hours_id": hours.id}),
+            reverse("timary:update_hours", kwargs={"hours_id": self.hours.id}),
             data=urlencode(url_params),  # HTML PUT FORM
         )
-        hours.refresh_from_db()
+        self.hours.refresh_from_db()
         self.assertContains(
             response,
-            f'<h2 class="card-title">{int(hours.hours)} hrs on {hours.date_tracked.strftime("%b. %d, %Y")}</h2>',
+            f'<h2 class="card-title">{int(self.hours.hours)} hrs on '
+            f'{self.hours.date_tracked.strftime("%b. %-d, %Y")}</h2>',
         )
         self.assertEqual(response.templates[0].name, "partials/_hour.html")
         self.assertEqual(response.status_code, 200)
 
     def test_update_daily_hours_error(self):
         response = self.client.put(
-            reverse("timary:update_hours", kwargs={"hours_id": uuid.uuid4()}),
+            reverse("timary:update_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
         self.assertEqual(response.status_code, 404)
 
     def test_delete_daily_hours(self):
-        hours = DailyHoursFactory()
         response = self.client.delete(
-            reverse("timary:delete_hours", kwargs={"hours_id": hours.id})
+            reverse("timary:delete_hours", kwargs={"hours_id": self.hours.id})
         )
         self.assertEqual(response.status_code, 200)
 
     def test_delete_daily_hours_error(self):
         response = self.client.delete(
-            reverse("timary:delete_hours", kwargs={"hours_id": uuid.uuid4()}),
+            reverse("timary:delete_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
         self.assertEqual(response.status_code, 404)

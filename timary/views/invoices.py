@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, QueryDict
+from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -47,6 +47,8 @@ def create_invoice(request):
 @require_http_methods(["GET"])
 def get_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user.userprofile != invoice.user:
+        raise Http404
     return render(request, "partials/_invoice.html", {"invoice": invoice})
 
 
@@ -76,6 +78,8 @@ def render_invoices_form(request, invoice_instance, invoice_form):
 @require_http_methods(["GET"])
 def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user.userprofile != invoice.user:
+        raise Http404
     invoice_form = InvoiceForm(instance=invoice)
     return render_invoices_form(
         request, invoice_instance=invoice, invoice_form=invoice_form
@@ -86,6 +90,8 @@ def edit_invoice(request, invoice_id):
 @require_http_methods(["PUT"])
 def update_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user.userprofile != invoice.user:
+        raise Http404
     put_params = QueryDict(request.body)
     invoice_form = InvoiceForm(put_params, instance=invoice)
     if invoice_form.is_valid():
@@ -101,5 +107,7 @@ def update_invoice(request, invoice_id):
 @require_http_methods(["DELETE"])
 def delete_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user.userprofile != invoice.user:
+        raise Http404
     invoice.delete()
     return HttpResponse("", status=200)

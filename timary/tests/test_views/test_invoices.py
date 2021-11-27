@@ -1,5 +1,3 @@
-import uuid
-
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -14,8 +12,11 @@ class TestInvoices(BaseTest):
 
         self.user = UserProfilesFactory()
         self.client.force_login(self.user.user)
+        self.invoice = InvoiceFactory(user=self.user)
+        self.invoice_no_user = InvoiceFactory()
 
     def test_create_invoice(self):
+        Invoice.objects.all().delete()
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
@@ -41,11 +42,10 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_manage_invoices(self):
-        invoice = InvoiceFactory(user=self.user)
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertContains(
             response,
-            f'<h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>',
+            f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
         )
         self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -55,52 +55,55 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 400)
 
     def test_get_invoice(self):
-        invoice = InvoiceFactory()
         rendered_template = self.setup_template(
-            "partials/_invoice.html", {"invoice": invoice}
+            "partials/_invoice.html", {"invoice": self.invoice}
         )
         response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": invoice.id})
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_get_invoice_error(self):
         response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": uuid.uuid4()})
+            reverse(
+                "timary:get_single_invoice",
+                kwargs={"invoice_id": self.invoice_no_user.id},
+            )
         )
         self.assertEqual(response.status_code, 404)
 
     def test_delete_invoice(self):
-        invoice = InvoiceFactory()
         response = self.client.delete(
-            reverse("timary:delete_invoice", kwargs={"invoice_id": invoice.id})
+            reverse("timary:delete_invoice", kwargs={"invoice_id": self.invoice.id})
         )
         self.assertEqual(response.status_code, 200)
 
     def test_delete_daily_hours_error(self):
         response = self.client.delete(
-            reverse("timary:delete_invoice", kwargs={"invoice_id": uuid.uuid4()}),
+            reverse(
+                "timary:delete_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
+            ),
             data={},
         )
         self.assertEqual(response.status_code, 404)
 
     def test_edit_invoice(self):
-        invoice = InvoiceFactory()
         response = self.client.get(
-            reverse("timary:edit_invoice", kwargs={"invoice_id": invoice.id}),
+            reverse("timary:edit_invoice", kwargs={"invoice_id": self.invoice.id}),
         )
         self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_invoice_error(self):
         response = self.client.get(
-            reverse("timary:edit_invoice", kwargs={"invoice_id": uuid.uuid4()}),
+            reverse(
+                "timary:edit_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
+            ),
             data={},
         )
         self.assertEqual(response.status_code, 404)
 
     def test_update_daily_hours(self):
-        invoice = InvoiceFactory()
         url_params = {
             "title": "Some title",
             "hourly_rate": 100,
@@ -109,25 +112,27 @@ class TestInvoices(BaseTest):
             "email_recipient": "mike@test.com",
         }
         response = self.client.put(
-            reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
+            reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
             data=urlencode(url_params),  # HTML PUT FORM
         )
-        invoice.refresh_from_db()
-        inv_name = invoice.email_recipient_name
-        inv_email = invoice.email_recipient
+        self.invoice.refresh_from_db()
+        inv_name = self.invoice.email_recipient_name
+        inv_email = self.invoice.email_recipient
         self.assertContains(
             response,
             f"""
-        <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+        <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
         <p>sent daily to {inv_name} ({inv_email})</p>
-        <p>next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</p>""",
+        <p>next date sent is: {self.invoice.next_date.strftime("%b. %d, %Y")}</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
     def test_update_invoice_error(self):
         response = self.client.put(
-            reverse("timary:update_invoice", kwargs={"invoice_id": uuid.uuid4()}),
+            reverse(
+                "timary:update_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
+            ),
             data={},
         )
         self.assertEqual(response.status_code, 404)

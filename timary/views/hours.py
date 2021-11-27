@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, QueryDict
+from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -32,6 +32,8 @@ def create_daily_hours(request):
 @require_http_methods(["GET"])
 def get_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user.userprofile != hours.invoice.user:
+        raise Http404
     return render(request, "partials/_hour.html", {"hour": hours})
 
 
@@ -54,6 +56,8 @@ def render_hours_form(request, hour_instance, hour_form):
 @require_http_methods(["GET"])
 def edit_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user.userprofile != hours.invoice.user:
+        raise Http404
     hours_form = DailyHoursForm(instance=hours, userprofile=request.user.userprofile)
     return render_hours_form(request, hour_instance=hours, hour_form=hours_form)
 
@@ -62,6 +66,8 @@ def edit_hours(request, hours_id):
 @require_http_methods(["PUT"])
 def update_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user.userprofile != hours.invoice.user:
+        raise Http404
     put_params = QueryDict(request.body)
     hours_form = DailyHoursForm(
         put_params, instance=hours, userprofile=request.user.userprofile
@@ -78,6 +84,8 @@ def update_hours(request, hours_id):
 @require_http_methods(["DELETE"])
 def delete_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user.userprofile != hours.invoice.user:
+        raise Http404
     hours.delete()
     response = HttpResponse("", status=200)
     response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
