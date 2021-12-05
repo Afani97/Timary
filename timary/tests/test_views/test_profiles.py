@@ -1,25 +1,25 @@
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.tests.factories import UserProfilesFactory
+from timary.tests.factories import UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
-class TestUserProfiles(BaseTest):
+class TestUsers(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 
-        self.profile = UserProfilesFactory()
-        self.client.force_login(self.profile.user)
+        self.user = UserFactory()
+        self.client.force_login(self.user)
 
     def test_get_profile_page(self):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertContains(
             response,
             f"""
-        <h2 class="card-title text-center">{self.profile.user.first_name} {self.profile.user.last_name}</h2>
-        <p class="text-center">{self.profile.user.email}</p>
-        <p class="text-center">{self.profile.phone_number}</p>""",
+        <h2 class="card-title text-center">{self.user.first_name} {self.user.last_name}</h2>
+        <p class="text-center">{self.user.email}</p>
+        <p class="text-center">{self.user.phone_number}</p>""",
         )
 
     def test_get_profile_page_redirect(self):
@@ -29,7 +29,7 @@ class TestUserProfiles(BaseTest):
 
     def test_get_profile_partial(self):
         rendered_template = self.setup_template(
-            "partials/_profile.html", {"profile": self.profile}
+            "partials/_profile.html", {"user": self.user}
         )
         response = self.client.get(reverse("timary:user_profile_partial"))
         self.assertHTMLEqual(rendered_template, response.content.decode())
@@ -43,23 +43,23 @@ class TestUserProfiles(BaseTest):
         response = self.client.get(reverse("timary:edit_user_profile"))
         self.assertContains(
             response,
-            f'<input type="email" name="email" value="{self.profile.user.email}" '
+            f'<input type="email" name="email" value="{self.user.email}" '
             f'class="input input-bordered w-full" required id="id_email">',
         )
         self.assertContains(
             response,
-            f'<input type="text" name="first_name" value="{self.profile.user.first_name}" '
+            f'<input type="text" name="first_name" value="{self.user.first_name}" '
             f'class="input input-bordered w-full" required id="id_first_name">',
         )
         self.assertContains(
             response,
-            f'<input type="text" name="last_name" value="{self.profile.user.last_name}" '
+            f'<input type="text" name="last_name" value="{self.user.last_name}" '
             f'placeholder="Appleseed" maxlength="150" '
             f'class="input input-bordered w-full" id="id_last_name">',
         )
         self.assertContains(
             response,
-            f'<input type="text" name="phone_number" value="{self.profile.phone_number}" placeholder="+13334445555" '
+            f'<input type="text" name="phone_number" value="{self.user.phone_number}" placeholder="+13334445555" '
             f'class="input input-bordered w-full" id="id_phone_number">',
         )
 
@@ -74,7 +74,7 @@ class TestUserProfiles(BaseTest):
             reverse("timary:update_user_profile"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
-        self.profile.refresh_from_db()
+        self.user.refresh_from_db()
         self.assertContains(
             response,
             """
@@ -85,10 +85,10 @@ class TestUserProfiles(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_profile.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_user_profile_email_already_registered(self):
-        profile = UserProfilesFactory()
+    def test_update_user_email_already_registered(self):
+        user = UserFactory()
         url_params = {
-            "email": profile.user.email,
+            "email": user.email,
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+14445556666",
@@ -100,7 +100,7 @@ class TestUserProfiles(BaseTest):
         self.assertContains(
             response,
             f"""
-                    <input type="email" name="email" value="{profile.user.email}"
+                    <input type="email" name="email" value="{user.email}"
                     class="input input-bordered w-full" required id="id_email">
 
                         <div class="text-red-600">
@@ -112,7 +112,7 @@ class TestUserProfiles(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_user_profile_redirect(self):
+    def test_update_user_redirect(self):
         self.client.logout()
         url_params = {
             "email": "user@test.com",

@@ -1,16 +1,15 @@
 from django import forms
 from django.contrib import admin, messages
-from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.response import TemplateResponse
 from django.urls import path
 
-from . import models
+from timary.models import DailyHoursInput, Invoice, User
 
 # Register your models here.
-admin.site.register(models.UserProfile)
-admin.site.register(models.Invoice)
-admin.site.register(models.DailyHoursInput)
+admin.site.register(User)
+admin.site.register(Invoice)
+admin.site.register(DailyHoursInput)
 
 
 class SendEmailForm(forms.Form):

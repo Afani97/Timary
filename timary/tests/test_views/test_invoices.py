@@ -2,7 +2,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from timary.models import Invoice
-from timary.tests.factories import InvoiceFactory, UserProfilesFactory
+from timary.tests.factories import InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -10,8 +10,8 @@ class TestInvoices(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 
-        self.user = UserProfilesFactory()
-        self.client.force_login(self.user.user)
+        self.user = UserFactory()
+        self.client.force_login(self.user)
         self.invoice = InvoiceFactory(user=self.user)
         self.invoice_no_user = InvoiceFactory()
 

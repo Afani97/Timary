@@ -4,21 +4,19 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import UserProfileForm
+from timary.forms import UserForm
 
 
 @login_required()
 @require_http_methods(["GET"])
 def user_profile(request):
-    userprofile = request.user.userprofile
-    return render(request, "timary/profile.html", {"profile": userprofile})
+    return render(request, "timary/profile.html", {"profile": request.user})
 
 
 @login_required()
 @require_http_methods(["GET"])
 def profile_partial(request):
-    userprofile = request.user.userprofile
-    return render(request, "partials/_profile.html", {"profile": userprofile})
+    return render(request, "partials/_profile.html", {"profile": request.user})
 
 
 def render_profile_form(request, profile_form=None):
@@ -38,21 +36,16 @@ def render_profile_form(request, profile_form=None):
 @login_required()
 @require_http_methods(["GET"])
 def edit_user_profile(request):
-    userprofile = request.user.userprofile
-    profile_form = UserProfileForm(instance=userprofile.user)
+    profile_form = UserForm(instance=request.user)
     return render_profile_form(request, profile_form)
 
 
 @login_required()
 @require_http_methods(["PUT"])
 def update_user_profile(request):
-    user = request.user
     put_params = QueryDict(request.body)
-    user_form = UserProfileForm(put_params, instance=user)
+    user_form = UserForm(put_params, instance=request.user)
     if user_form.is_valid():
-        saved_user = user_form.save()
-        userprofile = saved_user.userprofile
-        userprofile.phone_number = user_form.cleaned_data.get("phone_number")
-        userprofile.save()
-        return render(request, "partials/_profile.html", {"profile": userprofile})
+        user = user_form.save()
+        return render(request, "partials/_profile.html", {"user": user})
     return render_profile_form(request=request, profile_form=user_form)

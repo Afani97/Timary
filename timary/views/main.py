@@ -18,7 +18,7 @@ def landing_page(request):
 
 def get_dashboard_stats(user, hours_tracked=None):
     if not hours_tracked:
-        hours_tracked = get_hours_tracked(user.userprofile)
+        hours_tracked = get_hours_tracked(user)
 
     total_hours_sum = hours_tracked.aggregate(total_hours=Sum("hours"))["total_hours"]
     total_amount_sum = hours_tracked.annotate(
@@ -32,9 +32,9 @@ def get_dashboard_stats(user, hours_tracked=None):
     return dashboard
 
 
-def get_hours_tracked(userprofile):
+def get_hours_tracked(user):
     return (
-        DailyHoursInput.objects.filter(invoice__user=userprofile)
+        DailyHoursInput.objects.filter(invoice__user=user)
         .select_related("invoice")
         .order_by("-date_tracked")
     )
@@ -44,10 +44,10 @@ def get_hours_tracked(userprofile):
 @require_http_methods(["GET"])
 def index(request):
     user = request.user
-    hours_tracked = get_hours_tracked(user.userprofile)
+    hours_tracked = get_hours_tracked(user)
 
     context = {
-        "new_hours": DailyHoursForm(userprofile=user.userprofile),
+        "new_hours": DailyHoursForm(user=user),
         "hours": hours_tracked,
         "dashboard": get_dashboard_stats(user, hours_tracked=hours_tracked),
     }

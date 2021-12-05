@@ -3,14 +3,8 @@ import uuid
 
 from django.test import TestCase
 
-from timary.forms import (
-    DailyHoursForm,
-    InvoiceForm,
-    LoginForm,
-    RegisterForm,
-    UserProfileForm,
-)
-from timary.tests.factories import InvoiceFactory, UserFactory, UserProfilesFactory
+from timary.forms import DailyHoursForm, InvoiceForm, LoginForm, RegisterForm, UserForm
+from timary.tests.factories import InvoiceFactory, UserFactory
 
 
 class TestLogin(TestCase):
@@ -272,24 +266,24 @@ class TestDailyHours(TestCase):
             },
         )
 
-    def test_hours_with_user_profile_and_1_invoice(self):
-        profile = UserProfilesFactory()
-        profile.invoices.add(self.invoice)
+    def test_hours_with_user_and_1_invoice(self):
+        user = UserFactory()
+        user.invoices.add(self.invoice)
         form = DailyHoursForm(
             data={
                 "hours": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
             },
-            userprofile=profile,
+            user=user,
         )
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [self.invoice])
 
-    def test_hours_with_user_profile_and_associated_invoices(self):
-        profile = UserProfilesFactory()
+    def test_hours_with_user_and_associated_invoices(self):
+        user = UserFactory()
         InvoiceFactory()
-        inv_1 = InvoiceFactory(user=profile)
-        inv_2 = InvoiceFactory(user=profile)
+        inv_1 = InvoiceFactory(user=user)
+        inv_2 = InvoiceFactory(user=user)
 
         form = DailyHoursForm(
             data={
@@ -297,7 +291,7 @@ class TestDailyHours(TestCase):
                 "invoice": inv_1.id,
                 "date_tracked": self.today,
             },
-            userprofile=profile,
+            user=user,
         )
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [inv_1, inv_2])
 
@@ -313,13 +307,13 @@ class TestDailyHours(TestCase):
         )
 
 
-class TestUserProfile(TestCase):
+class TestUser(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = UserFactory()
 
-    def test_userprofile_success(self):
-        form = UserProfileForm(
+    def test_user_success(self):
+        form = UserForm(
             data={
                 "email": "user@test.com",
                 "first_name": self.user.first_name,
@@ -329,8 +323,8 @@ class TestUserProfile(TestCase):
         )
         self.assertEqual(form.errors, {})
 
-    def test_userprofile_missing_email_error(self):
-        form = UserProfileForm(
+    def test_user_missing_email_error(self):
+        form = UserForm(
             data={
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
@@ -338,8 +332,8 @@ class TestUserProfile(TestCase):
         )
         self.assertEqual(form.errors, {"email": ["This field is required."]})
 
-    def test_userprofile_missing_first_name_error(self):
-        form = UserProfileForm(
+    def test_user_missing_first_name_error(self):
+        form = UserForm(
             data={
                 "email": "user@test.com",
                 "last_name": self.user.last_name,
@@ -347,8 +341,8 @@ class TestUserProfile(TestCase):
         )
         self.assertEqual(form.errors, {"first_name": ["This field is required."]})
 
-    def test_userprofile_already_present_email_error(self):
-        form = UserProfileForm(
+    def test_user_already_present_email_error(self):
+        form = UserForm(
             data={
                 "email": self.user.email,
                 "first_name": self.user.first_name,
@@ -357,8 +351,8 @@ class TestUserProfile(TestCase):
         )
         self.assertEqual(form.errors, {"email": ["Email already registered!"]})
 
-    def test_userprofile_already_invalid_name_error(self):
-        form = UserProfileForm(
+    def test_user_already_invalid_name_error(self):
+        form = UserForm(
             data={
                 "email": "user@test.com",
                 "first_name": self.user.first_name + "123",
@@ -367,8 +361,8 @@ class TestUserProfile(TestCase):
         )
         self.assertEqual(form.errors, {"first_name": ["Only valid names allowed."]})
 
-    def test_userprofile_invalid_phone_number_error(self):
-        form = UserProfileForm(
+    def test_user_invalid_phone_number_error(self):
+        form = UserForm(
             data={
                 "email": "user@test.com",
                 "first_name": self.user.first_name,
@@ -380,8 +374,8 @@ class TestUserProfile(TestCase):
             form.errors, {"phone_number": ["Wrong format, needs to be: +13334445555"]}
         )
 
-    def test_userprofile_missing_fields_error(self):
-        form = UserProfileForm(data={})
+    def test_user_missing_fields_error(self):
+        form = UserForm(data={})
         self.assertEqual(
             form.errors,
             {

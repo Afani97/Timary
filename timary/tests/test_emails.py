@@ -68,7 +68,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.user.first_name} for {self.current_month}",
+            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {self.current_month}",
         )
 
     def test_dont_send_invoice_if_no_tracked_hours(self):
@@ -95,11 +95,11 @@ class TestSendInvoice(TestCase):
         self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.user.first_name} for {self.current_month}",
+            f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.first_name} for {self.current_month}",
         )
         self.assertEquals(
             mail.outbox[1].subject,
-            f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.user.first_name} for {self.current_month}",
+            f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.first_name} for {self.current_month}",
         )
 
     def test_invoice_context(self):
@@ -120,7 +120,7 @@ class TestSendInvoice(TestCase):
             ).strftime("%b. %-d, %Y")
             msg = (
                 f'<span class="preheader">This is an invoice for '
-                f"{invoice.user.user.first_name}'s services. "
+                f"{invoice.user.first_name}'s services. "
                 f"Please submit payment by {next_weeks_date}</span>"
             )
             self.assertInHTML(msg, html_message)
@@ -128,7 +128,7 @@ class TestSendInvoice(TestCase):
         with self.subTest("Testing title"):
             msg = f"""
             <h1>Hi {invoice.email_recipient_name},</h1>
-            <p>Thanks for using Timary. This is an invoice for {invoice.user.user.first_name}'s services.</p>
+            <p>Thanks for using Timary. This is an invoice for {invoice.user.first_name}'s services.</p>
             """
             self.assertInHTML(msg, html_message)
 

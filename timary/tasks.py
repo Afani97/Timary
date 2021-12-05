@@ -32,7 +32,7 @@ def send_invoice(invoice_id):
     msg_body = render_to_string(
         "email/styled_email.html",
         {
-            "user_name": invoice.user.user.first_name,
+            "user_name": invoice.user.first_name,
             "next_weeks_date": todays_date + timedelta(weeks=1),
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_hours_worked * invoice.hourly_rate,

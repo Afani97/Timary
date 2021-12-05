@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 from timary.models import DailyHoursInput, Invoice
-from timary.tests.factories import InvoiceFactory, UserProfilesFactory
+from timary.tests.factories import InvoiceFactory, UserFactory
 
 
 class TestDailyHours(TestCase):
@@ -51,11 +51,11 @@ class TestDailyHours(TestCase):
 
 class TestInvoice(TestCase):
     def test_invoice(self):
-        profile = UserProfilesFactory()
+        user = UserFactory()
         next_date = datetime.date.today() + datetime.timedelta(weeks=1)
         invoice = Invoice.objects.create(
             title="Some title",
-            user=profile,
+            user=user,
             hourly_rate=100,
             email_recipient_name="User",
             email_recipient="user@test.com",
@@ -66,7 +66,7 @@ class TestInvoice(TestCase):
         self.assertIsNotNone(invoice)
         self.assertIsNotNone(invoice.email_id)
         self.assertEqual(invoice.title, "Some title")
-        self.assertEqual(invoice.user, profile)
+        self.assertEqual(invoice.user, user)
         self.assertEqual(invoice.hourly_rate, 100)
         self.assertEqual(invoice.email_recipient_name, "User")
         self.assertEqual(invoice.email_recipient, "user@test.com")
@@ -75,17 +75,17 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.slug_title, slugify(invoice.title))
 
     def test_error_creating_invoice_rate_less_than_1(self):
-        profile = UserProfilesFactory()
+        user = UserFactory()
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
-                user=profile,
+                user=user,
                 hourly_rate=-10,
                 email_recipient_name="User",
                 email_recipient="user@test.com",
             )
 
-    def test_error_creating_invoice_without_user_profile(self):
+    def test_error_creating_invoice_without_user(self):
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
@@ -95,21 +95,21 @@ class TestInvoice(TestCase):
             )
 
     def test_error_creating_invoice_without_email_recipient_name(self):
-        profile = UserProfilesFactory()
+        user = UserFactory()
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
-                user=profile,
+                user=user,
                 hourly_rate=-10,
                 email_recipient="user@test.com",
             )
 
     def test_error_creating_invoice_without_email_recipient(self):
-        profile = UserProfilesFactory()
+        user = UserFactory()
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
-                user=profile,
+                user=user,
                 hourly_rate=-10,
                 email_recipient_name="User",
             )

@@ -1,18 +1,18 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from timary.tests.factories import UserProfilesFactory
+from timary.tests.factories import UserFactory
 
 
 class TestAuthViews(TestCase):
     def setUp(self):
         self.client = Client()
-        self.profile = UserProfilesFactory()
+        self.user = UserFactory()
 
     def test_login(self):
         response = self.client.post(
             reverse("timary:login"),
-            {"email": self.profile.user.email, "password": "Apple101!"},
+            {"email": self.user.email, "password": "Apple101!"},
         )
         self.assertEquals(response.status_code, 302)
         self.assertEquals(response.url, reverse("timary:index"))
@@ -49,7 +49,7 @@ class TestAuthViews(TestCase):
     def test_logout(self):
         self.client.post(
             reverse("timary:login"),
-            {"email": self.profile.user.email, "password": "Apple101"},
+            {"email": self.user.email, "password": "Apple101"},
         )
 
         response = self.client.get(reverse("timary:logout"))

@@ -3,7 +3,7 @@ import uuid
 from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -82,7 +82,7 @@ class Invoice(BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)
     user = models.ForeignKey(
-        "timary.UserProfile", on_delete=models.CASCADE, related_name="invoices"
+        "timary.User", on_delete=models.CASCADE, related_name="invoices"
     )
 
     hourly_rate = models.IntegerField(
@@ -142,9 +142,8 @@ class Invoice(BaseModel):
         self.save()
 
 
-class UserProfile(BaseModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class User(AbstractUser, BaseModel):
     phone_number = models.CharField(max_length=16, unique=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
+        return f"{self.first_name} {self.last_name} ({self.username})"

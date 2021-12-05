@@ -11,8 +11,7 @@ from timary.models import Invoice
 @login_required()
 @require_http_methods(["GET"])
 def manage_invoices(request):
-    user = request.user
-    invoices = user.userprofile.invoices.all()
+    invoices = request.user.invoices.all()
     return render(
         request,
         "invoices/manage_invoices.html",
@@ -27,7 +26,7 @@ def create_invoice(request):
     invoice_form = InvoiceForm(request.POST)
     if invoice_form.is_valid():
         invoice = invoice_form.save(commit=False)
-        invoice.user = user.userprofile
+        invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
@@ -47,7 +46,7 @@ def create_invoice(request):
 @require_http_methods(["GET"])
 def get_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    if request.user.userprofile != invoice.user:
+    if request.user != invoice.user:
         raise Http404
     return render(request, "partials/_invoice.html", {"invoice": invoice})
 
@@ -78,7 +77,7 @@ def render_invoices_form(request, invoice_instance, invoice_form):
 @require_http_methods(["GET"])
 def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    if request.user.userprofile != invoice.user:
+    if request.user != invoice.user:
         raise Http404
     invoice_form = InvoiceForm(instance=invoice)
     return render_invoices_form(
@@ -90,7 +89,7 @@ def edit_invoice(request, invoice_id):
 @require_http_methods(["PUT"])
 def update_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    if request.user.userprofile != invoice.user:
+    if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
     invoice_form = InvoiceForm(put_params, instance=invoice)
@@ -107,7 +106,7 @@ def update_invoice(request, invoice_id):
 @require_http_methods(["DELETE"])
 def delete_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    if request.user.userprofile != invoice.user:
+    if request.user != invoice.user:
         raise Http404
     invoice.delete()
     return HttpResponse("", status=200)

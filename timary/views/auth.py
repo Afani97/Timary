@@ -4,7 +4,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from timary.forms import LoginForm, RegisterForm
-from timary.models import UserProfile
 
 
 def register_user(request):
@@ -13,18 +12,10 @@ def register_user(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            email = form.cleaned_data.get("email")
-            user.username = email
-            user.email = email
-            user.first_name = form.cleaned_data.get("first_name")
-            user.save()
-
+            user = form.save()
             password = form.cleaned_data.get("password")
             authenticated_user = authenticate(username=user.username, password=password)
             if authenticated_user:
-                user_profile = UserProfile(user=user)
-                user_profile.save()
                 login(request, authenticated_user)
                 return redirect(reverse("timary:index"))
             else:

@@ -32,7 +32,7 @@ def create_daily_hours(request):
 @require_http_methods(["GET"])
 def get_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    if request.user.userprofile != hours.invoice.user:
+    if request.user != hours.invoice.user:
         raise Http404
     return render(request, "partials/_hour.html", {"hour": hours})
 
@@ -56,9 +56,9 @@ def render_hours_form(request, hour_instance, hour_form):
 @require_http_methods(["GET"])
 def edit_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    if request.user.userprofile != hours.invoice.user:
+    if request.user != hours.invoice.user:
         raise Http404
-    hours_form = DailyHoursForm(instance=hours, userprofile=request.user.userprofile)
+    hours_form = DailyHoursForm(instance=hours, user=request.user)
     return render_hours_form(request, hour_instance=hours, hour_form=hours_form)
 
 
@@ -66,12 +66,10 @@ def edit_hours(request, hours_id):
 @require_http_methods(["PUT"])
 def update_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    if request.user.userprofile != hours.invoice.user:
+    if request.user != hours.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    hours_form = DailyHoursForm(
-        put_params, instance=hours, userprofile=request.user.userprofile
-    )
+    hours_form = DailyHoursForm(put_params, instance=hours, user=request.user)
     if hours_form.is_valid():
         updated_hours = hours_form.save()
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
@@ -84,7 +82,7 @@ def update_hours(request, hours_id):
 @require_http_methods(["DELETE"])
 def delete_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    if request.user.userprofile != hours.invoice.user:
+    if request.user != hours.invoice.user:
         raise Http404
     hours.delete()
     response = HttpResponse("", status=200)

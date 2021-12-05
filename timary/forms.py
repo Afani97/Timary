@@ -1,11 +1,10 @@
 import datetime
 
 from django.contrib.auth.forms import forms
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
-from timary.models import DailyHoursInput, Invoice
+from timary.models import DailyHoursInput, Invoice, User
 
 
 class InvoiceForm(forms.ModelForm):
@@ -51,12 +50,12 @@ class DateInput(forms.DateInput):
 
 class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        userprofile = kwargs.pop("userprofile") if "userprofile" in kwargs else None
+        user = kwargs.pop("user") if "user" in kwargs else None
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
-        if userprofile:
-            invoice_qs = Invoice.objects.filter(user=userprofile)
+        if user:
+            invoice_qs = Invoice.objects.filter(user=user)
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
@@ -97,7 +96,7 @@ phone_number_regex = RegexValidator(
 )
 
 
-class UserProfileForm(forms.ModelForm):
+class UserForm(forms.ModelForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True)
     phone_number = forms.CharField(
@@ -105,11 +104,6 @@ class UserProfileForm(forms.ModelForm):
         validators=[phone_number_regex],
         widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
     )
-
-    def __init__(self, *args, **kwargs):
-        super(UserProfileForm, self).__init__(*args, **kwargs)
-        if hasattr(self.instance, "userprofile"):
-            self.fields["phone_number"].initial = self.instance.userprofile.phone_number
 
     class Meta:
         model = User
@@ -179,6 +173,7 @@ class RegisterForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        user.username = self.cleaned_data["email"]
         if commit:
             user.save()
         return user

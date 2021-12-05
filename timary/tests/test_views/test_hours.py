@@ -5,11 +5,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from timary.models import DailyHoursInput
-from timary.tests.factories import (
-    DailyHoursFactory,
-    InvoiceFactory,
-    UserProfilesFactory,
-)
+from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -17,8 +13,8 @@ class TestDailyHours(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 
-        self.user = UserProfilesFactory()
-        self.client.force_login(self.user.user)
+        self.user = UserFactory()
+        self.client.force_login(self.user)
         self.hours = DailyHoursFactory(invoice__user=self.user)
         self.hours_no_user = DailyHoursFactory()
 
