@@ -27,6 +27,7 @@ class UserProfilesFactory(DjangoModelFactory):
         model = models.UserProfile
 
     user = factory.SubFactory(UserFactory)
+    phone_number = factory.Faker("phone_number", locale="en_US")
 
 
 def get_next_date():

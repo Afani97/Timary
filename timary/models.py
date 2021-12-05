@@ -144,6 +144,7 @@ class Invoice(BaseModel):
 
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=16, unique=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"

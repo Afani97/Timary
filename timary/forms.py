@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.forms import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 
 from timary.models import DailyHoursInput, Invoice
 
@@ -91,18 +92,35 @@ class DailyHoursForm(forms.ModelForm):
         return date_tracked
 
 
+phone_number_regex = RegexValidator(
+    regex=r"^\+?1?\d{8,15}$", message="Wrong format, needs to be: +13334445555"
+)
+
+
 class UserProfileForm(forms.ModelForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True)
+    phone_number = forms.CharField(
+        required=False,
+        validators=[phone_number_regex],
+        widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        if hasattr(self.instance, "userprofile"):
+            self.fields["phone_number"].initial = self.instance.userprofile.phone_number
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name"]
+        fields = ["email", "first_name", "last_name", "phone_number"]
         widgets = {
             "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
             "first_name": forms.TextInput(attrs={"placeholder": "John"}),
             "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
         }
+
+    field_order = ["first_name", "last_name", "email", "phone_number"]
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get("first_name")

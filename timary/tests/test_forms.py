@@ -324,6 +324,7 @@ class TestUserProfile(TestCase):
                 "email": "user@test.com",
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
+                "phone_number": "+13334445555",
             }
         )
         self.assertEqual(form.errors, {})
@@ -365,6 +366,19 @@ class TestUserProfile(TestCase):
             }
         )
         self.assertEqual(form.errors, {"first_name": ["Only valid names allowed."]})
+
+    def test_userprofile_invalid_phone_number_error(self):
+        form = UserProfileForm(
+            data={
+                "email": "user@test.com",
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+                "phone_number": "abc123",
+            }
+        )
+        self.assertEqual(
+            form.errors, {"phone_number": ["Wrong format, needs to be: +13334445555"]}
+        )
 
     def test_userprofile_missing_fields_error(self):
         form = UserProfileForm(data={})

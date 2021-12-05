@@ -28,6 +28,7 @@ def render_profile_form(request, profile_form=None):
         "target": "this",
         "swap": "outerHTML",
         "id": "update-user-profile",
+        "md_block": True,
         "cancel_url": reverse("timary:user_profile_partial"),
         "btn_title": "Update profile",
     }
@@ -47,9 +48,11 @@ def edit_user_profile(request):
 def update_user_profile(request):
     user = request.user
     put_params = QueryDict(request.body)
-    profile_form = UserProfileForm(put_params, instance=user)
-    if profile_form.is_valid():
-        update_profile = profile_form.save()
-        userprofile = update_profile.userprofile
+    user_form = UserProfileForm(put_params, instance=user)
+    if user_form.is_valid():
+        saved_user = user_form.save()
+        userprofile = saved_user.userprofile
+        userprofile.phone_number = user_form.cleaned_data.get("phone_number")
+        userprofile.save()
         return render(request, "partials/_profile.html", {"profile": userprofile})
-    return render_profile_form(request=request, profile_form=profile_form)
+    return render_profile_form(request=request, profile_form=user_form)

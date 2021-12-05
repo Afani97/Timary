@@ -18,7 +18,8 @@ class TestUserProfiles(BaseTest):
             response,
             f"""
         <h2 class="card-title text-center">{self.profile.user.first_name} {self.profile.user.last_name}</h2>
-        <p class="text-center">{self.profile.user.email}</p>""",
+        <p class="text-center">{self.profile.user.email}</p>
+        <p class="text-center">{self.profile.phone_number}</p>""",
         )
 
     def test_get_profile_page_redirect(self):
@@ -43,12 +44,23 @@ class TestUserProfiles(BaseTest):
         self.assertContains(
             response,
             f'<input type="email" name="email" value="{self.profile.user.email}" '
-            f'class="input input-bordered md:w-32" required id="id_email">',
+            f'class="input input-bordered w-full" required id="id_email">',
         )
         self.assertContains(
             response,
             f'<input type="text" name="first_name" value="{self.profile.user.first_name}" '
-            f'class="input input-bordered md:w-32" required id="id_first_name">',
+            f'class="input input-bordered w-full" required id="id_first_name">',
+        )
+        self.assertContains(
+            response,
+            f'<input type="text" name="last_name" value="{self.profile.user.last_name}" '
+            f'placeholder="Appleseed" maxlength="150" '
+            f'class="input input-bordered w-full" id="id_last_name">',
+        )
+        self.assertContains(
+            response,
+            f'<input type="text" name="phone_number" value="{self.profile.phone_number}" placeholder="+13334445555" '
+            f'class="input input-bordered w-full" id="id_phone_number">',
         )
 
     def test_update_user_profile(self):
@@ -56,6 +68,7 @@ class TestUserProfiles(BaseTest):
             "email": "user@test.com",
             "first_name": "Test",
             "last_name": "Test",
+            "phone_number": "+13334445555",
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
@@ -66,17 +79,19 @@ class TestUserProfiles(BaseTest):
             response,
             """
         <h2 class="card-title text-center">Test Test</h2>
-        <p class="text-center">user@test.com</p>""",
+        <p class="text-center">user@test.com</p>
+        <p class="text-center">+13334445555</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_profile.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_user_profile_email_already_registerd(self):
+    def test_update_user_profile_email_already_registered(self):
         profile = UserProfilesFactory()
         url_params = {
             "email": profile.user.email,
             "first_name": "Test",
             "last_name": "Test",
+            "phone_number": "+14445556666",
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
@@ -86,7 +101,7 @@ class TestUserProfiles(BaseTest):
             response,
             f"""
                     <input type="email" name="email" value="{profile.user.email}"
-                    class="input input-bordered md:w-32" required id="id_email">
+                    class="input input-bordered w-full" required id="id_email">
 
                         <div class="text-red-600">
                             <strong>Email already registered!</strong>
@@ -103,6 +118,7 @@ class TestUserProfiles(BaseTest):
             "email": "user@test.com",
             "first_name": "Test",
             "last_name": "Test",
+            "phone_number": "+13334445555",
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
