@@ -11,7 +11,8 @@ app_name = "timary"
 admin.site.__class__ = TimaryAdminSite
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.landing_page, name="landing_page"),
+    path("main/", views.index, name="index"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
 ]
 

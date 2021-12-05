@@ -7,8 +7,12 @@ ks:
 	pkill -f runserver qcluster
 .PHONY: ks
 
-run:
+run-async:
 	python manage.py runserver & python manage.py qcluster
+.PHONY: run-async
+
+run:
+	python manage.py runserver
 .PHONY: run
 
 runp:

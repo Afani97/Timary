@@ -36,7 +36,7 @@ class TestInvoices(BaseTest):
             f"""
         <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
         <p>sent daily to {inv_name} ({inv_email})</p>
-        <p>next date sent is: {invoice.next_date.strftime("%b. %d, %Y")}</p>""",
+        <p>next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -123,7 +123,7 @@ class TestInvoices(BaseTest):
             f"""
         <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
         <p>sent daily to {inv_name} ({inv_email})</p>
-        <p>next date sent is: {self.invoice.next_date.strftime("%b. %d, %Y")}</p>""",
+        <p>next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>""",
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)

@@ -1,12 +1,19 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django_q.tasks import async_task
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
+
+
+def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("timary:index"))
+    return render(request, "timary/landing_page.html", {})
 
 
 def get_dashboard_stats(user, hours_tracked=None):
