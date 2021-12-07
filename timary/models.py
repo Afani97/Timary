@@ -1,7 +1,9 @@
+import datetime
 import random
 import uuid
 from datetime import timedelta
 
+import dateutil
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -34,6 +36,49 @@ class BaseModel(models.Model):
         abstract = True
 
 
+class HoursQuerySet(models.QuerySet):
+    def current_month(self, user):
+        current_date = datetime.datetime.today()
+        return (
+            self.filter(
+                invoice__user=user,
+                date_tracked__month__gte=current_date.month,
+                date_tracked__year__gte=current_date.year,
+            )
+            .select_related("invoice")
+            .order_by("-date_tracked")
+        )
+
+    def last_month(self, user):
+        last_month = datetime.datetime.today() - dateutil.relativedelta.relativedelta(
+            months=1
+        )
+        current_date = datetime.datetime.today()
+        return (
+            self.filter(
+                invoice__user=user,
+                date_tracked__month__gte=last_month.month,
+                date_tracked__month__lt=current_date.month,
+                date_tracked__year__gte=last_month.year,
+                date_tracked__year__lte=current_date.year,
+            )
+            .select_related("invoice")
+            .order_by("-date_tracked")
+        )
+
+    def current_year(self, user):
+        current_date = datetime.datetime.today()
+        return (
+            self.filter(
+                invoice__user=user,
+                date_tracked__month__gte=1,
+                date_tracked__year__gte=current_date.year,
+            )
+            .select_related("invoice")
+            .order_by("-date_tracked")
+        )
+
+
 class DailyHoursInput(BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="hours_tracked"
@@ -46,6 +91,9 @@ class DailyHoursInput(BaseModel):
     )
     notes = models.CharField(max_length=2000, null=True, blank=True)
     date_tracked = models.DateField()
+
+    objects = models.Manager()
+    all_hours = HoursQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.invoice.title} - {self.date_tracked} - {self.hours}"

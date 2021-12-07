@@ -1,10 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django_q.tasks import async_task
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
@@ -16,41 +14,40 @@ def landing_page(request):
     return render(request, "timary/landing_page.html", {})
 
 
-def get_dashboard_stats(user, hours_tracked=None):
-    if not hours_tracked:
-        hours_tracked = get_hours_tracked(user)
-
+def get_dashboard_stats(hours_tracked):
     total_hours_sum = hours_tracked.aggregate(total_hours=Sum("hours"))["total_hours"]
     total_amount_sum = hours_tracked.annotate(
         total_amount=F("hours") * F("invoice__hourly_rate")
     ).aggregate(total=Sum("total_amount"))["total"]
 
-    dashboard = {
+    stats = {
         "total_hours": total_hours_sum or 0,
         "total_amount": total_amount_sum or 0,
     }
-    return dashboard
+    return stats
 
 
 def get_hours_tracked(user):
-    return (
-        DailyHoursInput.objects.filter(invoice__user=user)
-        .select_related("invoice")
-        .order_by("-date_tracked")
-    )
+    current_month = DailyHoursInput.all_hours.current_month(user)
+    last_month = DailyHoursInput.all_hours.last_month(user)
+    current_year = DailyHoursInput.all_hours.current_year(user)
+    context = {
+        "current_month": get_dashboard_stats(current_month),
+        "last_month": get_dashboard_stats(last_month),
+        "current_year": get_dashboard_stats(current_year),
+    }
+    return context
 
 
 @login_required
 @require_http_methods(["GET"])
 def index(request):
     user = request.user
-    hours_tracked = get_hours_tracked(user)
-
     context = {
         "new_hours": DailyHoursForm(user=user),
-        "hours": hours_tracked,
-        "dashboard": get_dashboard_stats(user, hours_tracked=hours_tracked),
+        "hours": DailyHoursInput.all_hours.current_month(user),
     }
+    context.update(get_hours_tracked(user))
     return render(request, "timary/index.html", context=context)
 
 
@@ -60,12 +57,5 @@ def dashboard_stats(request):
     return render(
         request,
         "partials/_dashboard_stats.html",
-        {"dashboard": get_dashboard_stats(request.user)},
+        get_hours_tracked(request.user),
     )
-
-
-@login_required()
-@require_http_methods(["GET"])
-def test_async(request):
-    async_task("timary.tasks.gather_invoices")
-    return HttpResponse(status=204)
