@@ -69,7 +69,7 @@ def gather_invoices():
         f"Sent out {len(invoices)} invoices",
         f'{date.strftime(todays_date, "%m/%-d/%Y")}, there were {len(invoices)} invoices sent out.',
         None,
-        recipient_list=["aristotlf@gmail.com"],
+        recipient_list=["aristotelf@gmail.com"],
         fail_silently=True,
     )
 
