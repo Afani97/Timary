@@ -12,13 +12,17 @@ from timary.tests.factories import DailyHoursFactory, InvoiceFactory
 
 class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
-    def test_gather_0_invoices(self, send_invoice_mock):
+    @patch("django.core.mail.send_mail")
+    def test_gather_0_invoices(self, send_email_mock, send_invoice_mock):
+        send_email_mock.return_value = None
         send_invoice_mock.return_value = None
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
 
     @patch("timary.tasks.async_task")
-    def test_gather_0_invoices_for_today(self, send_invoice_mock):
+    @patch("django.core.mail.send_mail")
+    def test_gather_0_invoices_for_today(self, send_email_mock, send_invoice_mock):
+        send_email_mock.return_value = None
         send_invoice_mock.return_value = None
         DailyHoursFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
@@ -30,7 +34,9 @@ class TestGatherInvoices(TestCase):
         self.assertEqual("Invoices sent: 0", invoices_sent)
 
     @patch("timary.tasks.async_task")
-    def test_gather_1_invoice_for_today(self, send_invoice_mock):
+    @patch("django.core.mail.send_mail")
+    def test_gather_1_invoice_for_today(self, send_email_mock, send_invoice_mock):
+        send_email_mock.return_value = None
         send_invoice_mock.return_value = None
         DailyHoursFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
@@ -40,7 +46,9 @@ class TestGatherInvoices(TestCase):
         self.assertEqual("Invoices sent: 1", invoices_sent)
 
     @patch("timary.tasks.async_task")
-    def test_gather_3_invoices_for_today(self, send_invoice_mock):
+    @patch("django.core.mail.send_mail")
+    def test_gather_3_invoices_for_today(self, send_email_mock, send_invoice_mock):
+        send_email_mock.return_value = None
         send_invoice_mock.return_value = None
         DailyHoursFactory()
         DailyHoursFactory()

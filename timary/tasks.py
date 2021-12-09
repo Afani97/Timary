@@ -65,4 +65,12 @@ def gather_invoices():
     for invoice in invoices:
         _ = async_task(send_invoice, invoice.id)
 
+    send_mail(
+        f"Sent out {len(invoices)} invoices",
+        f'{date.strftime(todays_date, "%m/%-d/%Y")}, there were {len(invoices)} invoices sent out.',
+        None,
+        recipient_list=["aristotlf@gmail.com"],
+        fail_silently=True,
+    )
+
     return f"Invoices sent: {invoices.count()}"
