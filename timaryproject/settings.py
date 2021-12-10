@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 3RD PARTY
     "django_q",
+    "django_twilio",
 ]
 
 MIDDLEWARE = [
@@ -201,6 +202,13 @@ CSP_MEDIA_SRC = ("'self'",)
 
 # WHITENOISE
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
+# TWILIO
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
+TWILIO_DEFAULT_CALLERID = "Aristotel Fani"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
