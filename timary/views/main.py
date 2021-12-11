@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
@@ -10,7 +12,7 @@ from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
 from timary.forms import DailyHoursForm
-from timary.models import DailyHoursInput, User
+from timary.models import DailyHoursInput, Invoice, User
 
 
 def landing_page(request):
@@ -25,26 +27,72 @@ def twilio(request):
 
 
 def send_sms():
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-
-    _ = client.messages.create(
-        to="+17742613186", from_=settings.TWILIO_PHONE_NUMBER, body="Sup bro!"
+    users = (
+        User.objects.filter(phone_number__isnull=False)
+        .exclude(phone_number__exact="")
+        .prefetch_related("invoices")
     )
-    print("SENDING SMS")
+    for user in users:
+        invoices = set(
+            user.invoices.filter(
+                hours_tracked__date_tracked__exact=datetime.date.today()
+            )
+        )
+        remaining_invoices = set(user.invoices.all()) - invoices
+        if len(remaining_invoices) > 0:
+            invoice = remaining_invoices.pop()
+            send_invoice_text(invoice.title, user.phone_number)
 
 
 @twilio_view
 def twilio_reply(request):
     twilio_request = decompose(request)
-
-    # See the Twilio attributes on the class
-    print(twilio_request.to)
-    print(twilio_request.from_)
     user = User.objects.get(phone_number=twilio_request.from_)
 
-    r = MessagingResponse()
-    r.message(f"Thanks for the SMS message, {user.first_name}!")
-    return r
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    messages = client.messages.list(limit=10, date_sent=datetime)
+
+    _, invoice_title = messages[1].body.split(":")
+    invoice = Invoice.objects.get(title=invoice_title.strip(), user=user)
+
+    try:
+        hours = int(twilio_request.body)
+    except ValueError:
+        send_invoice_text(
+            invoice_title, user.phone_number, "Wrong input, only numbers please."
+        )
+        return None
+
+    DailyHoursInput.objects.create(
+        hours=hours,
+        date_tracked=datetime.date.today(),
+        invoice=invoice,
+    )
+
+    invoices = set(
+        user.invoices.filter(hours_tracked__date_tracked__exact=datetime.date.today())
+    )
+    remaining_invoices = set(user.invoices.all()) - invoices
+    if len(remaining_invoices) > 0:
+        invoice = remaining_invoices.pop()
+        send_invoice_text(invoice.title, user.phone_number)
+        return None
+    else:
+        r = MessagingResponse()
+        r.message("All set for today. Keep it up!")
+        return r
+
+
+def send_invoice_text(invoice_title, phone_number, error_msg=None):
+    message = f"How many hours to log hours for: {invoice_title}"
+    if error_msg:
+        message = f"{error_msg}. {message}"
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    _ = client.messages.create(
+        to=phone_number,
+        from_=settings.TWILIO_PHONE_NUMBER,
+        body=message,
+    )
 
 
 def get_dashboard_stats(hours_tracked):
