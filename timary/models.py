@@ -195,3 +195,13 @@ class User(AbstractUser, BaseModel):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+
+    @property
+    def invoices_not_logged(self):
+        invoices = set(
+            self.invoices.filter(
+                hours_tracked__date_tracked__exact=datetime.date.today()
+            )
+        )
+        remaining_invoices = set(self.invoices.all()) - invoices
+        return remaining_invoices

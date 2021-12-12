@@ -27,21 +27,21 @@ def twilio(request):
 
 
 def send_sms():
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     users = (
         User.objects.filter(phone_number__isnull=False)
         .exclude(phone_number__exact="")
         .prefetch_related("invoices")
     )
     for user in users:
-        invoices = set(
-            user.invoices.filter(
-                hours_tracked__date_tracked__exact=datetime.date.today()
-            )
-        )
-        remaining_invoices = set(user.invoices.all()) - invoices
+        remaining_invoices = user.invoices_not_logged
         if len(remaining_invoices) > 0:
             invoice = remaining_invoices.pop()
-            send_invoice_text(invoice.title, user.phone_number)
+            _ = client.messages.create(
+                to=user.phone_number,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                body=f"How many hours to log hours for: {invoice.title}",
+            )
 
 
 @twilio_view
@@ -58,10 +58,11 @@ def twilio_reply(request):
     try:
         hours = int(twilio_request.body)
     except ValueError:
-        send_invoice_text(
-            invoice_title, user.phone_number, "Wrong input, only numbers please."
+        r = MessagingResponse()
+        r.message(
+            f"Wrong input, only numbers please. How many hours to log hours for: {invoice.title}"
         )
-        return None
+        return r
 
     DailyHoursInput.objects.create(
         hours=hours,
@@ -69,30 +70,16 @@ def twilio_reply(request):
         invoice=invoice,
     )
 
-    invoices = set(
-        user.invoices.filter(hours_tracked__date_tracked__exact=datetime.date.today())
-    )
-    remaining_invoices = set(user.invoices.all()) - invoices
+    remaining_invoices = user.invoices_not_logged
     if len(remaining_invoices) > 0:
         invoice = remaining_invoices.pop()
-        send_invoice_text(invoice.title, user.phone_number)
-        return None
+        r = MessagingResponse()
+        r.message(f"How many hours to log hours for: {invoice.title}")
+        return r
     else:
         r = MessagingResponse()
         r.message("All set for today. Keep it up!")
         return r
-
-
-def send_invoice_text(invoice_title, phone_number, error_msg=None):
-    message = f"How many hours to log hours for: {invoice_title}"
-    if error_msg:
-        message = f"{error_msg}. {message}"
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    _ = client.messages.create(
-        to=phone_number,
-        from_=settings.TWILIO_PHONE_NUMBER,
-        body=message,
-    )
 
 
 def get_dashboard_stats(hours_tracked):
