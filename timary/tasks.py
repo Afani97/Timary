@@ -1,12 +1,14 @@
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import F, Q, Sum
 from django.template.loader import render_to_string
 from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
+from twilio.rest import Client
 
-from timary.models import Invoice
+from timary.models import Invoice, User
 
 
 def send_invoice(invoice_id):
@@ -74,3 +76,24 @@ def gather_invoices():
     )
 
     return f"Invoices sent: {invoices.count()}"
+
+
+def send_reminder_sms():
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    users = (
+        User.objects.filter(phone_number__isnull=False)
+        .exclude(phone_number__exact="")
+        .prefetch_related("invoices")
+    )
+    invoices_sent_count = 0
+    for user in users:
+        remaining_invoices = user.invoices_not_logged
+        if len(remaining_invoices) > 0:
+            invoice = remaining_invoices.pop()
+            _ = client.messages.create(
+                to=user.phone_number,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                body=f"How many hours to log hours for: {invoice.title}",
+            )
+            invoices_sent_count += 1
+    return f"{invoices_sent_count} message(s) sent."

@@ -212,6 +212,7 @@ TWILIO_DEFAULT_CALLERID = "Aristotel Fani"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
+    DEBUG = True
     Q_CLUSTER["sync"] = True
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     PASSWORD_HASHERS = [
