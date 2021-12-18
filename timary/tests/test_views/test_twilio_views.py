@@ -41,6 +41,29 @@ class TestTwilioSendReminderSMS(TestCase):
         invoices_sent = send_reminder_sms()
         self.assertEqual("3 message(s) sent.", invoices_sent)
 
+    @patch("twilio.rest.api.v2010.account.message.MessageList.create")
+    def test_send_1_message_filtering_users(self, message_create_mock):
+        message_create_mock.return_value = None
+
+        InvoiceFactory(user__phone_number=None)
+        InvoiceFactory(user__phone_number="")
+        InvoiceFactory()
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("1 message(s) sent.", invoices_sent)
+
+    @patch("twilio.rest.api.v2010.account.message.MessageList.create")
+    def test_send_1_message_from_1_user_with_2_invoices(self, message_create_mock):
+        message_create_mock.return_value = None
+
+        user = UserFactory()
+
+        InvoiceFactory(user=user)
+        InvoiceFactory(user=user)
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("1 message(s) sent.", invoices_sent)
+
 
 @dataclass
 class Message:
