@@ -15,7 +15,7 @@ def twilio_reply(request):
     user = User.objects.get(phone_number=twilio_request.from_)
 
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    messages = client.messages.list(limit=10, date_sent=datetime)
+    messages = client.messages.list(limit=2, date_sent=datetime)
 
     _, invoice_title = messages[1].body.split(":")
     invoice = Invoice.objects.get(title=invoice_title.strip(), user=user)
