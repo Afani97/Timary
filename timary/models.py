@@ -191,7 +191,12 @@ class Invoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
-    phone_number = models.CharField(max_length=16, unique=True, null=True, blank=True)
+    phone_number = models.CharField(
+        max_length=16,
+        unique=True,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
