@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
+from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.querysets import HoursQuerySet
 
@@ -148,12 +149,7 @@ class Invoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
-    phone_number = models.CharField(
-        max_length=16,
-        unique=True,
-        null=True,
-        blank=True,
-    )
+    phone_number = PhoneNumberField(unique=True, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
