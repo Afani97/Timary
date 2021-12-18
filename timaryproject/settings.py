@@ -209,6 +209,7 @@ TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
 TWILIO_DEFAULT_CALLERID = "Aristotel Fani"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
