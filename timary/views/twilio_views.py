@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django_twilio.decorators import twilio_view
@@ -21,19 +22,26 @@ def twilio_reply(request):
     invoice = Invoice.objects.get(title=invoice_title.strip(), user=user)
 
     try:
-        hours = int(twilio_request.body)
-    except ValueError:
+        hours = Decimal(twilio_request.body)
+    except InvalidOperation:
         r = MessagingResponse()
         r.message(
             f"Wrong input, only numbers please. How many hours to log hours for: {invoice.title}"
         )
         return r
 
-    DailyHoursInput.objects.create(
-        hours=hours,
-        date_tracked=datetime.date.today(),
-        invoice=invoice,
-    )
+    if hours > 0.5:
+        DailyHoursInput.objects.create(
+            hours=hours,
+            date_tracked=datetime.date.today(),
+            invoice=invoice,
+        )
+    else:
+        r = MessagingResponse()
+        r.message(
+            f"Hours have to be greater than 0.5. How many hours to log hours for: {invoice.title}"
+        )
+        return r
 
     remaining_invoices = user.invoices_not_logged
     if len(remaining_invoices) > 0:
