@@ -318,7 +318,7 @@ class TestUser(TestCase):
                 "email": "user@test.com",
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
-                "phone_number": "+13334445555",
+                "phone_number": "+17742613186",
             }
         )
         self.assertEqual(form.errors, {})

@@ -1,9 +1,7 @@
-import datetime
 import random
 import uuid
-from datetime import timedelta
+from datetime import date, timedelta
 
-import dateutil
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -11,6 +9,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
+from phonenumber_field.modelfields import PhoneNumberField
+
+from timary.querysets import HoursQuerySet
 
 
 def create_new_ref_number():
@@ -34,49 +35,6 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-
-
-class HoursQuerySet(models.QuerySet):
-    def current_month(self, user):
-        current_date = datetime.datetime.today()
-        return (
-            self.filter(
-                invoice__user=user,
-                date_tracked__month__gte=current_date.month,
-                date_tracked__year__gte=current_date.year,
-            )
-            .select_related("invoice")
-            .order_by("-date_tracked")
-        )
-
-    def last_month(self, user):
-        last_month = datetime.datetime.today() - dateutil.relativedelta.relativedelta(
-            months=1
-        )
-        current_date = datetime.datetime.today()
-        return (
-            self.filter(
-                invoice__user=user,
-                date_tracked__month__gte=last_month.month,
-                date_tracked__month__lt=current_date.month,
-                date_tracked__year__gte=last_month.year,
-                date_tracked__year__lte=current_date.year,
-            )
-            .select_related("invoice")
-            .order_by("-date_tracked")
-        )
-
-    def current_year(self, user):
-        current_date = datetime.datetime.today()
-        return (
-            self.filter(
-                invoice__user=user,
-                date_tracked__month__gte=1,
-                date_tracked__year__gte=current_date.year,
-            )
-            .select_related("invoice")
-            .order_by("-date_tracked")
-        )
 
 
 class DailyHoursInput(BaseModel):
@@ -191,7 +149,18 @@ class Invoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
-    phone_number = models.CharField(max_length=16, unique=True, null=True, blank=True)
+    phone_number = PhoneNumberField(unique=True, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+
+    def __repr__(self):
+        return f"{self.first_name} {self.last_name} ({self.username})"
+
+    @property
+    def invoices_not_logged(self):
+        invoices = set(
+            self.invoices.filter(hours_tracked__date_tracked__exact=date.today())
+        )
+        remaining_invoices = set(self.invoices.all()) - invoices
+        return remaining_invoices

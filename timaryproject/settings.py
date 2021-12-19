@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 3RD PARTY
     "django_q",
+    "django_twilio",
 ]
 
 MIDDLEWARE = [
@@ -203,7 +204,16 @@ CSP_MEDIA_SRC = ("'self'",)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
+# TWILIO
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", default="abc123")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="abc123")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="+17742613186")
+TWILIO_DEFAULT_CALLERID = "Aristotel Fani"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
+    DEBUG = True
     Q_CLUSTER["sync"] = True
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     PASSWORD_HASHERS = [

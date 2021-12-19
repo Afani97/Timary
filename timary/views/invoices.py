@@ -11,7 +11,7 @@ from timary.models import Invoice
 @login_required()
 @require_http_methods(["GET"])
 def manage_invoices(request):
-    invoices = request.user.invoices.all()
+    invoices = request.user.invoices.all().order_by("title")
     return render(
         request,
         "invoices/manage_invoices.html",

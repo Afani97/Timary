@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.text import slugify
 
-from timary.models import DailyHoursInput, Invoice
-from timary.tests.factories import InvoiceFactory, UserFactory
+from timary.models import DailyHoursInput, Invoice, User
+from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
 class TestDailyHours(TestCase):
@@ -140,3 +140,52 @@ class TestInvoice(TestCase):
         invoice.calculate_next_date()
         self.assertEqual(invoice.next_date, today + relativedelta(years=1))
         self.assertEqual(invoice.last_date, today)
+
+
+class TestUser(TestCase):
+    def test_user(self):
+        user = User.objects.create(
+            first_name="Ari",
+            last_name="Fani",
+            username="test@test.com",
+            email="test@test.com",
+            phone_number="+17742613186",
+        )
+        self.assertIsNotNone(user)
+        self.assertEqual(user.first_name, "Ari")
+        self.assertEqual(user.last_name, "Fani")
+        self.assertEqual(user.username, "test@test.com")
+        self.assertEqual(user.email, "test@test.com")
+        self.assertEqual(user.phone_number, "+17742613186")
+
+    def test_get_remaining_invoices(self):
+        user = UserFactory()
+        InvoiceFactory(user=user)
+        InvoiceFactory(user=user)
+        self.assertEqual(len(user.invoices_not_logged), 2)
+
+    def test_get_1_remaining_invoices(self):
+        user = UserFactory()
+        InvoiceFactory(user=user)
+        InvoiceFactory()
+        self.assertEqual(len(user.invoices_not_logged), 1)
+
+    def test_get_2_remaining_invoices(self):
+        user = UserFactory()
+        DailyHoursFactory(invoice__user=user)
+        InvoiceFactory(user=user)
+        InvoiceFactory(user=user)
+        self.assertEqual(len(user.invoices_not_logged), 2)
+
+    def test_get_1_remaining_invoices_logged_yesterday(self):
+        user = UserFactory()
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        DailyHoursFactory(invoice__user=user, date_tracked=yesterday)
+        InvoiceFactory(user=user)
+        self.assertEqual(len(user.invoices_not_logged), 2)
+
+    def test_get_1_remaining_invoices_logged_today(self):
+        user = UserFactory()
+        DailyHoursFactory(invoice__user=user, date_tracked=datetime.date.today())
+        InvoiceFactory(user=user)
+        self.assertEqual(len(user.invoices_not_logged), 1)

@@ -25,3 +25,5 @@ static:
 test:
 	python manage.py test --failfast
 .PHONY: test
+
+# TO RUN NGROK FOR TESTING: JUST TYPE 'n' in terminal

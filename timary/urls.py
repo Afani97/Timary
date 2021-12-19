@@ -3,8 +3,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from . import views
-from .admin import TimaryAdminSite
+from timary import views
+from timary.admin import TimaryAdminSite
 
 app_name = "timary"
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path("", views.landing_page, name="landing_page"),
     path("main/", views.index, name="index"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
+    path("twilio-reply/", views.twilio_reply, name="twilio_reply"),
 ]
 
 
