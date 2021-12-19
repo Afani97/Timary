@@ -80,11 +80,9 @@ def gather_invoices():
 
 def send_reminder_sms():
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    users = (
-        User.objects.filter(phone_number__isnull=False)
-        .exclude(phone_number__exact="")
-        .prefetch_related("invoices")
-    )
+    users = User.objects.exclude(
+        Q(phone_number__isnull=True) | Q(phone_number__exact="")
+    ).prefetch_related("invoices")
     invoices_sent_count = 0
     for user in users:
         remaining_invoices = user.invoices_not_logged
