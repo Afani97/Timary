@@ -91,7 +91,7 @@ def send_reminder_sms():
             _ = client.messages.create(
                 to=user.phone_number,
                 from_=settings.TWILIO_PHONE_NUMBER,
-                body=f"How many hours to log hours for: {invoice.title}",
+                body=f"How many hours to log for: {invoice.title}",
             )
             invoices_sent_count += 1
     return f"{invoices_sent_count} message(s) sent."
