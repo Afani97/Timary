@@ -164,3 +164,7 @@ class User(AbstractUser, BaseModel):
         )
         remaining_invoices = set(self.invoices.all()) - invoices
         return remaining_invoices
+
+    @property
+    def formatted_phone_number(self):
+        return f"+{self.phone_number.country_code}{self.phone_number.national_number}"

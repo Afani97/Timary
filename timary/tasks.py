@@ -89,7 +89,7 @@ def send_reminder_sms():
         if len(remaining_invoices) > 0:
             invoice = remaining_invoices.pop()
             _ = client.messages.create(
-                to=user.phone_number,
+                to=user.formatted_phone_number,
                 from_=settings.TWILIO_PHONE_NUMBER,
                 body=f"How many hours to log for: {invoice.title}",
             )
