@@ -13,6 +13,7 @@
                 <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:user_profile' %}">
                     Profile
                 </a>
+                <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
             {% else %}
                 <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:login' %}">
                     Login
@@ -35,9 +36,11 @@
                     <a class="btn mb-1" href="{% url 'timary:manage_invoices' %}">
                         Invoices
                     </a>
-
                     <a class="btn" href="{% url 'timary:user_profile' %}">
                         Profile
+                    </a>
+                    <a class="btn" href="{% url 'timary:logout' %}">
+                        Logout
                     </a>
                 {% else %}
                     <a class="btn mb-2"  href="{% url 'timary:login' %}">
