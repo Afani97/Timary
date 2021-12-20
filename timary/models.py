@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F, Sum
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
 from phonenumber_field.modelfields import PhoneNumberField
@@ -146,6 +147,19 @@ class Invoice(BaseModel):
         if update_last:
             self.last_date = todays_date
         self.save()
+
+    def get_hours_stats(self):
+        hours_tracked = (
+            self.hours_tracked.filter(date_tracked__gt=F("invoice__last_date"))
+            .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
+            .order_by("-date_tracked")
+        )
+        total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * self.hourly_rate
+
+        return hours_tracked, total_cost_amount
 
 
 class User(AbstractUser, BaseModel):

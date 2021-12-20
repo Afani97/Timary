@@ -141,6 +141,22 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.next_date, today + relativedelta(years=1))
         self.assertEqual(invoice.last_date, today)
 
+    def test_get_hours_stats(self):
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        hours1 = DailyHoursFactory(invoice=invoice)
+        hours2 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
+        hours_list = sorted(
+            [hours1, hours2], key=lambda x: x.date_tracked, reverse=True
+        )
+
+        hours_tracked, total_hours = invoice.get_hours_stats()
+        self.assertListEqual(list(hours_tracked), hours_list)
+        self.assertEqual(
+            total_hours, (hours1.hours + hours2.hours) * invoice.hourly_rate
+        )
+
 
 class TestUser(TestCase):
     def test_user(self):

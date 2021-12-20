@@ -2,7 +2,7 @@ import datetime
 
 import factory
 from factory.django import DjangoModelFactory
-from factory.fuzzy import FuzzyInteger
+from factory.fuzzy import FuzzyDecimal
 
 from timary import models
 from timary.models import Invoice, User
@@ -57,5 +57,5 @@ class DailyHoursFactory(DjangoModelFactory):
         model = models.DailyHoursInput
 
     invoice = factory.SubFactory(InvoiceFactory)
-    hours = FuzzyInteger(1, 23)
+    hours = FuzzyDecimal(1, 23, 1)
     date_tracked = factory.LazyFunction(datetime.date.today)
