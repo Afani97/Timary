@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
 from phonenumber_field.modelfields import PhoneNumberField
@@ -174,9 +174,14 @@ class User(AbstractUser, BaseModel):
     @property
     def invoices_not_logged(self):
         invoices = set(
-            self.invoices.filter(hours_tracked__date_tracked__exact=date.today())
+            self.invoices.filter(
+                Q(next_date__isnull=False)
+                & Q(hours_tracked__date_tracked__exact=date.today())
+            )
         )
-        remaining_invoices = set(self.invoices.all()) - invoices
+        remaining_invoices = (
+            set(self.invoices.filter(next_date__isnull=False)) - invoices
+        )
         return remaining_invoices
 
     @property
