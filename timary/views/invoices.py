@@ -57,6 +57,20 @@ def new_invoice(request):
     return render(request, "invoices/new_invoice.html", {"new_invoice": InvoiceForm()})
 
 
+@login_required()
+@require_http_methods(["GET"])
+def pause_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    if invoice.next_date:
+        invoice.next_date = None
+    else:
+        invoice.calculate_next_date()
+    invoice.save()
+    return render(request, "partials/_invoice.html", {"invoice": invoice})
+
+
 def render_invoices_form(request, invoice_instance, invoice_form):
     context = {
         "form": invoice_form,
@@ -95,7 +109,8 @@ def update_invoice(request, invoice_id):
     invoice_form = InvoiceForm(put_params, instance=invoice)
     if invoice_form.is_valid():
         invoice = invoice_form.save()
-        invoice.calculate_next_date(update_last=False)
+        if invoice.next_date:
+            invoice.calculate_next_date(update_last=False)
         return render(request, "partials/_invoice.html", {"invoice": invoice})
     return render_invoices_form(
         request, invoice_instance=invoice, invoice_form=invoice_form

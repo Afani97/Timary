@@ -11,6 +11,29 @@ from twilio.rest import Client
 from timary.models import Invoice, User
 
 
+def gather_invoices():
+    today = localtime(now()).date()
+    null_query = Q(next_date__isnull=False)
+    today_query = Q(
+        next_date__day=today.day,
+        next_date__month=today.month,
+        next_date__year=today.year,
+    )
+    invoices = Invoice.objects.filter(null_query & today_query)
+    for invoice in invoices:
+        _ = async_task(send_invoice, invoice.id)
+
+    send_mail(
+        f"Sent out {len(invoices)} invoices",
+        f'{date.strftime(today, "%m/%-d/%Y")}, there were {len(invoices)} invoices sent out.',
+        None,
+        recipient_list=["aristotelf@gmail.com"],
+        fail_silently=True,
+    )
+
+    return f"Invoices sent: {invoices.count()}"
+
+
 def send_invoice(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
     hours_tracked, total_amount = invoice.get_hours_stats()
@@ -48,29 +71,6 @@ def send_invoice(invoice_id):
         html_message=msg_body,
     )
     invoice.calculate_next_date()
-
-
-def gather_invoices():
-    today = localtime(now()).date()
-    null_query = Q(next_date__isnull=True)
-    today_query = Q(
-        next_date__day=today.day,
-        next_date__month=today.month,
-        next_date__year=today.year,
-    )
-    invoices = Invoice.objects.filter(null_query | today_query)
-    for invoice in invoices:
-        _ = async_task(send_invoice, invoice.id)
-
-    send_mail(
-        f"Sent out {len(invoices)} invoices",
-        f'{date.strftime(today, "%m/%-d/%Y")}, there were {len(invoices)} invoices sent out.',
-        None,
-        recipient_list=["aristotelf@gmail.com"],
-        fail_silently=True,
-    )
-
-    return f"Invoices sent: {invoices.count()}"
 
 
 def send_reminder_sms():

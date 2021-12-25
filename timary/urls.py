@@ -45,6 +45,9 @@ urlpatterns += [
     path("invoices/<uuid:invoice_id>/", views.get_invoice, name="get_single_invoice"),
     path("invoices/<uuid:invoice_id>/edit/", views.edit_invoice, name="edit_invoice"),
     path(
+        "invoices/<uuid:invoice_id>/pause/", views.pause_invoice, name="pause_invoice"
+    ),
+    path(
         "invoices/<uuid:invoice_id>/update/",
         views.update_invoice,
         name="update_invoice",

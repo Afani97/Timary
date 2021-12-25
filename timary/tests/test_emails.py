@@ -38,6 +38,18 @@ class TestGatherInvoices(TestCase):
         )
 
     @patch("timary.tasks.async_task")
+    def test_gather_0_invoices_with_next_date_null(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        DailyHoursFactory(invoice__next_date=None)
+        DailyHoursFactory()
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 1 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         DailyHoursFactory(

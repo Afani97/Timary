@@ -1,3 +1,5 @@
+import datetime
+
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -35,8 +37,14 @@ class TestInvoices(BaseTest):
             response,
             f"""
         <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-        <p>sent daily to {inv_name} ({inv_email})</p>
-        <p>next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>""",
+        """,
+        )
+        self.assertContains(
+            response,
+            f"""
+            <p>sent daily to {inv_name} ({inv_email})</p>
+            <p>next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
+        """,
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -122,8 +130,45 @@ class TestInvoices(BaseTest):
             response,
             f"""
         <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-        <p>sent daily to {inv_name} ({inv_email})</p>
-        <p>next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>""",
+        """,
+        )
+        self.assertContains(
+            response,
+            f"""
+            <p>sent daily to {inv_name} ({inv_email})</p>
+            <p>next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
+        """,
+        )
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_daily_hours_dont_update_next_date_if_none(self):
+        url_params = {
+            "title": "Some title",
+            "hourly_rate": 100,
+            "invoice_interval": "D",
+            "email_recipient_name": "Mike",
+            "email_recipient": "mike@test.com",
+        }
+        self.invoice.next_date = None
+        self.invoice.save()
+        response = self.client.put(
+            reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
+            data=urlencode(url_params),  # HTML PUT FORM
+        )
+        self.invoice.refresh_from_db()
+        self.assertIsNone(self.invoice.next_date)
+        self.assertContains(
+            response,
+            f"""
+        <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
+        """,
+        )
+        self.assertContains(
+            response,
+            """
+            <p>invoice is paused</p>
+        """,
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -132,6 +177,37 @@ class TestInvoices(BaseTest):
         response = self.client.put(
             reverse(
                 "timary:update_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
+            ),
+            data={},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_pause_invoice(self):
+        invoice = InvoiceFactory(invoice_interval="M", user=self.user)
+        response = self.client.get(
+            reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        invoice.refresh_from_db()
+        self.assertIsNone(invoice.next_date)
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(
+            reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        invoice.refresh_from_db()
+
+        self.assertEqual(
+            invoice.next_date,
+            datetime.date.today() + invoice.get_next_date(),
+        )
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_pause_invoice_error(self):
+        response = self.client.get(
+            reverse(
+                "timary:pause_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
             ),
             data={},
         )
