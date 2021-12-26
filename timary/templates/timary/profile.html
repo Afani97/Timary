@@ -5,4 +5,24 @@
         <h1 class="text-3xl my-6 text-center">Your profile</h1>
         {% include "partials/_profile.html" %}
     </div>
+    <div class="max-w-xl mx-auto">
+        {% if sent_invoices.count > 0 %}
+            <h3 class="text-lg my-6 text-center">Sent invoices</h3>
+            <ul>
+                {% for sent_invoice in sent_invoices %}
+                    <li class="card shadow-lg bordered mb-2">
+                        <div class="card-body">
+                            <p class="card-title">{{ sent_invoice.invoice.title }} - {{ sent_invoice.date_sent }}</p>
+                            <p>Status:
+                                <span class="{% if sent_invoice.paid_status == 2 %} text-green-300 {% else %} text-yellow-300 {% endif %}">
+                                    {{ sent_invoice.get_paid_status_display|title }}
+                                </span>
+                            </p>
+                            <p>Amount earned: ${{ sent_invoice.total_price }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
 {% endblock %}

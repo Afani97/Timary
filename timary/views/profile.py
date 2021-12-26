@@ -10,7 +10,11 @@ from timary.forms import UserForm
 @login_required()
 @require_http_methods(["GET"])
 def user_profile(request):
-    return render(request, "timary/profile.html", {"profile": request.user})
+    context = {
+        "profile": request.user,
+        "sent_invoices": request.user.sent_invoices.order_by("-date_sent"),
+    }
+    return render(request, "timary/profile.html", context)
 
 
 @login_required()

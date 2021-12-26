@@ -4,11 +4,12 @@ from django.core.mail import send_mail
 from django.template.response import TemplateResponse
 from django.urls import path
 
-from timary.models import DailyHoursInput, Invoice, User
+from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 
 # Register your models here.
 admin.site.register(User)
 admin.site.register(Invoice)
+admin.site.register(SentInvoice)
 admin.site.register(DailyHoursInput)
 
 

@@ -8,7 +8,7 @@ from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
 from twilio.rest import Client
 
-from timary.models import Invoice, User
+from timary.models import Invoice, SentInvoice, User
 
 
 def gather_invoices():
@@ -69,6 +69,14 @@ def send_invoice(invoice_id):
         recipient_list=[invoice.email_recipient],
         fail_silently=False,
         html_message=msg_body,
+    )
+    SentInvoice.objects.create(
+        hours_start_date=hours_tracked.last().date_tracked,
+        hours_end_date=hours_tracked.first().date_tracked,
+        date_sent=today,
+        invoice=invoice,
+        user=invoice.user,
+        total_price=total_amount,
     )
     invoice.calculate_next_date()
 

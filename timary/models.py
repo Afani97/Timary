@@ -91,7 +91,6 @@ class Invoice(BaseModel):
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="invoices"
     )
-
     hourly_rate = models.IntegerField(
         default=50, null=False, blank=False, validators=[MinValueValidator(1)]
     )
@@ -160,6 +159,49 @@ class Invoice(BaseModel):
             total_cost_amount = total_hours["total_hours"] * self.hourly_rate
 
         return hours_tracked, total_cost_amount
+
+
+class SentInvoice(BaseModel):
+    class PaidStatus(models.IntegerChoices):
+        PENDING = 1, "PENDING"
+        PAID = 2, "PAID"
+
+    hours_start_date = models.DateField(
+        null=True, blank=True
+    )  # Starting date of hours tracked
+    hours_end_date = models.DateField(
+        null=True, blank=True
+    )  # Ending date of hours tracked
+    date_sent = models.DateField(null=False, blank=False)
+    invoice = models.ForeignKey(
+        "timary.Invoice", on_delete=models.CASCADE, related_name="invoice_snapshots"
+    )
+
+    user = models.ForeignKey(
+        "timary.User", on_delete=models.CASCADE, related_name="sent_invoices"
+    )
+    total_price = models.PositiveIntegerField()
+    paid_status = models.PositiveSmallIntegerField(
+        default=PaidStatus.PENDING, choices=PaidStatus.choices
+    )
+
+    def __str__(self):
+        return (
+            f"SentInvoice(invoice={self.invoice.title}, "
+            f"start_date={self.hours_start_date}, "
+            f"end_date={self.hours_end_date}, "
+            f"total_price={self.total_price}, "
+            f"paid_status={self.paid_status})"
+        )
+
+    def __repr__(self):
+        return (
+            f"SentInvoice(invoice={self.invoice.title}, "
+            f"start_date={self.hours_start_date}, "
+            f"end_date={self.hours_end_date}, "
+            f"total_price={self.total_price}, "
+            f"paid_status={self.paid_status})"
+        )
 
 
 class User(AbstractUser, BaseModel):

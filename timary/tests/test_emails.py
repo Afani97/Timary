@@ -6,6 +6,7 @@ from django.core import mail
 from django.test import TestCase
 from django.utils.timezone import localtime, now
 
+from timary.models import SentInvoice
 from timary.tasks import gather_invoices, send_invoice
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory
 
@@ -98,6 +99,29 @@ class TestSendInvoice(TestCase):
             mail.outbox[0].subject,
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {self.current_month}",
         )
+        self.assertEquals(SentInvoice.objects.count(), 1)
+
+    def test_sent_invoices_hours(self):
+        two_days_ago = self.todays_date - datetime.timedelta(days=2)
+        yesterday = self.todays_date - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(
+            last_date=self.todays_date - datetime.timedelta(days=3)
+        )
+        h1 = DailyHoursFactory(date_tracked=two_days_ago, invoice=invoice)
+        h2 = DailyHoursFactory(date_tracked=yesterday, invoice=invoice)
+        h3 = DailyHoursFactory(date_tracked=self.todays_date, invoice=invoice)
+
+        send_invoice(invoice.id)
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(SentInvoice.objects.count(), 1)
+
+        sent_invoice = SentInvoice.objects.first()
+        self.assertEquals(sent_invoice.hours_start_date, two_days_ago)
+        self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
+        self.assertEquals(
+            sent_invoice.total_price,
+            (h1.hours + h2.hours + h3.hours) * invoice.hourly_rate,
+        )
 
     def test_dont_send_invoice_if_no_tracked_hours(self):
         hours = DailyHoursFactory(
@@ -114,6 +138,7 @@ class TestSendInvoice(TestCase):
         self.assertEqual(
             hours.invoice.next_date, self.todays_date + hours.invoice.get_next_date()
         )
+        self.assertEquals(SentInvoice.objects.count(), 0)
 
     def test_send_two_invoice_and_subjects(self):
         hours1 = DailyHoursFactory()
@@ -129,6 +154,7 @@ class TestSendInvoice(TestCase):
             mail.outbox[1].subject,
             f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.first_name} for {self.current_month}",
         )
+        self.assertEquals(SentInvoice.objects.count(), 2)
 
     def test_invoice_context(self):
         invoice = InvoiceFactory(hourly_rate=25)
