@@ -7,7 +7,7 @@
     </div>
 
     <div>
-        <ul class="" id="invoices-list">
+        <ul class="space-y-5" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}
             {% endfor %}
