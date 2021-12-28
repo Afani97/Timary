@@ -53,12 +53,6 @@ def get_invoice(request, invoice_id):
 
 @login_required()
 @require_http_methods(["GET"])
-def new_invoice(request):
-    return render(request, "invoices/new_invoice.html", {"new_invoice": InvoiceForm()})
-
-
-@login_required()
-@require_http_methods(["GET"])
 def pause_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
