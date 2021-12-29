@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
-from timary.models import DailyHoursInput
+from timary.models import DailyHoursInput, Invoice
 
 
 def landing_page(request):
@@ -43,6 +43,8 @@ def get_hours_tracked(user):
 @require_http_methods(["GET"])
 def index(request):
     user = request.user
+    if Invoice.objects.filter(user=user).count() == 0:
+        return redirect(reverse("timary:manage_invoices"))
     context = {
         "new_hours": DailyHoursForm(user=user),
         "hours": DailyHoursInput.all_hours.current_month(user),

@@ -2,14 +2,37 @@
 
 {% block content %}
     <div class="flex flex-col md:flex-row justify-between mt-10">
-        <h1 class="text-3xl mb-8 text-center">Your current invoices</h1>
-        <a href="#new-invoice-modal" class="btn btn-primary">New invoice</a>
+        {% if invoices.count > 0 %}
+            <h1 class="text-3xl mb-8 text-center">Your current invoices</h1>
+            <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</a>
+        {% endif %}
     </div>
 
     <div>
-        <ul class="space-y-5" id="invoices-list">
+        <ul class="space-y-5 mx-2" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}
+            {% empty %}
+                <div>
+                    <div class="hero">
+                        <div class="flex-col justify-center hero-content lg:flex-row">
+                            <div class="text-center lg:text-left md:mr-20">
+                                <h1 class="mb-5 text-5xl font-bold">
+                                    Hello there
+                                </h1>
+                                <p class="mb-5">
+                                    We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
+                                </p>
+                            </div>
+                            <div class="card flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
+                                <div class="card-body">
+                                    {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend" btn_title='Add new invoice' %}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
         </ul>
     </div>
@@ -17,7 +40,7 @@
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box">
-            {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend"  modal="true" btn_title='Add new invoice' close_link_id="close-invoice-modal" %}
+            {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend" modal="true" btn_title='Add new invoice' close_link_id="close-invoice-modal" %}
         </div>
     </div>
     {# New invoice modal #}

@@ -25,12 +25,17 @@ def create_invoice(request):
     user = request.user
     invoice_form = InvoiceForm(request.POST)
     if invoice_form.is_valid():
+        prev_invoice_count = Invoice.objects.filter(user=user).count()
         invoice = invoice_form.save(commit=False)
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        if prev_invoice_count == 0:
+            response[
+                "HX-Redirect"
+            ] = "/main/"  # To trigger refresh to remove empty state
         return response
     context = {
         "form": invoice_form,
@@ -118,4 +123,7 @@ def delete_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     invoice.delete()
-    return HttpResponse("", status=200)
+    response = HttpResponse("", status=200)
+    if Invoice.objects.filter(user=request.user).count() == 0:
+        response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
+    return response

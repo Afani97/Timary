@@ -14,7 +14,12 @@
                 {% endfor %}
             {% else %}
                 <label class="label"><span class="label-text">{{ field.label }}</span> </label>
-                {{ field | addclass:"input input-bordered" }}
+                {% if field.field.widget.input_type == "select" %}
+                    {{ field | addclass:"select select-bordered" }}
+                {% else %}
+                    {{ field | addclass:"input input-bordered" }}
+                {% endif %}
+
                 {% for error in field.errors %}
                     <div class="text-red-600">
                         <strong>{{ error|escape }}</strong>
