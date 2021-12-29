@@ -14,12 +14,13 @@ class TestUsers(BaseTest):
 
     def test_get_profile_page(self):
         response = self.client.get(reverse("timary:user_profile"))
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f"""
-        <h2 class="card-title text-center">{self.user.first_name} {self.user.last_name}</h2>
-        <p class="text-center">{self.user.email}</p>
-        <p class="text-center">{self.user.phone_number}</p>""",
+            <h2 class="card-title text-center">{self.user.first_name} {self.user.last_name}</h2>
+            <p class="text-center">{self.user.email}</p>
+            <p class="text-center">{self.user.phone_number}</p>
+            """,
+            response.content.decode("utf-8"),
         )
 
     def test_get_profile_page_redirect(self):
@@ -41,26 +42,26 @@ class TestUsers(BaseTest):
 
     def test_get_edit_profile(self):
         response = self.client.get(reverse("timary:edit_user_profile"))
-        self.assertContains(
-            response,
-            f'<input type="email" name="email" value="{self.user.email}" '
-            f'class="input input-bordered w-full" required id="id_email">',
+        self.assertInHTML(
+            f'<input type="email" name="email" value="{self.user.email}" class="input input-bordered w-full" required '
+            f'id="id_email">',
+            response.content.decode("utf-8"),
         )
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<input type="text" name="first_name" value="{self.user.first_name}" '
             f'class="input input-bordered w-full" required id="id_first_name">',
+            response.content.decode("utf-8"),
         )
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<input type="text" name="last_name" value="{self.user.last_name}" '
             f'placeholder="Appleseed" maxlength="150" '
-            f'class="input input-bordered w-full" id="id_last_name">',
+            f'class="input input-bordered w-full" id="id_last_name"> ',
+            response.content.decode("utf-8"),
         )
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<input type="text" name="phone_number" value="{self.user.phone_number}" placeholder="+13334445555" '
             f'class="input input-bordered w-full" id="id_phone_number">',
+            response.content.decode("utf-8"),
         )
 
     def test_update_user_profile(self):
@@ -75,12 +76,13 @@ class TestUsers(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.user.refresh_from_db()
-        self.assertContains(
-            response,
+        self.assertInHTML(
             """
-        <h2 class="card-title text-center">Test Test</h2>
-        <p class="text-center">user@test.com</p>
-        <p class="text-center">+17742613186</p>""",
+            <h2 class="card-title text-center">Test Test</h2>
+            <p class="text-center">user@test.com</p>
+            <p class="text-center">+17742613186</p>
+            """,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_profile.html")
         self.assertEqual(response.status_code, 200)
@@ -97,17 +99,16 @@ class TestUsers(BaseTest):
             reverse("timary:update_user_profile"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f"""
-                    <input type="email" name="email" value="{user.email}"
-                    class="input input-bordered w-full" required id="id_email">
+            <input type="email" name="email" value="{user.email}"
+            class="input input-bordered w-full" required id="id_email">
 
-                        <div class="text-red-600">
-                            <strong>Email already registered!</strong>
-                        </div>
+                <div class="text-red-600">
+                    <strong>Email already registered!</strong>
+                </div>
             """,
-            html=True,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)

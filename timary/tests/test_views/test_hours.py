@@ -63,9 +63,9 @@ class TestDailyHours(BaseTest):
         response = self.client.get(
             reverse("timary:edit_hours", kwargs={"hours_id": self.hours.id}),
         )
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<option value="{self.hours.invoice.id}" selected>{self.hours.invoice.title}</option>',
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
@@ -88,10 +88,12 @@ class TestDailyHours(BaseTest):
             data=urlencode(url_params),  # HTML PUT FORM
         )
         self.hours.refresh_from_db()
-        self.assertContains(
-            response,
-            f'<h2 class="card-title">{int(self.hours.hours)} hrs on '
-            f'{self.hours.date_tracked.strftime("%b. %-d, %Y")}</h2>',
+        self.assertInHTML(
+            f"""
+            <h2 class="card-title">{int(self.hours.hours)} hrs on
+            {self.hours.date_tracked.strftime("%b. %-d, %Y")}</h2>
+            """,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_hour.html")
         self.assertEqual(response.status_code, 200)

@@ -33,18 +33,13 @@ class TestInvoices(BaseTest):
         invoice = Invoice.objects.first()
         inv_name = invoice.email_recipient_name
         inv_email = invoice.email_recipient
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f"""
-        <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-        """,
-        )
-        self.assertContains(
-            response,
-            f"""
+            <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
             <p>sent daily to {inv_name} ({inv_email})</p>
             <p>next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
-        """,
+            """,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -57,6 +52,31 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
+
+    def test_manage_zero_invoices(self):
+        Invoice.objects.filter(user=self.user).all().delete()
+        response = self.client.get(reverse("timary:manage_invoices"))
+        self.assertInHTML(
+            """
+            <div class="text-center lg:text-left md:mr-20">
+                <h1 class="mb-5 text-5xl font-bold">
+                    Hello there
+                </h1>
+                <p class="mb-5">
+                    We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
+                </p>
+            </div>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_zero_invoices_redirects_main_page(self):
+        Invoice.objects.filter(user=self.user).all().delete()
+        response = self.client.get(reverse("timary:index"))
+        self.assertRedirects(response, reverse("timary:manage_invoices"))
+        self.assertEqual(response.status_code, 302)
 
     def test_create_invoice_error(self):
         response = self.client.post(reverse("timary:create_invoice"), {})
@@ -126,18 +146,13 @@ class TestInvoices(BaseTest):
         self.invoice.refresh_from_db()
         inv_name = self.invoice.email_recipient_name
         inv_email = self.invoice.email_recipient
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f"""
-        <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-        """,
-        )
-        self.assertContains(
-            response,
-            f"""
+            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
             <p>sent daily to {inv_name} ({inv_email})</p>
             <p>next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
-        """,
+            """,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -158,17 +173,12 @@ class TestInvoices(BaseTest):
         )
         self.invoice.refresh_from_db()
         self.assertIsNone(self.invoice.next_date)
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f"""
-        <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-        """,
-        )
-        self.assertContains(
-            response,
-            """
+            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
             <p>invoice is paused</p>
-        """,
+            """,
+            response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
