@@ -149,7 +149,7 @@ class Invoice(BaseModel):
 
     def get_hours_stats(self):
         hours_tracked = (
-            self.hours_tracked.filter(date_tracked__gt=F("invoice__last_date"))
+            self.hours_tracked.filter(date_tracked__gte=F("invoice__last_date"))
             .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
             .order_by("-date_tracked")
         )

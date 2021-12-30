@@ -123,6 +123,29 @@ class TestSendInvoice(TestCase):
             (h1.hours + h2.hours + h3.hours) * invoice.hourly_rate,
         )
 
+    def test_sent_invoices_only_2_hours(self):
+        yesterday = self.todays_date - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(
+            last_date=self.todays_date - datetime.timedelta(days=1)
+        )
+        DailyHoursFactory(
+            date_tracked=self.todays_date - datetime.timedelta(days=2), invoice=invoice
+        )
+        h2 = DailyHoursFactory(date_tracked=yesterday, invoice=invoice)
+        h3 = DailyHoursFactory(date_tracked=self.todays_date, invoice=invoice)
+
+        send_invoice(invoice.id)
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(SentInvoice.objects.count(), 1)
+
+        sent_invoice = SentInvoice.objects.first()
+        self.assertEquals(sent_invoice.hours_start_date, yesterday)
+        self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
+        self.assertEquals(
+            sent_invoice.total_price,
+            (h2.hours + h3.hours) * invoice.hourly_rate,
+        )
+
     def test_dont_send_invoice_if_no_tracked_hours(self):
         hours = DailyHoursFactory(
             date_tracked=(self.todays_date - datetime.timedelta(days=1))
