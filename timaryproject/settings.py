@@ -32,6 +32,8 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
+SITE_URL = "http://127.0.0.1:8000"
+
 
 # Application definition
 
@@ -77,6 +79,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "timary.context_processors.site_url",
             ],
         },
     },

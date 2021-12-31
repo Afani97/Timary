@@ -49,14 +49,23 @@ def send_invoice(invoice_id):
         {"invoice": invoice, "current_month": current_month},
     ).strip()
 
+    sent_invoice = SentInvoice.objects.create(
+        hours_start_date=hours_tracked.last().date_tracked or None,
+        hours_end_date=hours_tracked.first().date_tracked or None,
+        date_sent=today,
+        invoice=invoice,
+        user=invoice.user,
+        total_price=total_amount,
+    )
     msg_body = render_to_string(
         "email/styled_email.html",
         {
+            "site_url": settings.SITE_URL,
             "user_name": invoice.user.first_name,
             "next_weeks_date": today + timedelta(weeks=1),
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_amount,
-            "invoice_id": invoice.email_id,
+            "invoice_id": sent_invoice.id,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "todays_date": today,
@@ -69,14 +78,6 @@ def send_invoice(invoice_id):
         recipient_list=[invoice.email_recipient],
         fail_silently=False,
         html_message=msg_body,
-    )
-    SentInvoice.objects.create(
-        hours_start_date=hours_tracked.last().date_tracked,
-        hours_end_date=hours_tracked.first().date_tracked,
-        date_sent=today,
-        invoice=invoice,
-        user=invoice.user,
-        total_price=total_amount,
     )
     invoice.calculate_next_date()
 

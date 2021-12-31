@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
-from timary.models import Invoice
+from timary.models import Invoice, SentInvoice
 
 
 @login_required()
@@ -68,6 +68,15 @@ def pause_invoice(request, invoice_id):
         invoice.calculate_next_date()
     invoice.save()
     return render(request, "partials/_invoice.html", {"invoice": invoice})
+
+
+@require_http_methods(["GET"])
+def pay_invoice(request, invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=invoice_id)
+    invoice = sent_invoice.invoice
+
+    context = {"invoice_title": invoice.title}
+    return render(request, "invoices/pay_invoice.html", context)
 
 
 def render_invoices_form(request, invoice_instance, invoice_form):
