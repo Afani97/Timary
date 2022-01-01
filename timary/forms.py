@@ -45,38 +45,90 @@ class InvoiceForm(forms.ModelForm):
 
 
 class PayInvoiceForm(forms.Form):
-    email = forms.EmailField()
-    first_name = forms.CharField()
-    zip_code = forms.CharField()
+    email = forms.EmailField(
+        label="Your email",
+        widget=forms.TextInput(
+            attrs={"placeholder": "john@appleseed.com", "classes": "col-span-3"}
+        ),
+    )
+    first_name = forms.CharField(
+        label="Your first name",
+        widget=forms.TextInput(attrs={"placeholder": "John", "classes": "col-span-2"}),
+    )
+    zip_code = forms.CharField(
+        label="Your zipcode",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "01001",
+                "maxlength": "5",
+                "classes": "col-span-2",
+            }
+        ),
+        validators=[
+            RegexValidator(
+                regex=r"^[0-9]{5}",
+                message="Must be valid zipcode in formats 12345 or 12345-1234",
+            )
+        ],
+    )
 
-    cc_numbers = forms.CharField()
-    cc_exp = forms.CharField()
-    cc_secret = forms.CharField()
+    cc_numbers = forms.CharField(
+        label="Your credit card's numbers",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "1111 2222 3333 4444",
+                "classes": "col-span-3",
+            }
+        ),
+        validators=[
+            RegexValidator(
+                regex=r"^4([0-9]{12,15})$",
+                message="Must be valid credit card form: xxxx xxxx xxxx xxxx",
+            )
+        ],
+    )
+    cc_exp = forms.CharField(
+        label="Your credit card's expiration date",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "07/26",
+                "pattern": "[0-9]{1,2}/[0-9]{2,2}",
+                "maxlength": "5",
+                "classes": "col-span-2",
+            }
+        ),
+    )
+    cc_cvv = forms.CharField(
+        label="Your credit card's CVV (back of card)",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "123",
+                "pattern": "[0-9]{3}",
+                "maxlength": "3",
+                "classes": "col-span-2",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.sent_invoice = kwargs.pop("sent_invoice")
         super(PayInvoiceForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        cleaned_data = super(PayInvoiceForm, self).clean()
-        cleaned_email = cleaned_data.get("email")
+    def clean_email(self):
+        cleaned_email = self.cleaned_data.get("email")
         if (
             cleaned_email.lower().strip()
             != self.sent_invoice.invoice.email_recipient.lower()
         ):
-            raise ValidationError(
-                {"email": "Wrong email recipient, unable to process payment"}
-            )
+            raise ValidationError("Wrong email recipient, unable to process payment")
 
-        cleaned_name = cleaned_data.get("first_name")
+    def clean_first_name(self):
+        cleaned_name = self.cleaned_data.get("first_name")
         if (
             cleaned_name.lower().strip()
             not in self.sent_invoice.invoice.email_recipient_name.lower()
         ):
-            raise ValidationError(
-                {"first_name": "Wrong name recipient, unable to process payment"}
-            )
-        return cleaned_data
+            raise ValidationError("Wrong name recipient, unable to process payment")
 
 
 class DateInput(forms.DateInput):

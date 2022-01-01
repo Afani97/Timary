@@ -1,9 +1,34 @@
 {% extends 'timary/base.html' %}
+{% load filters %}
+
 
 {% block content %}
 
     <p>{{ invoice.title }}</p>
     <p>${{ sent_invoice.total_price }}</p>
 
-    {% include "partials/_form.html" with form=pay_invoice_form  btn_title='Pay Invoice' %}
+    <div class="divider"></div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-7 px-10 pb-10 pt-5 card bg-base-200">
+            {% for field in pay_invoice_form %}
+                <div class="form-control mx-2 my-4 {{ field.field.widget.attrs.classes }}">
+
+                    <label class="label"><span class="label-text">{{ field.label }}</span> </label>
+                    {{ field | addclass:"input input-bordered w-full" }}
+
+                    {% for error in field.errors %}
+                        <div class="text-red-600">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="flex justify-center mt-6">
+            <button class="btn btn-primary" type="submit">Pay Invoice</button>
+        </div>
+    </form>
 {% endblock %}
