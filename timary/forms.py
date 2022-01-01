@@ -55,60 +55,6 @@ class PayInvoiceForm(forms.Form):
         label="Your first name",
         widget=forms.TextInput(attrs={"placeholder": "John", "classes": "col-span-2"}),
     )
-    zip_code = forms.CharField(
-        label="Your zipcode",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "01001",
-                "maxlength": "5",
-                "classes": "col-span-2",
-            }
-        ),
-        validators=[
-            RegexValidator(
-                regex=r"^[0-9]{5}",
-                message="Must be valid zipcode in formats 12345 or 12345-1234",
-            )
-        ],
-    )
-
-    cc_numbers = forms.CharField(
-        label="Your credit card's numbers",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "1111 2222 3333 4444",
-                "classes": "col-span-3",
-            }
-        ),
-        validators=[
-            RegexValidator(
-                regex=r"^4([0-9]{12,15})$",
-                message="Must be valid credit card form: xxxx xxxx xxxx xxxx",
-            )
-        ],
-    )
-    cc_exp = forms.CharField(
-        label="Your credit card's expiration date",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "07/26",
-                "pattern": "[0-9]{1,2}/[0-9]{2,2}",
-                "maxlength": "5",
-                "classes": "col-span-2",
-            }
-        ),
-    )
-    cc_cvv = forms.CharField(
-        label="Your credit card's CVV (back of card)",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "123",
-                "pattern": "[0-9]{3}",
-                "maxlength": "3",
-                "classes": "col-span-2",
-            }
-        ),
-    )
 
     def __init__(self, *args, **kwargs):
         self.sent_invoice = kwargs.pop("sent_invoice")

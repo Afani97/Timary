@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -88,6 +89,10 @@ def pay_invoice(request, invoice_id):
         "invoice": invoice,
         "sent_invoice": sent_invoice,
         "pay_invoice_form": pay_invoice_form,
+        "stripe_public_key": settings.STRIPE_PUBLIC_API_KEY,
+        "return_url": request.build_absolute_uri(
+            reverse("timary:invoice_payment_success")
+        ),
     }
     return render(request, "invoices/pay_invoice.html", context)
 

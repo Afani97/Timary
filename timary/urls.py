@@ -66,4 +66,18 @@ urlpatterns += [
     path("signup/", views.register_user, name="register"),
 ]
 
+
+urlpatterns += [
+    path(
+        "create-payment-intent/",
+        views.create_payment_intent,
+        name="create_payment_intent",
+    ),
+    path(
+        "invoice-payment-success/",
+        views.invoice_payment_success,
+        name="invoice_payment_success",
+    ),
+]
+
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
