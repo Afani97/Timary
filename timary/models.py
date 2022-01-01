@@ -191,7 +191,7 @@ class SentInvoice(BaseModel):
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
-            f"paid_status={self.paid_status})"
+            f"paid_status={self.get_paid_status_display()})"
         )
 
     def __repr__(self):
@@ -200,7 +200,7 @@ class SentInvoice(BaseModel):
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
-            f"paid_status={self.paid_status})"
+            f"paid_status={self.get_paid_status_display()})"
         )
 
 

@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import InvoiceForm
+from timary.forms import InvoiceForm, PayInvoiceForm
 from timary.models import Invoice, SentInvoice
 
 
@@ -70,12 +70,25 @@ def pause_invoice(request, invoice_id):
     return render(request, "partials/_invoice.html", {"invoice": invoice})
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def pay_invoice(request, invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=invoice_id)
+    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+        return redirect(reverse("timary:login"))
+
+    pay_invoice_form = PayInvoiceForm(sent_invoice=sent_invoice)
     invoice = sent_invoice.invoice
 
-    context = {"invoice_title": invoice.title}
+    if request.method == "POST":
+        pay_invoice_form = PayInvoiceForm(request.POST, sent_invoice=sent_invoice)
+        if pay_invoice_form.is_valid():
+            return render(request, "invoices/success_pay_invoice.html", {})
+
+    context = {
+        "invoice": invoice,
+        "sent_invoice": sent_invoice,
+        "pay_invoice_form": pay_invoice_form,
+    }
     return render(request, "invoices/pay_invoice.html", context)
 
 

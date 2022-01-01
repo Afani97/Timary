@@ -2,5 +2,8 @@
 
 {% block content %}
 
-    <p>{{ invoice_title }}</p>
+    <p>{{ invoice.title }}</p>
+    <p>${{ sent_invoice.total_price }}</p>
+
+    {% include "partials/_form.html" with form=pay_invoice_form  btn_title='Pay Invoice' %}
 {% endblock %}

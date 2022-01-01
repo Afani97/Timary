@@ -44,6 +44,41 @@ class InvoiceForm(forms.ModelForm):
         return email_recipient_name
 
 
+class PayInvoiceForm(forms.Form):
+    email = forms.EmailField()
+    first_name = forms.CharField()
+    zip_code = forms.CharField()
+
+    cc_numbers = forms.CharField()
+    cc_exp = forms.CharField()
+    cc_secret = forms.CharField()
+
+    def __init__(self, *args, **kwargs):
+        self.sent_invoice = kwargs.pop("sent_invoice")
+        super(PayInvoiceForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(PayInvoiceForm, self).clean()
+        cleaned_email = cleaned_data.get("email")
+        if (
+            cleaned_email.lower().strip()
+            != self.sent_invoice.invoice.email_recipient.lower()
+        ):
+            raise ValidationError(
+                {"email": "Wrong email recipient, unable to process payment"}
+            )
+
+        cleaned_name = cleaned_data.get("first_name")
+        if (
+            cleaned_name.lower().strip()
+            not in self.sent_invoice.invoice.email_recipient_name.lower()
+        ):
+            raise ValidationError(
+                {"first_name": "Wrong name recipient, unable to process payment"}
+            )
+        return cleaned_data
+
+
 class DateInput(forms.DateInput):
     input_type = "date"
 
