@@ -37,5 +37,10 @@ def create_payment_intent(request):
         return JsonResponse(data={"msg": str(e)}, status=403)
 
 
-def invoice_payment_success(request):
+def invoice_payment_success(request, invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=invoice_id)
+    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+        return redirect(reverse("timary:login"))
+    sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+    sent_invoice.save()
     return render(request, "invoices/success_pay_invoice.html", {})
