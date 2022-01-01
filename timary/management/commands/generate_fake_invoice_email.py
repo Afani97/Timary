@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.management.base import BaseCommand
 
 from timary.tasks import send_invoice
@@ -9,7 +11,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         user = UserFactory(email="aristotelf@gmail.com")
-        invoice = InvoiceFactory(user=user, email_recipient="aristotelf@gmail.com")
+        invoice = InvoiceFactory(
+            user=user,
+            email_recipient="aristotelf@gmail.com",
+            last_date=datetime.date.today() - datetime.timedelta(days=3),
+        )
         DailyHoursFactory(invoice=invoice)
+        DailyHoursFactory(
+            invoice=invoice,
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            invoice=invoice,
+            date_tracked=datetime.date.today() - datetime.timedelta(days=2),
+        )
 
         send_invoice(invoice.id)

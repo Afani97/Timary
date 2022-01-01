@@ -467,7 +467,7 @@
                                                                 <tr>
                                                                     <td class="attributes_item">
                                                                         <span class="f-fallback">
-                                                                            <strong>Amount Due: ${{ total_amount }}</strong>
+                                                                            <strong>Amount Due: ${{ total_amount | floatformat }}</strong>
                                                                         </span>
                                                                     </td>
                                                                 </tr>
@@ -529,7 +529,7 @@
                                                                         <p class="f-fallback purchase_total purchase_total--label">Total</p>
                                                                     </td>
                                                                     <td width="20%" class="purchase_footer" valign="middle">
-                                                                        <p class="f-fallback purchase_total">${{ total_amount }}</p>
+                                                                        <p class="f-fallback purchase_total">${{ total_amount | floatformat }}</p>
                                                                     </td>
                                                                 </tr>
                                                             </table>

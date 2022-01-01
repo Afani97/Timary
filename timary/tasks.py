@@ -50,8 +50,8 @@ def send_invoice(invoice_id):
     ).strip()
 
     sent_invoice = SentInvoice.objects.create(
-        hours_start_date=hours_tracked.last().date_tracked or None,
-        hours_end_date=hours_tracked.first().date_tracked or None,
+        hours_start_date=hours_tracked.first().date_tracked or None,
+        hours_end_date=hours_tracked.last().date_tracked or None,
         date_sent=today,
         invoice=invoice,
         user=invoice.user,
