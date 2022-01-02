@@ -7,76 +7,6 @@ from django.core.validators import RegexValidator
 from timary.models import DailyHoursInput, Invoice, User
 
 
-class InvoiceForm(forms.ModelForm):
-    class Meta:
-        model = Invoice
-        fields = [
-            "title",
-            "hourly_rate",
-            "invoice_interval",
-            "email_recipient_name",
-            "email_recipient",
-        ]
-        widgets = {
-            "title": forms.TextInput(
-                attrs={
-                    "placeholder": "New Saas App...",
-                }
-            ),
-            "hourly_rate": forms.NumberInput(
-                attrs={
-                    "value": 50,
-                    "min": 1,
-                    "max": 1000,
-                }
-            ),
-            "invoice_interval": forms.Select(attrs={"label": "Invoice"}),
-            "email_recipient_name": forms.TextInput(attrs={"placeholder": "John"}),
-            "email_recipient": forms.EmailInput(
-                attrs={"placeholder": "john@company.com"}
-            ),
-        }
-
-    def clean_email_recipient_name(self):
-        email_recipient_name = self.cleaned_data.get("email_recipient_name")
-        if not email_recipient_name.isalpha():
-            raise ValidationError("Only valid names allowed.")
-        return email_recipient_name
-
-
-class PayInvoiceForm(forms.Form):
-    email = forms.EmailField(
-        label="Your email",
-        widget=forms.TextInput(
-            attrs={"placeholder": "john@appleseed.com", "classes": "col-span-3"}
-        ),
-    )
-    first_name = forms.CharField(
-        label="Your first name",
-        widget=forms.TextInput(attrs={"placeholder": "John", "classes": "col-span-2"}),
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.sent_invoice = kwargs.pop("sent_invoice")
-        super(PayInvoiceForm, self).__init__(*args, **kwargs)
-
-    def clean_email(self):
-        cleaned_email = self.cleaned_data.get("email")
-        if (
-            cleaned_email.lower().strip()
-            != self.sent_invoice.invoice.email_recipient.lower()
-        ):
-            raise ValidationError("Wrong email recipient, unable to process payment")
-
-    def clean_first_name(self):
-        cleaned_name = self.cleaned_data.get("first_name")
-        if (
-            cleaned_name.lower().strip()
-            not in self.sent_invoice.invoice.email_recipient_name.lower()
-        ):
-            raise ValidationError("Wrong name recipient, unable to process payment")
-
-
 class DateInput(forms.DateInput):
     input_type = "date"
 
@@ -122,6 +52,78 @@ class DailyHoursForm(forms.ModelForm):
         if date_tracked > datetime.date.today():
             raise ValidationError("Cannot set date into the future!")
         return date_tracked
+
+
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = [
+            "title",
+            "hourly_rate",
+            "invoice_interval",
+            "email_recipient_name",
+            "email_recipient",
+        ]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "placeholder": "New Saas App...",
+                }
+            ),
+            "hourly_rate": forms.NumberInput(
+                attrs={
+                    "value": 50,
+                    "min": 1,
+                    "max": 1000,
+                }
+            ),
+            "invoice_interval": forms.Select(attrs={"label": "Invoice"}),
+            "email_recipient_name": forms.TextInput(attrs={"placeholder": "John"}),
+            "email_recipient": forms.EmailInput(
+                attrs={"placeholder": "john@company.com"}
+            ),
+        }
+
+    def clean_email_recipient_name(self):
+        email_recipient_name = self.cleaned_data.get("email_recipient_name")
+        if not email_recipient_name.isalpha():
+            raise ValidationError("Only valid names allowed.")
+        return email_recipient_name
+
+
+class PayInvoiceForm(forms.Form):
+    email = forms.EmailField(
+        label="Your email",
+        widget=forms.TextInput(
+            attrs={"placeholder": "john@appleseed.com", "classes": "col-span-2"}
+        ),
+    )
+    first_name = forms.CharField(
+        label="Your first name",
+        widget=forms.TextInput(attrs={"placeholder": "John", "classes": "col-span-2"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.sent_invoice = (
+            kwargs.pop("sent_invoice") if "sent_invoice" in kwargs else None
+        )
+        super(PayInvoiceForm, self).__init__(*args, **kwargs)
+
+    def clean_email(self):
+        cleaned_email = self.cleaned_data.get("email")
+        if (
+            cleaned_email.lower().strip()
+            != self.sent_invoice.invoice.email_recipient.lower()
+        ):
+            raise ValidationError("Wrong email recipient, unable to process payment")
+
+    def clean_first_name(self):
+        cleaned_name = self.cleaned_data.get("first_name")
+        if (
+            cleaned_name.lower().strip()
+            not in self.sent_invoice.invoice.email_recipient_name.lower()
+        ):
+            raise ValidationError("Wrong name recipient, unable to process payment")
 
 
 phone_number_regex = RegexValidator(

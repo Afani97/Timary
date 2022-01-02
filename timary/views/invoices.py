@@ -1,3 +1,4 @@
+import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, JsonResponse, QueryDict
@@ -74,12 +75,10 @@ def pause_invoice(request, invoice_id):
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
-def pay_invoice(request, invoice_id):
-    sent_invoice = get_object_or_404(SentInvoice, id=invoice_id)
+def pay_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
-
-    pay_invoice_form = PayInvoiceForm(sent_invoice=sent_invoice)
 
     if request.method == "POST":
         pay_invoice_form = PayInvoiceForm(request.POST, sent_invoice=sent_invoice)
@@ -89,19 +88,31 @@ def pay_invoice(request, invoice_id):
             return JsonResponse(
                 {"valid": False, "errors": pay_invoice_form.errors.as_json()}
             )
+    else:
+        stripe.api_key = settings.STRIPE_SECRET_API_KEY
+        intent = stripe.PaymentIntent.create(
+            amount=sent_invoice.total_price * 100,
+            currency="usd",
+            automatic_payment_methods={
+                "enabled": True,
+            },
+        )
 
-    context = {
-        "invoice": sent_invoice.invoice,
-        "sent_invoice": sent_invoice,
-        "pay_invoice_form": pay_invoice_form,
-        "stripe_public_key": settings.STRIPE_PUBLIC_API_KEY,
-        "return_url": request.build_absolute_uri(
-            reverse(
-                "timary:invoice_payment_success", kwargs={"invoice_id": sent_invoice.id}
-            )
-        ),
-    }
-    return render(request, "invoices/pay_invoice.html", context)
+        context = {
+            "invoice": sent_invoice.invoice,
+            "sent_invoice": sent_invoice,
+            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "pay_invoice_form": PayInvoiceForm(),
+            "stripe_public_key": settings.STRIPE_PUBLIC_API_KEY,
+            "client_secret": intent["client_secret"],
+            "return_url": request.build_absolute_uri(
+                reverse(
+                    "timary:invoice_payment_success",
+                    kwargs={"invoice_id": sent_invoice.id},
+                )
+            ),
+        }
+        return render(request, "invoices/pay_invoice.html", context)
 
 
 def render_invoices_form(request, invoice_instance, invoice_form):

@@ -65,7 +65,7 @@ def send_invoice(invoice_id):
             "next_weeks_date": today + timedelta(weeks=1),
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_amount,
-            "invoice_id": sent_invoice.id,
+            "sent_invoice_id": sent_invoice.id,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "todays_date": today,

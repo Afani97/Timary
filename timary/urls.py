@@ -46,7 +46,7 @@ urlpatterns += [
     path(
         "invoices/<uuid:invoice_id>/pause/", views.pause_invoice, name="pause_invoice"
     ),
-    path("invoices/<uuid:invoice_id>/pay/", views.pay_invoice, name="pay_invoice"),
+    path("invoices/<uuid:sent_invoice_id>/pay/", views.pay_invoice, name="pay_invoice"),
     path(
         "invoices/<uuid:invoice_id>/update/",
         views.update_invoice,
@@ -68,11 +68,6 @@ urlpatterns += [
 
 
 urlpatterns += [
-    path(
-        "create-payment-intent/",
-        views.create_payment_intent,
-        name="create_payment_intent",
-    ),
     path(
         "invoice-payment-success/<uuid:invoice_id>/",
         views.invoice_payment_success,

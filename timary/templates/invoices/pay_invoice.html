@@ -120,33 +120,67 @@
 
 {% block content %}
 
-    <div class="flex flex-row w-full">
+    <div class="grid grid-cols-1 grid-flow-row md:grid-cols-7 md:grid-flow-col">
 
-        <div class="grid flex-grow">
-            <p>{{ invoice.title }}</p>
-            <p>${{ sent_invoice.total_price }}</p>
+        <div class="col-span-3 mx-5">
+            <div class="mb-4">
+                <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
+                <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
+                <p>Total Amount Due: ${{ sent_invoice.total_price | floatformat }}</p>
+            </div>
+            <div class="overflow-y-auto mt-10">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hour in hours_tracked %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
+                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat }}</span></td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td></td>
+                            <td width="80%" class="purchase_footer" valign="middle">
+                                <p class="f-fallback purchase_total purchase_total--label">Total</p>
+                            </td>
+                            <td width="20%" class="purchase_footer" valign="middle">
+                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price | floatformat }}</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-
-        <div class="divider divider-vertical"></div>
+        <div class="divider divider-horizontal md:divider-vertical col-span-1"></div>
 
         <!-- Display a payment form -->
-        <form id="payment-form" class="grid flex-grow max-w-xl mx-auto">
-            <div class="grid grid-cols-5 gap-3">
+        <form id="payment-form" class="col-span-3 h-80">
+            <div class="grid grid-cols-4 gap-2">
                 {% for field in pay_invoice_form %}
                     <div class="form-control my-4 {{ field.field.widget.attrs.classes }}">
                         <label class="label"><span class="label-text">{{ field.label }}</span></label>
-                        {{ field | addclass:"input input-bordered w-full" }}
+                        {{ field | addclass:"input input-bordered bg-neutral focus:border-primary focus:ring-0 focus:ring-primary w-full" }}
                     </div>
                 {% endfor %}
             </div>
             <div id="payment-element">
                 <!--Stripe.js injects the Payment Element-->
             </div>
-            <button id="submit">
-                <div class="spinner hidden" id="spinner"></div>
-                <span id="button-text">Pay invoice</span>
-            </button>
+            <div class="mt-10">
+                <button id="submit" class="ht-10">
+                    <div class="spinner hidden" id="spinner"></div>
+                    <span id="button-text">Pay invoice</span>
+                </button>
+            </div>
+
             <div id="payment-message" class="hidden"></div>
         </form>
 
@@ -157,18 +191,11 @@
 {% block js %}
     <script src="https://js.stripe.com/v3/"></script>
     <script nonce="pay-invoice">
-        // This is a public sample test API key.
-        // To avoid exposing it, don't submit any personally identifiable information through requests with this API key.
-        // Sign in to see your own test API key embedded in code samples.
         const stripe = Stripe('{{ stripe_public_key }}');
-
-        // The items the customer wants to buy
-        const items = { invoice_id: "{{ sent_invoice.id }}" };
 
         let elements;
 
         initialize();
-        checkStatus();
 
         document
             .querySelector("#payment-form")
@@ -176,26 +203,22 @@
 
         // Fetches a payment intent and captures the client secret
         async function initialize() {
-            const response = await fetch("{{ site_url }}/create-payment-intent/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(items),
-            });
-            const { clientSecret } = await response.json();
-
             const appearance = {
                 theme: 'night',
                 variables: {
                     colorPrimary: '#5e30eb',
                 },
             };
-            elements = stripe.elements({ appearance, clientSecret });
+            elements = stripe.elements({ appearance, clientSecret: '{{ client_secret }}' });
 
             const paymentElement = elements.create("payment");
             paymentElement.mount("#payment-element");
         }
 
         async function checkInvoicingDetailsValid() {
+            document.getElementById("id_email").classList.remove("input-error");
+            document.getElementById("id_first_name").classList.remove("input-error");
+
             const data = new FormData();
             data.set("email", document.getElementById("id_email").value);
             data.set("first_name", document.getElementById("id_first_name").value)
@@ -206,15 +229,16 @@
             let { valid, errors } = await response.json();
 
             // Remove previous error messages
-            const elements = document.getElementsByClassName("error-messages");
-            while (elements.length > 0) elements[0].remove();
+            const errorMessages = document.getElementsByClassName("error-messages");
+            while (errorMessages.length > 0) errorMessages[0].remove();
 
             if (!valid) {
                 errors = JSON.parse(errors)
                 for (const error in errors) {
                     let div = document.createElement("div");
-                    div.classList.add("text-red-600", "error-messages");
+                    div.classList.add("text-red-400", "error-messages", "text-sm", "mt-1");
                     div.innerText = errors[error][0]["message"];
+                    document.getElementById(`id_${error}`).classList.add("input-error");
                     document.getElementById(`id_${error}`).after(div);
                 }
             }
@@ -224,6 +248,7 @@
         async function handleSubmit(e) {
             e.preventDefault();
             setLoading(true);
+
             const formIsValid = await checkInvoicingDetailsValid();
             if (!formIsValid) {
                 setLoading(false);
@@ -251,34 +276,6 @@
             }
 
             setLoading(false);
-        }
-
-        // Fetches the payment intent status after payment submission
-        async function checkStatus() {
-            const clientSecret = new URLSearchParams(window.location.search).get(
-                "payment_intent_client_secret"
-            );
-
-            if (!clientSecret) {
-                return;
-            }
-
-            const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-
-            switch (paymentIntent.status) {
-            case "succeeded":
-                showMessage("Payment succeeded!");
-                break;
-            case "processing":
-                showMessage("Your payment is processing.");
-                break;
-            case "requires_payment_method":
-                showMessage("Your payment was not successful, please try again.");
-                break;
-            default:
-                showMessage("Something went wrong.");
-                break;
-            }
         }
 
         // ------- UI helpers -------

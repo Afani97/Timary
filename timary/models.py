@@ -203,6 +203,18 @@ class SentInvoice(BaseModel):
             f"paid_status={self.get_paid_status_display()})"
         )
 
+    def get_hours_tracked(self):
+        return (
+            self.invoice.hours_tracked.filter(
+                date_tracked__range=[
+                    self.hours_start_date,
+                    self.hours_end_date,
+                ]
+            )
+            .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
+            .order_by("date_tracked")
+        )
+
 
 class User(AbstractUser, BaseModel):
     phone_number = PhoneNumberField(unique=True, blank=True, null=True)
