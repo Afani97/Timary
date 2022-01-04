@@ -1,6 +1,9 @@
+from unittest.mock import patch
+
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from timary.models import User
 from timary.tests.factories import UserFactory
 
 
@@ -23,7 +26,9 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 400)
 
-    def test_signup(self):
+    @patch("stripe.Customer.create")
+    def test_signup(self, stripe_create_mockup):
+        stripe_create_mockup.return_value = {"id": "123"}
         response = self.client.post(
             reverse("timary:register"),
             {
@@ -34,8 +39,13 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 302)
         self.assertEquals(response.url, reverse("timary:index"))
+        self.assertIsNotNone(
+            User.objects.get(email="thomas@test.com").stripe_customer_id
+        )
 
-    def test_signup_error(self):
+    @patch("stripe.Customer.create")
+    def test_signup_error(self, stripe_create_mockup):
+        stripe_create_mockup.return_value = {"id": "123"}
         response = self.client.post(
             reverse("timary:register"),
             {

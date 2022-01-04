@@ -1,3 +1,5 @@
+import stripe
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -10,9 +12,16 @@ def register_user(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
     if request.method == "POST":
+        stripe.api_key = settings.STRIPE_SECRET_API_KEY
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
+            try:
+                stripe_customer = stripe.Customer.create(email=user.email)
+            except stripe.error.InvalidRequestError as e:
+                print("ERROR CREATING STRIPE USER: ", e)
+            user.stripe_customer_id = stripe_customer["id"]
+            user.save()
             password = form.cleaned_data.get("password")
             authenticated_user = authenticate(username=user.username, password=password)
             if authenticated_user:
