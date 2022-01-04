@@ -171,6 +171,7 @@ class TestUser(TestCase):
         self.assertEqual(user.username, "test@test.com")
         self.assertEqual(user.email, "test@test.com")
         self.assertEqual(user.phone_number, "+17742613186")
+        self.assertEqual(user.membership_tier, User.MembershipTier.FREE)
 
     def test_get_remaining_invoices(self):
         user = UserFactory()

@@ -9,8 +9,16 @@ from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactor
 class Command(BaseCommand):
     help = "Generate fake invoicing email"
 
+    def add_arguments(self, parser):
+        # Membership type
+        # FREE => 1, BASIC => 2, PREMIUM => 3
+        parser.add_argument("-mt", nargs="?", type=int, default=1)
+
     def handle(self, *args, **options):
-        user = UserFactory(email="aristotelf@gmail.com")
+        membership_tier = options["mt"]
+        user = UserFactory(
+            email="aristotelf@gmail.com", membership_tier=membership_tier
+        )
         invoice = InvoiceFactory(
             user=user,
             email_recipient="aristotelf@gmail.com",

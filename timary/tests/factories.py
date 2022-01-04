@@ -4,8 +4,7 @@ import factory
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
-from timary import models
-from timary.models import Invoice, User
+from timary.models import DailyHoursInput, Invoice, User
 
 username_email = factory.Faker("email")
 
@@ -20,6 +19,7 @@ class UserFactory(DjangoModelFactory):
     email = factory.LazyAttribute(lambda o: f"{o.username}")
     password = factory.PostGenerationMethodCall("set_password", "Apple101!")
     phone_number = factory.Faker("phone_number", locale="en_US")
+    membership_tier = User.MembershipTier.FREE
 
 
 def get_next_date():
@@ -32,7 +32,7 @@ def get_last_date():
 
 class InvoiceFactory(DjangoModelFactory):
     class Meta:
-        model = models.Invoice
+        model = Invoice
 
     user = factory.SubFactory(UserFactory)
     title = factory.Faker("name")
@@ -54,7 +54,7 @@ class InvoiceFactory(DjangoModelFactory):
 
 class DailyHoursFactory(DjangoModelFactory):
     class Meta:
-        model = models.DailyHoursInput
+        model = DailyHoursInput
 
     invoice = factory.SubFactory(InvoiceFactory)
     hours = FuzzyDecimal(1, 23, 1)

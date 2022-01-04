@@ -60,6 +60,8 @@ def send_invoice(invoice_id):
     msg_body = render_to_string(
         "email/styled_email.html",
         {
+            "is_premium_membership": invoice.user.membership_tier
+            == User.MembershipTier.PREMIUM,
             "site_url": settings.SITE_URL,
             "user_name": invoice.user.first_name,
             "next_weeks_date": today + timedelta(weeks=1),

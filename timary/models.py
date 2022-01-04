@@ -217,7 +217,15 @@ class SentInvoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
+    class MembershipTier(models.IntegerChoices):
+        FREE = 1, "FREE"
+        BASIC = 2, "BASIC"
+        PREMIUM = 3, "PREMIUM"
+
     phone_number = PhoneNumberField(unique=True, blank=True, null=True)
+    membership_tier = models.PositiveSmallIntegerField(
+        default=MembershipTier.FREE, choices=MembershipTier.choices
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
