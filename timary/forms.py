@@ -222,6 +222,72 @@ class RegisterForm(forms.ModelForm):
         )
 
 
+class RegisterSubscriptionForm(forms.ModelForm):
+    email = forms.EmailField(
+        label="Email",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "example@test.com"}),
+    )
+    first_name = forms.CharField(
+        label="First name",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Tom"}),
+    )
+    last_name = forms.CharField(
+        label="Last name",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Brady"}),
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "*********", "type": "password"}
+        ),
+        required=True,
+    )
+    phone_number = forms.CharField(
+        required=False,
+        validators=[phone_number_regex],
+        widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
+    )
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get("first_name")
+        if not first_name.isalpha():
+            raise ValidationError("Only valid names allowed.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get("last_name")
+        if not last_name.isalpha():
+            raise ValidationError("Only valid names allowed.")
+        return last_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(username=email).count() != 0:
+            raise ValidationError("Email already registered!")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        user.username = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
+
+    class Meta:
+        model = User
+        fields = (
+            "first_name",
+            "last_name",
+            "phone_number",
+            "email",
+            "password",
+        )
+
+
 class LoginForm(forms.Form):
     email = forms.EmailField(
         label="Email",

@@ -63,7 +63,22 @@ urlpatterns += [
 urlpatterns += [
     path("login/", views.login_user, name="login"),
     path("logout/", views.logout_user, name="logout"),
-    path("signup/", views.register_user, name="register"),
+    path("register/", views.register_user, name="register"),
+    path(
+        "register-subscription/",
+        views.register_subscription,
+        name="register-subscription",
+    ),
+    path(
+        "onboarding_success/",
+        views.onboard_success,
+        name="onboard_complete",
+    ),
+    path(
+        "token/",
+        views.get_subscription_token,
+        name="token",
+    ),
 ]
 
 
