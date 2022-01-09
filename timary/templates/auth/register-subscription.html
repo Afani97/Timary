@@ -6,7 +6,16 @@
     <div class="max-w-xl mx-auto mt-6">
         <h1 class="text-3xl mb-4 text-center">Signup</h1>
 
-        <div class="p-10 card bg-base-200">
+        <div class="flex justify-center mb-10">
+            <ul class="steps steps-horizontal w-full">
+                <li class="step step-primary">Register</li>
+                <li class="step">Complete Stripe info</li>
+                <li class="step">Add payment details</li>
+                <li class="step">Create first invoice</li>
+            </ul>
+        </div>
+
+        <div class="card bg-base-200">
             <div class="card-body">
                 {% include 'partials/_form.html' with form=form btn_title='Continue' %}
             </div>

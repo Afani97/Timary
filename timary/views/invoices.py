@@ -97,7 +97,7 @@ def pay_invoice(request, sent_invoice_id):
                 "enabled": True,
             },
             transfer_data={
-                "destination": sent_invoice.user.stripe_customer_id,
+                "destination": sent_invoice.user.stripe_connect_id,
             },
         )
 

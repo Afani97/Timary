@@ -17,7 +17,7 @@
             text-align: center;
         }
 
-        #payment-element {
+        #card-element {
             margin-bottom: 24px;
         }
 
@@ -120,32 +120,36 @@
 
 {% block content %}
 
+    <div class="grid grid-cols-1">
+        <h1 class="text-3xl mx-5 mb-10 text-center">Add card details</h1>
 
-
-    <div class="grid grid-cols-1 grid-flow-row md:grid-cols-7 md:grid-flow-col">
-
-        <div class="col-span-3 mx-5">
-            <div class="mb-4">
-                <h1 class="text-3xl">Add card details</h1>
-            </div>
+        <div class="flex justify-center mb-10">
+            <ul class="steps steps-horizontal w-full">
+                <li class="step step-primary">Register</li>
+                <li class="step step-primary">Complete Stripe info</li>
+                <li class="step">Add payment details</li>
+                <li class="step">Create first invoice</li>
+            </ul>
         </div>
 
-        <div class="divider divider-horizontal md:divider-vertical col-span-1"></div>
+        <div class="divider divider-horizontal mb-10"></div>
 
         <!-- Display a payment form -->
-        <form id="subscription-form" class="col-span-3 h-80">
-            <div id="card-element">
-                <!--Stripe.js injects the Payment Element-->
-            </div>
-            <div class="mt-10">
-                <button id="submit" class="ht-10">
-                    <div class="spinner hidden" id="spinner"></div>
-                    <span id="button-text">Add default card</span>
-                </button>
-            </div>
+        <div class="flex justify-center">
+            <form id="subscription-form" class="h-80 w-1/2 m-2">
+                <div id="card-element" class="border-solid rounded-md border-2 border-primary p-3 h-16 text-white">
+                    <!--Stripe.js injects the Payment Element-->
+                </div>
+                <div class="mt-10 flex justify-center">
+                    <button id="submit" class="ht-10">
+                        <div class="spinner hidden" id="spinner"></div>
+                        <span id="button-text">Add default card</span>
+                    </button>
+                </div>
 
-            <div id="payment-message" class="hidden"></div>
-        </form>
+                <div id="payment-message" class="hidden"></div>
+            </form>
+        </div>
 
     </div>
 
