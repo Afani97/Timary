@@ -34,28 +34,6 @@ def register_user(request):
             password = form.cleaned_data.get("password")
             authenticated_user = authenticate(username=user.username, password=password)
             if authenticated_user:
-                stripe_connect_account = stripe.Account.create(
-                    country="US",
-                    type="custom",
-                    capabilities={
-                        "card_payments": {"requested": True},
-                        "transfers": {"requested": True},
-                    },
-                    business_type="individual",
-                    business_profile={"mcc": "1520", "url": "www.usetimary.com"},
-                    tos_acceptance={
-                        "date": int(time.time()),
-                        "ip": get_client_ip(request),
-                    },
-                    individual={
-                        "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": "Fani",
-                        "dob": {"day": "8", "month": "3", "year": "1997"},
-                    },
-                )
-                user.stripe_connect_id = stripe_connect_account["id"]
-                user.save()
                 login(request, authenticated_user)
                 return redirect(reverse("timary:index"))
             else:
@@ -75,9 +53,6 @@ def register_subscription(request):
         form = RegisterSubscriptionForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # stripe_customer = stripe.Customer.create(email=user.email)
-            # user.stripe_customer_id = stripe_customer["id"]
-            # user.save()
             password = form.cleaned_data.get("password")
             authenticated_user = authenticate(username=user.username, password=password)
             if authenticated_user:
@@ -160,6 +135,14 @@ def get_subscription_token(request):
             },
         ],
         default_payment_method=customer_payment_method_id,
+    )
+    _ = stripe.PaymentMethod.create(
+        customer=request.user.stripe_customer_id,
+        payment_method=customer_payment_method_id,
+        stripe_account=request.user.stripe_connect_id,
+    )
+    stripe.Account.modify(
+        request.user.stripe_connect_id, external_account=customer_payment_method_id
     )
     return redirect(reverse("timary:manage_invoices"))
 
