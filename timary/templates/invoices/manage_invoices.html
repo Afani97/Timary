@@ -14,15 +14,6 @@
                 {% include 'partials/_invoice.html' with invoice=invoice %}
             {% empty %}
                 <div>
-                    <div class="flex justify-center">
-                        <ul class="steps steps-horizontal w-full">
-                            <li class="step step-primary">Register</li>
-                            <li class="step step-primary">Complete Stripe info</li>
-                            <li class="step step-primary">Add payment details</li>
-                            <li class="step">Create first invoice</li>
-                        </ul>
-                    </div>
-
                     <div class="hero">
                         <div class="flex-col justify-center hero-content lg:flex-row">
                             <div class="text-center lg:text-left md:mr-20">

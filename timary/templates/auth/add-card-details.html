@@ -123,33 +123,22 @@
     <div class="grid grid-cols-1">
         <h1 class="text-3xl mx-5 mb-10 text-center">Add card details</h1>
 
-        <div class="flex justify-center mb-10">
-            <ul class="steps steps-horizontal w-full">
-                <li class="step step-primary">Register</li>
-                <li class="step step-primary">Complete Stripe info</li>
-                <li class="step">Add payment details</li>
-                <li class="step">Create first invoice</li>
-            </ul>
-        </div>
-
         <div class="divider divider-horizontal mb-10"></div>
 
         <!-- Display a payment form -->
-        <div class="flex justify-center">
-            <form id="subscription-form" class="h-80 w-1/2 m-2">
-                <div id="card-element" class="border-solid rounded-md border-2 border-primary p-3 h-16 text-white">
-                    <!--Stripe.js injects the Payment Element-->
-                </div>
-                <div class="mt-10 flex justify-center">
-                    <button id="submit" class="ht-10">
-                        <div class="spinner hidden" id="spinner"></div>
-                        <span id="button-text">Add default card</span>
-                    </button>
-                </div>
+        <form id="subscription-form">
+            <div id="card-element">
+                <!--Stripe.js injects the Payment Element-->
+            </div>
+            <div class="mt-10 flex justify-center">
+                <button id="submit" class="ht-10">
+                    <div class="spinner hidden" id="spinner"></div>
+                    <span id="button-text">Add default card</span>
+                </button>
+            </div>
 
-                <div id="payment-message" class="hidden"></div>
-            </form>
-        </div>
+            <div id="payment-message" class="hidden"></div>
+        </form>
 
     </div>
 
@@ -179,7 +168,7 @@
             };
             elements = stripe.elements({ appearance, clientSecret: '{{ client_secret }}' });
 
-            cardElement = elements.create("card");
+            cardElement = elements.create("payment");
             cardElement.mount("#card-element");
         }
 
@@ -187,29 +176,49 @@
             e.preventDefault();
             setLoading(true);
 
-            stripe.createToken(cardElement, {"currency": "usd"}).then(function(result) {
-                if (result.token) {
-                    setLoading(false);
-                    fetch(`{{ site_url }}/token/`, {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(result.token)
-                    }).then(resp => resp.json()).then((resp) => {
-                        window.location = resp.redirect_url;
-                    })
-
-                } else {
-                    if (result.error.type === "card_error" || result.error.type === "validation_error") {
-                        showMessage(result.error.message);
-                    } else {
-                        showMessage("An unexpected error occurred.");
-                    }
-
-                    setLoading(false);
+            const {error} = await stripe.confirmSetup({
+                //`Elements` instance that was used to create the Payment Element
+                elements,
+                confirmParams: {
+                    return_url: `{{ site_url }}/token/`,
                 }
             });
+
+            if (error) {
+                // This point will only be reached if there is an immediate error when
+                // confirming the payment. Show error to your customer (for example, payment
+                // details incomplete)
+                const messageContainer = document.querySelector('#error-message');
+                messageContainer.textContent = error.message;
+            } else {
+                // Your customer will be redirected to your `return_url`. For some payment
+                // methods like iDEAL, your customer will be redirected to an intermediate
+                // site first to authorize the payment, then redirected to the `return_url`.
+            }
+
+            {#stripe.createToken(cardElement, {"currency": "usd"}).then(function(result) {#}
+            {#    if (result.token) {#}
+            {#        setLoading(false);#}
+            {#        fetch(`{{ site_url }}/token/`, {#}
+            {#            method: "POST",#}
+            {#            headers: {#}
+            {#                'Content-Type': 'application/json'#}
+            {#            },#}
+            {#            body: JSON.stringify(result.token)#}
+            {#        }).then(resp => resp.json()).then((resp) => {#}
+            {#            window.location = resp.redirect_url;#}
+            {#        })#}
+            {##}
+            {#    } else {#}
+            {#        if (result.error.type === "card_error" || result.error.type === "validation_error") {#}
+            {#            showMessage(result.error.message);#}
+            {#        } else {#}
+            {#            showMessage("An unexpected error occurred.");#}
+            {#        }#}
+            {##}
+            {#        setLoading(false);#}
+            {#    }#}
+            // {#});#}
 
 
         }

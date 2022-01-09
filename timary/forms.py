@@ -228,15 +228,10 @@ class RegisterSubscriptionForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "example@test.com"}),
     )
-    first_name = forms.CharField(
-        label="First name",
+    full_name = forms.CharField(
+        label="Full name",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Tom"}),
-    )
-    last_name = forms.CharField(
-        label="Last name",
-        required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Brady"}),
+        widget=forms.TextInput(attrs={"placeholder": "Tom Brady"}),
     )
     password = forms.CharField(
         label="Password",
@@ -245,23 +240,12 @@ class RegisterSubscriptionForm(forms.ModelForm):
         ),
         required=True,
     )
-    phone_number = forms.CharField(
-        required=False,
-        validators=[phone_number_regex],
-        widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
-    )
 
-    def clean_first_name(self):
-        first_name = self.cleaned_data.get("first_name")
-        if not first_name.isalpha():
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get("full_name")
+        if not full_name.replace(" ", "").isalpha():
             raise ValidationError("Only valid names allowed.")
-        return first_name
-
-    def clean_last_name(self):
-        last_name = self.cleaned_data.get("last_name")
-        if not last_name.isalpha():
-            raise ValidationError("Only valid names allowed.")
-        return last_name
+        return full_name
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -271,6 +255,9 @@ class RegisterSubscriptionForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        first_name, last_name = self.cleaned_data.get("full_name").split(" ")
+        user.first_name = first_name
+        user.last_name = last_name
         user.set_password(self.cleaned_data["password"])
         user.username = self.cleaned_data["email"]
         if commit:
@@ -280,9 +267,7 @@ class RegisterSubscriptionForm(forms.ModelForm):
     class Meta:
         model = User
         fields = (
-            "first_name",
-            "last_name",
-            "phone_number",
+            "full_name",
             "email",
             "password",
         )
