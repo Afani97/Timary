@@ -1,3 +1,5 @@
+import stripe
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import QueryDict
 from django.shortcuts import render
@@ -10,6 +12,63 @@ from timary.forms import UserForm
 @login_required()
 @require_http_methods(["GET"])
 def user_profile(request):
+    stripe.api_key = settings.STRIPE_SECRET_API_KEY
+    connect_account = stripe.Account.retrieve("acct_1KG76h2fHOoQdxZK")
+    print(connect_account)
+    product = stripe.Product.create(name="Basic", stripe_account=connect_account["id"])
+    price = stripe.Price.create(
+        unit_amount=19 * 100,
+        currency="usd",
+        recurring={"interval": "month"},
+        product=product["id"],
+        stripe_account=connect_account["id"],
+    )
+    customer = stripe.Customer.create(
+        email=request.user.email,
+        name=request.user.get_full_name(),
+        stripe_account=connect_account["id"],
+    )
+    payment_method = stripe.PaymentMethod.create(
+        type="card",
+        card={
+            "number": "4000056655665556",
+            "exp_month": 1,
+            "exp_year": 2023,
+            "cvc": "314",
+        },
+        stripe_account=connect_account["id"],
+    )
+    payment_method = stripe.PaymentMethod.attach(
+        payment_method["id"],
+        customer=customer["id"],
+        stripe_account=connect_account["id"],
+    )
+    stripe.Customer.modify(
+        customer["id"],
+        invoice_settings={"default_payment_method": payment_method["id"]},
+        stripe_account=connect_account["id"],
+    )
+    stripe.Subscription.create(
+        customer=customer["id"],
+        items=[
+            {"price": price["id"]},
+        ],
+        stripe_account=connect_account["id"],
+    )
+
+    token = stripe.Token.create(
+        card={
+            "number": "4000056655665556",
+            "exp_month": 1,
+            "exp_year": 2023,
+            "cvc": "314",
+            "currency": "usd",
+        },
+    )
+    stripe.Account.create_external_account(
+        connect_account["id"],
+        external_account=token["id"],
+    )
     context = {
         "profile": request.user,
         "sent_invoices": request.user.sent_invoices.order_by("-date_sent"),
