@@ -107,14 +107,24 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number"]
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+        ]
         widgets = {
             "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
             "first_name": forms.TextInput(attrs={"placeholder": "John"}),
             "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
         }
 
-    field_order = ["first_name", "last_name", "email", "phone_number"]
+    field_order = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+    ]
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get("first_name")
@@ -137,6 +147,12 @@ class UserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["phone_number_availability"]
 
 
 class RegisterForm(forms.ModelForm):

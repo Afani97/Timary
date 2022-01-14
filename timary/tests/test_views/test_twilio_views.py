@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass
 from unittest.mock import patch
 
@@ -16,48 +17,66 @@ from timary.views.twilio_views import twilio_reply
 
 class TestTwilioSendReminderSMS(TestCase):
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    def test_send_0_messages(self, message_create_mock):
+    @patch("timary.tasks.date")
+    def test_send_0_messages(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         message_create_mock.return_value = None
+
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    def test_send_1_message(self, message_create_mock):
+    @patch("timary.tasks.date")
+    def test_send_1_message(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         message_create_mock.return_value = None
 
-        InvoiceFactory()
+        InvoiceFactory(user__phone_number_availability="Mon")
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    def test_send_3_messages(self, message_create_mock):
+    @patch("timary.tasks.date")
+    def test_send_3_messages(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         message_create_mock.return_value = None
 
-        InvoiceFactory()
-        InvoiceFactory()
-        InvoiceFactory()
+        InvoiceFactory(user__phone_number_availability="Mon")
+        InvoiceFactory(user__phone_number_availability="Mon")
+        InvoiceFactory(user__phone_number_availability="Mon")
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("3 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    def test_send_1_message_filtering_users(self, message_create_mock):
+    @patch("timary.tasks.date")
+    def test_send_1_message_filtering_users(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number=None)
         InvoiceFactory(user__phone_number="")
         InvoiceFactory(next_date=None)
-        InvoiceFactory()
+        InvoiceFactory(user__phone_number_availability="Mon")
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    def test_send_1_message_from_1_user_with_2_invoices(self, message_create_mock):
+    @patch("timary.tasks.date")
+    def test_send_1_message_from_1_user_with_2_invoices(
+        self, today_mock, message_create_mock
+    ):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         message_create_mock.return_value = None
 
-        user = UserFactory()
+        user = UserFactory(phone_number_availability="Mon")
 
         InvoiceFactory(user=user)
         InvoiceFactory(user=user)
