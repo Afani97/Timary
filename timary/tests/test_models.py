@@ -166,6 +166,7 @@ class TestUser(TestCase):
             username="test@test.com",
             email="test@test.com",
             phone_number="+17742613186",
+            phone_number_availability=["Mon", "Tue", "Wed"],
         )
         self.assertIsNotNone(user)
         self.assertEqual(user.first_name, "Ari")
@@ -173,6 +174,11 @@ class TestUser(TestCase):
         self.assertEqual(user.username, "test@test.com")
         self.assertEqual(user.email, "test@test.com")
         self.assertEqual(user.phone_number, "+17742613186")
+        self.assertListEqual(user.phone_number_availability, ["Mon", "Tue", "Wed"])
+
+    def test_settings_dict(self):
+        user = UserFactory(phone_number_availability=["Mon", "Tue"])
+        self.assertEqual(user.settings, {"phone_number_availability": ["Mon", "Tue"]})
 
     def test_get_remaining_invoices(self):
         user = UserFactory()
