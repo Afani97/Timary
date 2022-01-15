@@ -229,12 +229,10 @@ class TestUserSettings(BaseTest):
 
     def test_update_settings_redirect(self):
         self.client.logout()
-        url_params = {
-            "email": "user@test.com",
-            "first_name": "Test",
-            "last_name": "Test",
-            "phone_number": "+13334445555",
-        }
+        url_params = [
+            ("phone_number_availability", "Mon"),
+            ("phone_number_availability", "Tue"),
+        ]
         response = self.client.put(
             reverse("timary:update_user_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
