@@ -80,7 +80,7 @@ def update_user_settings(request):
         "form": user_settings_form,
         "url": reverse("timary:update_user_settings"),
         "target": "this",
-        "swap": "innerHTML",
+        "swap": "outerHTML",
         "id": "update-user-settings",
         "md_block": True,
         "cancel_url": reverse("timary:settings_partial"),

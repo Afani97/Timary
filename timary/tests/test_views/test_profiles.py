@@ -1,6 +1,7 @@
 from django.urls import reverse
 from django.utils.http import urlencode
 
+from timary.models import User
 from timary.tests.factories import UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
@@ -123,6 +124,119 @@ class TestUsers(BaseTest):
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+        self.assertEqual(response.status_code, 302)
+
+
+class TestUserSettings(BaseTest):
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.user = UserFactory(phone_number_availability=["Tue"])
+        self.client.force_login(self.user)
+
+    def test_get_settings_in_profile_page(self):
+        response = self.client.get(reverse("timary:user_profile"))
+        self.assertInHTML(
+            """
+            <div class="form-control">
+                <label>Tue</label>
+                <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    checked="checked"
+                    disabled="true"
+                >
+            </div>
+            """,
+            response.content.decode("utf-8"),
+        )
+
+    def test_get_settings_partial(self):
+        rendered_template = self.setup_template(
+            "partials/_settings.html", {"settings": self.user.settings}
+        )
+        response = self.client.get(reverse("timary:settings_partial"))
+        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+
+    def test_get_settings_partial_with_no_phone_avail(self):
+        self.user.phone_number_availability = None
+        self.user.save()
+        self.user.refresh_from_db()
+        response = self.client.get(reverse("timary:settings_partial"))
+        self.assertInHTML(
+            "<label>Update availability to receive texts</label>",
+            response.content.decode("utf-8"),
+        )
+
+    def test_get_edit_user_settings(self):
+        response = self.client.get(reverse("timary:update_user_settings"))
+        for index, day in enumerate(User.WEEK_DAYS):
+            with self.subTest(f"Testing {day[0]}"):
+                self.assertInHTML(
+                    f"""
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">{day[0]}</span></label>
+                        <input
+                            id="id_phone_number_availability_{index}"
+                            name="phone_number_availability"
+                            type="checkbox"
+                            class="toggle toggle-primary"
+                            value="{day[0]}"
+                            {'checked=checked' if day[0] in self.user.phone_number_availability else ""}
+                        >
+                    </div>
+                    """,
+                    response.content.decode("utf-8"),
+                )
+        self.assertEqual(response.templates[0].name, "partials/_settings_form.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_user_settings(self):
+        url_params = [
+            ("phone_number_availability", "Mon"),
+            ("phone_number_availability", "Tue"),
+        ]
+        response = self.client.put(
+            reverse("timary:update_user_settings"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+        self.user.refresh_from_db()
+        for index, day in enumerate(["Mon", "Tue"]):
+            with self.subTest(f"Testing {day}"):
+                self.assertInHTML(
+                    f"""
+                    <div class="form-control">
+                        <label>{day}</label>
+                        <input
+                            type="checkbox"
+                            class="toggle toggle-primary"
+                            checked="checked"
+                            disabled="true"
+                        >
+                    </div>
+                    """,
+                    response.content.decode("utf-8"),
+                )
+        self.assertEqual(response.templates[0].name, "partials/_settings.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_profile_partial_redirect(self):
+        self.client.logout()
+        response = self.client.get(reverse("timary:settings_partial"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_update_settings_redirect(self):
+        self.client.logout()
+        url_params = {
+            "email": "user@test.com",
+            "first_name": "Test",
+            "last_name": "Test",
+            "phone_number": "+13334445555",
+        }
+        response = self.client.put(
+            reverse("timary:update_user_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertEqual(response.status_code, 302)
