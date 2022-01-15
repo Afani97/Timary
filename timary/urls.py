@@ -72,7 +72,7 @@ urlpatterns += [
     path(
         "onboarding_success/",
         views.onboard_success,
-        name="onboard_complete",
+        name="onboard_success",
     ),
     path(
         "token/",

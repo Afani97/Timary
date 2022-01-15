@@ -1,9 +1,11 @@
+import json
 import time
 
 import stripe
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -77,8 +79,9 @@ def register_subscription(request):
                     },
                 )
                 stripe_customer = stripe.Customer.create(
-                    name=user.get_full_name(),
                     email=user.email,
+                    name=user.get_full_name(),
+                    stripe_account=stripe_connect_account["id"],
                 )
                 user.stripe_customer_id = stripe_customer["id"]
                 user.stripe_connect_id = stripe_connect_account["id"]
@@ -108,6 +111,7 @@ def onboard_success(request):
     intent = stripe.SetupIntent.create(
         payment_method_types=["card"],
         customer=request.user.stripe_customer_id,
+        stripe_account=request.user.stripe_connect_id,
     )
     return render(
         request,
@@ -122,29 +126,43 @@ def onboard_success(request):
 @csrf_exempt
 def get_subscription_token(request):
     stripe.api_key = settings.STRIPE_SECRET_API_KEY
-    payment_methods = stripe.Customer.list_payment_methods(
+    tokens = json.loads(request.body)
+
+    first_token = tokens["first_token"]["id"]
+    second_token = tokens["second_token"]["id"]
+
+    stripe.Customer.create_source(
         request.user.stripe_customer_id,
-        type="card",
-    )
-    customer_payment_method_id = payment_methods["data"][0]["id"]
-    _ = stripe.Subscription.create(
-        customer=request.user.stripe_customer_id,
-        items=[
-            {
-                "price": "price_1KG5QgGXoFOIzMJt3dbUrZBh",
-            },
-        ],
-        default_payment_method=customer_payment_method_id,
-    )
-    _ = stripe.PaymentMethod.create(
-        customer=request.user.stripe_customer_id,
-        payment_method=customer_payment_method_id,
+        source=first_token,
         stripe_account=request.user.stripe_connect_id,
     )
-    stripe.Account.modify(
-        request.user.stripe_connect_id, external_account=customer_payment_method_id
+
+    product = stripe.Product.create(
+        name="Basic", stripe_account=request.user.stripe_connect_id
     )
-    return redirect(reverse("timary:manage_invoices"))
+    price = stripe.Price.create(
+        unit_amount=19 * 100,
+        currency="usd",
+        recurring={"interval": "month"},
+        product=product["id"],
+        stripe_account=request.user.stripe_connect_id,
+    )
+
+    stripe.Subscription.create(
+        customer=request.user.stripe_customer_id,
+        items=[
+            {"price": price["id"]},
+        ],
+        stripe_account=request.user.stripe_connect_id,
+    )
+
+    stripe.Account.create_external_account(
+        request.user.stripe_connect_id,
+        external_account=second_token,
+    )
+    return JsonResponse(
+        {"redirect_url": request.build_absolute_uri(reverse("timary:manage_invoices"))}
+    )
 
 
 def login_user(request):
