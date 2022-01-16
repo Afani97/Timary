@@ -1,9 +1,14 @@
+import json
+
 from django.conf import settings
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from twilio.rest import Client
 
 from timary.models import SentInvoice
+from timary.services.stripe_service import StripeService
 
 
 def invoice_payment_success(request, invoice_id):
@@ -21,3 +26,36 @@ def invoice_payment_success(request, invoice_id):
             f"You should see {sent_invoice.total_price} deposited into your bank account shortly",
         )
     return render(request, "invoices/success_pay_invoice.html", {})
+
+
+def onboard_success(request):
+    stripe_client_secret = StripeService.create_payment_intent(request.user)
+    return render(
+        request,
+        "auth/add-card-details.html",
+        {
+            "client_secret": stripe_client_secret,
+            "stripe_public_key": settings.STRIPE_PUBLIC_API_KEY,
+        },
+    )
+
+
+@csrf_exempt
+def get_subscription_token(request):
+    tokens = json.loads(request.body)
+
+    first_token = tokens["first_token"]["id"]
+    second_token = tokens["second_token"]["id"]
+    success = StripeService.create_subscription(
+        request.user, "starter", first_token, second_token
+    )
+    if success:
+        return JsonResponse(
+            {
+                "redirect_url": request.build_absolute_uri(
+                    reverse("timary:manage_invoices")
+                )
+            }
+        )
+    else:
+        return JsonResponse({"error": "There was an error creating the subscription."})

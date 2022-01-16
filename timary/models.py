@@ -218,13 +218,13 @@ class SentInvoice(BaseModel):
 
 class User(AbstractUser, BaseModel):
     class MembershipTier(models.IntegerChoices):
-        FREE = 1, "FREE"
-        BASIC = 2, "BASIC"
-        PREMIUM = 3, "PREMIUM"
+        STARTER = 5, "STARTER"
+        PROFESSIONAL = 19, "PROFESSIONAL"
+        BUSINESS = 49, "BUSINESS"
 
     phone_number = PhoneNumberField(unique=True, blank=True, null=True)
     membership_tier = models.PositiveSmallIntegerField(
-        default=MembershipTier.FREE, choices=MembershipTier.choices
+        default=MembershipTier.STARTER, choices=MembershipTier.choices
     )
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
@@ -251,3 +251,14 @@ class User(AbstractUser, BaseModel):
     @property
     def formatted_phone_number(self):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+
+    def set_membership_tier(self, chosen_plan):
+        if chosen_plan == User.MembershipTier.STARTER:
+            self.membership_tier = User.MembershipTier.STARTER
+        elif chosen_plan == User.MembershipTier.PROFESSIONAL:
+            self.membership_tier = User.MembershipTier.PROFESSIONAL
+        elif chosen_plan == User.MembershipTier.BUSINESS:
+            self.membership_tier = User.MembershipTier.BUSINESS
+        else:
+            self.membership_tier = User.MembershipTier.STARTER
+        self.save()
