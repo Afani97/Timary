@@ -33,6 +33,9 @@ def register_subscription(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
     if request.method == "POST":
+        request_data = request.POST.copy()
+        first_token = request_data.pop("first_token")[0]
+        second_token = request_data.pop("second_token")[0]
         form = RegisterSubscriptionForm(request.POST)
         if form.is_valid():
             user = form.save()
@@ -40,19 +43,29 @@ def register_subscription(request):
             authenticated_user = authenticate(username=user.username, password=password)
             if authenticated_user:
                 stripe_account_link_url = StripeService.create_new_account(
-                    request, user
+                    request, user, first_token, second_token
                 )
                 login(request, authenticated_user)
                 return redirect(stripe_account_link_url)
             else:
                 form.add_error("email", "Unable to create account with credentials")
         else:
+            context = {
+                "form": form,
+                "client_secret": StripeService.create_payment_intent(),
+                "stripe_public_key": StripeService.stripe_public_api_key,
+            }
             return render(
-                request, "auth/register-subscription.html", {"form": form}, status=400
+                request, "auth/register-subscription.html", context, status=400
             )
     else:
         form = RegisterSubscriptionForm()
-    return render(request, "auth/register-subscription.html", {"form": form})
+        context = {
+            "form": form,
+            "client_secret": StripeService.create_payment_intent(),
+            "stripe_public_key": StripeService.stripe_public_api_key,
+        }
+    return render(request, "auth/register-subscription.html", context)
 
 
 def login_user(request):

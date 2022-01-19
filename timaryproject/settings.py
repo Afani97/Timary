@@ -209,7 +209,10 @@ CSP_FRAME_SRC = (
     "https://hooks.stripe.com",
 )
 CSP_FRAME_ANCESTORS = ("'none'",)
-CSP_FORM_ACTION = ("'self'",)
+CSP_FORM_ACTION = (
+    "'self'",
+    "https://connect.stripe.com",
+)
 CSP_INCLUDE_NONCE_IN = ("script-src",)
 CSP_MEDIA_SRC = ("'self'",)
 

@@ -15,9 +15,10 @@ def get_client_ip(request):
 
 class StripeService:
     stripe_api_key = settings.STRIPE_SECRET_API_KEY
+    stripe_public_api_key = settings.STRIPE_PUBLIC_API_KEY
 
     @classmethod
-    def create_new_account(cls, request, user):
+    def create_new_account(cls, request, user, first_token, second_token):
         stripe.api_key = cls.stripe_api_key
         stripe_connect_account = stripe.Account.create(
             country="US",
@@ -47,6 +48,15 @@ class StripeService:
         user.stripe_connect_id = stripe_connect_account["id"]
         user.stripe_customer_id = stripe_customer["id"]
         user.save()
+        stripe.Customer.create_source(
+            user.stripe_customer_id,
+            source=first_token,
+            stripe_account=user.stripe_connect_id,
+        )
+        stripe.Account.create_external_account(
+            user.stripe_connect_id,
+            external_account=second_token,
+        )
         account_link = stripe.AccountLink.create(
             account=stripe_connect_account["id"],
             refresh_url=f"{settings.SITE_URL}/reauth",
@@ -57,24 +67,17 @@ class StripeService:
         return account_link["url"]
 
     @classmethod
-    def create_payment_intent(cls, user):
+    def create_payment_intent(cls):
         stripe.api_key = cls.stripe_api_key
         intent = stripe.SetupIntent.create(
             payment_method_types=["card"],
-            customer=user.stripe_customer_id,
-            stripe_account=user.stripe_connect_id,
         )
         return intent["client_secret"]
 
     @classmethod
-    def create_subscription(cls, user, chosen_plan, first_token, second_token):
+    def create_subscription(cls, user, chosen_plan):
         stripe.api_key = cls.stripe_api_key
         user.set_membership_tier(chosen_plan)
-        stripe.Customer.create_source(
-            user.stripe_customer_id,
-            source=first_token,
-            stripe_account=user.stripe_connect_id,
-        )
 
         product = stripe.Product.create(
             name=user.membership_tier.name, stripe_account=user.stripe_connect_id
@@ -93,10 +96,5 @@ class StripeService:
                 {"price": price["id"]},
             ],
             stripe_account=user.stripe_connect_id,
-        )
-
-        stripe.Account.create_external_account(
-            user.stripe_connect_id,
-            external_account=second_token,
         )
         return True

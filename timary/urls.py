@@ -74,11 +74,6 @@ urlpatterns += [
         views.onboard_success,
         name="onboard_success",
     ),
-    path(
-        "token/",
-        views.get_subscription_token,
-        name="token",
-    ),
 ]
 
 

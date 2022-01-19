@@ -8,7 +8,18 @@
 
         <div class="p-10 card bg-base-200">
             <div class="card-body">
-                {% include 'partials/_form.html' with form=form btn_title='Continue' %}
+                {% include 'partials/_form.html' with form=form hide_buttons=True %}
+                <div class="my-2 form-control">
+                    <label class="label"><span class="label-text">Debit card</span></label>
+                    <div id="card-element">
+                        <!--Stripe.js injects the Payment Element-->
+                    </div>
+                    <label class="label">
+                        <span class="label-text-alt">Stripe requires a debit card to process your invoices into your bank account.</span>
+                    </label>
+                    <div id="payment-message" class="hidden"></div>
+                </div>
+                <button class="btn btn-primary mt-6" id="submit-form">Continue</button>
             </div>
         </div>
 
@@ -17,4 +28,110 @@
         </p>
     </div>
 
+{% endblock %}
+
+{% block js %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script nonce="pay-invoice">
+        const stripe = Stripe('{{ stripe_public_key }}');
+
+        let elements;
+        let cardElement;
+
+        initialize();
+
+        let signupButton = document.querySelector("#submit-form");
+        signupButton.addEventListener("click", handleSubmit);
+
+        // Fetches a payment intent and captures the client secret
+        async function initialize() {
+            const appearance = {
+                theme: 'night',
+                variables: {
+                    colorPrimary: '#5e30eb',
+                },
+            };
+            elements = stripe.elements({ appearance, clientSecret: '{{ client_secret }}' });
+
+            cardElement = elements.create("card", {
+                style: {
+                    base: {
+                        iconColor: '#c4f0ff',
+                        color: '#fff',
+                        fontWeight: '500',
+                        fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+                        fontSize: '16px',
+                        padding: '10px',
+                        fontSmoothing: 'antialiased',
+                        ':focus': {
+                            boxShadow: '10px 10px 10px green'
+                        },
+                        ':-webkit-autofill': {
+                            color: '#fce883',
+                        },
+                    },
+                    invalid: {
+                        iconColor: '#ff5724',
+                        color: '#ff5724',
+                    },
+                },
+                classes: {
+                    base: 'input input-bordered px-2 py-3'
+                }
+            });
+            cardElement.mount("#card-element");
+        }
+
+        function createHiddenInput(el, val) {
+            let element = document.createElement("input");
+            element.className = el;
+            element.name = el;
+            element.value = val;
+            element.id = `id_${el}`;
+            element.hidden = true;
+            return element;
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
+                let first_token = firstToken.token;
+                stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
+                    let second_token = secondToken.token;
+
+                    if (secondToken.token) {
+
+                        let form = document.querySelector("form");
+                        form.appendChild(createHiddenInput('first_token', first_token.id));
+                        form.appendChild(createHiddenInput('second_token', second_token.id));
+                        form.submit()
+
+                        // Remove event listener
+                        signupButton.removeEventListener("click", handleSubmit);
+                    } else {
+                        if (secondToken.error.type === "card_error" || secondToken.error.type === "validation_error") {
+                            showMessage(secondToken.error.message);
+                        } else {
+                            showMessage("An unexpected error occurred.");
+                        }
+                    }
+                });
+            });
+        }
+
+        // ------- UI helpers -------
+
+        function showMessage(messageText) {
+            const messageContainer = document.querySelector("#payment-message");
+
+            messageContainer.classList.remove("hidden");
+            messageContainer.textContent = messageText;
+
+            setTimeout(function () {
+                messageContainer.classList.add("hidden");
+                messageText.textContent = "";
+            }, 4000);
+        }
+    </script>
 {% endblock %}

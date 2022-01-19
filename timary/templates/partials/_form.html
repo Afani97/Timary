@@ -28,10 +28,12 @@
             {% endif %}
         </div>
     {% endfor %}
-    <div class="form-control mt-6">
-        {% if cancel_url %}
-            <a class="self-center" href="{% url cancel_url %}">Cancel</a>
-        {% endif %}
-        <button class="btn btn-primary" type="submit">{{ btn_title }}</button>
-    </div>
+    {% if hide_buttons == None or not hide_buttons %}
+        <div class="form-control mt-6">
+            {% if cancel_url %}
+                <a class="self-center" href="{% url cancel_url %}">Cancel</a>
+            {% endif %}
+            <button class="btn btn-primary" type="submit">{{ btn_title }}</button>
+        </div>
+    {% endif %}
 </form>
