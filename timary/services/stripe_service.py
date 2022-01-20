@@ -75,8 +75,12 @@ class StripeService:
         return intent["client_secret"]
 
     @classmethod
-    def create_subscription(cls, user):
+    def create_subscription(cls, user, delete_current=None):
         stripe.api_key = cls.stripe_api_key
+        if delete_current:
+            stripe.Subscription.delete(
+                user.stripe_subscription_id, stripe_account=user.stripe_connect_id
+            )
 
         product = stripe.Product.create(
             name=user.get_membership_tier_display(),
@@ -90,11 +94,13 @@ class StripeService:
             stripe_account=user.stripe_connect_id,
         )
 
-        stripe.Subscription.create(
+        subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
             items=[
                 {"price": price["id"]},
             ],
             stripe_account=user.stripe_connect_id,
         )
+        user.stripe_subscription_id = subscription["id"]
+        user.save()
         return True

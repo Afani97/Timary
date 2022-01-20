@@ -142,14 +142,21 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number"]
+        fields = ["email", "first_name", "last_name", "phone_number", "membership_tier"]
         widgets = {
             "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
             "first_name": forms.TextInput(attrs={"placeholder": "John"}),
             "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
         }
+        labels = {"membership_tier": "Subscription plan"}
 
-    field_order = ["first_name", "last_name", "email", "phone_number"]
+    field_order = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "membership_tier",
+    ]
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get("first_name")

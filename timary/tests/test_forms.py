@@ -319,6 +319,7 @@ class TestUser(TestCase):
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
                 "phone_number": "+17742613186",
+                "membership_tier": "5",
             }
         )
         self.assertEqual(form.errors, {})
@@ -328,6 +329,7 @@ class TestUser(TestCase):
             data={
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
+                "membership_tier": 5,
             }
         )
         self.assertEqual(form.errors, {"email": ["This field is required."]})
@@ -337,6 +339,7 @@ class TestUser(TestCase):
             data={
                 "email": "user@test.com",
                 "last_name": self.user.last_name,
+                "membership_tier": 5,
             }
         )
         self.assertEqual(form.errors, {"first_name": ["This field is required."]})
@@ -347,6 +350,7 @@ class TestUser(TestCase):
                 "email": self.user.email,
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
+                "membership_tier": 5,
             }
         )
         self.assertEqual(form.errors, {"email": ["Email already registered!"]})
@@ -357,6 +361,7 @@ class TestUser(TestCase):
                 "email": "user@test.com",
                 "first_name": self.user.first_name + "123",
                 "last_name": self.user.last_name,
+                "membership_tier": 5,
             }
         )
         self.assertEqual(form.errors, {"first_name": ["Only valid names allowed."]})
@@ -368,6 +373,7 @@ class TestUser(TestCase):
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
                 "phone_number": "abc123",
+                "membership_tier": 5,
             }
         )
         self.assertEqual(
@@ -381,5 +387,6 @@ class TestUser(TestCase):
             {
                 "email": ["This field is required."],
                 "first_name": ["This field is required."],
+                "membership_tier": ["This field is required."],
             },
         )
