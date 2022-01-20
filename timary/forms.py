@@ -270,7 +270,9 @@ class RegisterSubscriptionForm(forms.ModelForm):
             "full_name",
             "email",
             "password",
+            "membership_tier",
         )
+        labels = {"membership_tier": "Subscription Plan"}
 
 
 class LoginForm(forms.Form):

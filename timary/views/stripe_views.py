@@ -25,7 +25,7 @@ def invoice_payment_success(request, invoice_id):
 
 
 def onboard_success(request):
-    success = StripeService.create_subscription(request.user, "starter")
+    success = StripeService.create_subscription(request.user)
     if success:
         return redirect(reverse("timary:manage_invoices"))
     else:

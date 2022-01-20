@@ -75,15 +75,15 @@ class StripeService:
         return intent["client_secret"]
 
     @classmethod
-    def create_subscription(cls, user, chosen_plan):
+    def create_subscription(cls, user):
         stripe.api_key = cls.stripe_api_key
-        user.set_membership_tier(chosen_plan)
 
         product = stripe.Product.create(
-            name=user.membership_tier.name, stripe_account=user.stripe_connect_id
+            name=user.get_membership_tier_display(),
+            stripe_account=user.stripe_connect_id,
         )
         price = stripe.Price.create(
-            unit_amount=user.membership_tier.value * 100,
+            unit_amount=user.membership_tier * 100,
             currency="usd",
             recurring={"interval": "month"},
             product=product["id"],
