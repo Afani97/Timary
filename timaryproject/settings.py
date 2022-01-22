@@ -80,6 +80,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "timary.context_processors.site_url",
+                "timary.context_processors.completed_connect_account",
             ],
         },
     },

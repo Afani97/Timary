@@ -70,19 +70,30 @@ urlpatterns += [
         views.register_subscription,
         name="register-subscription",
     ),
-    path(
-        "onboarding_success/",
-        views.onboard_success,
-        name="onboard_success",
-    ),
 ]
 
 
+# STRIPE URLS
 urlpatterns += [
     path(
         "invoice-payment-success/<uuid:invoice_id>/",
         views.invoice_payment_success,
         name="invoice_payment_success",
+    ),
+    path(
+        "onboarding_success/",
+        views.onboard_success,
+        name="onboard_success",
+    ),
+    path(
+        "update_connect/",
+        views.update_connect_account,
+        name="update_connect",
+    ),
+    path(
+        "complete_connect/",
+        views.completed_connect_account,
+        name="complete_connect",
     ),
 ]
 

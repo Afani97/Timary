@@ -227,6 +227,7 @@ class User(AbstractUser, BaseModel):
         default=MembershipTier.STARTER, choices=MembershipTier.choices
     )
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
+    stripe_payouts_enabled = models.BooleanField(default=False)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_subscription_id = models.CharField(max_length=200, null=True, blank=True)
 
@@ -274,6 +275,10 @@ class User(AbstractUser, BaseModel):
             self.membership_tier == User.MembershipTier.PROFESSIONAL
             or self.membership_tier == User.MembershipTier.BUSINESS
         )
+
+    @property
+    def can_accept_payments(self):
+        return self.stripe_payouts_enabled
 
     def set_membership_tier(self, chosen_plan):
         if chosen_plan == User.MembershipTier.STARTER:

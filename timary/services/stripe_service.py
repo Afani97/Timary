@@ -62,7 +62,6 @@ class StripeService:
             refresh_url=f"{settings.SITE_URL}/reauth",
             return_url=f"{settings.SITE_URL}/onboarding_success",
             type="account_onboarding",
-            collect="currently_due",
         )
         return account_link["url"]
 
@@ -104,3 +103,19 @@ class StripeService:
         user.stripe_subscription_id = subscription["id"]
         user.save()
         return True
+
+    @classmethod
+    def get_connect_account(cls, account_id):
+        stripe.api_key = cls.stripe_api_key
+        return stripe.Account.retrieve(account_id)
+
+    @classmethod
+    def update_connect_account(cls, account_id):
+        stripe.api_key = cls.stripe_api_key
+        account_link = stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=f"{settings.SITE_URL}/reauth",
+            return_url=f"{settings.SITE_URL}/complete_connect/",
+            type="account_update",
+        )
+        return account_link["url"]
