@@ -57,6 +57,7 @@ urlpatterns += [
         views.delete_invoice,
         name="delete_invoice",
     ),
+    path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 
 # AUTH URLS

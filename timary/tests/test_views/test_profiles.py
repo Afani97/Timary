@@ -70,7 +70,7 @@ class TestUsers(BaseTest):
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+17742613186",
-            "membership_tier": 5,
+            "membership_tier": 19,
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
@@ -82,7 +82,7 @@ class TestUsers(BaseTest):
             <h2 class="card-title text-center">Test Test</h2>
             <p class="text-center">user@test.com</p>
             <p class="text-center">+17742613186</p>
-            <p class="text-center">Current subscription: Starter</p>
+            <p class="text-center">Current subscription: Professional</p>
             """,
             response.content.decode("utf-8"),
         )

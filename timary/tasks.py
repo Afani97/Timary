@@ -89,8 +89,11 @@ def send_reminder_sms():
     users = User.objects.exclude(
         Q(phone_number__isnull=True) | Q(phone_number__exact="")
     ).prefetch_related("invoices")
+
     invoices_sent_count = 0
     for user in users:
+        if not user.can_receive_texts:
+            continue
         remaining_invoices = user.invoices_not_logged
         if len(remaining_invoices) > 0:
             invoice = remaining_invoices.pop()

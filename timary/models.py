@@ -253,6 +253,28 @@ class User(AbstractUser, BaseModel):
     def formatted_phone_number(self):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
 
+    @property
+    def can_create_invoices(self):
+        invoices_count = self.invoices.count()
+        if invoices_count == 0:
+            # Empty state
+            return False
+        if self.membership_tier == User.MembershipTier.STARTER:
+            return False
+        elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
+            return invoices_count <= 1
+        elif self.membership_tier == User.MembershipTier.BUSINESS:
+            return True
+        else:
+            return False
+
+    @property
+    def can_receive_texts(self):
+        return (
+            self.membership_tier == User.MembershipTier.PROFESSIONAL
+            or self.membership_tier == User.MembershipTier.BUSINESS
+        )
+
     def set_membership_tier(self, chosen_plan):
         if chosen_plan == User.MembershipTier.STARTER:
             self.membership_tier = User.MembershipTier.STARTER
