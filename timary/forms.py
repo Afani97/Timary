@@ -187,54 +187,6 @@ class RegisterForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "example@test.com"}),
     )
-    first_name = forms.CharField(
-        label="First name",
-        required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Tom"}),
-    )
-    password = forms.CharField(
-        label="Password",
-        widget=forms.PasswordInput(
-            attrs={"placeholder": "*********", "type": "password"}
-        ),
-        required=True,
-    )
-
-    def clean_first_name(self):
-        first_name = self.cleaned_data.get("first_name")
-        if not first_name.isalpha():
-            raise ValidationError("Only valid names allowed.")
-        return first_name
-
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
-        if User.objects.filter(username=email).count() != 0:
-            raise ValidationError("Email already registered!")
-        return email
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        user.username = self.cleaned_data["email"]
-        if commit:
-            user.save()
-        return user
-
-    class Meta:
-        model = User
-        fields = (
-            "first_name",
-            "email",
-            "password",
-        )
-
-
-class RegisterSubscriptionForm(forms.ModelForm):
-    email = forms.EmailField(
-        label="Email",
-        required=True,
-        widget=forms.TextInput(attrs={"placeholder": "example@test.com"}),
-    )
     full_name = forms.CharField(
         label="Full name",
         required=True,
@@ -257,7 +209,7 @@ class RegisterSubscriptionForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(username=email).count() != 0:
-            raise ValidationError("Email already registered!")
+            raise ValidationError("Error creating account")
         return email
 
     def save(self, commit=True):

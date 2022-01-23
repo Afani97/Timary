@@ -1,5 +1,3 @@
-import stripe
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm, PayInvoiceForm
 from timary.models import Invoice, SentInvoice, User
+from timary.services.stripe_service import StripeService
 
 
 @login_required()
@@ -90,25 +89,15 @@ def pay_invoice(request, sent_invoice_id):
                 {"valid": False, "errors": pay_invoice_form.errors.as_json()}
             )
     else:
-        stripe.api_key = settings.STRIPE_SECRET_API_KEY
-        intent = stripe.PaymentIntent.create(
-            amount=sent_invoice.total_price * 100,
-            currency="usd",
-            automatic_payment_methods={
-                "enabled": True,
-            },
-            transfer_data={
-                "destination": sent_invoice.user.stripe_connect_id,
-            },
-        )
+        client_secret = StripeService.create_payment_intent_for_payout(sent_invoice)
 
         context = {
             "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
             "hours_tracked": sent_invoice.get_hours_tracked(),
             "pay_invoice_form": PayInvoiceForm(),
-            "stripe_public_key": settings.STRIPE_PUBLIC_API_KEY,
-            "client_secret": intent["client_secret"],
+            "stripe_public_key": StripeService.stripe_public_api_key,
+            "client_secret": client_secret,
             "return_url": request.build_absolute_uri(
                 reverse(
                     "timary:invoice_payment_success",

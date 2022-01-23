@@ -3,40 +3,18 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from timary.forms import LoginForm, RegisterForm, RegisterSubscriptionForm
+from timary.forms import LoginForm, RegisterForm
 from timary.services.stripe_service import StripeService
 
 
-# Remove, switching to register_subscription
 def register_user(request):
-    if request.user.is_authenticated:
-        return redirect(reverse("timary:index"))
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            password = form.cleaned_data.get("password")
-            authenticated_user = authenticate(username=user.username, password=password)
-            if authenticated_user:
-                login(request, authenticated_user)
-                return redirect(reverse("timary:index"))
-            else:
-                form.add_error("email", "Unable to create account with credentials")
-        else:
-            return render(request, "auth/register.html", {"form": form}, status=400)
-    else:
-        form = RegisterForm()
-    return render(request, "auth/register.html", {"form": form})
-
-
-def register_subscription(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
     if request.method == "POST":
         request_data = request.POST.copy()
         first_token = request_data.pop("first_token")[0]
         second_token = request_data.pop("second_token")[0]
-        form = RegisterSubscriptionForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             password = form.cleaned_data.get("password")
@@ -55,17 +33,15 @@ def register_subscription(request):
                 "client_secret": StripeService.create_payment_intent(),
                 "stripe_public_key": StripeService.stripe_public_api_key,
             }
-            return render(
-                request, "auth/register-subscription.html", context, status=400
-            )
+            return render(request, "auth/register.html", context, status=400)
     else:
-        form = RegisterSubscriptionForm()
+        form = RegisterForm()
         context = {
             "form": form,
             "client_secret": StripeService.create_payment_intent(),
             "stripe_public_key": StripeService.stripe_public_api_key,
         }
-    return render(request, "auth/register-subscription.html", context)
+    return render(request, "auth/register.html", context)
 
 
 def login_user(request):

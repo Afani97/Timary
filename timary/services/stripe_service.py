@@ -74,6 +74,21 @@ class StripeService:
         return intent["client_secret"]
 
     @classmethod
+    def create_payment_intent_for_payout(cls, sent_invoice):
+        stripe.api_key = cls.stripe_api_key
+        intent = stripe.PaymentIntent.create(
+            amount=sent_invoice.total_price * 100,
+            currency="usd",
+            automatic_payment_methods={
+                "enabled": True,
+            },
+            transfer_data={
+                "destination": sent_invoice.user.stripe_connect_id,
+            },
+        )
+        return intent["client_secret"]
+
+    @classmethod
     def create_subscription(cls, user, delete_current=None):
         stripe.api_key = cls.stripe_api_key
         if delete_current:

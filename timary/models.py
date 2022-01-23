@@ -224,7 +224,9 @@ class User(AbstractUser, BaseModel):
 
     phone_number = PhoneNumberField(unique=True, blank=True, null=True)
     membership_tier = models.PositiveSmallIntegerField(
-        default=MembershipTier.STARTER, choices=MembershipTier.choices
+        default=MembershipTier.STARTER,
+        choices=MembershipTier.choices,
+        blank=False,
     )
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
