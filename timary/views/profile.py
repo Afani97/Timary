@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import UserForm
+from timary.forms import SettingsForm, UserForm
 from timary.services.stripe_service import StripeService
 
 
@@ -13,6 +13,7 @@ from timary.services.stripe_service import StripeService
 def user_profile(request):
     context = {
         "profile": request.user,
+        "settings": request.user.settings,
         "sent_invoices": request.user.sent_invoices.order_by("-date_sent"),
     }
     return render(request, "timary/profile.html", context)
@@ -57,3 +58,36 @@ def update_user_profile(request):
             StripeService.create_subscription(user, delete_current=True)
         return render(request, "partials/_profile.html", {"user": user})
     return render_profile_form(request=request, profile_form=user_form)
+
+
+@login_required()
+@require_http_methods(["GET"])
+def settings_partial(request):
+    return render(
+        request, "partials/_settings.html", {"settings": request.user.settings}
+    )
+
+
+@login_required()
+@require_http_methods(["GET", "PUT"])
+def update_user_settings(request):
+    user_settings_form = SettingsForm(instance=request.user)
+    if request.method == "PUT":
+        put_params = QueryDict(request.body)
+        user_settings_form = SettingsForm(put_params, instance=request.user)
+        if user_settings_form.is_valid():
+            user_settings_form.save()
+            return render(
+                request, "partials/_settings.html", {"settings": request.user.settings}
+            )
+    context = {
+        "form": user_settings_form,
+        "url": reverse("timary:update_user_settings"),
+        "target": "this",
+        "swap": "outerHTML",
+        "id": "update-user-settings",
+        "md_block": True,
+        "cancel_url": reverse("timary:settings_partial"),
+        "btn_title": "Update settings",
+    }
+    return render(request, "partials/_settings_form.html", context)

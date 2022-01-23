@@ -9,6 +9,7 @@ from timary.forms import (
     LoginForm,
     PayInvoiceForm,
     RegisterForm,
+    SettingsForm,
     UserForm,
 )
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
@@ -473,3 +474,21 @@ class TestUser(TestCase):
                 "membership_tier": ["This field is required."],
             },
         )
+
+
+class TestSettings(TestCase):
+    def test_update_settings(self):
+        user = UserFactory()
+        form = SettingsForm(
+            instance=user, data={"phone_number_availability": ["Mon", "Tue"]}
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
+        form.save()
+        user.refresh_from_db()
+        self.assertEqual(user.phone_number_availability, ["Mon", "Tue"])
+
+    def test_update_settings_errors(self):
+        user = UserFactory()
+        form = SettingsForm(instance=user, data={})
+        self.assertEqual(form.errors, {})

@@ -1,0 +1,41 @@
+{% load filters %}
+
+<form class="card bg-base-200 bordered mt-10"
+    hx-put="{{url}}"
+    hx-target="{{target}}"
+    hx-swap="{{swap}}">
+    {% csrf_token %}
+
+    <div class="card-body">
+        {# Should the put htmx form be responsive to screen size #}
+        {% if md_size %}
+            <div class="flex flex-row space-x-5 justify-center">
+        {% elif md_block %}
+            <div class="grid grid-cols-3 md:grid-cols-7 gap-2">
+        {% else %}
+            <div class="md:flex md:flex-row md:space-x-5 md:justify-center">
+        {% endif %}
+
+        <h2 class="card-title col-span-7 text-center">Phone number availability</h2>
+
+        {% for value, text in form.phone_number_availability.field.choices %}
+            <div class="form-control">
+                <label class="label"><span class="label-text">{{ text }}</span></label>
+                <input
+                    id="id_phone_number_availability_{{ forloop.counter0 }}"
+                    name="{{ form.phone_number_availability.name }}"
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    value="{{ value }}"
+                    {% if value in request.user.settings.phone_number_availability %} checked="checked"{% endif %}
+                >
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-actions flex justify-center">
+        <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
+        <button class="btn btn-primary" type="submit"> {{ btn_title }} </button>
+    </div>
+</div>
+
+</form>

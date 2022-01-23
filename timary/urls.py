@@ -21,9 +21,19 @@ urlpatterns = [
 # PROFILE URLS
 urlpatterns += [
     path("profile/", views.user_profile, name="user_profile"),
-    path("profile/partial", views.profile_partial, name="user_profile_partial"),
+    path("profile/partial/", views.profile_partial, name="user_profile_partial"),
     path("profile/update/", views.update_user_profile, name="update_user_profile"),
     path("profile/edit/", views.edit_user_profile, name="edit_user_profile"),
+    path(
+        "profile/settings/",
+        views.update_user_settings,
+        name="update_user_settings",
+    ),
+    path(
+        "profile/settings/partial/",
+        views.settings_partial,
+        name="settings_partial",
+    ),
 ]
 
 

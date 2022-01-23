@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     # 3RD PARTY
     "django_q",
     "django_twilio",
+    "multiselectfield",
 ]
 
 MIDDLEWARE = [

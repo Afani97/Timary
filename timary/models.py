@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import F, Q, Sum
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
+from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.querysets import HoursQuerySet
@@ -233,11 +234,29 @@ class User(AbstractUser, BaseModel):
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_subscription_id = models.CharField(max_length=200, null=True, blank=True)
 
+    WEEK_DAYS = (
+        ("Mon", "Mon"),
+        ("Tue", "Tue"),
+        ("Wed", "Wed"),
+        ("Thu", "Thu"),
+        ("Fri", "Fri"),
+        ("Sat", "Sat"),
+        ("Sun", "Sun"),
+    )
+    phone_number = PhoneNumberField(unique=True, blank=True, null=True)
+    phone_number_availability = MultiSelectField(
+        choices=WEEK_DAYS, null=True, blank=True
+    )
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
     def __repr__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+
+    @property
+    def settings(self):
+        return {"phone_number_availability": self.phone_number_availability}
 
     @property
     def invoices_not_logged(self):

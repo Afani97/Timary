@@ -90,8 +90,11 @@ def send_reminder_sms():
     ).prefetch_related("invoices")
 
     invoices_sent_count = 0
+    weekday = date.today().strftime("%a")
     for user in users:
         if not user.can_receive_texts:
+            continue
+        if weekday not in user.settings.get("phone_number_availability"):
             continue
         remaining_invoices = user.invoices_not_logged
         if len(remaining_invoices) > 0:

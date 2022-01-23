@@ -18,33 +18,18 @@
 
         {% for field in form.visible_fields %}
             <div class="form-control">
-                {% if field.field.widget.attrs.collapse %}
-                    <details>
-                        <summary class="label"><span class="label-text">Add {{ field.label }}?</span></summary>
-                        <div>
-                            {{ field | addclass:"input input-bordered w-full" }}
-                            {% for error in field.errors %}
-                                <div class="text-red-600">
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </details>
+                <label class="label"><span class="label-text">{{ field.label }}</span></label>
+                {% if field.field.widget.input_type == "select" %}
+                    {{ field | addclass:"select select-bordered w-full" }}
                 {% else %}
-                    <label class="label"><span class="label-text">{{ field.label }}</span></label>
-                    {% if field.field.widget.input_type == "select" %}
-                        {{ field | addclass:"select select-bordered w-full" }}
-                    {% else %}
-                        {{ field | addclass:"input input-bordered w-full" }}
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <div class="text-red-600">
-                            <strong>{{ error|escape }}</strong>
-                        </div>
-                    {% endfor %}
-
+                    {{ field | addclass:"input input-bordered w-full" }}
                 {% endif %}
+
+                {% for error in field.errors %}
+                    <div class="text-red-600">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
             </div>
         {% endfor %}
     </div>

@@ -181,6 +181,12 @@ class UserForm(forms.ModelForm):
         return user
 
 
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["phone_number_availability"]
+
+
 class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",
