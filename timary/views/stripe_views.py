@@ -27,6 +27,11 @@ def invoice_payment_success(request, invoice_id):
 def onboard_success(request):
     success = StripeService.create_subscription(request.user)
     if success:
+        connect_account = StripeService.get_connect_account(
+            request.user.stripe_connect_id
+        )
+        request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
+        request.user.save()
         return redirect(reverse("timary:manage_invoices"))
     else:
         # TODO: Redirect to error page to error missing details
