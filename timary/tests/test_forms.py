@@ -12,6 +12,7 @@ from timary.forms import (
     SettingsForm,
     UserForm,
 )
+from timary.models import User
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -49,6 +50,14 @@ class TestRegister(TestCase):
         )
         self.assertTrue(form.is_valid())
         self.assertEqual(form.errors, {})
+
+        user = form.save()
+        self.assertEqual(user.email, "user@test.com")
+        self.assertEqual(user.get_full_name(), "User User")
+        self.assertEqual(user.membership_tier, User.MembershipTier.PROFESSIONAL)
+        self.assertEqual(
+            user.phone_number_availability, ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        )
 
     def test_register_error_empty_email(self):
         form = RegisterForm(

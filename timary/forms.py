@@ -225,6 +225,7 @@ class RegisterForm(forms.ModelForm):
         user.last_name = last_name
         user.set_password(self.cleaned_data["password"])
         user.username = self.cleaned_data["email"]
+        user.phone_number_availability = ["Mon", "Tue", "Wed", "Thu", "Fri"]
         if commit:
             user.save()
         return user
