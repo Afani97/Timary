@@ -56,7 +56,6 @@ urlpatterns += [
     path(
         "invoices/<uuid:invoice_id>/pause/", views.pause_invoice, name="pause_invoice"
     ),
-    path("invoices/<uuid:sent_invoice_id>/pay/", views.pay_invoice, name="pay_invoice"),
     path(
         "invoices/<uuid:invoice_id>/update/",
         views.update_invoice,
@@ -81,7 +80,10 @@ urlpatterns += [
 # STRIPE URLS
 urlpatterns += [
     path(
-        "invoice-payment-success/<uuid:invoice_id>/",
+        "invoice-payment/<uuid:sent_invoice_id>/", views.pay_invoice, name="pay_invoice"
+    ),
+    path(
+        "invoice-payment-success/<uuid:sent_invoice_id>/",
         views.invoice_payment_success,
         name="invoice_payment_success",
     ),

@@ -223,7 +223,6 @@ class User(AbstractUser, BaseModel):
         PROFESSIONAL = 19, "PROFESSIONAL"
         BUSINESS = 49, "BUSINESS"
 
-    phone_number = PhoneNumberField(unique=True, blank=True, null=True)
     membership_tier = models.PositiveSmallIntegerField(
         default=MembershipTier.STARTER,
         choices=MembershipTier.choices,
@@ -276,6 +275,17 @@ class User(AbstractUser, BaseModel):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
 
     @property
+    def can_accept_payments(self):
+        return self.stripe_payouts_enabled
+
+    @property
+    def can_receive_texts(self):
+        return (
+            self.membership_tier == User.MembershipTier.PROFESSIONAL
+            or self.membership_tier == User.MembershipTier.BUSINESS
+        )
+
+    @property
     def can_create_invoices(self):
         invoices_count = self.invoices.count()
         if invoices_count == 0:
@@ -289,25 +299,3 @@ class User(AbstractUser, BaseModel):
             return True
         else:
             return False
-
-    @property
-    def can_receive_texts(self):
-        return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
-        )
-
-    @property
-    def can_accept_payments(self):
-        return self.stripe_payouts_enabled
-
-    def set_membership_tier(self, chosen_plan):
-        if chosen_plan == User.MembershipTier.STARTER:
-            self.membership_tier = User.MembershipTier.STARTER
-        elif chosen_plan == User.MembershipTier.PROFESSIONAL:
-            self.membership_tier = User.MembershipTier.PROFESSIONAL
-        elif chosen_plan == User.MembershipTier.BUSINESS:
-            self.membership_tier = User.MembershipTier.BUSINESS
-        else:
-            self.membership_tier = User.MembershipTier.STARTER
-        self.save()

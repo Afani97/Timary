@@ -9,7 +9,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django_twilio.decorators import twilio_view
 
-from timary.models import DailyHoursInput
+from timary.models import DailyHoursInput, User
 from timary.tasks import send_reminder_sms
 from timary.tests.factories import InvoiceFactory, UserFactory
 from timary.views.twilio_views import twilio_reply
@@ -130,6 +130,49 @@ class TestTwilioSendReminderSMS(TestCase):
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
+
+    @patch("timary.tasks.date")
+    def test_cannot_send_reminder_as_starter(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+
+        UserFactory(
+            phone_number_availability=["Mon"],
+            membership_tier=User.MembershipTier.STARTER,
+        )
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("0 message(s) sent.", invoices_sent)
+
+    @patch("twilio.rest.api.v2010.account.message.MessageList.create")
+    @patch("timary.tasks.date")
+    def test_can_send_reminder_as_professional(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        message_create_mock.return_value = None
+
+        InvoiceFactory(
+            user__phone_number_availability=["Mon"],
+            user__membership_tier=User.MembershipTier.PROFESSIONAL,
+        )
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("1 message(s) sent.", invoices_sent)
+
+    @patch("twilio.rest.api.v2010.account.message.MessageList.create")
+    @patch("timary.tasks.date")
+    def test_can_send_reminder_as_business(self, today_mock, message_create_mock):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        message_create_mock.return_value = None
+
+        InvoiceFactory(
+            user__phone_number_availability=["Mon"],
+            user__membership_tier=User.MembershipTier.BUSINESS,
+        )
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("1 message(s) sent.", invoices_sent)
 
 
 @dataclass

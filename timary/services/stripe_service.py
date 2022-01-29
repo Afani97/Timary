@@ -85,6 +85,7 @@ class StripeService:
             transfer_data={
                 "destination": sent_invoice.user.stripe_connect_id,
             },
+            method="instant",
         )
         return intent["client_secret"]
 

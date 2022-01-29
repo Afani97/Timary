@@ -137,6 +137,7 @@ class TestUserProfile(BaseTest):
     @patch("timary.services.stripe_service.StripeService.create_subscription")
     def test_update_user_subscription(self, stripe_subscription_mock):
         stripe_subscription_mock.return_value = None
+        self.assertEqual(self.user.membership_tier, 19)
         url_params = {
             "email": self.user.email,
             "first_name": self.user.first_name,
@@ -149,6 +150,7 @@ class TestUserProfile(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.user.refresh_from_db()
+        self.assertEqual(self.user.membership_tier, 49)
         self.assertInHTML(
             f"""
             <h2 class="card-title text-center">{self.user.get_full_name()}</h2>

@@ -2,8 +2,10 @@ import datetime
 from datetime import date
 from unittest.mock import patch
 
+from django.conf import settings
 from django.core import mail
 from django.test import TestCase
+from django.urls import reverse
 from django.utils.timezone import localtime, now
 
 from timary.models import SentInvoice
@@ -220,3 +222,32 @@ class TestSendInvoice(TestCase):
             <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
             """
             self.assertInHTML(msg, html_message)
+
+    def test_invoice_cannot_accept_payments(self):
+        invoice = InvoiceFactory(user__stripe_payouts_enabled=False)
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        button_missing = f"""
+        <a href="{ settings.SITE_URL }{reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id})}"
+        class="f-fallback button button--green">Pay Invoice</a>
+        """
+        html_message = TestSendInvoice.extract_html()
+        with self.assertRaises(AssertionError):
+            self.assertInHTML(button_missing, html_message)
+
+    def test_invoice_can_accept_payments(self):
+        invoice = InvoiceFactory(user__stripe_payouts_enabled=True)
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        button_missing = f"""
+        <a href="{ settings.SITE_URL }{reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id})}"
+        class="f-fallback button button--green">Pay Invoice</a>
+        """
+        html_message = TestSendInvoice.extract_html()
+        self.assertInHTML(button_missing, html_message)

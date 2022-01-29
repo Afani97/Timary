@@ -210,3 +210,51 @@ class TestUser(TestCase):
         DailyHoursFactory(invoice__user=user, date_tracked=datetime.date.today())
         InvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged), 1)
+
+    def test_can_accept_payments(self):
+        with self.subTest("Payouts enabled"):
+            user = UserFactory(stripe_payouts_enabled=True)
+            self.assertTrue(user.can_accept_payments)
+
+        with self.subTest("Payouts not enabled"):
+            user = UserFactory(stripe_payouts_enabled=False)
+            self.assertFalse(user.can_accept_payments)
+
+    def test_can_receive_texts(self):
+        with self.subTest("Starter tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            self.assertFalse(user.can_receive_texts)
+
+        with self.subTest("Professional tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            self.assertTrue(user.can_receive_texts)
+
+        with self.subTest("Business tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+            self.assertTrue(user.can_receive_texts)
+
+    def test_can_create_invoices(self):
+        with self.subTest("Zero invoices"):
+            user = UserFactory()
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Starter tier, only one allowed"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            InvoiceFactory(user=user)
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Professional tier, limit not reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            InvoiceFactory(user=user)
+            self.assertTrue(user.can_create_invoices)
+
+        with self.subTest("Business tier, limit reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            InvoiceFactory(user=user)
+            InvoiceFactory(user=user)
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Business tier, limit reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+            InvoiceFactory(user=user)
+            self.assertTrue(user.can_create_invoices)

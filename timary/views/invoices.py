@@ -1,13 +1,11 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse, JsonResponse, QueryDict
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404, HttpResponse, QueryDict
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import InvoiceForm, PayInvoiceForm
-from timary.models import Invoice, SentInvoice, User
-from timary.services.stripe_service import StripeService
+from timary.forms import InvoiceForm
+from timary.models import Invoice, User
 
 
 @login_required()
@@ -71,41 +69,6 @@ def pause_invoice(request, invoice_id):
         invoice.calculate_next_date()
     invoice.save()
     return render(request, "partials/_invoice.html", {"invoice": invoice})
-
-
-@require_http_methods(["GET", "POST"])
-@csrf_exempt
-def pay_invoice(request, sent_invoice_id):
-    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
-    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
-        return redirect(reverse("timary:login"))
-
-    if request.method == "POST":
-        pay_invoice_form = PayInvoiceForm(request.POST, sent_invoice=sent_invoice)
-        if pay_invoice_form.is_valid():
-            return JsonResponse({"valid": True, "errors": {}})
-        else:
-            return JsonResponse(
-                {"valid": False, "errors": pay_invoice_form.errors.as_json()}
-            )
-    else:
-        client_secret = StripeService.create_payment_intent_for_payout(sent_invoice)
-
-        context = {
-            "invoice": sent_invoice.invoice,
-            "sent_invoice": sent_invoice,
-            "hours_tracked": sent_invoice.get_hours_tracked(),
-            "pay_invoice_form": PayInvoiceForm(),
-            "stripe_public_key": StripeService.stripe_public_api_key,
-            "client_secret": client_secret,
-            "return_url": request.build_absolute_uri(
-                reverse(
-                    "timary:invoice_payment_success",
-                    kwargs={"invoice_id": sent_invoice.id},
-                )
-            ),
-        }
-        return render(request, "invoices/pay_invoice.html", context)
 
 
 def render_invoices_form(request, invoice_instance, invoice_form):
