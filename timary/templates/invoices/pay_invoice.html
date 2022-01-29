@@ -222,7 +222,7 @@
             const data = new FormData();
             data.set("email", document.getElementById("id_email").value);
             data.set("first_name", document.getElementById("id_first_name").value)
-            const response = await fetch("{{ site_url }}/invoices/{{sent_invoice.id}}/pay/", {
+            const response = await fetch("{{ site_url }}/invoice-payment/{{sent_invoice.id}}/", {
                 method: "POST",
                 body: data,
             });

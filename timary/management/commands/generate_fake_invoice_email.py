@@ -17,7 +17,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         membership_tier = options["mt"]
         user = UserFactory(
-            email="aristotelf@gmail.com", membership_tier=membership_tier
+            email="aristotelf@gmail.com",
+            membership_tier=membership_tier,
+            stripe_payouts_enabled=True,
+            phone_number=None,
         )
         invoice = InvoiceFactory(
             user=user,

@@ -45,25 +45,24 @@ class StripeService:
             name=user.get_full_name(),
             stripe_account=stripe_connect_account["id"],
         )
-        user.stripe_connect_id = stripe_connect_account["id"]
-        user.stripe_customer_id = stripe_customer["id"]
-        user.save()
+        stripe_connect_id = stripe_connect_account["id"]
+        stripe_customer_id = stripe_customer["id"]
         stripe.Customer.create_source(
-            user.stripe_customer_id,
+            stripe_customer_id,
             source=first_token,
-            stripe_account=user.stripe_connect_id,
+            stripe_account=stripe_connect_id,
         )
         stripe.Account.create_external_account(
-            user.stripe_connect_id,
+            stripe_connect_id,
             external_account=second_token,
         )
         account_link = stripe.AccountLink.create(
-            account=stripe_connect_account["id"],
+            account=stripe_connect_id,
             refresh_url=f"{settings.SITE_URL}/reauth",
             return_url=f"{settings.SITE_URL}/onboarding_success",
             type="account_onboarding",
         )
-        return account_link["url"]
+        return stripe_connect_id, stripe_customer_id, account_link["url"]
 
     @classmethod
     def create_payment_intent(cls):
@@ -85,7 +84,6 @@ class StripeService:
             transfer_data={
                 "destination": sent_invoice.user.stripe_connect_id,
             },
-            method="instant",
         )
         return intent["client_secret"]
 

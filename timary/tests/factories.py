@@ -18,8 +18,8 @@ class UserFactory(DjangoModelFactory):
     last_name = factory.Faker("last_name")
     email = factory.LazyAttribute(lambda o: f"{o.username}")
     password = factory.PostGenerationMethodCall("set_password", "Apple101!")
-    phone_number = factory.Faker("phone_number", locale="en_US")
     membership_tier = User.MembershipTier.PROFESSIONAL
+    phone_number = factory.Faker("phone_number", locale="en_US")
     phone_number_availability = factory.Iterator(
         ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"]
     )
