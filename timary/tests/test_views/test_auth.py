@@ -27,9 +27,11 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 400)
 
+    @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
-    def test_signup(self, stripe_create_mock):
+    def test_signup(self, stripe_create_mock, stripe_intent_mock):
         stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
+        stripe_intent_mock.return_value = "abc123"
         response = self.client.post(
             reverse("timary:register"),
             {
