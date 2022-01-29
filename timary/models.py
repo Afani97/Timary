@@ -152,7 +152,7 @@ class Invoice(BaseModel):
         hours_tracked = (
             self.hours_tracked.filter(date_tracked__gte=F("invoice__last_date"))
             .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
-            .order_by("-date_tracked")
+            .order_by("date_tracked")
         )
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
@@ -192,7 +192,7 @@ class SentInvoice(BaseModel):
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
-            f"paid_status={self.paid_status})"
+            f"paid_status={self.get_paid_status_display()})"
         )
 
     def __repr__(self):
@@ -201,11 +201,38 @@ class SentInvoice(BaseModel):
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
-            f"paid_status={self.paid_status})"
+            f"paid_status={self.get_paid_status_display()})"
+        )
+
+    def get_hours_tracked(self):
+        return (
+            self.invoice.hours_tracked.filter(
+                date_tracked__range=[
+                    self.hours_start_date,
+                    self.hours_end_date,
+                ]
+            )
+            .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
+            .order_by("date_tracked")
         )
 
 
 class User(AbstractUser, BaseModel):
+    class MembershipTier(models.IntegerChoices):
+        STARTER = 5, "STARTER"
+        PROFESSIONAL = 19, "PROFESSIONAL"
+        BUSINESS = 49, "BUSINESS"
+
+    membership_tier = models.PositiveSmallIntegerField(
+        default=MembershipTier.STARTER,
+        choices=MembershipTier.choices,
+        blank=False,
+    )
+    stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
+    stripe_payouts_enabled = models.BooleanField(default=False)
+    stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
+    stripe_subscription_id = models.CharField(max_length=200, null=True, blank=True)
+
     WEEK_DAYS = (
         ("Mon", "Mon"),
         ("Tue", "Tue"),
@@ -246,3 +273,29 @@ class User(AbstractUser, BaseModel):
     @property
     def formatted_phone_number(self):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+
+    @property
+    def can_accept_payments(self):
+        return self.stripe_payouts_enabled
+
+    @property
+    def can_receive_texts(self):
+        return (
+            self.membership_tier == User.MembershipTier.PROFESSIONAL
+            or self.membership_tier == User.MembershipTier.BUSINESS
+        )
+
+    @property
+    def can_create_invoices(self):
+        invoices_count = self.invoices.count()
+        if invoices_count == 0:
+            # Empty state
+            return False
+        if self.membership_tier == User.MembershipTier.STARTER:
+            return False
+        elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
+            return invoices_count <= 1
+        elif self.membership_tier == User.MembershipTier.BUSINESS:
+            return True
+        else:
+            return False

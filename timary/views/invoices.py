@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
-from timary.models import Invoice
+from timary.models import Invoice, User
 
 
 @login_required()
@@ -22,7 +22,7 @@ def manage_invoices(request):
 @login_required()
 @require_http_methods(["POST"])
 def create_invoice(request):
-    user = request.user
+    user: User = request.user
     invoice_form = InvoiceForm(request.POST)
     if invoice_form.is_valid():
         prev_invoice_count = Invoice.objects.filter(user=user).count()
@@ -32,6 +32,7 @@ def create_invoice(request):
         invoice.save()
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
         if prev_invoice_count == 0:
             response[
                 "HX-Redirect"
@@ -126,4 +127,12 @@ def delete_invoice(request, invoice_id):
     response = HttpResponse("", status=200)
     if Invoice.objects.filter(user=request.user).count() == 0:
         response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
+    else:
+        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
     return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def create_invoice_partial(request):
+    return render(request, "partials/_new_invoice_btn.html", {})

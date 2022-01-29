@@ -66,13 +66,42 @@ urlpatterns += [
         views.delete_invoice,
         name="delete_invoice",
     ),
+    path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 
 # AUTH URLS
 urlpatterns += [
     path("login/", views.login_user, name="login"),
     path("logout/", views.logout_user, name="logout"),
-    path("signup/", views.register_user, name="register"),
+    path("register/", views.register_user, name="register"),
+]
+
+
+# STRIPE URLS
+urlpatterns += [
+    path(
+        "invoice-payment/<uuid:sent_invoice_id>/", views.pay_invoice, name="pay_invoice"
+    ),
+    path(
+        "invoice-payment-success/<uuid:sent_invoice_id>/",
+        views.invoice_payment_success,
+        name="invoice_payment_success",
+    ),
+    path(
+        "onboarding_success/",
+        views.onboard_success,
+        name="onboard_success",
+    ),
+    path(
+        "update_connect/",
+        views.update_connect_account,
+        name="update_connect",
+    ),
+    path(
+        "complete_connect/",
+        views.completed_connect_account,
+        name="complete_connect",
+    ),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,0 +1,309 @@
+{% extends 'timary/base.html' %}
+{% load filters %}
+
+{% block css %}
+    <style>
+        /* Variables */
+
+        .hidden {
+            display: none;
+        }
+
+        #payment-message {
+            color: rgb(105, 115, 134);
+            font-size: 16px;
+            line-height: 20px;
+            padding-top: 12px;
+            text-align: center;
+        }
+
+        #payment-element {
+            margin-bottom: 24px;
+        }
+
+        /* Buttons and links */
+        button {
+            background: #5469d4;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+            border-radius: 4px;
+            border: 0;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: block;
+            transition: all 0.2s ease;
+            box-shadow: 0px 4px 5.5px 0px rgba(0, 0, 0, 0.07);
+            width: 100%;
+        }
+        button:hover {
+            filter: contrast(115%);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        /* spinner/processing state, errors */
+        .spinner,
+        .spinner:before,
+        .spinner:after {
+            border-radius: 50%;
+        }
+        .spinner {
+            color: #ffffff;
+            font-size: 22px;
+            text-indent: -99999px;
+            margin: 0px auto;
+            position: relative;
+            width: 20px;
+            height: 20px;
+            box-shadow: inset 0 0 0 2px;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+        .spinner:before,
+        .spinner:after {
+            position: absolute;
+            content: "";
+        }
+        .spinner:before {
+            width: 10.4px;
+            height: 20.4px;
+            background: #5469d4;
+            border-radius: 20.4px 0 0 20.4px;
+            top: -0.2px;
+            left: -0.2px;
+            -webkit-transform-origin: 10.4px 10.2px;
+            transform-origin: 10.4px 10.2px;
+            -webkit-animation: loading 2s infinite ease 1.5s;
+            animation: loading 2s infinite ease 1.5s;
+        }
+        .spinner:after {
+            width: 10.4px;
+            height: 10.2px;
+            background: #5469d4;
+            border-radius: 0 10.2px 10.2px 0;
+            top: -0.1px;
+            left: 10.2px;
+            -webkit-transform-origin: 0px 10.2px;
+            transform-origin: 0px 10.2px;
+            -webkit-animation: loading 2s infinite ease;
+            animation: loading 2s infinite ease;
+        }
+
+        @-webkit-keyframes loading {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes loading {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="grid grid-cols-1 grid-flow-row md:grid-cols-7 md:grid-flow-col">
+
+        <div class="col-span-3 mx-5">
+            <div class="mb-4">
+                <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
+                <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
+                <p>Total Amount Due: ${{ sent_invoice.total_price | floatformat }}</p>
+            </div>
+            <div class="overflow-y-auto mt-10">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hour in hours_tracked %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
+                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat }}</span></td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td></td>
+                            <td width="80%" class="purchase_footer" valign="middle">
+                                <p class="f-fallback purchase_total purchase_total--label">Total</p>
+                            </td>
+                            <td width="20%" class="purchase_footer" valign="middle">
+                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price | floatformat }}</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="divider divider-horizontal md:divider-vertical col-span-1"></div>
+
+        <!-- Display a payment form -->
+        <form id="payment-form" class="col-span-3 h-80">
+            <div class="grid grid-cols-4 gap-2">
+                {% for field in pay_invoice_form %}
+                    <div class="form-control my-4 {{ field.field.widget.attrs.classes }}">
+                        <label class="label"><span class="label-text">{{ field.label }}</span></label>
+                        {{ field | addclass:"input input-bordered bg-neutral focus:border-primary focus:ring-0 focus:ring-primary w-full" }}
+                    </div>
+                {% endfor %}
+            </div>
+            <div id="payment-element">
+                <!--Stripe.js injects the Payment Element-->
+            </div>
+            <div class="mt-10">
+                <button id="submit" class="ht-10">
+                    <div class="spinner hidden" id="spinner"></div>
+                    <span id="button-text">Pay invoice</span>
+                </button>
+            </div>
+
+            <div id="payment-message" class="hidden"></div>
+        </form>
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script nonce="pay-invoice">
+        const stripe = Stripe('{{ stripe_public_key }}');
+
+        let elements;
+
+        initialize();
+
+        document
+            .querySelector("#payment-form")
+            .addEventListener("submit", handleSubmit);
+
+        // Fetches a payment intent and captures the client secret
+        async function initialize() {
+            const appearance = {
+                theme: 'night',
+                variables: {
+                    colorPrimary: '#5e30eb',
+                },
+            };
+            elements = stripe.elements({ appearance, clientSecret: '{{ client_secret }}' });
+
+            const paymentElement = elements.create("payment");
+            paymentElement.mount("#payment-element");
+        }
+
+        async function checkInvoicingDetailsValid() {
+            document.getElementById("id_email").classList.remove("input-error");
+            document.getElementById("id_first_name").classList.remove("input-error");
+
+            const data = new FormData();
+            data.set("email", document.getElementById("id_email").value);
+            data.set("first_name", document.getElementById("id_first_name").value)
+            const response = await fetch("{{ site_url }}/invoice-payment/{{sent_invoice.id}}/", {
+                method: "POST",
+                body: data,
+            });
+            let { valid, errors } = await response.json();
+
+            // Remove previous error messages
+            const errorMessages = document.getElementsByClassName("error-messages");
+            while (errorMessages.length > 0) errorMessages[0].remove();
+
+            if (!valid) {
+                errors = JSON.parse(errors)
+                for (const error in errors) {
+                    let div = document.createElement("div");
+                    div.classList.add("text-red-400", "error-messages", "text-sm", "mt-1");
+                    div.innerText = errors[error][0]["message"];
+                    document.getElementById(`id_${error}`).classList.add("input-error");
+                    document.getElementById(`id_${error}`).after(div);
+                }
+            }
+            return valid
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            setLoading(true);
+
+            const formIsValid = await checkInvoicingDetailsValid();
+            if (!formIsValid) {
+                setLoading(false);
+                showMessage("Form details are not valid");
+                return;
+            }
+
+            const { error } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    // Make sure to change this to your payment completion page
+                    return_url: "{{ return_url }}",
+                },
+            });
+
+            // This point will only be reached if there is an immediate error when
+            // confirming the payment. Otherwise, your customer will be redirected to
+            // your `return_url`. For some payment methods like iDEAL, your customer will
+            // be redirected to an intermediate site first to authorize the payment, then
+            // redirected to the `return_url`.
+            if (error.type === "card_error" || error.type === "validation_error") {
+                showMessage(error.message);
+            } else {
+                showMessage("An unexpected error occurred.");
+            }
+
+            setLoading(false);
+        }
+
+        // ------- UI helpers -------
+
+        function showMessage(messageText) {
+            const messageContainer = document.querySelector("#payment-message");
+
+            messageContainer.classList.remove("hidden");
+            messageContainer.textContent = messageText;
+
+            setTimeout(function () {
+                messageContainer.classList.add("hidden");
+                messageText.textContent = "";
+            }, 4000);
+        }
+
+        // Show a spinner on payment submission
+        function setLoading(isLoading) {
+            if (isLoading) {
+                // Disable the button and show a spinner
+                document.querySelector("#submit").disabled = true;
+                document.querySelector("#spinner").classList.remove("hidden");
+                document.querySelector("#button-text").classList.add("hidden");
+            } else {
+                document.querySelector("#submit").disabled = false;
+                document.querySelector("#spinner").classList.add("hidden");
+                document.querySelector("#button-text").classList.remove("hidden");
+            }
+        }
+    </script>
+{% endblock %}

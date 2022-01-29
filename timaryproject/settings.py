@@ -32,6 +32,8 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
+SITE_URL = "http://127.0.0.1:8000"
+
 
 # Application definition
 
@@ -78,6 +80,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "timary.context_processors.site_url",
+                "timary.context_processors.completed_connect_account",
             ],
         },
     },
@@ -202,17 +206,30 @@ CSP_SCRIPT_SRC = (
     "'self'",
     "'unsafe-eval'",
     "'nonce-base'",
+    "'nonce-pay-invoice'",
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",
     "https://unpkg.com/htmx.org@1.5.0",
+    "https://js.stripe.com",
 )
 CSP_IMG_SRC = ("'self'",)
 CSP_FONT_SRC = ("'self'",)
-CSP_CONNECT_SRC = ("'self'",)
+CSP_CONNECT_SRC = (
+    "'self'",
+    "https://api.stripe.com",
+)
 CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'none'",)
+CSP_FRAME_SRC = (
+    "'self'",
+    "https://js.stripe.com",
+    "https://hooks.stripe.com",
+)
 CSP_FRAME_ANCESTORS = ("'none'",)
-CSP_FORM_ACTION = ("'self'",)
+CSP_FORM_ACTION = (
+    "'self'",
+    "https://connect.stripe.com",
+)
 CSP_INCLUDE_NONCE_IN = ("script-src",)
 CSP_MEDIA_SRC = ("'self'",)
 
@@ -226,6 +243,11 @@ TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="abc123")
 TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="+17742613186")
 TWILIO_DEFAULT_CALLERID = "Aristotel Fani"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# STRIPE
+STRIPE_PUBLIC_API_KEY = config("STRIPE_PUBLIC_API_KEY", default="abc123")
+STRIPE_SECRET_API_KEY = config("STRIPE_SECRET_API_KEY", default="abc123")
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):

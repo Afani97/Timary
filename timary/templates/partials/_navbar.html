@@ -54,3 +54,21 @@
         </div>
     </div>
 </div>
+{% if request.user.is_authenticated %}
+    <div>
+        {% if not completed_connect_account %}
+            <div class="alert alert-warning bg-base-100 max-w-3xl mx-auto">
+                <div class="flex-1">
+                    <label class="mx-3 text-center">
+                        You need to complete your Stripe payment
+                        <br class="md:hidden">
+                        info to receive your invoice funds!
+                    </label>
+                </div>
+                <div class="flex-none">
+                    <a href="{% url 'timary:update_connect' %}" class="btn btn-sm btn-warning" >Continue</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

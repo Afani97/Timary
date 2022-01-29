@@ -145,11 +145,9 @@ class TestInvoice(TestCase):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
         invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
-        hours1 = DailyHoursFactory(invoice=invoice)
-        hours2 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
-        hours_list = sorted(
-            [hours1, hours2], key=lambda x: x.date_tracked, reverse=True
-        )
+        hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
+        hours2 = DailyHoursFactory(invoice=invoice)
+        hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
 
         hours_tracked, total_hours = invoice.get_hours_stats()
         self.assertListEqual(list(hours_tracked), hours_list)
@@ -174,6 +172,7 @@ class TestUser(TestCase):
         self.assertEqual(user.username, "test@test.com")
         self.assertEqual(user.email, "test@test.com")
         self.assertEqual(user.phone_number, "+17742613186")
+        self.assertEqual(user.membership_tier, User.MembershipTier.STARTER)
         self.assertListEqual(user.phone_number_availability, ["Mon", "Tue", "Wed"])
 
     def test_settings_dict(self):
@@ -211,3 +210,51 @@ class TestUser(TestCase):
         DailyHoursFactory(invoice__user=user, date_tracked=datetime.date.today())
         InvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged), 1)
+
+    def test_can_accept_payments(self):
+        with self.subTest("Payouts enabled"):
+            user = UserFactory(stripe_payouts_enabled=True)
+            self.assertTrue(user.can_accept_payments)
+
+        with self.subTest("Payouts not enabled"):
+            user = UserFactory(stripe_payouts_enabled=False)
+            self.assertFalse(user.can_accept_payments)
+
+    def test_can_receive_texts(self):
+        with self.subTest("Starter tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            self.assertFalse(user.can_receive_texts)
+
+        with self.subTest("Professional tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            self.assertTrue(user.can_receive_texts)
+
+        with self.subTest("Business tier"):
+            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+            self.assertTrue(user.can_receive_texts)
+
+    def test_can_create_invoices(self):
+        with self.subTest("Zero invoices"):
+            user = UserFactory()
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Starter tier, only one allowed"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            InvoiceFactory(user=user)
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Professional tier, limit not reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            InvoiceFactory(user=user)
+            self.assertTrue(user.can_create_invoices)
+
+        with self.subTest("Business tier, limit reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+            InvoiceFactory(user=user)
+            InvoiceFactory(user=user)
+            self.assertFalse(user.can_create_invoices)
+
+        with self.subTest("Business tier, limit reached"):
+            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+            InvoiceFactory(user=user)
+            self.assertTrue(user.can_create_invoices)

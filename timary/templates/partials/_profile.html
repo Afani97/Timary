@@ -3,6 +3,7 @@
         <h2 class="card-title text-center">{{user.first_name }} {{ user.last_name }}</h2>
         <p class="text-center">{{ user.email }}</p>
         <p class="text-center">{{ user.phone_number|default:"" }}</p>
+        <p class="text-center">Current subscription: {{ user.get_membership_tier_display|title }}</p>
         <div class="card-actions flex justify-center">
             <button class="btn btn-primary"
                 hx-get="{% url 'timary:edit_user_profile' %}"

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -6,7 +8,7 @@ from timary.tests.factories import UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
-class TestUsers(BaseTest):
+class TestUserProfile(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 
@@ -65,12 +67,15 @@ class TestUsers(BaseTest):
             response.content.decode("utf-8"),
         )
 
-    def test_update_user_profile(self):
+    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    def test_update_user_profile(self, stripe_subscription_mock):
+        stripe_subscription_mock.return_value = None
         url_params = {
             "email": "user@test.com",
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+17742613186",
+            "membership_tier": "19",
         }
         response = self.client.put(
             reverse("timary:update_user_profile"),
@@ -82,6 +87,7 @@ class TestUsers(BaseTest):
             <h2 class="card-title text-center">Test Test</h2>
             <p class="text-center">user@test.com</p>
             <p class="text-center">+17742613186</p>
+            <p class="text-center">Current subscription: Professional</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -127,6 +133,35 @@ class TestUsers(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertEqual(response.status_code, 302)
+
+    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    def test_update_user_subscription(self, stripe_subscription_mock):
+        stripe_subscription_mock.return_value = None
+        self.assertEqual(self.user.membership_tier, 19)
+        url_params = {
+            "email": self.user.email,
+            "first_name": self.user.first_name,
+            "last_name": self.user.last_name,
+            "phone_number": "+17742613186",
+            "membership_tier": "49",
+        }
+        response = self.client.put(
+            reverse("timary:update_user_profile"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.membership_tier, 49)
+        self.assertInHTML(
+            f"""
+            <h2 class="card-title text-center">{self.user.get_full_name()}</h2>
+            <p class="text-center">{self.user.email}</p>
+            <p class="text-center">{self.user.formatted_phone_number}</p>
+            <p class="text-center">Current subscription: Business</p>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "partials/_profile.html")
+        self.assertEqual(response.status_code, 200)
 
 
 class TestUserSettings(BaseTest):

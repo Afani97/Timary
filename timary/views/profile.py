@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import SettingsForm, UserForm
+from timary.services.stripe_service import StripeService
 
 
 @login_required()
@@ -48,10 +49,13 @@ def edit_user_profile(request):
 @login_required()
 @require_http_methods(["PUT"])
 def update_user_profile(request):
+    current_membership_tier = request.user.membership_tier
     put_params = QueryDict(request.body)
     user_form = UserForm(put_params, instance=request.user)
     if user_form.is_valid():
         user = user_form.save()
+        if user_form.cleaned_data.get("membership_tier") != current_membership_tier:
+            StripeService.create_subscription(user, delete_current=True)
         return render(request, "partials/_profile.html", {"user": user})
     return render_profile_form(request=request, profile_form=user_form)
 

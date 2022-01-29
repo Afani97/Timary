@@ -4,8 +4,7 @@ import factory
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
-from timary import models
-from timary.models import Invoice, User
+from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 
 username_email = factory.Faker("email")
 
@@ -19,6 +18,7 @@ class UserFactory(DjangoModelFactory):
     last_name = factory.Faker("last_name")
     email = factory.LazyAttribute(lambda o: f"{o.username}")
     password = factory.PostGenerationMethodCall("set_password", "Apple101!")
+    membership_tier = User.MembershipTier.PROFESSIONAL
     phone_number = factory.Faker("phone_number", locale="en_US")
     phone_number_availability = factory.Iterator(
         ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"]
@@ -35,7 +35,7 @@ def get_last_date():
 
 class InvoiceFactory(DjangoModelFactory):
     class Meta:
-        model = models.Invoice
+        model = Invoice
 
     user = factory.SubFactory(UserFactory)
     title = factory.Faker("name")
@@ -55,9 +55,22 @@ class InvoiceFactory(DjangoModelFactory):
     last_date = factory.LazyFunction(get_last_date)
 
 
+class SentInvoiceFactory(DjangoModelFactory):
+    class Meta:
+        model = SentInvoice
+
+    user = factory.SubFactory(UserFactory)
+    invoice = factory.SubFactory(InvoiceFactory)
+    hours_start_date = factory.LazyFunction(get_last_date)
+    hours_end_date = factory.LazyFunction(datetime.date.today)
+    date_sent = factory.LazyFunction(datetime.date.today)
+    total_price = factory.Faker("pyint", min_value=100, max_value=10_000)
+    paid_status = SentInvoice.PaidStatus.PENDING
+
+
 class DailyHoursFactory(DjangoModelFactory):
     class Meta:
-        model = models.DailyHoursInput
+        model = DailyHoursInput
 
     invoice = factory.SubFactory(InvoiceFactory)
     hours = FuzzyDecimal(1, 23, 1)

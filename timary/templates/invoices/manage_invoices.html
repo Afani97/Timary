@@ -1,12 +1,8 @@
 {% extends 'timary/base.html' %}
 
 {% block content %}
-    <div class="flex flex-col md:flex-row justify-between mt-10">
-        {% if invoices.count > 0 %}
-            <h1 class="text-3xl mb-8 text-center">Your current invoices</h1>
-            <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</a>
-        {% endif %}
-    </div>
+
+    {% include 'partials/_new_invoice_btn.html' %}
 
     <div>
         <ul class="space-y-5 mx-2" id="invoices-list">
