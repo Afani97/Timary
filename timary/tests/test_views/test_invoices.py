@@ -1,10 +1,12 @@
 import datetime
+import uuid
 
+from django.core import mail
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.models import Invoice
-from timary.tests.factories import InvoiceFactory, UserFactory
+from timary.models import Invoice, SentInvoice
+from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -220,5 +222,45 @@ class TestInvoices(BaseTest):
                 "timary:pause_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
             ),
             data={},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_resend_invoice_email(self):
+        invoice = InvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
+
+        response = self.client.get(
+            reverse(
+                "timary:resend_invoice_email",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        expected_context = {"sent_invoice": sent_invoice, "invoice_resent": True}
+        expected_response = self.setup_template(
+            "partials/_sent_invoice.html", expected_context
+        )
+        self.assertEqual(expected_response, response.content.decode("utf-8"))
+
+    def test_resend_invoice_email_already_paid(self):
+        invoice = InvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice, paid_status=SentInvoice.PaidStatus.PAID
+        )
+
+        response = self.client.get(
+            reverse(
+                "timary:resend_invoice_email",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        self.assertRedirects(response, reverse("timary:user_profile"))
+
+    def test_resend_invoice_email_error(self):
+        response = self.client.get(
+            reverse(
+                "timary:resend_invoice_email",
+                kwargs={"sent_invoice_id": uuid.uuid4()},
+            ),
         )
         self.assertEqual(response.status_code, 404)

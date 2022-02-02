@@ -148,9 +148,13 @@ class Invoice(BaseModel):
             self.last_date = todays_date
         self.save()
 
-    def get_hours_stats(self):
+    def get_hours_stats(self, date_range=None):
+        query = Q(date_tracked__gte=F("invoice__last_date"))
+        if date_range:
+            query = Q(date_tracked__range=date_range)
+            pass
         hours_tracked = (
-            self.hours_tracked.filter(date_tracked__gte=F("invoice__last_date"))
+            self.hours_tracked.filter(query)
             .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
             .order_by("date_tracked")
         )

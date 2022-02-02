@@ -66,6 +66,11 @@ urlpatterns += [
         views.delete_invoice,
         name="delete_invoice",
     ),
+    path(
+        "invoices/<uuid:sent_invoice_id>/remind/",
+        views.resend_invoice_email,
+        name="resend_invoice_email",
+    ),
     path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 

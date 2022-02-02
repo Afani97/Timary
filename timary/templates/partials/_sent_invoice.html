@@ -1,0 +1,29 @@
+<li class="card shadow-lg bordered mb-2">
+    <div class="card-body grid grid-cols-3 gap-4">
+        <div class="col-span-2">
+            <p class="card-title">{{ sent_invoice.invoice.title }} - {{ sent_invoice.date_sent }}</p>
+            <p>Status:
+                <span class="{% if sent_invoice.paid_status == 2 %} text-green-300 {% else %} text-yellow-300 {% endif %}">
+                    {{ sent_invoice.get_paid_status_display|title }}
+                </span>
+            </p>
+            <p>Amount earned: ${{ sent_invoice.total_price }}</p>
+        </div>
+        <div class="col-span-1">
+            {% if sent_invoice.paid_status == 1 %}
+                <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    class="btn btn-secondary"
+                    {% if invoice_resent %} disabled="disabled" {% endif %}
+                >
+                    {% if invoice_resent %}
+                        Invoice resent
+                    {% else %}
+                        Resend invoice
+                    {% endif %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</li>

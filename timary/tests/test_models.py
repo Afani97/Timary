@@ -155,6 +155,19 @@ class TestInvoice(TestCase):
             total_hours, (hours1.hours + hours2.hours) * invoice.hourly_rate
         )
 
+    def test_get_hours_stats_with_date_range(self):
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=yesterday)
+        DailyHoursFactory(invoice=invoice, date_tracked=two_days_ago)
+        hours2 = DailyHoursFactory(invoice=invoice)
+
+        hours_tracked, total_hours = invoice.get_hours_stats(
+            (yesterday, datetime.date.today())
+        )
+        self.assertListEqual(list(hours_tracked), [hours2])
+        self.assertEqual(total_hours, hours2.hours * invoice.hourly_rate)
+
 
 class TestUser(TestCase):
     def test_user(self):
