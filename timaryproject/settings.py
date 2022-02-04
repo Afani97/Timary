@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "django_q",
     "django_twilio",
     "multiselectfield",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
 ]
 
 MIDDLEWARE = [
@@ -62,6 +64,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -248,6 +251,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # STRIPE
 STRIPE_PUBLIC_API_KEY = config("STRIPE_PUBLIC_API_KEY", default="abc123")
 STRIPE_SECRET_API_KEY = config("STRIPE_SECRET_API_KEY", default="abc123")
+
+
+# OTP
+OTP_TOTP_ISSUER = "Timary LLC"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):

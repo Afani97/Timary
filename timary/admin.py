@@ -3,6 +3,7 @@ from django.contrib import admin, messages
 from django.core.mail import send_mail
 from django.template.response import TemplateResponse
 from django.urls import path
+from django_otp.admin import OTPAdminSite
 
 from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 
@@ -34,7 +35,7 @@ def send_emails(subject, message):
     )
 
 
-class TimaryAdminSite(admin.AdminSite):
+class TimaryAdminSite(OTPAdminSite):
     index_template = "admin/custom_index.html"
 
     def custom_page(self, request):
