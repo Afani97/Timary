@@ -256,6 +256,11 @@ STRIPE_SECRET_API_KEY = config("STRIPE_SECRET_API_KEY", default="abc123")
 # OTP
 OTP_TOTP_ISSUER = "Timary LLC"
 
+# AWS
+AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default="abc123")
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="abc123")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="abc123")
+
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
