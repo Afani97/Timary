@@ -1,3 +1,4 @@
+from .accounting_views import *  # noqa
 from .auth import *  # noqa
 from .hours import *  # noqa
 from .invoices import *  # noqa

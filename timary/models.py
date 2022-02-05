@@ -251,6 +251,9 @@ class User(AbstractUser, BaseModel):
         choices=WEEK_DAYS, null=True, blank=True
     )
 
+    # Quickbooks integration id
+    quickbooks_realm_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -259,7 +262,10 @@ class User(AbstractUser, BaseModel):
 
     @property
     def settings(self):
-        return {"phone_number_availability": self.phone_number_availability}
+        return {
+            "phone_number_availability": self.phone_number_availability,
+            "quickbooks_connected": self.quickbooks_realm_id is not None,
+        }
 
     @property
     def invoices_not_logged(self):

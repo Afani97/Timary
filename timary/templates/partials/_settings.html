@@ -17,6 +17,14 @@
             {% endfor %}
         </div>
     </div>
+    <div class="card-body">
+        <h2 class="card-title text-center">Quickbooks integration</h2>
+        {% if settings.quickbooks_connected %}
+            <p class="btn btn-primary btn-outline" disabled>Connected!</p>
+        {% else %}
+            <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect</a>
+        {% endif %}
+    </div>
     <div class="flex justify-center my-5">
         <button class="btn btn-primary"
             hx-get="{% url 'timary:update_user_settings' %}"

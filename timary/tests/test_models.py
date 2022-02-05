@@ -190,7 +190,13 @@ class TestUser(TestCase):
 
     def test_settings_dict(self):
         user = UserFactory(phone_number_availability=["Mon", "Tue"])
-        self.assertEqual(user.settings, {"phone_number_availability": ["Mon", "Tue"]})
+        self.assertEqual(
+            user.settings,
+            {
+                "phone_number_availability": ["Mon", "Tue"],
+                "quickbooks_connected": False,
+            },
+        )
 
     def test_get_remaining_invoices(self):
         user = UserFactory()
