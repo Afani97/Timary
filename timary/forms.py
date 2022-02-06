@@ -86,7 +86,7 @@ class InvoiceForm(forms.ModelForm):
 
     def clean_email_recipient_name(self):
         email_recipient_name = self.cleaned_data.get("email_recipient_name")
-        if not email_recipient_name.isalpha():
+        if not all(x.isalpha() or x.isspace() for x in email_recipient_name):
             raise ValidationError("Only valid names allowed.")
         return email_recipient_name
 

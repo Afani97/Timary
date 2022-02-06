@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
+from timary.services.quickbook_service import QuickbooksClient
 
 
 @login_required()
@@ -36,6 +37,8 @@ def create_invoice(request):
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
+        if user.quickbooks_realm_id:
+            QuickbooksClient.create_customer(user.quickbooks_realm_id, invoice)
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         response["HX-Trigger"] = "newInvoice"  # To trigger button refresh

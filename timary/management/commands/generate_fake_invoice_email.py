@@ -21,11 +21,13 @@ class Command(BaseCommand):
             membership_tier=membership_tier,
             stripe_payouts_enabled=True,
             phone_number=None,
+            quickbooks_realm_id="4620816365214495060",
         )
         invoice = InvoiceFactory(
             user=user,
             email_recipient="aristotelf@gmail.com",
             last_date=datetime.date.today() - datetime.timedelta(days=3),
+            quickbooks_customer_ref_id="58",
         )
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(

@@ -104,6 +104,9 @@ class Invoice(BaseModel):
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
 
+    # Quickbooks
+    quickbooks_customer_ref_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -189,6 +192,9 @@ class SentInvoice(BaseModel):
     paid_status = models.PositiveSmallIntegerField(
         default=PaidStatus.PENDING, choices=PaidStatus.choices
     )
+
+    # Quickbooks
+    quickbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return (

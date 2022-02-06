@@ -265,6 +265,7 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="abc123")
 # QUICKBOOKS
 QUICKBOOKS_CLIENT_ID = config("QUICKBOOKS_CLIENT_ID", default="abc123")
 QUICKBOOKS_SECRET_KEY = config("QUICKBOOKS_SECRET_KEY", default="abc123")
+QUICKBOOKS_ENV = config("QUICKBOOKS_ENV", default="abc123")
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
