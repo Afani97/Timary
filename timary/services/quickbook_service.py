@@ -100,6 +100,7 @@ class QuickbooksClient:
 
     @staticmethod
     def create_invoice(sent_invoice):
+        # Generate invoice
         endpoint = f"v3/company/{sent_invoice.user.quickbooks_realm_id}/invoice?minorversion=63"
         data = {
             "Line": [
@@ -116,3 +117,22 @@ class QuickbooksClient:
         response = QuickbooksClient.create_request(endpoint, "post", data=data)
         sent_invoice.quickbooks_invoice_id = response["Invoice"]["Id"]
         sent_invoice.save()
+
+        # Generate payment for invoice
+        endpoint = f"v3/company/{sent_invoice.user.quickbooks_realm_id}/payment?minorversion=63"
+        data = {
+            "TotalAmt": float(sent_invoice.total_price),
+            "CustomerRef": {"value": sent_invoice.invoice.quickbooks_customer_ref_id},
+            "Line": [
+                {
+                    "Amount": float(sent_invoice.total_price),
+                    "LinkedTxn": [
+                        {
+                            "TxnId": sent_invoice.quickbooks_invoice_id,
+                            "TxnType": "Invoice",
+                        }
+                    ],
+                },
+            ],
+        }
+        response = QuickbooksClient.create_request(endpoint, "post", data=data)
