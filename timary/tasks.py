@@ -13,6 +13,7 @@ from django_q.tasks import async_task
 from twilio.rest import Client
 
 from timary.models import Invoice, SentInvoice, User
+from timary.services.quickbook_service import QuickbooksClient
 
 
 def gather_invoices():
@@ -127,3 +128,9 @@ def backup_db_file():
     except ClientError:
         return False
     return True
+
+
+def refresh_quickbooks_tokens():
+    """Run this every first of the month"""
+    # TODO: Add in prod, every first of the month: (Cron: 0 6 1 * *)
+    _ = QuickbooksClient.get_refreshed_tokens()

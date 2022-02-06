@@ -6,9 +6,10 @@ from django.urls import reverse
 from intuitlib.client import AuthClient
 from intuitlib.enums import Scopes
 
+from timary.models import QuickbooksOAuth
+
 
 class QuickbooksClient:
-    base_url = "https://sandbox-quickbooks.api.intuit.com"
     access_token = None
     refresh_token = None
 
@@ -40,19 +41,34 @@ class QuickbooksClient:
         QuickbooksClient.access_token = auth_client.access_token
         QuickbooksClient.refresh_token = auth_client.refresh_token
 
+        if QuickbooksOAuth.objects.count() == 0:
+            # There should only be one refresh token in db.
+            QuickbooksOAuth.objects.create(refresh_token=auth_client.refresh_token)
+
         return auth_client.access_token
 
     @staticmethod
     def get_refreshed_tokens():
+        quickbooks_oauth_object = QuickbooksOAuth.objects.first()
+
         auth_client = QuickbooksClient.get_auth_client()
-        auth_client.refresh(QuickbooksClient.refresh_token)
+        auth_client.refresh(refresh_token=quickbooks_oauth_object.refresh_token)
+
         QuickbooksClient.access_token = auth_client.access_token
         QuickbooksClient.refresh_token = auth_client.refresh_token
+
+        QuickbooksOAuth.objects.first().refresh_token = auth_client.refresh_token
+        quickbooks_oauth_object.first_token = quickbooks_oauth_object
         return auth_client.access_token
 
     @staticmethod
     def create_request(endpoint, method_type, data=None):
-        base_url = "https://sandbox-quickbooks.api.intuit.com"
+        subdomain = (
+            "quickbooks"
+            if settings.QUICKBOOKS_ENV == "production"
+            else "sandbox-quickbooks"
+        )
+        base_url = f"https://{subdomain}.api.intuit.com"
         url = f"{base_url}/{endpoint}"
         headers = {
             "Authorization": f"Bearer {QuickbooksClient.get_refreshed_tokens()}",
@@ -70,7 +86,9 @@ class QuickbooksClient:
 
     @staticmethod
     def create_customer(invoice):
-        endpoint = f"v3/company/{invoice.user.realm_id}/customer?minorversion=63"
+        endpoint = (
+            f"v3/company/{invoice.user.quickbooks_realm_id}/customer?minorversion=63"
+        )
         data = {
             "DisplayName": invoice.email_recipient_name,
             "FullyQualifiedName": invoice.email_recipient_name,
@@ -87,7 +105,7 @@ class QuickbooksClient:
             "Line": [
                 {
                     "DetailType": "SalesItemLineDetail",
-                    "Amount": sent_invoice.total_price,
+                    "Amount": float(sent_invoice.total_price),
                     "SalesItemLineDetail": {
                         "ItemRef": {"name": "Services", "value": "1"}
                     },

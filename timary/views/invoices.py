@@ -38,7 +38,7 @@ def create_invoice(request):
         invoice.calculate_next_date()
         invoice.save()
         if user.quickbooks_realm_id:
-            QuickbooksClient.create_customer(user.quickbooks_realm_id, invoice)
+            QuickbooksClient.create_customer(invoice)
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         response["HX-Trigger"] = "newInvoice"  # To trigger button refresh

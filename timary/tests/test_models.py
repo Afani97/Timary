@@ -195,6 +195,9 @@ class TestUser(TestCase):
             {
                 "phone_number_availability": ["Mon", "Tue"],
                 "quickbooks_connected": False,
+                "freshbooks_connected": False,
+                "xero_connected": False,
+                "zoho_connected": False,
             },
         )
 
