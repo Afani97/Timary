@@ -17,6 +17,34 @@
             {% endfor %}
         </div>
     </div>
+    <div class="card-body">
+        <h2 class="card-title text-center">Accounting integrations</h2>
+        <div class="flex flex-col justify-center space-evenly space-y-5">
+            {% if settings.quickbooks_connected %}
+                <p class="btn btn-primary btn-outline" disabled>QuickBooks Connected!</p>
+            {% else %}
+                <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect QuickBooks</a>
+            {% endif %}
+
+            {% if settings.freshbooks_connected %}
+                <p class="btn btn-primary btn-outline" disabled>FreshBooks Connected!</p>
+            {% else %}
+                <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect FreshBooks</a>
+            {% endif %}
+
+            {% if settings.zoho_connected %}
+                <p class="btn btn-primary btn-outline" disabled>ZoHo Connected!</p>
+            {% else %}
+                <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect ZoHo</a>
+            {% endif %}
+
+            {% if settings.xero_connected %}
+                <p class="btn btn-primary btn-outline" disabled>Xero Connected!</p>
+            {% else %}
+                <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect Xero</a>
+            {% endif %}
+        </div>
+    </div>
     <div class="flex justify-center my-5">
         <button class="btn btn-primary"
             hx-get="{% url 'timary:update_user_settings' %}"

@@ -9,6 +9,7 @@ from twilio.rest import Client
 
 from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice
+from timary.services.quickbook_service import QuickbooksClient
 from timary.services.stripe_service import StripeService
 
 
@@ -54,6 +55,10 @@ def invoice_payment_success(request, sent_invoice_id):
         return redirect(reverse("timary:login"))
     sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
     sent_invoice.save()
+
+    if sent_invoice.user.quickbooks_realm_id:
+        QuickbooksClient.create_invoice(sent_invoice)
+
     if sent_invoice.invoice.user.phone_number:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         _ = client.messages.create(

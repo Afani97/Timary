@@ -81,6 +81,12 @@ urlpatterns += [
     path("register/", views.register_user, name="register"),
 ]
 
+# ACCOUNTING INTEGRATION URLS
+urlpatterns += [
+    path("quickbooks-connect/", views.quickbooks_connect, name="quickbooks_connect"),
+    path("quickbooks-redirect/", views.quickbooks_redirect, name="quickbooks_redirect"),
+]
+
 
 # STRIPE URLS
 urlpatterns += [
