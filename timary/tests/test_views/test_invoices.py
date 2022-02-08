@@ -2,11 +2,17 @@ import datetime
 import uuid
 
 from django.core import mail
+from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 
 from timary.models import Invoice, SentInvoice
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    DailyHoursFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -38,8 +44,8 @@ class TestInvoices(BaseTest):
         self.assertInHTML(
             f"""
             <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-            <p>sent daily to {inv_name} ({inv_email})</p>
-            <p>next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
+            <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
+            <p class="text-xl">next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -92,6 +98,32 @@ class TestInvoices(BaseTest):
             reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+
+    def test_get_invoice_with_hours_logged(self):
+        hour = DailyHoursFactory(invoice=self.invoice)
+
+        rendered_template = self.setup_template(
+            "partials/_invoice.html", {"invoice": self.invoice}
+        )
+        response = self.client.get(
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
+        )
+        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+        self.assertInHTML(
+            f"""
+           <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-3">
+             <div class="collapse-title text-xl font-medium">View hours logged this period</div>
+             <div class="collapse-content" id="hours-logged">
+               <ul class="list-disc mx-5">
+
+                     <li class="text-xl">{floatformat(hour.hours)} hrs on {date(hour.date_tracked, "M jS")}</li>
+
+               </ul>
+             </div>
+           </div>
+           """,
+            response.content.decode("utf-8"),
+        )
 
     def test_get_invoice_error(self):
         response = self.client.get(
@@ -151,8 +183,8 @@ class TestInvoices(BaseTest):
         self.assertInHTML(
             f"""
             <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-            <p>sent daily to {inv_name} ({inv_email})</p>
-            <p>next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
+            <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
+            <p class="text-xl">next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -178,7 +210,7 @@ class TestInvoices(BaseTest):
         self.assertInHTML(
             f"""
             <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-            <p>invoice is paused</p>
+            <p class="text-xl">invoice is paused</p>
             """,
             response.content.decode("utf-8"),
         )

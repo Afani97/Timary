@@ -130,6 +130,12 @@ class Invoice(BaseModel):
     def slug_title(self):
         return f"{slugify(self.title)}"
 
+    @property
+    def get_hours_tracked(self):
+        return self.hours_tracked.filter(
+            date_tracked__gte=F("invoice__last_date")
+        ).order_by("date_tracked")
+
     def get_next_date(self):
         if self.invoice_interval == Invoice.Interval.DAILY:
             return timedelta(days=1)

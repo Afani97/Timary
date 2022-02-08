@@ -168,6 +168,30 @@ class TestInvoice(TestCase):
         self.assertListEqual(list(hours_tracked), [hours2])
         self.assertEqual(total_hours, hours2.hours * invoice.hourly_rate)
 
+    def test_get_hours_logged(self):
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
+        hours2 = DailyHoursFactory(invoice=invoice)
+        hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
+
+        hours_logged = invoice.get_hours_tracked
+        self.assertListEqual(list(hours_logged), hours_list)
+
+    def test_get_hours_logged_since_last_date(self):
+        three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
+        hours2 = DailyHoursFactory(invoice=invoice)
+        DailyHoursFactory(invoice=invoice, date_tracked=three_days_ago)
+        hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
+
+        hours_logged = invoice.get_hours_tracked
+        self.assertListEqual(list(hours_logged), hours_list)
+
 
 class TestUser(TestCase):
     def test_user(self):
