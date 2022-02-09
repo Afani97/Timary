@@ -46,24 +46,25 @@ class TestUserProfile(BaseTest):
     def test_get_edit_profile(self):
         response = self.client.get(reverse("timary:edit_user_profile"))
         self.assertInHTML(
-            f'<input type="email" name="email" value="{self.user.email}" class="input input-bordered w-full" required '
+            f'<input type="email" name="email" value="{self.user.email}" '
+            f'class="input input-bordered text-lg w-full" required '
             f'id="id_email">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="first_name" value="{self.user.first_name}" '
-            f'class="input input-bordered w-full" required id="id_first_name">',
+            f'class="input input-bordered text-lg w-full" required id="id_first_name">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="last_name" value="{self.user.last_name}" '
             f'placeholder="Appleseed" maxlength="150" '
-            f'class="input input-bordered w-full" id="id_last_name"> ',
+            f'class="input input-bordered text-lg w-full" id="id_last_name"> ',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="phone_number" value="{self.user.phone_number}" placeholder="+13334445555" '
-            f'class="input input-bordered w-full" id="id_phone_number">',
+            f'class="input input-bordered text-lg w-full" id="id_phone_number">',
             response.content.decode("utf-8"),
         )
 
@@ -109,7 +110,7 @@ class TestUserProfile(BaseTest):
         self.assertInHTML(
             f"""
             <input type="email" name="email" value="{user.email}"
-            class="input input-bordered w-full" required id="id_email">
+            class="input input-bordered text-lg w-full" required id="id_email">
 
                 <div class="text-red-600">
                     <strong>Email already registered!</strong>

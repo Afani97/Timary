@@ -22,7 +22,7 @@
                 {% if field.field.widget.input_type == "select" %}
                     {{ field | addclass:"select select-bordered w-full" }}
                 {% else %}
-                    {{ field | addclass:"input input-bordered w-full" }}
+                    {{ field | addclass:"input input-bordered text-lg w-full" }}
                 {% endif %}
 
                 {% for error in field.errors %}

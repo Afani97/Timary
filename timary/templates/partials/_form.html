@@ -17,7 +17,7 @@
                 {% if field.field.widget.input_type == "select" %}
                     {{ field | addclass:"select select-bordered" }}
                 {% else %}
-                    {{ field | addclass:"input input-bordered" }}
+                    {{ field | addclass:"input input-bordered text-lg" }}
                 {% endif %}
 
                 {% for error in field.errors %}
