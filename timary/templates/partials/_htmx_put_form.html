@@ -34,9 +34,11 @@
         {% endfor %}
     </div>
     <div class="card-actions flex justify-center">
-        <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
-        <button class="btn btn-primary" type="submit"> {{ btn_title }} </button>
+        <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#spinnr"> Cancel </a>
+        <button class="btn btn-primary" type="submit" hx-indicator="#spinnr">
+            {{ btn_title }}
+        </button>
+        {% include "partials/_spinnr.html" %}
     </div>
-</div>
 
 </form>

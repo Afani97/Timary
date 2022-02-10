@@ -177,12 +177,13 @@ class TestUserSettings(BaseTest):
         self.assertInHTML(
             """
             <div class="form-control">
-                <label>Tue</label>
+                <label class="label" for="Tue"><span class="label-text">Tue</span></label>
                 <input
+                    id="Tue"
                     type="checkbox"
-                    class="toggle toggle-primary"
+                    class="checkbox"
                     checked="checked"
-                    disabled="true"
+                    disabled
                 >
             </div>
             """,
@@ -213,12 +214,14 @@ class TestUserSettings(BaseTest):
                 self.assertInHTML(
                     f"""
                     <div class="form-control">
-                        <label class="label"><span class="label-text">{day[0]}</span></label>
+                        <label class="label" for="id_phone_number_availability_{index}">
+                            <span class="label-text">{day[0]}</span>
+                        </label>
                         <input
                             id="id_phone_number_availability_{index}"
                             name="phone_number_availability"
                             type="checkbox"
-                            class="toggle toggle-primary"
+                            class="checkbox"
                             value="{day[0]}"
                             {'checked=checked' if day[0] in self.user.phone_number_availability else ""}
                         >
@@ -244,12 +247,13 @@ class TestUserSettings(BaseTest):
                 self.assertInHTML(
                     f"""
                     <div class="form-control">
-                        <label>{day}</label>
+                        <label class="label" for="{day}"><span class="label-text">{day}</span></label>
                         <input
+                            id="{day}"
                             type="checkbox"
-                            class="toggle toggle-primary"
+                            class="checkbox"
                             checked="checked"
-                            disabled="true"
+                            disabled
                         >
                     </div>
                     """,

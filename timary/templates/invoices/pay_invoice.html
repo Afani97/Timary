@@ -162,7 +162,7 @@
         <div class="divider divider-horizontal md:divider-vertical col-span-1"></div>
 
         <!-- Display a payment form -->
-        <form id="payment-form" class="col-span-3 h-80">
+        <form id="payment-form" class="col-span-3 h-80 mb-10">
             <div class="grid grid-cols-4 gap-2">
                 {% for field in pay_invoice_form %}
                     <div class="form-control my-4 {{ field.field.widget.attrs.classes }}">
@@ -174,7 +174,7 @@
             <div id="payment-element">
                 <!--Stripe.js injects the Payment Element-->
             </div>
-            <div class="mt-10">
+            <div class="mt-10 pb-10">
                 <button id="submit" class="ht-10">
                     <div class="spinner hidden" id="spinner"></div>
                     <span id="button-text">Pay invoice</span>

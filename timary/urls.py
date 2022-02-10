@@ -84,6 +84,11 @@ urlpatterns += [
 # ACCOUNTING INTEGRATION URLS
 urlpatterns += [
     path("quickbooks-connect/", views.quickbooks_connect, name="quickbooks_connect"),
+    path(
+        "quickbooks-disconnect/",
+        views.quickbooks_disconnect,
+        name="quickbooks_disconnect",
+    ),
     path("quickbooks-redirect/", views.quickbooks_redirect, name="quickbooks_redirect"),
 ]
 

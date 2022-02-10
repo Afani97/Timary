@@ -1,16 +1,18 @@
-<div class="p-10 card bg-base-200 lg:card-side bordered" id="user-profile">
+<div class="card bg-base-200 lg:card-side bordered" id="user-profile">
     <div class="card-body">
         <h2 class="card-title text-center">{{user.first_name }} {{ user.last_name }}</h2>
         <p class="text-center">{{ user.email }}</p>
         <p class="text-center">{{ user.phone_number|default:"" }}</p>
         <p class="text-center">Current subscription: {{ user.get_membership_tier_display|title }}</p>
-        <div class="card-actions flex justify-center">
+        <div class="card-actions flex justify-center my-4">
             <button class="btn btn-primary"
                 hx-get="{% url 'timary:edit_user_profile' %}"
                 hx-target="#user-profile"
-                hx-swap="outerHTML">
+                hx-swap="outerHTML"
+                hx-indicator="#profile_spinnr">
                 Edit Profile
             </button>
         </div>
+        {% include "partials/_spinnr.html" with spinner_id="profile_spinnr" %}
     </div>
 </div>
