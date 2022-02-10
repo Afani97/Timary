@@ -1,13 +1,12 @@
 import datetime
 from decimal import Decimal, InvalidOperation
 
-from django.conf import settings
 from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
-from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
 from timary.models import DailyHoursInput, Invoice, User
+from timary.services.twilio_service import TwilioClient
 
 
 @twilio_view
@@ -15,8 +14,7 @@ def twilio_reply(request):
     twilio_request = decompose(request)
     user = User.objects.get(phone_number=twilio_request.from_)
 
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    messages = client.messages.list(limit=2, date_sent=datetime)
+    messages = TwilioClient.get_user_messages()
 
     _, invoice_title = messages[1].body.split(":")
     invoice = Invoice.objects.get(title=invoice_title.strip(), user=user)

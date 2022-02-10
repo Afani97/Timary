@@ -10,10 +10,10 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
-from twilio.rest import Client
 
 from timary.models import Invoice, SentInvoice, User
 from timary.services.quickbook_service import QuickbooksClient
+from timary.services.twilio_service import TwilioClient
 
 
 def gather_invoices():
@@ -89,7 +89,6 @@ def send_invoice(invoice_id):
 
 
 def send_reminder_sms():
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     users = User.objects.exclude(
         Q(phone_number__isnull=True) | Q(phone_number__exact="")
     ).prefetch_related("invoices")
@@ -104,11 +103,7 @@ def send_reminder_sms():
         remaining_invoices = user.invoices_not_logged
         if len(remaining_invoices) > 0:
             invoice = remaining_invoices.pop()
-            _ = client.messages.create(
-                to=user.formatted_phone_number,
-                from_=settings.TWILIO_PHONE_NUMBER,
-                body=f"How many hours to log for: {invoice.title}",
-            )
+            TwilioClient.log_hours(invoice)
             invoices_sent_count += 1
     return f"{invoices_sent_count} message(s) sent."
 

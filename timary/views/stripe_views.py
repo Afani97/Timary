@@ -1,16 +1,15 @@
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from twilio.rest import Client
 
 from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice
 from timary.services.quickbook_service import QuickbooksClient
 from timary.services.stripe_service import StripeService
+from timary.services.twilio_service import TwilioClient
 
 
 @require_http_methods(["GET", "POST"])
@@ -59,14 +58,7 @@ def invoice_payment_success(request, sent_invoice_id):
     if sent_invoice.user.quickbooks_realm_id:
         QuickbooksClient.create_invoice(sent_invoice)
 
-    if sent_invoice.invoice.user.phone_number:
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        _ = client.messages.create(
-            to=sent_invoice.invoice.user.formatted_phone_number,
-            from_=settings.TWILIO_PHONE_NUMBER,
-            body=f"Invoice for {sent_invoice.invoice.title} has been paid! "
-            f"You should see {sent_invoice.total_price} deposited into your bank account shortly",
-        )
+    TwilioClient.sent_payment_success(sent_invoice)
     return render(request, "invoices/success_pay_invoice.html", {})
 
 
