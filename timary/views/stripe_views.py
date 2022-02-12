@@ -7,7 +7,8 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice
-from timary.services.quickbook_service import QuickbooksClient
+from timary.services.freshbook_service import FreshbookService
+from timary.services.quickbook_service import QuickbookService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
 
@@ -56,8 +57,10 @@ def invoice_payment_success(request, sent_invoice_id):
     sent_invoice.save()
 
     if sent_invoice.user.quickbooks_realm_id:
-        QuickbooksClient.create_invoice(sent_invoice)
+        QuickbookService.create_invoice(sent_invoice)
 
+    if sent_invoice.user.freshbooks_account_id:
+        FreshbookService.create_invoice(sent_invoice)
     TwilioClient.sent_payment_success(sent_invoice)
     return render(request, "invoices/success_pay_invoice.html", {})
 

@@ -5,13 +5,22 @@ from django.template.response import TemplateResponse
 from django.urls import path
 from django_otp.admin import OTPAdminSite
 
-from timary.models import DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import (
+    DailyHoursInput,
+    FreshbooksOAuth,
+    Invoice,
+    QuickbooksOAuth,
+    SentInvoice,
+    User,
+)
 
 # Register your models here.
 admin.site.register(User)
 admin.site.register(Invoice)
 admin.site.register(SentInvoice)
 admin.site.register(DailyHoursInput)
+admin.site.register(QuickbooksOAuth)
+admin.site.register(FreshbooksOAuth)
 
 
 class SendEmailForm(forms.Form):

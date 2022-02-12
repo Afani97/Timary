@@ -8,16 +8,23 @@
                     hx-swap="outerHTML"
                     hx-indicator="#spinnr"
                     class="btn btn-primary btn-outline">
-                    Disconnect quickbooks
+                    Disconnect quickbooks?
                 </a>
             {% else %}
                 <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect QuickBooks</a>
             {% endif %}
 
             {% if settings.freshbooks_connected %}
-                <p class="btn btn-primary btn-outline" disabled>FreshBooks Connected!</p>
+                <a hx-delete="{% url 'timary:freshbooks_disconnect' %}"
+                    hx-confirm="Are you sure you want to remove Freshbooks?"
+                    hx-target="#integrations-container"
+                    hx-swap="outerHTML"
+                    hx-indicator="#spinnr"
+                    class="btn btn-primary btn-outline">
+                    Disconnect freshbooks?
+                </a>
             {% else %}
-                <a href="{% url 'timary:quickbooks_connect' %}" class="btn btn-primary">Connect FreshBooks</a>
+                <a href="{% url 'timary:freshbooks_connect' %}" class="btn btn-primary">Connect FreshBooks</a>
             {% endif %}
         </div>
         {% include "partials/_spinnr.html" %}

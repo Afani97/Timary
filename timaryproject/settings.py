@@ -268,6 +268,12 @@ QUICKBOOKS_SECRET_KEY = config("QUICKBOOKS_SECRET_KEY", default="abc123")
 QUICKBOOKS_ENV = config("QUICKBOOKS_ENV", default="abc123")
 
 
+# FRESHBOOKS
+FRESHBOOKS_CLIENT_ID = config("FRESHBOOKS_CLIENT_ID", default="abc123")
+FRESHBOOKS_SECRET_KEY = config("FRESHBOOKS_SECRET_KEY", default="abc123")
+FRESHBOOKS_ENV = config("FRESHBOOKS_ENV", default="abc123")
+
+
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
     Q_CLUSTER["sync"] = True

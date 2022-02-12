@@ -107,6 +107,9 @@ class Invoice(BaseModel):
     # Quickbooks
     quickbooks_customer_ref_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Freshbooks
+    freshbooks_client_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -202,6 +205,9 @@ class SentInvoice(BaseModel):
     # Quickbooks
     quickbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
+    # Freshbooks
+    freshbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return (
             f"SentInvoice(invoice={self.invoice.title}, "
@@ -266,6 +272,9 @@ class User(AbstractUser, BaseModel):
     # Quickbooks integration id
     quickbooks_realm_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Freshbooks integration id
+    freshbooks_account_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -277,7 +286,7 @@ class User(AbstractUser, BaseModel):
         return {
             "phone_number_availability": self.phone_number_availability,
             "quickbooks_connected": self.quickbooks_realm_id is not None,
-            "freshbooks_connected": False,
+            "freshbooks_connected": self.freshbooks_account_id is not None,
             "zoho_connected": False,
             "xero_connected": False,
         }
@@ -328,5 +337,11 @@ class User(AbstractUser, BaseModel):
 
 class QuickbooksOAuth(BaseModel):
     """Keep track of refresh_token from QuickBooks OAuth so re-auth does not need to happen again."""
+
+    refresh_token = models.CharField(max_length=200, blank=True, null=True)
+
+
+class FreshbooksOAuth(BaseModel):
+    """Keep track of refresh_token from Freshbooks OAuth so re-auth does not need to happen again."""
 
     refresh_token = models.CharField(max_length=200, blank=True, null=True)

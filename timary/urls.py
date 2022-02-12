@@ -90,6 +90,13 @@ urlpatterns += [
         name="quickbooks_disconnect",
     ),
     path("quickbooks-redirect/", views.quickbooks_redirect, name="quickbooks_redirect"),
+    path("freshbooks-connect/", views.freshbooks_connect, name="freshbooks_connect"),
+    path(
+        "freshbooks-disconnect/",
+        views.freshbooks_disconnect,
+        name="freshbooks_disconnect",
+    ),
+    path("freshbooks-redirect/", views.freshbooks_redirect, name="freshbooks_redirect"),
 ]
 
 

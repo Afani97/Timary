@@ -9,7 +9,7 @@ from intuitlib.enums import Scopes
 from timary.models import QuickbooksOAuth
 
 
-class QuickbooksClient:
+class QuickbookService:
     access_token = None
     refresh_token = None
 
@@ -25,24 +25,24 @@ class QuickbooksClient:
 
     @staticmethod
     def get_auth_url():
-        auth_client = QuickbooksClient.get_auth_client()
+        auth_client = QuickbookService.get_auth_client()
         return auth_client.get_authorization_url([Scopes.ACCOUNTING])
 
     @staticmethod
     def get_auth_tokens(request):
         auth_code = request.GET.get("code")
         realm_id = request.GET.get("realmId")
-        auth_client = QuickbooksClient.get_auth_client()
+        auth_client = QuickbookService.get_auth_client()
         auth_client.get_bearer_token(auth_code, realm_id=realm_id)
 
         request.user.quickbooks_realm_id = realm_id
         request.user.save()
 
-        QuickbooksClient.access_token = auth_client.access_token
-        QuickbooksClient.refresh_token = auth_client.refresh_token
+        QuickbookService.access_token = auth_client.access_token
+        QuickbookService.refresh_token = auth_client.refresh_token
 
         if QuickbooksOAuth.objects.count() == 0:
-            # There should only be one refresh token in db.
+            # There should only be one Quickbooks refresh token in db.
             QuickbooksOAuth.objects.create(refresh_token=auth_client.refresh_token)
 
         return auth_client.access_token
@@ -51,14 +51,14 @@ class QuickbooksClient:
     def get_refreshed_tokens():
         quickbooks_oauth_object = QuickbooksOAuth.objects.first()
 
-        auth_client = QuickbooksClient.get_auth_client()
+        auth_client = QuickbookService.get_auth_client()
         auth_client.refresh(refresh_token=quickbooks_oauth_object.refresh_token)
 
-        QuickbooksClient.access_token = auth_client.access_token
-        QuickbooksClient.refresh_token = auth_client.refresh_token
+        QuickbookService.access_token = auth_client.access_token
+        QuickbookService.refresh_token = auth_client.refresh_token
 
-        QuickbooksOAuth.objects.first().refresh_token = auth_client.refresh_token
-        quickbooks_oauth_object.first_token = quickbooks_oauth_object
+        quickbooks_oauth_object.refresh_token = auth_client.refresh_token
+        quickbooks_oauth_object.save()
         return auth_client.access_token
 
     @staticmethod
@@ -71,7 +71,7 @@ class QuickbooksClient:
         base_url = f"https://{subdomain}.api.intuit.com"
         url = f"{base_url}/{endpoint}"
         headers = {
-            "Authorization": f"Bearer {QuickbooksClient.get_refreshed_tokens()}",
+            "Authorization": f"Bearer {QuickbookService.get_refreshed_tokens()}",
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
@@ -94,7 +94,7 @@ class QuickbooksClient:
             "FullyQualifiedName": invoice.email_recipient_name,
             "PrimaryEmailAddr": {"Address": invoice.email_recipient},
         }
-        response = QuickbooksClient.create_request(endpoint, "post", data=data)
+        response = QuickbookService.create_request(endpoint, "post", data=data)
         invoice.quickbooks_customer_ref_id = response["Customer"]["Id"]
         invoice.save()
 
@@ -114,7 +114,7 @@ class QuickbooksClient:
             ],
             "CustomerRef": {"value": sent_invoice.invoice.quickbooks_customer_ref_id},
         }
-        response = QuickbooksClient.create_request(endpoint, "post", data=data)
+        response = QuickbookService.create_request(endpoint, "post", data=data)
         sent_invoice.quickbooks_invoice_id = response["Invoice"]["Id"]
         sent_invoice.save()
 
@@ -135,4 +135,4 @@ class QuickbooksClient:
                 },
             ],
         }
-        response = QuickbooksClient.create_request(endpoint, "post", data=data)
+        response = QuickbookService.create_request(endpoint, "post", data=data)

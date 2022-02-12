@@ -1,6 +1,7 @@
 black
 boto3
 factory-boy
+freshbooks-sdk
 django
 django-csp
 django-multiselectfield

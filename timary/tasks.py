@@ -12,7 +12,8 @@ from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
 
 from timary.models import Invoice, SentInvoice, User
-from timary.services.quickbook_service import QuickbooksClient
+from timary.services.freshbook_service import FreshbookService
+from timary.services.quickbook_service import QuickbookService
 from timary.services.twilio_service import TwilioClient
 
 
@@ -125,7 +126,9 @@ def backup_db_file():
     return True
 
 
-def refresh_quickbooks_tokens():
+def refresh_accounting_integration_tokens():
     """Run this every first of the month"""
     # TODO: Add in prod, every first of the month: (Cron: 0 6 1 * *)
-    _ = QuickbooksClient.get_refreshed_tokens()
+    _ = QuickbookService.get_refreshed_tokens()
+
+    _ = FreshbookService.get_refreshed_tokens()

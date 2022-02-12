@@ -22,12 +22,14 @@ class Command(BaseCommand):
             stripe_payouts_enabled=True,
             phone_number=None,
             quickbooks_realm_id="4620816365214495060",
+            freshbooks_account_id="1QgX5J",
         )
         invoice = InvoiceFactory(
             user=user,
             email_recipient="aristotelf@gmail.com",
             last_date=datetime.date.today() - datetime.timedelta(days=3),
             quickbooks_customer_ref_id="58",
+            freshbooks_client_id="204228",
         )
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(
