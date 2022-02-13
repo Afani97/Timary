@@ -31,8 +31,8 @@ class DailyHoursForm(forms.ModelForm):
                 attrs={
                     "value": 1.0,
                     "max": 24,
-                    "min": 1,
-                    "step": 0.5,
+                    "min": -1,
+                    "step": 0.01,
                 }
             ),
             "date_tracked": DateInput(

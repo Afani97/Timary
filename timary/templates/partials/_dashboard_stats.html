@@ -7,7 +7,8 @@
         <div class="stat-value">{{ current_month.total_hours | floatformat:2 }}</div>
         <div class="stat-desc">estimated earnings: ${{ current_month.total_amount | floatformat:2 }}</div>
         <div class="stat-actions">
-            <a href="#hours-modal" class="btn btn-primary">Log hours</a>
+            <a href="#hours-modal" id="log_hours_btn" class="btn btn-primary">Log hours</a>
+            <button id="start_timer" class="btn">Start timer</button>
         </div>
     </div>
     <div class="stat hidden md:block">

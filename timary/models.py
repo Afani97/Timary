@@ -26,7 +26,7 @@ def validate_less_than_24_hours(value):
 
 
 def validate_greater_than_zero_hours(value):
-    if value <= 0:
+    if value < 0:
         raise ValidationError(f"{value} cannot be less than 0 hours")
 
 
@@ -45,8 +45,8 @@ class DailyHoursInput(BaseModel):
     )
     hours = models.DecimalField(
         default=1,
-        max_digits=3,
-        decimal_places=1,
+        max_digits=4,
+        decimal_places=2,
         validators=[validate_less_than_24_hours, validate_greater_than_zero_hours],
     )
     notes = models.CharField(max_length=2000, null=True, blank=True)

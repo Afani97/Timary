@@ -2,7 +2,20 @@
 
 {% block content %}
     <h1 class="hidden md:block md:text-3xl text-center mt-10">Dashboard</h1>
-
+    <div class="flex justify-center my-10 hidden" id="timer_container">
+        <div>
+            <span class="font-mono text-2xl countdown flex justify-center my-5">
+                <span id="timer_hour">00</span>:
+                <span id="timer_min">00</span>:
+                <span id="timer_sec">00</span>
+            </span>
+            <div class="btn-group">
+                <button id="pause_timer" class="btn btn-active hidden">Pause</button>
+                <button id="resume_timer" class="btn btn-active hidden">Resume</button>
+                <button id="stop_timer" class="btn hidden">Stop</button>
+            </div>
+        </div>
+    </div>
     <div class="grid grid-flow-row md:grid-flow-col md:grid-cols-6 gap-3 mt-10">
         <div class="col-span-3 md:col-span-2">
             <div class="flex flex-col justify-between items-center">
@@ -42,6 +55,102 @@
         document.body.addEventListener("clearModal", function(){
             document.getElementById("close-hours-modal").click();
             document.getElementById("new-hours-form").reset();
+            document.getElementById("start_timer").addEventListener("click", start);
         })
+    </script>
+    <script nonce="hours-timer">
+        let timer_container = document.getElementById("timer_container");
+        let start_timer_btn = document.getElementById("start_timer");
+        let pause_timer_btn = document.getElementById("pause_timer");
+        let resume_timer_btn = document.getElementById("resume_timer");
+        let stop_timer_btn = document.getElementById("stop_timer");
+        let timer_hour_span = document.getElementById("timer_hour");
+        let timer_min_span = document.getElementById("timer_min");
+        let timer_sec_span = document.getElementById("timer_sec");
+        let timer_sec = 0;
+        let interval = null;
+
+        start_timer_btn.addEventListener("click", start);
+        pause_timer_btn.addEventListener("click", pause);
+        stop_timer_btn.addEventListener("click", reset);
+        resume_timer_btn.addEventListener("click", resume);
+
+        function update_timer(hrs, mins, secs) {
+            timer_hour_span.style.cssText = `--value: ${hrs}`;
+            timer_min_span.style.cssText = `--value: ${mins}`;
+            timer_sec_span.style.cssText = `--value: ${secs}`;
+        }
+
+        function timer() {
+            timer_sec++;
+            let hrs = Math.floor(timer_sec / 3600);
+            let mins = Math.floor((timer_sec - (hrs * 3600)) / 60);
+            let secs = timer_sec % 60;
+
+            update_timer(hrs, mins, secs);
+        }
+
+        function start() {
+            if (interval) {
+                return;
+            }
+            interval = setInterval(timer, 1000);
+            timer_container.classList.remove("hidden");
+            start_timer_btn.classList.add("hidden");
+            pause_timer_btn.classList.remove("hidden");
+            stop_timer_btn.classList.remove("hidden");
+        }
+
+        function resume() {
+            if (interval) {
+                return;
+            }
+            interval = setInterval(timer, 1000);
+            resume_timer_btn.classList.add("hidden");
+            pause_timer_btn.classList.remove("hidden");
+            stop_timer_btn.classList.remove("hidden");
+        }
+
+        function pause() {
+            clearInterval(interval);
+            interval = null;
+            pause_timer_btn.classList.add("hidden");
+            resume_timer_btn.classList.remove("hidden");
+            stop_timer_btn.classList.remove("hidden");
+        }
+
+        function timeToDecimal(hrs, mins) {
+            let arr = [hrs, mins];
+            let dec = parseInt((arr[1]/6)*10, 10);
+
+            return parseFloat(parseInt(arr[0], 10) + '.' + (dec<10?'0':'') + dec).toString();
+        }
+
+        function reset() {
+            let reset = confirm("Are you sure you want to stop?");
+
+            if (reset) {
+
+                let log_hours_btn = document.getElementById("log_hours_btn");
+                log_hours_btn.click();
+
+                let hrs = Math.floor(timer_sec / 3600);
+                let mins = Math.floor((timer_sec - (hrs * 3600)) / 60);
+
+                let hours_input = document.getElementById("id_hours");
+                hours_input.setAttribute("value", timeToDecimal(hrs, mins));
+
+                pause();
+                timer_sec = 0;
+                update_timer(0, 0, 0);
+                timer_container.classList.add("hidden");
+                start_timer_btn.classList.remove("hidden");
+                resume_timer_btn.classList.add("hidden");
+                pause_timer_btn.classList.add("hidden");
+                stop_timer_btn.classList.add("hidden");
+
+            }
+
+        }
     </script>
 {% endblock  %}
