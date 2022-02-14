@@ -8,6 +8,10 @@ from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput, Invoice
 
 
+def bad_request(request, exception):
+    return redirect(reverse("timary:landing_page"))
+
+
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))

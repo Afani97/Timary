@@ -132,7 +132,7 @@ class TestInvoices(BaseTest):
                 kwargs={"invoice_id": self.invoice_no_user.id},
             )
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_delete_invoice(self):
         response = self.client.delete(
@@ -147,7 +147,7 @@ class TestInvoices(BaseTest):
             ),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_edit_invoice(self):
         response = self.client.get(
@@ -163,7 +163,7 @@ class TestInvoices(BaseTest):
             ),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_update_daily_hours(self):
         url_params = {
@@ -224,7 +224,7 @@ class TestInvoices(BaseTest):
             ),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_pause_invoice(self):
         invoice = InvoiceFactory(invoice_interval="M", user=self.user)
@@ -255,7 +255,7 @@ class TestInvoices(BaseTest):
             ),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_resend_invoice_email(self):
         invoice = InvoiceFactory(user=self.user)
@@ -295,4 +295,4 @@ class TestInvoices(BaseTest):
                 kwargs={"sent_invoice_id": uuid.uuid4()},
             ),
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)

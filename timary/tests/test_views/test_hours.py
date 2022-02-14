@@ -57,7 +57,7 @@ class TestDailyHours(BaseTest):
                 "timary:get_single_hours", kwargs={"hours_id": self.hours_no_user.id}
             )
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_edit_daily_hours(self):
         response = self.client.get(
@@ -75,7 +75,7 @@ class TestDailyHours(BaseTest):
             reverse("timary:edit_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_update_daily_hours(self):
         url_params = {
@@ -103,7 +103,7 @@ class TestDailyHours(BaseTest):
             reverse("timary:update_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_delete_daily_hours(self):
         response = self.client.delete(
@@ -116,4 +116,4 @@ class TestDailyHours(BaseTest):
             reverse("timary:delete_hours", kwargs={"hours_id": self.hours_no_user.id}),
             data={},
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)

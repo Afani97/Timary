@@ -45,7 +45,7 @@ class TestStripeViews(BaseTest):
         response = self.client.get(
             reverse("timary:pay_invoice", kwargs={"sent_invoice_id": uuid.uuid4()}),
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_pay_invoice_sent_invoice_valid_details(self):
         self.client.logout()
@@ -165,7 +165,7 @@ class TestStripeViews(BaseTest):
                 kwargs={"sent_invoice_id": uuid.uuid4()},
             )
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
     def test_invoice_payment_success_invoice_already_paid(self):
         self.client.logout()
