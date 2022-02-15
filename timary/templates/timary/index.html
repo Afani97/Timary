@@ -13,6 +13,7 @@
                 <button id="pause_timer" class="btn btn-active hidden">Pause</button>
                 <button id="resume_timer" class="btn btn-active hidden">Resume</button>
                 <button id="stop_timer" class="btn hidden">Stop</button>
+                <button id="reset_timer" class="btn hidden">Reset</button>
             </div>
         </div>
     </div>
@@ -64,6 +65,7 @@
         let pause_timer_btn = document.getElementById("pause_timer");
         let resume_timer_btn = document.getElementById("resume_timer");
         let stop_timer_btn = document.getElementById("stop_timer");
+        let reset_timer_btn = document.getElementById("reset_timer");
         let timer_hour_span = document.getElementById("timer_hour");
         let timer_min_span = document.getElementById("timer_min");
         let timer_sec_span = document.getElementById("timer_sec");
@@ -72,8 +74,9 @@
 
         start_timer_btn.addEventListener("click", start);
         pause_timer_btn.addEventListener("click", pause);
-        stop_timer_btn.addEventListener("click", reset);
+        stop_timer_btn.addEventListener("click", stop);
         resume_timer_btn.addEventListener("click", resume);
+        reset_timer_btn.addEventListener("click", reset);
 
         function update_timer(hrs, mins, secs) {
             timer_hour_span.style.cssText = `--value: ${hrs}`;
@@ -99,6 +102,7 @@
             start_timer_btn.classList.add("hidden");
             pause_timer_btn.classList.remove("hidden");
             stop_timer_btn.classList.remove("hidden");
+            reset_timer_btn.classList.remove("hidden");
         }
 
         function resume() {
@@ -127,9 +131,19 @@
         }
 
         function reset() {
-            let reset = confirm("Are you sure you want to stop?");
+            let reset = confirm("Are you sure you want to reset?");
 
             if (reset) {
+                timer_sec = 0;
+                update_timer(0, 0, 0);
+                start();
+            }
+        }
+
+        function stop() {
+            let stopped = confirm("Are you sure you want to stop?");
+
+            if (stopped) {
 
                 let log_hours_btn = document.getElementById("log_hours_btn");
                 log_hours_btn.click();
