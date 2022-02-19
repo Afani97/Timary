@@ -34,6 +34,7 @@ urlpatterns += [
         views.settings_partial,
         name="settings_partial",
     ),
+    path("audit/", views.audit, name="audit"),
 ]
 
 
