@@ -50,14 +50,8 @@
         signupButton.addEventListener("click", handleSubmit);
 
         // Fetches a payment intent and captures the client secret
-        async function initialize() {
-            const appearance = {
-                theme: 'night',
-                variables: {
-                    colorPrimary: '#5e30eb',
-                },
-            };
-            elements = stripe.elements({ appearance, clientSecret: '{{ client_secret }}' });
+        function initialize() {
+            elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
 
             cardElement = elements.create("card", {
                 style: {
@@ -67,11 +61,7 @@
                         fontWeight: '500',
                         fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
                         fontSize: '16px',
-                        padding: '10px',
                         fontSmoothing: 'antialiased',
-                        ':focus': {
-                            boxShadow: '10px 10px 10px green'
-                        },
                         ':-webkit-autofill': {
                             color: '#fce883',
                         },
@@ -98,7 +88,7 @@
             return element;
         }
 
-        async function handleSubmit(e) {
+        function handleSubmit(e) {
             e.preventDefault();
             document.getElementById("submit-form").classList.add("invisible");
             document.getElementById("loader").classList.remove("invisible");
