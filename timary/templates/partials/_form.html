@@ -13,11 +13,10 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <label class="label"><span class="label-text">{{ field.label }}</span> </label>
                 {% if field.field.widget.input_type == "select" %}
-                    {{ field | addclass:"select select-bordered" }}
+                    {{ field | addclass:"select select-bordered mb-2" }}
                 {% else %}
-                    {{ field | addclass:"input input-bordered text-lg" }}
+                    {{ field | addclass:"input input-bordered text-lg mb-2" }}
                 {% endif %}
 
                 {% for error in field.errors %}

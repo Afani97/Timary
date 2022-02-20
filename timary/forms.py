@@ -191,17 +191,23 @@ class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "example@test.com"}),
+        widget=forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
     )
     full_name = forms.CharField(
         label="Full name",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Tom Brady"}),
+        widget=forms.TextInput(attrs={"placeholder": "John Appleseed"}),
     )
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(
             attrs={"placeholder": "*********", "type": "password"}
+        ),
+        required=True,
+    )
+    membership_tier = forms.CharField(
+        widget=forms.HiddenInput(
+            attrs={"id": "hidden-membership", "name": "hidden-membership"}
         ),
         required=True,
     )
@@ -238,7 +244,6 @@ class RegisterForm(forms.ModelForm):
             "password",
             "membership_tier",
         )
-        labels = {"membership_tier": "Subscription Plan"}
 
 
 class LoginForm(forms.Form):

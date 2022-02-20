@@ -5,6 +5,7 @@ from django.urls import reverse
 from stripe.error import InvalidRequestError
 
 from timary.forms import LoginForm, RegisterForm
+from timary.models import User
 from timary.services.stripe_service import StripeService
 
 
@@ -16,6 +17,10 @@ def register_user(request):
 
     if request.method == "POST":
         request_data = request.POST.copy()
+        request_data["membership_tier"] = int(
+            User.MembershipTier[request_data["membership_tier"]].value
+        )
+        form = RegisterForm(request_data)
         first_token = request_data.pop("first_token")[0]
         second_token = request_data.pop("second_token")[0]
         if form.is_valid():

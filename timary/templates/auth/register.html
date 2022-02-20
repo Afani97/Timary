@@ -2,15 +2,44 @@
 {% block title %} Signup {% endblock %}
 
 {% block content %}
-
     <div class="max-w-xl mx-auto mt-6">
         <h1 class="text-3xl mb-4 text-center">Signup</h1>
+
+        <div class="shadow stats stats-vertical my-10 flex justify-center">
+
+            <div class="stat">
+                <div class="stat-title">Starter</div>
+                <div class="stat-value">$5/m</div>
+                <div class="stat-desc">1 invoice</div>
+                <div class="stat-actions">
+                    <button class="btn btn-sm btn-accent plan-selected" id="starter">Selected</button>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-title">Professional</div>
+                <div class="stat-value">$19/m</div>
+                <div class="stat-desc">2 invoices</div>
+                <div class="stat-actions">
+                    <button class="btn btn-sm btn-accent btn-outline" id="professional">Select</button>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-title">Business</div>
+                <div class="stat-value">$49/m</div>
+                <div class="stat-desc">unlimited invoices</div>
+                <div class="stat-actions">
+                    <button class="btn btn-sm btn-accent btn-outline" id="business">Select</button>
+                </div>
+            </div>
+
+        </div>
 
         <div class="card bg-base-200">
             <div class="card-body">
                 {% include 'partials/_form.html' with form=form hide_buttons=True %}
-                <div class="my-2 form-control">
-                    <label class="label"><span class="label-text">Debit card</span></label>
+                <div class="form-control">
                     <div id="card-element">
                         <!--Stripe.js injects the Payment Element-->
                     </div>
@@ -19,7 +48,7 @@
                     </label>
                     <div id="payment-message" class="hidden"></div>
                 </div>
-                <button class="btn btn-primary mt-6" id="submit-form" type="submit">Continue</button>
+                <button class="btn btn-primary mt-2" id="submit-form" type="submit">Continue</button>
                 <div class="flex justify-center invisible" id="loader">
                     <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -40,6 +69,14 @@
     <script src="https://js.stripe.com/v3/"></script>
     <script nonce="pay-invoice">
         const stripe = Stripe('{{ stripe_public_key }}');
+
+        const starter_plan = document.getElementById("starter");
+        const professional_plan = document.getElementById("professional");
+        const business_plan = document.getElementById("business");
+
+        starter_plan.addEventListener("click", selectSubscriptionPlan);
+        professional_plan.addEventListener("click", selectSubscriptionPlan);
+        business_plan.addEventListener("click", selectSubscriptionPlan);
 
         let elements;
         let cardElement;
@@ -101,6 +138,8 @@
                     if (secondToken.token) {
 
                         let form = document.querySelector("form");
+                        let selectedPlan = document.querySelector(".plan-selected");
+                        form.appendChild(createHiddenInput("membership_tier", selectedPlan.id.toUpperCase()));
                         form.appendChild(createHiddenInput('first_token', first_token.id));
                         form.appendChild(createHiddenInput('second_token', second_token.id));
                         form.submit()
@@ -118,6 +157,19 @@
                     }
                 });
             });
+        }
+
+        function selectSubscriptionPlan(e) {
+            e.preventDefault();
+            let old_plan = document.querySelector(".plan-selected");
+            old_plan.classList.remove('plan-selected');
+            old_plan.classList.add('btn-outline');
+            old_plan.innerText = "Select";
+
+            let plan = document.getElementById(e.target.id);
+            plan.classList.add('plan-selected');
+            plan.classList.remove('btn-outline');
+            plan.innerText = "Selected";
         }
 
         // ------- UI helpers -------
