@@ -23,7 +23,11 @@ static:
 .PHONY: static
 
 test:
-	python manage.py test --failfast
+	python manage.py test --failfast --exclude-tag=ui
 .PHONY: test
+
+test-ui:
+	python manage.py test timary.tests.test_e2e --failfast
+.PHONY: test-ui
 
 # TO RUN NGROK FOR TESTING: JUST TYPE 'n' in terminal

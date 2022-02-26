@@ -10,6 +10,7 @@ django-phonenumber-field
 django-q
 django-twilio
 openpyxl
+playwright
 pre-commit
 python-decouple
 qrcode
