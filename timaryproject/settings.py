@@ -103,6 +103,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "timary_cache_table",
+    }
+}
+
 # AWS
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default="abc123")
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="abc123")
