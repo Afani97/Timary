@@ -15,7 +15,13 @@ jobs:
         cache: 'pip'
     - name: Install Dependencies
       run: pip install -r requirements.txt
+     - name: Ensure browsers are installed
+     run: python -m playwright install
+     - name: Install operating system dependencies
+       run: python -m playwright install-deps
     - name: Run migrations
       run: python manage.py migrate
     - name: Run tests
       run: make test
+    - name: Run ui tests
+      run: make test-ui
