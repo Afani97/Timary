@@ -50,7 +50,7 @@ repos:
         language: system
       - id: django-tests
         name: Run Django tests.
-        entry: sh -c 'python manage.py test --failfast'
+        entry: sh -c 'python manage.py test --failfast --exclude-tag=ui'
         types:
           - python
         pass_filenames: false
