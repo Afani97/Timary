@@ -1,4 +1,3 @@
-import uuid
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -118,9 +117,10 @@ def backup_db_file():
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     )
-    object_name = f"db_backups/db-{uuid.uuid4()}.sqlite3"
     try:
-        _ = s3_client.upload_file(file.name, settings.AWS_BUCKET_NAME, object_name)
+        _ = s3_client.upload_file(
+            file.name, settings.AWS_BUCKET_NAME, "db_backups/backup.sqlite3"
+        )
     except ClientError:
         return False
     return True
