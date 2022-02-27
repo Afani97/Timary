@@ -110,24 +110,6 @@ CACHES = {
     }
 }
 
-# AWS
-AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default="abc123")
-AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="abc123")
-AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="abc123")
-
-
-# DJANGO Q
-Q_CLUSTER = {
-    "name": "DjangORM",
-    "workers": 4,
-    "timeout": 90,
-    "retry": 120,
-    "queue_limit": 50,
-    "bulk": 10,
-    "orm": "default",
-    "sync": False,
-}
-
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
@@ -153,21 +135,6 @@ if not DEBUG:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
     )
-
-    # DJANGO Q
-    Q_CLUSTER = {
-        "name": "DjangORM",
-        "workers": 4,
-        "timeout": 90,
-        "retry": 120,
-        "queue_limit": 50,
-        "bulk": 5,
-        "sqs": {
-            "aws_region": "us-east-1",
-            "aws_access_key_id": AWS_ACCESS_KEY_ID,
-            "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
-        },
-    }
 
 
 # Password validation
@@ -268,6 +235,25 @@ CSP_MEDIA_SRC = ("'self'",)
 
 # WHITENOISE
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
+# AWS
+AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default="abc123")
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="abc123")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="abc123")
+
+
+# DJANGO Q
+Q_CLUSTER = {
+    "name": "DjangORM",
+    "workers": 4,
+    "timeout": 90,
+    "retry": 120,
+    "queue_limit": 50,
+    "bulk": 10,
+    "orm": "default",
+    "sync": False,
+}
 
 
 # TWILIO
