@@ -133,7 +133,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -145,7 +145,7 @@ class TestInvoice(TestCase):
             data={
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -156,7 +156,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -169,7 +169,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 0,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -184,7 +184,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -197,7 +197,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "I",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -246,7 +246,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
             }
         )
 
@@ -258,7 +258,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test",
             }
         )
@@ -317,22 +317,19 @@ class TestDailyHours(TestCase):
 
     def test_hours_success(self):
         form = DailyHoursForm(
-            data={"hours": 1, "invoice": self.invoice.id, "date_tracked": self.today},
-            request_method="get",
+            data={"hours": 1, "invoice": self.invoice.id, "date_tracked": self.today}
         )
         self.assertEqual(form.errors, {})
 
     def test_hours_error_missing_hours(self):
         form = DailyHoursForm(
-            data={"invoice": self.invoice.id, "date_tracked": self.today},
-            request_method="get",
+            data={"invoice": self.invoice.id, "date_tracked": self.today}
         )
         self.assertEqual(form.errors, {"hours": ["This field is required."]})
 
     def test_hours_error_invalid_hours(self):
         form = DailyHoursForm(
-            data={"hours": -1, "invoice": self.invoice.id, "date_tracked": self.today},
-            request_method="get",
+            data={"hours": -1, "invoice": self.invoice.id, "date_tracked": self.today}
         )
         self.assertEqual(form.errors, {"hours": ["-1 cannot be less than 0 hours"]})
 
@@ -343,21 +340,16 @@ class TestDailyHours(TestCase):
         self.assertEqual(form.errors, {"hours": ["25 cannot be greater than 24 hours"]})
 
     def test_hours_error_missing_date_tracked(self):
-        form = DailyHoursForm(
-            data={"hours": 1, "invoice": self.invoice.id}, request_method="get"
-        )
+        form = DailyHoursForm(data={"hours": 1, "invoice": self.invoice.id})
         self.assertEqual(form.errors, {"date_tracked": ["This field is required."]})
 
     def test_hours_error_missing_invoice(self):
-        form = DailyHoursForm(
-            data={"hours": 1, "date_tracked": self.today}, request_method="get"
-        )
+        form = DailyHoursForm(data={"hours": 1, "date_tracked": self.today})
         self.assertEqual(form.errors, {"invoice": ["This field is required."]})
 
     def test_hours_error_invalid_invoice(self):
         form = DailyHoursForm(
-            data={"hours": 1, "invoice": uuid.uuid4(), "date_tracked": self.today},
-            request_method="get",
+            data={"hours": 1, "invoice": uuid.uuid4(), "date_tracked": self.today}
         )
         self.assertEqual(
             form.errors,
@@ -378,7 +370,6 @@ class TestDailyHours(TestCase):
                 "date_tracked": self.today,
             },
             user=user,
-            request_method="get",
         )
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [self.invoice])
 
@@ -395,12 +386,11 @@ class TestDailyHours(TestCase):
                 "date_tracked": self.today,
             },
             user=user,
-            request_method="get",
         )
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [inv_1, inv_2])
 
     def test_hours_all_empty_fields(self):
-        form = DailyHoursForm(data={}, request_method="get")
+        form = DailyHoursForm(data={})
         self.assertEqual(
             form.errors,
             {

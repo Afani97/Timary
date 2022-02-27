@@ -301,6 +301,8 @@ FRESHBOOKS_CLIENT_ID = config("FRESHBOOKS_CLIENT_ID", default="abc123")
 FRESHBOOKS_SECRET_KEY = config("FRESHBOOKS_SECRET_KEY", default="abc123")
 FRESHBOOKS_ENV = config("FRESHBOOKS_ENV", default="abc123")
 
+# PLAYWRIGHT
+HEADLESS_UI = True
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
@@ -309,3 +311,4 @@ if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
+    HEADLESS_UI = False

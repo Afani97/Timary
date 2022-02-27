@@ -1,6 +1,7 @@
 import os
 from contextlib import contextmanager
 
+from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import tag
 from django.urls import reverse
@@ -15,7 +16,7 @@ class BaseUITest(StaticLiveServerTestCase):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
         super().setUpClass()
         cls.playwright = sync_playwright().start()
-        cls.browser = cls.playwright.webkit.launch()
+        cls.browser = cls.playwright.webkit.launch(headless=settings.HEADLESS_UI)
 
     @classmethod
     def tearDownClass(cls):
