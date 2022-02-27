@@ -1,12 +1,11 @@
 import datetime
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Layout, Row
 from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.urls import reverse
 
+from timary.form_helpers import hours_form_helper
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -21,35 +20,15 @@ class DailyHoursForm(forms.ModelForm):
             is_mobile = kwargs.pop("is_mobile")
         else:
             is_mobile = False
+        request_method = kwargs.pop("request_method").lower()
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
-        self.helper.form_id = "new-hours-form"
-        self.helper.attrs = {
-            "hx-post": reverse("timary:create_hours"),
-            "hx-target": "#hours-list",
-            "hx-swap": "afterbegin",
-        }
-        self.helper.form_class = "card pb-5 bg-neutral text-neutral-content"
-        flex_dir = "flex-col space-y-5" if is_mobile else "flex-row space-x-5"
-        self.helper.layout = Layout(
-            Row(
-                "hours",
-                "date_tracked",
-                "invoice",
-                css_class=f"card-body flex {flex_dir} justify-center",
-            ),
-            ButtonHolder(
-                HTML('<a href="#" class="btn" id="close-hours-modal">Close</a>'),
-                HTML(
-                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                    'type="submit" hx-indicator="#spinnr"> Add new hours</button>'
-                ),
-                css_class="card-actions flex justify-center",
-            ),
-        )
+        helper_attributes = hours_form_helper(request_method, is_mobile, self.instance)
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
         if user:
             invoice_qs = Invoice.objects.filter(user=user)
@@ -65,7 +44,7 @@ class DailyHoursForm(forms.ModelForm):
                 attrs={
                     "value": 1.0,
                     "max": 24,
-                    "min": -1,
+                    "min": 0,
                     "step": 0.01,
                     "class": "input input-bordered text-lg w-24",
                 },
