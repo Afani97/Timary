@@ -3,6 +3,7 @@ boto3
 factory-boy
 freshbooks-sdk
 django
+django-crispy-forms
 django-csp
 django-multiselectfield
 django-otp

@@ -1,8 +1,11 @@
 import datetime
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, ButtonHolder, Layout, Row
 from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.urls import reverse
 
 from timary.models import DailyHoursInput, Invoice, User
 
@@ -14,8 +17,39 @@ class DateInput(forms.DateInput):
 class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
+        if "is_mobile" in kwargs:
+            is_mobile = kwargs.pop("is_mobile")
+        else:
+            is_mobile = False
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper._form_method = ""
+        self.helper.form_id = "new-hours-form"
+        self.helper.attrs = {
+            "hx-post": reverse("timary:create_hours"),
+            "hx-target": "#hours-list",
+            "hx-swap": "afterbegin",
+        }
+        self.helper.form_class = "card pb-5 bg-neutral text-neutral-content"
+        flex_dir = "flex-col space-y-5" if is_mobile else "flex-row space-x-5"
+        self.helper.layout = Layout(
+            Row(
+                "hours",
+                "date_tracked",
+                "invoice",
+                css_class=f"card-body flex {flex_dir} justify-center",
+            ),
+            ButtonHolder(
+                HTML('<a href="#" class="btn" id="close-hours-modal">Close</a>'),
+                HTML(
+                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
+                    'type="submit" hx-indicator="#spinnr"> Add new hours</button>'
+                ),
+                css_class="card-actions flex justify-center",
+            ),
+        )
 
         if user:
             invoice_qs = Invoice.objects.filter(user=user)
@@ -33,16 +67,22 @@ class DailyHoursForm(forms.ModelForm):
                     "max": 24,
                     "min": -1,
                     "step": 0.01,
-                }
+                    "class": "input input-bordered text-lg w-24",
+                },
             ),
             "date_tracked": DateInput(
                 attrs={
                     "value": datetime.date.today(),
                     "max": datetime.date.today(),
+                    "class": "input input-bordered text-lg w-full",
                 }
             ),
-            "invoice": forms.Select(attrs={"label": "Invoice"}),
-            "notes": forms.Textarea(attrs={"rows": 4, "cols": 30, "collapse": True}),
+            "invoice": forms.Select(
+                attrs={
+                    "label": "Invoice",
+                    "class": "select select-bordered w-full",
+                }
+            ),
         }
 
     field_order = ["hours", "date_tracked", "invoice"]

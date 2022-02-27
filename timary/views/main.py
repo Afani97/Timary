@@ -49,8 +49,9 @@ def index(request):
     user = request.user
     if Invoice.objects.filter(user=user).count() == 0:
         return redirect(reverse("timary:manage_invoices"))
+    is_mobile = "Mobile" in request.META.get("HTTP_USER_AGENT", "")
     context = {
-        "new_hours": DailyHoursForm(user=user),
+        "new_hours": DailyHoursForm(user=user, is_mobile=is_mobile),
         "hours": DailyHoursInput.all_hours.current_month(user),
     }
     context.update(get_hours_tracked(user))

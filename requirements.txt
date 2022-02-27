@@ -40,6 +40,8 @@ django==3.2.10
     #   django-picklefield
     #   django-q
     #   django-twilio
+django-crispy-forms==1.14.0
+    # via -r requirements.in
 django-csp==3.7
     # via -r requirements.in
 django-multiselectfield==0.1.12
