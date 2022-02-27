@@ -1,9 +1,11 @@
 from tempfile import NamedTemporaryFile
 
+from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import render
+from django.template.context_processors import csrf
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
@@ -31,25 +33,14 @@ def profile_partial(request):
     return render(request, "partials/_profile.html", {"profile": request.user})
 
 
-def render_profile_form(request, profile_form=None):
-    context = {
-        "form": profile_form,
-        "url": reverse("timary:update_user_profile"),
-        "target": "this",
-        "swap": "outerHTML",
-        "id": "update-user-profile",
-        "md_block": True,
-        "cancel_url": reverse("timary:user_profile_partial"),
-        "btn_title": "Update profile",
-    }
-    return render(request, "partials/_htmx_put_form.html", context)
-
-
 @login_required()
 @require_http_methods(["GET"])
 def edit_user_profile(request):
-    profile_form = UserForm(instance=request.user)
-    return render_profile_form(request, profile_form)
+    profile_form = UserForm(instance=request.user, is_mobile=request.is_mobile)
+    ctx = {}
+    ctx.update(csrf(request))
+    html_form = render_crispy_form(profile_form, context=ctx)
+    return HttpResponse(html_form)
 
 
 @login_required()
@@ -57,13 +48,16 @@ def edit_user_profile(request):
 def update_user_profile(request):
     current_membership_tier = request.user.membership_tier
     put_params = QueryDict(request.body)
-    user_form = UserForm(put_params, instance=request.user)
+    user_form = UserForm(put_params, instance=request.user, is_mobile=request.is_mobile)
     if user_form.is_valid():
         user = user_form.save()
         if user_form.cleaned_data.get("membership_tier") != current_membership_tier:
             StripeService.create_subscription(user, delete_current=True)
         return render(request, "partials/_profile.html", {"user": user})
-    return render_profile_form(request=request, profile_form=user_form)
+    ctx = {}
+    ctx.update(csrf(request))
+    html_form = render_crispy_form(user_form, context=ctx)
+    return HttpResponse(html_form)
 
 
 @login_required()

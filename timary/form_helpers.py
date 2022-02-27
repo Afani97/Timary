@@ -143,3 +143,45 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
             ),
         },
     }[method_type]
+
+
+def profile_form_helper(is_mobile):
+    from django.urls import reverse
+
+    flex_dir = "card-body flex-col space-y-5" if is_mobile else "flex-row space-x-5"
+
+    return {
+        "form_id": "update-user-profile",
+        "attrs": {
+            "hx-put": reverse("timary:update_user_profile"),
+            "hx-target": "this",
+            "hx-swap": "outerHTML",
+        },
+        "form_class": "card pb-5 bg-neutral text-neutral-content",
+        "layout": Layout(
+            Row(
+                "email",
+                "first_name",
+                "last_name",
+                css_class=f"card-body flex {flex_dir} justify-center",
+            ),
+            Row(
+                "phone_number",
+                "membership_tier",
+                css_class=f"flex {flex_dir} justify-center",
+            ),
+            ButtonHolder(
+                HTML(
+                    f"""
+                    <a class="btn btn-ghost" hx-get="{reverse("timary:user_profile_partial")}" hx-target="closest form"
+                    hx-swap="outerHTML" hx-indicator="#spinnr"> Cancel </a>
+                    """
+                ),
+                HTML(
+                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
+                    'type="submit" hx-indicator="#spinnr"> Update profile </button>'
+                ),
+                css_class="card-actions flex justify-center",
+            ),
+        ),
+    }

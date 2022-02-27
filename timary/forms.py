@@ -5,7 +5,11 @@ from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
-from timary.form_helpers import hours_form_helper, invoice_form_helper
+from timary.form_helpers import (
+    hours_form_helper,
+    invoice_form_helper,
+    profile_form_helper,
+)
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -16,10 +20,7 @@ class DateInput(forms.DateInput):
 class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
-        if "is_mobile" in kwargs:
-            is_mobile = kwargs.pop("is_mobile")
-        else:
-            is_mobile = False
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
         request_method = (
             kwargs.pop("request_method").lower()
             if "request_method" in kwargs
@@ -80,10 +81,7 @@ class DailyHoursForm(forms.ModelForm):
 class InvoiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
-        if "is_mobile" in kwargs:
-            is_mobile = kwargs.pop("is_mobile")
-        else:
-            is_mobile = False
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
         request_method = (
             kwargs.pop("request_method").lower()
             if "request_method" in kwargs
@@ -194,21 +192,62 @@ phone_number_regex = RegexValidator(
 
 
 class UserForm(forms.ModelForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(required=True)
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "john@appleseed.com",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
+    first_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "John",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Appleseed",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
     phone_number = forms.CharField(
         required=False,
         validators=[phone_number_regex],
-        widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "+13334445555",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
     )
+
+    def __init__(self, *args, **kwargs):
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
+
+        super(UserForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper._form_method = ""
+        helper_attributes = profile_form_helper(is_mobile)
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name", "phone_number", "membership_tier"]
         widgets = {
-            "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
-            "first_name": forms.TextInput(attrs={"placeholder": "John"}),
-            "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
+            "membership_tier": forms.Select(
+                attrs={"class": "select select-bordered w-full"}
+            )
         }
         labels = {"membership_tier": "Subscription plan"}
 

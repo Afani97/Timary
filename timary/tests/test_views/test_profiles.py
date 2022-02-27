@@ -46,25 +46,25 @@ class TestUserProfile(BaseTest):
     def test_get_edit_profile(self):
         response = self.client.get(reverse("timary:edit_user_profile"))
         self.assertInHTML(
-            f'<input type="email" name="email" value="{self.user.email}" '
-            f'class="input input-bordered text-lg w-full" required '
+            f'<input type="email" name="email" value="{self.user.email}" placeholder="john@appleseed.com"'
+            f'class="input input-bordered text-lg w-full emailinput" required '
             f'id="id_email">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
-            f'<input type="text" name="first_name" value="{self.user.first_name}" '
-            f'class="input input-bordered text-lg w-full" required id="id_first_name">',
+            f'<input type="text" name="first_name" value="{self.user.first_name}" placeholder="John"'
+            f'class="input input-bordered text-lg w-full textinput textInput" required id="id_first_name">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
-            f'<input type="text" name="last_name" value="{self.user.last_name}" '
-            f'placeholder="Appleseed" maxlength="150" '
-            f'class="input input-bordered text-lg w-full" id="id_last_name"> ',
+            f'<input type="text" name="last_name" value="{self.user.last_name}"'
+            f'placeholder="Appleseed"'
+            f'class="input input-bordered text-lg w-full textinput textInput" id="id_last_name"> ',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="phone_number" value="{self.user.phone_number}" placeholder="+13334445555" '
-            f'class="input input-bordered text-lg w-full" id="id_phone_number">',
+            f'class="input input-bordered text-lg w-full textinput textInput" id="id_phone_number">',
             response.content.decode("utf-8"),
         )
 
@@ -109,16 +109,14 @@ class TestUserProfile(BaseTest):
         )
         self.assertInHTML(
             f"""
-            <input type="email" name="email" value="{user.email}"
-            class="input input-bordered text-lg w-full" required id="id_email">
-
-                <div class="text-red-600">
-                    <strong>Email already registered!</strong>
-                </div>
+            <input type="email" name="email" value="{user.email}" placeholder="john@appleseed.com"
+            class="input input-bordered text-lg w-full emailinput" required id="id_email">
+            <span id="error_1_id_email" class="help-inline">
+                <strong>Email already registered!</strong>
+            </span>
             """,
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_update_user_redirect(self):
