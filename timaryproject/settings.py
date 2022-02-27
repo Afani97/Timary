@@ -69,6 +69,8 @@ MIDDLEWARE = [
     "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # TIMARY
+    "timary.middleware.SimpleUserAgentMiddleware",
 ]
 
 ROOT_URLCONF = "timaryproject.urls"

@@ -1,6 +1,8 @@
+from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
+from django.template.context_processors import csrf
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
@@ -58,7 +60,14 @@ def edit_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
-    hours_form = DailyHoursForm(instance=hours, user=request.user)
+    hours_form = DailyHoursForm(
+        instance=hours, user=request.user, is_mobile=request.is_mobile
+    )
+    ctx = {}
+    ctx.update(csrf(request))
+    html_form = render_crispy_form(hours_form, context=ctx)
+    print(html_form)
+    # return
     return render_hours_form(request, hour_instance=hours, hour_form=hours_form)
 
 
