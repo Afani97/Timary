@@ -22,7 +22,7 @@
 
 
         {# Third Part JS #}
-        <script src="https://unpkg.com/htmx.org@1.5.0" async></script>
+        <script src="https://unpkg.com/htmx.org@1.7.0" async></script>
         <script nonce="base" async>
             document.body.addEventListener('htmx:configRequest', (event) => {
                 event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';

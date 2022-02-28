@@ -81,6 +81,7 @@ def login_user(request):
                 return redirect(reverse("timary:index"))
             else:
                 form.add_error("email", "Unable to verify credentials")
+        form.add_error("email", "Unable to verify credentials")
         return render(request, "auth/login.html", {"form": form}, status=400)
     else:
         form = LoginForm()

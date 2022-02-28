@@ -185,3 +185,24 @@ def profile_form_helper(is_mobile):
             ),
         ),
     }
+
+
+def login_form_helper():
+    return {
+        "form_id": "login-form",
+        "form_class": "card pb-5 bg-neutral text-neutral-content",
+        "layout": Layout(
+            Column(
+                "email",
+                "password",
+                css_class="card-body flex justify-center",
+            ),
+            ButtonHolder(
+                HTML(
+                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
+                    'type="submit" hx-indicator="#spinnr"> Login </button>'
+                ),
+                css_class="card-actions flex justify-center",
+            ),
+        ),
+    }

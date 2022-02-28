@@ -8,6 +8,7 @@ from django.core.validators import RegexValidator
 from timary.form_helpers import (
     hours_form_helper,
     invoice_form_helper,
+    login_form_helper,
     profile_form_helper,
 )
 from timary.models import DailyHoursInput, Invoice, User
@@ -351,15 +352,33 @@ class LoginForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         required=True,
-        widget=forms.EmailInput(attrs={"placeholder": "tom@test.com"}),
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "tom@test.com",
+                "class": "input input-bordered text-lg w-full mb-4",
+            }
+        ),
     )
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(
-            attrs={"placeholder": "*********", "type": "password"}
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered text-lg w-full",
+            }
         ),
         required=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.form_method = "post"
+        helper_attributes = login_form_helper()
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         fields = ["email", "password"]
