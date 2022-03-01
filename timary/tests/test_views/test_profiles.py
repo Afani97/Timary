@@ -19,9 +19,9 @@ class TestUserProfile(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             f"""
-            <h2 class="card-title text-center">{self.user.first_name} {self.user.last_name}</h2>
-            <p class="text-center">{self.user.email}</p>
-            <p class="text-center">{self.user.phone_number}</p>
+            <h2 class="card-title">{self.user.first_name} {self.user.last_name}</h2>
+            <p>{self.user.email}</p>
+            <p>{self.user.phone_number}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -85,10 +85,10 @@ class TestUserProfile(BaseTest):
         self.user.refresh_from_db()
         self.assertInHTML(
             """
-            <h2 class="card-title text-center">Test Test</h2>
-            <p class="text-center">user@test.com</p>
-            <p class="text-center">+17742613186</p>
-            <p class="text-center">Current subscription: Professional</p>
+            <h2 class="card-title">Test Test</h2>
+            <p>user@test.com</p>
+            <p>+17742613186</p>
+            <p>Current subscription: Professional</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -154,10 +154,10 @@ class TestUserProfile(BaseTest):
         self.assertEqual(self.user.membership_tier, 49)
         self.assertInHTML(
             f"""
-            <h2 class="card-title text-center">{self.user.get_full_name()}</h2>
-            <p class="text-center">{self.user.email}</p>
-            <p class="text-center">{self.user.formatted_phone_number}</p>
-            <p class="text-center">Current subscription: Business</p>
+            <h2 class="card-title">{self.user.get_full_name()}</h2>
+            <p>{self.user.email}</p>
+            <p>{self.user.formatted_phone_number}</p>
+            <p>Current subscription: Business</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -181,7 +181,7 @@ class TestUserSettings(BaseTest):
                 <input
                     id="Tue"
                     type="checkbox"
-                    class="checkbox"
+                    class="checkbox checkbox-primary"
                     checked="checked"
                     disabled
                 >
@@ -251,7 +251,7 @@ class TestUserSettings(BaseTest):
                         <input
                             id="{day}"
                             type="checkbox"
-                            class="checkbox"
+                            class="checkbox checkbox-primary"
                             checked="checked"
                             disabled
                         >
