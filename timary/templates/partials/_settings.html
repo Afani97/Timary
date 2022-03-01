@@ -1,6 +1,6 @@
 <div class="card bg-base-200 bordered mt-10" id="user-settings">
-    <div class="card-body">
-        <h2 class="card-title text-center">Phone number availability</h2>
+    <div class="card-body items-center text-center">
+        <h2 class="card-title">Phone number availability</h2>
         <div class="flex justify-center space-x-5">
             {% for day in settings.phone_number_availability %}
                 <div class="form-control">
@@ -8,7 +8,7 @@
                     <input
                         id="{{ day }}"
                         type="checkbox"
-                        class="checkbox"
+                        class="checkbox checkbox-primary"
                         checked="checked"
                         disabled
                     >
@@ -19,9 +19,10 @@
         </div>
 
         <h2 class="card-title text-center mt-10">Audit trail</h2>
-        <div class="flex justify-center space-x-5 mb-10">
+        <div class="mb-10">
             <a href="{% url 'timary:audit' %}" class="btn btn-outline btn-accent">Download Audit</a>
         </div>
+
 
         <div class="card-actions flex justify-center my-4">
             <button class="btn btn-primary"
