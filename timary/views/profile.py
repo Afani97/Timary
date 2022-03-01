@@ -6,7 +6,6 @@ from django.db.models import Sum
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import render
 from django.template.context_processors import csrf
-from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -82,13 +81,6 @@ def update_user_settings(request):
             )
     context = {
         "form": user_settings_form,
-        "url": reverse("timary:update_user_settings"),
-        "target": "this",
-        "swap": "outerHTML",
-        "id": "update-user-settings",
-        "md_block": True,
-        "cancel_url": reverse("timary:settings_partial"),
-        "btn_title": "Update settings",
     }
     return render(request, "partials/_settings_form.html", context)
 
