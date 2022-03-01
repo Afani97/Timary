@@ -6,8 +6,8 @@
     hx-swap="{{swap}}">
     {% csrf_token %}
 
-    <div class="card-body">
-        <h2 class="card-title text-center">Phone number availability</h2>
+    <div class="card-body items-center text-center">
+        <h2 class="card-title">Phone number availability</h2>
         <div class="flex justify-center space-x-5">
 
             {% for value, text in form.phone_number_availability.field.choices %}
