@@ -192,7 +192,7 @@ CSP_DEFAULT_SRC = ("'none'",)
 CSP_STYLE_SRC = (
     "'self'",
     "'unsafe-inline'",
-    "https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css",
+    "https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css",
     "https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css",
 )
 CSP_SCRIPT_SRC = (
