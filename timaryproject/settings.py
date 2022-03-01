@@ -103,12 +103,6 @@ DATABASES = {
     }
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "timary_cache_table",
-    }
-}
 
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
