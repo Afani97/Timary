@@ -20,7 +20,7 @@ class TestDailyHours(BaseTest):
 
     def test_create_daily_hours(self):
         DailyHoursInput.objects.all().delete()
-        invoice = InvoiceFactory()
+        invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -29,10 +29,10 @@ class TestDailyHours(BaseTest):
                 "invoice": invoice.id,
             },
         )
+        self.assertEqual(response.status_code, 200)
         hours = DailyHoursInput.objects.first()
         rendered_template = self.setup_template("partials/_hour.html", {"hour": hours})
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
-        self.assertEqual(response.status_code, 200)
 
     def test_create_daily_hours_error(self):
         response = self.client.post(
@@ -67,7 +67,6 @@ class TestDailyHours(BaseTest):
             f'<option value="{self.hours.invoice.id}" selected>{self.hours.invoice.title}</option>',
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_daily_hours_error(self):

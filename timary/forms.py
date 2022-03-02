@@ -1,9 +1,17 @@
 import datetime
 
+from crispy_forms.helper import FormHelper
 from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
+from timary.form_helpers import (
+    hours_form_helper,
+    invoice_form_helper,
+    login_form_helper,
+    profile_form_helper,
+    register_form_helper,
+)
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -14,8 +22,20 @@ class DateInput(forms.DateInput):
 class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
+        request_method = (
+            kwargs.pop("request_method").lower()
+            if "request_method" in kwargs
+            else "get"
+        )
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper._form_method = ""
+        helper_attributes = hours_form_helper(request_method, is_mobile, self.instance)
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
         if user:
             invoice_qs = Invoice.objects.filter(user=user)
@@ -31,18 +51,24 @@ class DailyHoursForm(forms.ModelForm):
                 attrs={
                     "value": 1.0,
                     "max": 24,
-                    "min": -1,
+                    "min": 0,
                     "step": 0.01,
-                }
+                    "class": "input input-bordered text-lg w-24",
+                },
             ),
             "date_tracked": DateInput(
                 attrs={
                     "value": datetime.date.today(),
                     "max": datetime.date.today(),
+                    "class": "input input-bordered text-lg w-full",
                 }
             ),
-            "invoice": forms.Select(attrs={"label": "Invoice"}),
-            "notes": forms.Textarea(attrs={"rows": 4, "cols": 30, "collapse": True}),
+            "invoice": forms.Select(
+                attrs={
+                    "label": "Invoice",
+                    "class": "select select-bordered w-full",
+                }
+            ),
         }
 
     field_order = ["hours", "date_tracked", "invoice"]
@@ -55,6 +81,27 @@ class DailyHoursForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user") if "user" in kwargs else None
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
+        request_method = (
+            kwargs.pop("request_method").lower()
+            if "request_method" in kwargs
+            else "get"
+        )
+
+        super(InvoiceForm, self).__init__(*args, **kwargs)
+
+        num_invoices = user.invoices.count() if user else 0
+
+        self.helper = FormHelper(self)
+        self.helper._form_method = ""
+        helper_attributes = invoice_form_helper(
+            request_method, is_mobile, self.instance, num_invoices != 0
+        )
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
+
     class Meta:
         model = Invoice
         fields = [
@@ -68,6 +115,7 @@ class InvoiceForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "New Saas App...",
+                    "class": "input input-bordered text-lg w-full",
                 }
             ),
             "hourly_rate": forms.NumberInput(
@@ -75,12 +123,26 @@ class InvoiceForm(forms.ModelForm):
                     "value": 50,
                     "min": 1,
                     "max": 1000,
+                    "class": "input input-bordered text-lg w-full",
                 }
             ),
-            "invoice_interval": forms.Select(attrs={"label": "Invoice"}),
-            "email_recipient_name": forms.TextInput(attrs={"placeholder": "John"}),
+            "invoice_interval": forms.Select(
+                attrs={
+                    "label": "Invoice",
+                    "class": "select select-bordered w-full",
+                }
+            ),
+            "email_recipient_name": forms.TextInput(
+                attrs={
+                    "placeholder": "John",
+                    "class": "input input-bordered text-lg w-full",
+                }
+            ),
             "email_recipient": forms.EmailInput(
-                attrs={"placeholder": "john@company.com"}
+                attrs={
+                    "placeholder": "john@company.com",
+                    "class": "input input-bordered text-lg w-full",
+                }
             ),
         }
 
@@ -132,21 +194,62 @@ phone_number_regex = RegexValidator(
 
 
 class UserForm(forms.ModelForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(required=True)
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "john@appleseed.com",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
+    first_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "John",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Appleseed",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
     phone_number = forms.CharField(
         required=False,
         validators=[phone_number_regex],
-        widget=forms.TextInput(attrs={"placeholder": "+13334445555"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "+13334445555",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
     )
+
+    def __init__(self, *args, **kwargs):
+        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
+
+        super(UserForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper._form_method = ""
+        helper_attributes = profile_form_helper(is_mobile)
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name", "phone_number", "membership_tier"]
         widgets = {
-            "email": forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
-            "first_name": forms.TextInput(attrs={"placeholder": "John"}),
-            "last_name": forms.TextInput(attrs={"placeholder": "Appleseed"}),
+            "membership_tier": forms.Select(
+                attrs={"class": "select select-bordered w-full"}
+            )
         }
         labels = {"membership_tier": "Subscription plan"}
 
@@ -191,17 +294,31 @@ class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "john@appleseed.com"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "john@appleseed.com",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
     )
     full_name = forms.CharField(
         label="Full name",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "John Appleseed"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "John Appleseed",
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
     )
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(
-            attrs={"placeholder": "*********", "type": "password"}
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered text-lg w-full",
+            }
         ),
         required=True,
     )
@@ -211,6 +328,15 @@ class RegisterForm(forms.ModelForm):
         ),
         required=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super(RegisterForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.form_method = "post"
+        helper_attributes = register_form_helper()
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
     def clean_full_name(self):
         full_name = self.cleaned_data.get("full_name")
@@ -250,15 +376,33 @@ class LoginForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         required=True,
-        widget=forms.EmailInput(attrs={"placeholder": "tom@test.com"}),
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "tom@test.com",
+                "class": "input input-bordered text-lg w-full mb-4",
+            }
+        ),
     )
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(
-            attrs={"placeholder": "*********", "type": "password"}
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered text-lg w-full",
+            }
         ),
         required=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.form_method = "post"
+        helper_attributes = login_form_helper()
+        for key in helper_attributes:
+            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         fields = ["email", "password"]

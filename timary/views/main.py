@@ -50,7 +50,9 @@ def index(request):
     if Invoice.objects.filter(user=user).count() == 0:
         return redirect(reverse("timary:manage_invoices"))
     context = {
-        "new_hours": DailyHoursForm(user=user),
+        "new_hours": DailyHoursForm(
+            user=user, is_mobile=request.is_mobile, request_method="get"
+        ),
         "hours": DailyHoursInput.all_hours.current_month(user),
     }
     context.update(get_hours_tracked(user))

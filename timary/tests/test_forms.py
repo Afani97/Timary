@@ -133,7 +133,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -145,7 +145,7 @@ class TestInvoice(TestCase):
             data={
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -156,7 +156,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -169,7 +169,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 0,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -184,7 +184,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -197,7 +197,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "I",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
@@ -246,7 +246,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
             }
         )
 
@@ -258,7 +258,7 @@ class TestInvoice(TestCase):
                 "title": "Some title",
                 "hourly_rate": 100,
                 "invoice_interval": "M",
-                "email_recipient_name": "User",
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test",
             }
         )
@@ -334,7 +334,8 @@ class TestDailyHours(TestCase):
         self.assertEqual(form.errors, {"hours": ["-1 cannot be less than 0 hours"]})
 
         form = DailyHoursForm(
-            data={"hours": 25, "invoice": self.invoice.id, "date_tracked": self.today}
+            data={"hours": 25, "invoice": self.invoice.id, "date_tracked": self.today},
+            request_method="get",
         )
         self.assertEqual(form.errors, {"hours": ["25 cannot be greater than 24 hours"]})
 

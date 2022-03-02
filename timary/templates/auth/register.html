@@ -1,4 +1,6 @@
 {% extends 'timary/base.html' %}
+{% load crispy_forms_tags %}
+
 {% block title %} Signup {% endblock %}
 
 {% block content %}
@@ -51,19 +53,9 @@
 
         </div>
 
-        <div class="card bg-base-200">
+        <div class="card bg-neutral">
             <div class="card-body">
-                {% include 'partials/_form.html' with form=form hide_buttons=True %}
-                <div class="form-control">
-                    <div id="card-element">
-                        <!--Stripe.js injects the Payment Element-->
-                    </div>
-                    <label class="label">
-                        <span class="label-text-alt">Stripe requires a debit card to process your invoices into your bank account.</span>
-                    </label>
-                    <div id="payment-message" class="hidden"></div>
-                </div>
-                <button class="btn btn-primary mt-2" id="submit-form" type="submit">Continue</button>
+                {% crispy form %}
                 <div class="flex justify-center invisible" id="loader">
                     <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

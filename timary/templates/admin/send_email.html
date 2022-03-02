@@ -24,7 +24,8 @@
         <div class="text-3xl text-center mb-8">Send Email To Users</div>
         <div class="p-10 card bg-base-200">
             <div class="card-body">
-                {% include 'partials/_form.html' with btn_title='Send emails' %}
+                {{ form.as_p }}
+                <button class="btn btn-primary" type="submit">Send</button>
             </div>
         </div>
     </div>

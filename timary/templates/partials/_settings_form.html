@@ -1,9 +1,9 @@
 {% load filters %}
 
 <form class="card bg-base-200 bordered mt-10"
-    hx-put="{{url}}"
-    hx-target="{{target}}"
-    hx-swap="{{swap}}">
+    hx-put="{% url 'timary:update_user_settings' %}"
+    hx-target="this"
+    hx-swap="outerHTML">
     {% csrf_token %}
 
     <div class="card-body items-center text-center">
@@ -26,8 +26,8 @@
         </div>
     </div>
     <div class="card-actions flex justify-center mb-10">
-        <a class="btn btn-ghost" hx-get="{{cancel_url}}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#settings_spinnr"> Cancel </a>
-        <button class="btn btn-primary" type="submit" hx-indicator="#settings_spinnr"> {{ btn_title }} </button>
+        <a class="btn btn-ghost" hx-get="{% url 'timary:settings_partial' %}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#settings_spinnr"> Cancel </a>
+        <button class="btn btn-primary" type="submit" hx-indicator="#settings_spinnr"> Update settings </button>
         {% include "partials/_spinnr.html" with spinner_id="settings_spinnr"%}
     </div>
 

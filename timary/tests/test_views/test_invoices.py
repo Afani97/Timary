@@ -33,8 +33,8 @@ class TestInvoices(BaseTest):
                 "title": "Some title",
                 "hourly_rate": 50,
                 "invoice_interval": "D",
-                "email_recipient_name": "Mike",
-                "email_recipient": "mike@test.com",
+                "email_recipient_name": "John Smith",
+                "email_recipient": "john@test.com",
             },
         )
 
@@ -153,7 +153,6 @@ class TestInvoices(BaseTest):
         response = self.client.get(
             reverse("timary:edit_invoice", kwargs={"invoice_id": self.invoice.id}),
         )
-        self.assertEqual(response.templates[0].name, "partials/_htmx_put_form.html")
         self.assertEqual(response.status_code, 200)
 
     def test_edit_invoice_error(self):
@@ -170,8 +169,8 @@ class TestInvoices(BaseTest):
             "title": "Some title",
             "hourly_rate": 100,
             "invoice_interval": "D",
-            "email_recipient_name": "Mike",
-            "email_recipient": "mike@test.com",
+            "email_recipient_name": "John Smith",
+            "email_recipient": "john@test.com",
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
@@ -196,8 +195,8 @@ class TestInvoices(BaseTest):
             "title": "Some title",
             "hourly_rate": 100,
             "invoice_interval": "D",
-            "email_recipient_name": "Mike",
-            "email_recipient": "mike@test.com",
+            "email_recipient_name": "John Smith",
+            "email_recipient": "john@test.com",
         }
         self.invoice.next_date = None
         self.invoice.save()

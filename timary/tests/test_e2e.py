@@ -1,6 +1,7 @@
 import os
 from contextlib import contextmanager
 
+from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import tag
 from django.urls import reverse
@@ -15,7 +16,7 @@ class BaseUITest(StaticLiveServerTestCase):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
         super().setUpClass()
         cls.playwright = sync_playwright().start()
-        cls.browser = cls.playwright.webkit.launch()
+        cls.browser = cls.playwright.webkit.launch(headless=settings.HEADLESS_UI)
 
     @classmethod
     def tearDownClass(cls):
@@ -64,7 +65,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#new-hours-form", timeout=2000)
             page.fill("#id_hours", "2")
             page.click('button:has-text("Add new hours")')
-            page.wait_for_selector("li", timeout=2000)
+            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2.00")
 
     @tag("ui")
@@ -76,7 +77,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector('button:has-text("Update hours")', timeout=2000)
             page.fill("#hours-list #id_hours", "2")
             page.click('button:has-text("Update hours")')
-            page.wait_for_selector("li", timeout=2000)
+            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2.00")
 
     @tag("ui")

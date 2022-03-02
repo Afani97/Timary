@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "multiselectfield",
     "django_otp",
     "django_otp.plugins.otp_totp",
+    "crispy_forms",
 ]
 
 MIDDLEWARE = [
@@ -68,6 +69,8 @@ MIDDLEWARE = [
     "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # TIMARY
+    "timary.middleware.SimpleUserAgentMiddleware",
 ]
 
 ROOT_URLCONF = "timaryproject.urls"
@@ -203,7 +206,7 @@ CSP_SCRIPT_SRC = (
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",
     "'nonce-hours-timer'",
-    "https://unpkg.com/htmx.org@1.5.0",
+    "https://unpkg.com/htmx.org@1.7.0",
     "https://js.stripe.com",
 )
 CSP_IMG_SRC = ("'self'",)
@@ -278,6 +281,8 @@ FRESHBOOKS_CLIENT_ID = config("FRESHBOOKS_CLIENT_ID", default="abc123")
 FRESHBOOKS_SECRET_KEY = config("FRESHBOOKS_SECRET_KEY", default="abc123")
 FRESHBOOKS_ENV = config("FRESHBOOKS_ENV", default="abc123")
 
+# PLAYWRIGHT
+HEADLESS_UI = True
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
@@ -286,3 +291,4 @@ if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
+    HEADLESS_UI = False

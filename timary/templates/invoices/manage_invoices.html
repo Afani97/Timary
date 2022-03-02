@@ -1,4 +1,5 @@
 {% extends 'timary/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -22,7 +23,7 @@
                             </div>
                             <div class="card flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
                                 <div class="card-body">
-                                    {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend" btn_title='Add new invoice' %}
+                                    {% crispy new_invoice %}
                                 </div>
                             </div>
                         </div>
@@ -35,7 +36,7 @@
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box">
-            {% include 'partials/_htmx_post_form.html' with form=new_invoice id="new-invoice-form" url="/invoices/" target="#invoices-list" swap="beforeend" modal="true" btn_title='Add new invoice' close_link_id="close-invoice-modal" %}
+            {% crispy new_invoice %}
         </div>
     </div>
     {# New invoice modal #}

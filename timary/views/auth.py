@@ -13,7 +13,6 @@ def register_user(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
     form = RegisterForm(request.POST or None)
-    status_code = 200
 
     if request.method == "POST":
         request_data = request.POST.copy()
@@ -38,10 +37,9 @@ def register_user(request):
             except InvalidRequestError:
                 stripe_card_error = True
                 form.add_error(
-                    "membership_tier",
+                    "password",
                     "Card entered needs to be a debit card, so Stripe can process your invoices.",
                 )
-                status_code = 400
 
             if not stripe_card_error:
                 user.stripe_connect_id = connect_id
@@ -55,23 +53,20 @@ def register_user(request):
                     return redirect(account_link_url)
                 else:
                     form.add_error("email", "Unable to create account with credentials")
-                    status_code = 400
-        else:
-            # Form not valid
-            status_code = 400
+
     context = {
         "form": form,
         "client_secret": StripeService.create_payment_intent(),
         "stripe_public_key": StripeService.stripe_public_api_key,
     }
-    return render(request, "auth/register.html", context, status=status_code)
+    return render(request, "auth/register.html", context)
 
 
 def login_user(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
+    form = LoginForm(request.POST or None)
     if request.method == "POST":
-        form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get("email")
             password = form.cleaned_data.get("password")
@@ -81,10 +76,10 @@ def login_user(request):
                 return redirect(reverse("timary:index"))
             else:
                 form.add_error("email", "Unable to verify credentials")
-        return render(request, "auth/login.html", {"form": form}, status=400)
-    else:
-        form = LoginForm()
-        return render(request, "auth/login.html", {"form": form})
+        else:
+            form.add_error("email", "Unable to verify credentials")
+
+    return render(request, "auth/login.html", {"form": form})
 
 
 @login_required
