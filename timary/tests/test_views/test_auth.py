@@ -25,7 +25,10 @@ class TestAuthViews(TestCase):
         response = self.client.post(
             reverse("timary:login"), {"email": "user@test.com", "password": "pass"}
         )
-        self.assertEquals(response.status_code, 400)
+        self.assertInHTML(
+            "<strong>Unable to verify credentials</strong>",
+            response.content.decode("utf-8"),
+        )
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
@@ -62,7 +65,11 @@ class TestAuthViews(TestCase):
                 "second_token": "token_2",
             },
         )
-        self.assertEquals(response.status_code, 400)
+        self.assertInHTML(
+            '<span class="label-text-alt">Stripe requires a debit card to process your invoices into your bank '
+            "account.</span>",
+            response.content.decode("utf-8"),
+        )
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
@@ -85,7 +92,6 @@ class TestAuthViews(TestCase):
                 "second_token": "token_2",
             },
         )
-        self.assertEquals(response.status_code, 400)
         self.assertInHTML(
             "Card entered needs to be a debit card, so Stripe can process your invoices.",
             response.content.decode("utf-8"),

@@ -65,7 +65,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#new-hours-form", timeout=2000)
             page.fill("#id_hours", "2")
             page.click('button:has-text("Add new hours")')
-            page.wait_for_selector("li", timeout=2000)
+            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2.00")
 
     @tag("ui")
@@ -77,7 +77,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector('button:has-text("Update hours")', timeout=2000)
             page.fill("#hours-list #id_hours", "2")
             page.click('button:has-text("Update hours")')
-            page.wait_for_selector("li", timeout=2000)
+            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2.00")
 
     @tag("ui")

@@ -138,7 +138,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                         'type="submit" hx-indicator="#spinnr"> Update invoice</button>'
                     ),
-                    css_class="card-actions flex justify-center",
+                    css_class="card-actions flex justify-center mt-4",
                 ),
             ),
         },
@@ -201,6 +201,39 @@ def login_form_helper():
                 HTML(
                     '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                     'type="submit" hx-indicator="#spinnr"> Login </button>'
+                ),
+                css_class="card-actions flex justify-center",
+            ),
+        ),
+    }
+
+
+def register_form_helper():
+    return {
+        "form_id": "register-form",
+        "form_class": "card pb-5 bg-neutral text-neutral-content",
+        "layout": Layout(
+            Column(
+                "full_name",
+                "email",
+                "password",
+                "membership_tier",
+                HTML(
+                    '<div class="form-control"> '
+                    '<label class="label"><span class="label-text">Debit card</span> </label>'
+                    '<div id="card-element"></div>'
+                    '<label class="label">'
+                    '<span class="label-text-alt">Stripe requires a debit card to process your invoices into your '
+                    "bank account.</span>"
+                    "</label>"
+                    "</div>",
+                ),
+                css_class="card-body flex justify-center",
+            ),
+            ButtonHolder(
+                HTML(
+                    '<button class="btn btn-primary" id="submit-form"'
+                    'type="submit" hx-indicator="#spinnr"> Continue </button>'
                 ),
                 css_class="card-actions flex justify-center",
             ),
