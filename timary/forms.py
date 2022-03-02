@@ -53,7 +53,7 @@ class DailyHoursForm(forms.ModelForm):
                     "max": 24,
                     "min": 0,
                     "step": 0.01,
-                    "class": "input input-bordered text-lg w-24",
+                    "class": "input input-bordered text-lg w-full",
                 },
             ),
             "date_tracked": DateInput(
