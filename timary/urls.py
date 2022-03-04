@@ -15,6 +15,8 @@ urlpatterns = [
     path("main/", views.index, name="index"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
     path("twilio-reply/", views.twilio_reply, name="twilio_reply"),
+    path("terms/", views.terms_page, name="terms"),
+    path("privacy/", views.privacy_page, name="privacy"),
 ]
 
 

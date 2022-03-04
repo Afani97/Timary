@@ -1,0 +1,47 @@
+{% extends "timary/base.html" %}
+
+{% block content %}
+
+    <div class="mx-2">
+        <div>
+            <div class="my-10">
+                <h1 class="text-5xl text-center tracking-wide font-bold">Terms &amp; Conditions</h1>
+            </div>
+        </div>
+        <div>
+            <div>
+                <h3 class="text-2xl tracking-wide font-bold mt-5">Scope of Service</h3>
+                <p>
+                    Timary provides you with time tracking and invoicing features up successful subscription payment.
+                    Depending on your plan type we also offer syncing with online accounting services.
+                </p>
+
+                <h3 class="text-2xl tracking-wide font-bold mt-5">Refunds</h3>
+                <p>
+                    Refunds and subscription cancellations are processed on a case by case basis at the discretion of Timary.
+                </p>
+
+                <h3 class="text-2xl tracking-wide font-bold mt-5">Privacy</h3>
+                <p>
+                    Please have a look at the <a class="link" href="{% url 'timary:privacy' %}">Privacy</a> section.
+                </p>
+
+                <h3 class="text-2xl tracking-wide font-bold mt-5">Fair Usage</h3>
+                <p>
+                    By using Timary services, you agree not to use the hourly tracking, invoicing and accounting syncing for
+                    illegal activities. It's your responsibility to use Timary services in a responsible manner.
+                </p>
+
+                <h3 class="text-2xl tracking-wide font-bold mt-5">Termination of Service</h3>
+                <p>
+                    Timary reserves the right to refuse service as well as terminate Timary services at any point in time.
+                </p>
+
+                <h3 class="text-2xl tracking-wide font-bold mt-5">That's about it.</h3>
+                <p>If you have any further concerns, feel free to talk to us through  email.</p>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

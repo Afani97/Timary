@@ -18,6 +18,14 @@ def landing_page(request):
     return render(request, "timary/landing_page.html", {})
 
 
+def terms_page(request):
+    return render(request, "company/terms.html", {})
+
+
+def privacy_page(request):
+    return render(request, "company/privacy.html", {})
+
+
 def get_dashboard_stats(hours_tracked):
     total_hours_sum = hours_tracked.aggregate(total_hours=Sum("hours"))["total_hours"]
     total_amount_sum = hours_tracked.annotate(

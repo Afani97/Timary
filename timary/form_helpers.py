@@ -181,7 +181,7 @@ def profile_form_helper(is_mobile):
                     '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                     'type="submit" hx-indicator="#spinnr"> Update profile </button>'
                 ),
-                css_class="card-actions flex justify-center",
+                css_class="card-actions flex justify-center mt-4",
             ),
         ),
     }

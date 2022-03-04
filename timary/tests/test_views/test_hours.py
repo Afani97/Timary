@@ -90,7 +90,7 @@ class TestDailyHours(BaseTest):
         self.assertInHTML(
             f"""
             <h2 class="card-title">{self.hours.hours} hrs on
-            {self.hours.date_tracked.strftime("%b. %-d, %Y")}</h2>
+            {self.hours.date_tracked.strftime("%B %-d, %Y")}</h2>
             """,
             response.content.decode("utf-8"),
         )
