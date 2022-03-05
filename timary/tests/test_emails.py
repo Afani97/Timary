@@ -223,7 +223,7 @@ class TestSendInvoice(TestCase):
             """
             self.assertInHTML(msg, html_message)
 
-    def test_invoice_cannot_accept_payments(self):
+    def test_invoice_cannot_accept_payments_without_stripe_enabled(self):
         invoice = InvoiceFactory(user__stripe_payouts_enabled=False)
         DailyHoursFactory(invoice=invoice)
         send_invoice(invoice.id)
@@ -238,8 +238,41 @@ class TestSendInvoice(TestCase):
         with self.assertRaises(AssertionError):
             self.assertInHTML(button_missing, html_message)
 
-    def test_invoice_can_accept_payments(self):
+    def test_invoice_cannot_accept_payments_is_starter(self):
+        invoice = InvoiceFactory(
+            user__stripe_payouts_enabled=True, user__membership_tier=5
+        )
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        button_missing = f"""
+        <a href="{ settings.SITE_URL }{reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id})}"
+        class="f-fallback button button--green">Pay Invoice</a>
+        """
+        html_message = TestSendInvoice.extract_html()
+        with self.assertRaises(AssertionError):
+            self.assertInHTML(button_missing, html_message)
+
+    def test_invoice_can_accept_payments_if_stripe_enabled_and_is_professional(self):
         invoice = InvoiceFactory(user__stripe_payouts_enabled=True)
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        button_missing = f"""
+        <a href="{ settings.SITE_URL }{reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id})}"
+        class="f-fallback button button--green">Pay Invoice</a>
+        """
+        html_message = TestSendInvoice.extract_html()
+        self.assertInHTML(button_missing, html_message)
+
+    def test_invoice_can_accept_payments_if_stripe_enabled_and_is_business(self):
+        invoice = InvoiceFactory(
+            user__stripe_payouts_enabled=True, user__membership_tier=49
+        )
         DailyHoursFactory(invoice=invoice)
         send_invoice(invoice.id)
 

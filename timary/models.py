@@ -310,7 +310,7 @@ class User(AbstractUser, BaseModel):
 
     @property
     def can_accept_payments(self):
-        return self.stripe_payouts_enabled
+        return self.stripe_payouts_enabled and self.can_receive_texts
 
     @property
     def can_receive_texts(self):

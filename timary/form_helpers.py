@@ -6,6 +6,25 @@ def hours_form_helper(method_type, is_mobile, hour=None):
 
     flex_dir = "flex-col space-y-5" if is_mobile else "flex-row space-x-5"
 
+    desktop_rows = Row(
+        "hours",
+        "date_tracked",
+        "invoice",
+        css_class=f"card-body flex {flex_dir} justify-center space-x-5 my-5",
+    )
+    mobile_rows = Column(
+        Row(
+            "hours",
+            "date_tracked",
+            css_class="flex flex-row justify-center space-x-5 my-5",
+        ),
+        Row(
+            "invoice",
+            css_class="flex justify-center mb-5",
+        ),
+    )
+    rows = mobile_rows if is_mobile else desktop_rows
+
     return {
         "get": {
             "form_id": "new-hours-form",
@@ -16,12 +35,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
             },
             "form_class": "card pb-5 bg-neutral text-neutral-content",
             "layout": Layout(
-                Row(
-                    "hours",
-                    "date_tracked",
-                    "invoice",
-                    css_class=f"card-body flex {flex_dir} justify-center",
-                ),
+                rows,
                 ButtonHolder(
                     HTML('<a href="#" class="btn" id="close-hours-modal">Close</a>'),
                     HTML(

@@ -1,6 +1,8 @@
-<div class="card bg-base-200 bordered mt-10" id="user-settings">
+<div class="card bg-base-200 bordered pt-10" id="user-settings">
     <div class="card-body items-center text-center">
-        <h2 class="card-title">Phone number availability</h2>
+        <div class="tooltip" data-tip="To log hours by text, your membership tier needs to be either Professional or Business.">
+            <h2 class="card-title">Phone number availability</h2>
+        </div>
         <div class="flex justify-center space-x-5">
             {% for day in settings.phone_number_availability %}
                 <div class="form-control">

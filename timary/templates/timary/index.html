@@ -43,7 +43,9 @@
                 {% include 'partials/_hour.html' with hour=hour %}
             {% empty %}
                 <h1 class="text-2xl text-center">Start logging hours!</h1>
-                <p class="text-xl text-center">Tip: If you want to log hours by text, add your phone number to your profile.</p>
+                {% if request.user.can_receive_texts %}
+                    <p class="text-xl text-center">Tip: If you want to log hours by text, add your phone number to your profile.</p>
+                {% endif %}
             {% endfor %}
         </ul>
     </div>
