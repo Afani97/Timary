@@ -129,7 +129,7 @@ class InvoiceForm(forms.ModelForm):
             "invoice_interval": forms.Select(
                 attrs={
                     "label": "Invoice",
-                    "class": "select select-bordered w-full",
+                    "class": "select select-bordered text-lg w-full",
                 }
             ),
             "email_recipient_name": forms.TextInput(

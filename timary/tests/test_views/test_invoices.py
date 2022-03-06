@@ -295,3 +295,40 @@ class TestInvoices(BaseTest):
             ),
         )
         self.assertEqual(response.status_code, 302)
+
+    def test_create_invoice_btn_message_as_starter(self):
+        self.client.logout()
+        user = UserFactory(membership_tier=5)
+        self.client.force_login(user)
+
+        InvoiceFactory(user=user)
+
+        response = self.client.get(
+            reverse(
+                "timary:create_invoice_btn",
+            ),
+        )
+
+        self.assertIn(
+            "Upgrade your membership tier to Professional or Business to create new invoices.",
+            response.content.decode("utf-8"),
+        )
+
+    def test_create_invoice_btn_message_as_professional(self):
+        self.client.logout()
+        user = UserFactory()
+        self.client.force_login(user)
+
+        InvoiceFactory(user=user)
+        InvoiceFactory(user=user)
+
+        response = self.client.get(
+            reverse(
+                "timary:create_invoice_btn",
+            ),
+        )
+
+        self.assertIn(
+            "Upgrade your membership tier to Business to create new invoices.",
+            response.content.decode("utf-8"),
+        )

@@ -5,5 +5,9 @@
     <h1 class="text-3xl mb-8 text-center" id="current-invoices">Your current invoices</h1>
     {% if request.user.can_create_invoices %}
         <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</a>
+    {% else %}
+        <div class="tooltip" data-tip="{{ upgrade_msg }}">
+            <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10" disabled>New invoice</a>
+        </div>
     {% endif %}
 </div>

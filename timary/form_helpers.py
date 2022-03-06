@@ -107,6 +107,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                     "invoice_interval",
                     "email_recipient_name",
                     "email_recipient",
+                    css_class="flex flex-col space-y-2",
                 ),
                 ButtonHolder(
                     cancel_button,
@@ -114,7 +115,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                         'type="submit" hx-indicator="#spinnr"> Add new invoice</button>'
                     ),
-                    css_class="card-actions flex justify-center",
+                    css_class="card-actions flex mt-4 justify-center",
                 ),
             ),
         },

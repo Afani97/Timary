@@ -30,6 +30,7 @@ def manage_invoices(request):
             "new_invoice": InvoiceForm(
                 user=request.user, is_mobile=request.is_mobile, request_method="get"
             ),
+            "upgrade_msg": request.user.upgrade_invoice_message,
         },
     )
 
@@ -153,7 +154,8 @@ def delete_invoice(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def create_invoice_partial(request):
-    return render(request, "partials/_new_invoice_btn.html", {})
+    context = {"upgrade_msg": request.user.upgrade_invoice_message}
+    return render(request, "partials/_new_invoice_btn.html", context)
 
 
 @login_required()

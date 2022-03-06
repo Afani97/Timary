@@ -334,6 +334,15 @@ class User(AbstractUser, BaseModel):
         else:
             return False
 
+    @property
+    def upgrade_invoice_message(self):
+        mem_tier = ""
+        if self.membership_tier == User.MembershipTier.STARTER:
+            mem_tier = "Professional or Business"
+        elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
+            mem_tier = "Business"
+        return f"Upgrade your membership tier to {mem_tier} to create new invoices."
+
 
 class QuickbooksOAuth(BaseModel):
     """Keep track of refresh_token from QuickBooks OAuth so re-auth does not need to happen again."""
