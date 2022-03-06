@@ -8,8 +8,10 @@
         <h1 class="text-3xl my-6 text-center">Your settings</h1>
         {% include "partials/_settings.html" %}
 
-        <h1 class="text-3xl my-6 text-center">Your integrations</h1>
-        {% include "partials/_integrations.html" %}
+        {% if user.can_integrate_with_accounting_tools %}
+            <h1 class="text-3xl my-6 text-center">Your integrations</h1>
+            {% include "partials/_integrations.html" %}
+        {% endif %}
 
 
     </div>

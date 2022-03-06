@@ -320,6 +320,10 @@ class User(AbstractUser, BaseModel):
         )
 
     @property
+    def can_integrate_with_accounting_tools(self):
+        return self.membership_tier == User.MembershipTier.BUSINESS
+
+    @property
     def can_create_invoices(self):
         invoices_count = self.invoices.count()
         if invoices_count == 0:
