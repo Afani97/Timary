@@ -289,6 +289,7 @@ class User(AbstractUser, BaseModel):
             "freshbooks_connected": self.freshbooks_account_id is not None,
             "zoho_connected": False,
             "xero_connected": False,
+            "can_download_audit": self.can_download_audit,
         }
 
     @property
@@ -337,6 +338,10 @@ class User(AbstractUser, BaseModel):
             return True
         else:
             return False
+
+    @property
+    def can_download_audit(self):
+        return self.membership_tier == User.MembershipTier.BUSINESS
 
     @property
     def upgrade_invoice_message(self):

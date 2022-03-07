@@ -205,6 +205,26 @@ class TestUserSettings(BaseTest):
             response.content.decode("utf-8"),
         )
 
+    def test_get_settings_partial_cannot_download_audit(self):
+        response = self.client.get(reverse("timary:settings_partial"))
+        with self.assertRaises(AssertionError):
+            self.assertInHTML(
+                "Audit trail",
+                response.content.decode("utf-8"),
+            )
+
+    def test_get_settings_partial_can_download_audit(self):
+        self.client.logout()
+        user = UserFactory(membership_tier=49)
+        self.client.force_login(user=user)
+        response = self.client.get(reverse("timary:settings_partial"))
+        self.assertInHTML(
+            "Audit trail",
+            response.content.decode("utf-8"),
+        )
+        self.client.logout()
+        self.client.force_login(user=self.user)
+
     def test_get_edit_user_settings(self):
         response = self.client.get(reverse("timary:update_user_settings"))
         for index, day in enumerate(User.WEEK_DAYS):

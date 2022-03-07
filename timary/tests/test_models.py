@@ -222,6 +222,7 @@ class TestUser(TestCase):
                 "freshbooks_connected": False,
                 "xero_connected": False,
                 "zoho_connected": False,
+                "can_download_audit": False,
             },
         )
 
