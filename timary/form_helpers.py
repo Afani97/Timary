@@ -91,6 +91,43 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
         else HTML("<span></span>")
     )
 
+    action_buttons = HTML(
+        f"""
+    <hr class="my-2"/>
+    <div class="flex md:flex-row justify-center space-x-5 my-5">
+        <a class="btn btn-secondary btn-sm md:btn-md"
+
+            hx-get="{reverse(
+                        "timary:pause_invoice", kwargs={"invoice_id": invoice.id}
+                    )}"
+            hx-target="closest form"
+            hx-swap="outerHTML">
+            {"Pause" if invoice.next_date is not None else "Unpause" }
+        </a>
+
+        <a class="btn btn-warning btn-sm md:btn-md"
+            hx-get="{reverse(
+                        "timary:archive_invoice", kwargs={"invoice_id": invoice.id}
+                    )}"
+            hx-confirm="Are you sure you want to archive this invoice?"
+            hx-target="closest form"
+            hx-swap="outerHTML">
+            Archive
+        </a>
+
+        <a class="btn btn-error btn-sm md:btn-md"
+            hx-delete="{reverse(
+                        "timary:delete_invoice", kwargs={"invoice_id": invoice.id}
+                    )}"
+            hx-confirm="Are you sure you want to delete this invoice?"
+            hx-target="closest form"
+            hx-swap="outerHTML">
+            Remove
+        </a>
+    </div>
+    """
+    )
+
     return {
         "get": {
             "form_id": "new-invoice-form",
@@ -141,19 +178,22 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                     "email_recipient",
                     css_class=f"flex {flex_dir} justify-center",
                 ),
-                ButtonHolder(
-                    HTML(
-                        f"""
+                Column(
+                    ButtonHolder(
+                        HTML(
+                            f"""
                     <a class="btn btn-ghost" hx-get="{reverse(
-            "timary:get_single_invoice", kwargs={"invoice_id": invoice.id}
-        )}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#spinnr"> Cancel </a>
+                        "timary:get_single_invoice", kwargs={"invoice_id": invoice.id}
+                    )}" hx-target="closest form" hx-swap="outerHTML"> Cancel </a>
                     """
+                        ),
+                        HTML(
+                            '<button hx-trigger="enterKey, click" class="btn btn-primary" '
+                            'type="submit"> Update invoice</button>'
+                        ),
+                        css_class="card-actions flex justify-center mt-4",
                     ),
-                    HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit" hx-indicator="#spinnr"> Update invoice</button>'
-                    ),
-                    css_class="card-actions flex justify-center mt-4",
+                    action_buttons,
                 ),
             ),
         },

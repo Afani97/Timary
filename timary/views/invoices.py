@@ -160,7 +160,7 @@ def delete_invoice(request, invoice_id):
         raise Http404
     invoice.delete()
     response = HttpResponse("", status=200)
-    if Invoice.objects.filter(user=request.user).count() == 0:
+    if request.user.get_invoices.count() == 0:
         response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
     else:
         response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
