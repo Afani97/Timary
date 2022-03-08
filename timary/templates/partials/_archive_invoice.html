@@ -1,0 +1,9 @@
+<li class="card shadow-lg bordered mb-2">
+    <div class="card-body">
+        <div>
+            <p class="card-title">{{ archive_invoice.title }}</p>
+            <p class="text-xl">Interval: {{ archive_invoice.get_invoice_interval_display | lower }}</p>
+            <p class="text-xl">Recipient {{ archive_invoice.email_recipient_name }} ({{ archive_invoice.email_recipient }})</p>
+        </div>
+    </div>
+</li>

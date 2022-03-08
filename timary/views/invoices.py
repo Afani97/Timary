@@ -21,7 +21,7 @@ from timary.services.quickbook_service import QuickbookService
 @login_required()
 @require_http_methods(["GET"])
 def manage_invoices(request):
-    invoices = request.user.invoices.all().order_by("title")
+    invoices = request.user.get_invoices.order_by("title")
     return render(
         request,
         "invoices/manage_invoices.html",
@@ -46,7 +46,7 @@ def create_invoice(request):
         request_method="get",
     )
     if invoice_form.is_valid():
-        prev_invoice_count = Invoice.objects.filter(user=user).count()
+        prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
         invoice.user = user
         invoice.calculate_next_date()
@@ -91,6 +91,22 @@ def pause_invoice(request, invoice_id):
         invoice.calculate_next_date()
     invoice.save()
     return render(request, "partials/_invoice.html", {"invoice": invoice})
+
+
+@login_required()
+@require_http_methods(["GET"])
+def archive_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    invoice.is_archived = True
+    invoice.save()
+    response = HttpResponse("", status=200)
+    if request.user.get_invoices.count() == 0:
+        response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
+    else:
+        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
+    return response
 
 
 @login_required()

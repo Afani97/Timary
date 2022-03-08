@@ -25,4 +25,16 @@
             </ul>
         {% endif %}
     </div>
+
+
+    <div class="max-w-xl mx-auto">
+        {% if archived_invoices.count > 0 %}
+            <h3 class="text-lg my-6 text-center">Archived invoices</h3>
+            <ul>
+                {% for archive_invoice in archived_invoices %}
+                    {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
 {% endblock %}

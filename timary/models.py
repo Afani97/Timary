@@ -103,6 +103,7 @@ class Invoice(BaseModel):
     )
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
+    is_archived = models.BooleanField(default=False, null=True, blank=True)
 
     # Quickbooks
     quickbooks_customer_ref_id = models.CharField(max_length=200, null=True, blank=True)
@@ -122,7 +123,8 @@ class Invoice(BaseModel):
             f"email_recipient={self.email_recipient}, "
             f"invoice_interval={self.invoice_interval}, "
             f"next_date={self.next_date}, "
-            f"last_date={self.last_date})"
+            f"last_date={self.last_date}, "
+            f"is_archived={self.is_archived})"
         )
 
     def save(self, *args, **kwargs):
@@ -295,13 +297,13 @@ class User(AbstractUser, BaseModel):
     @property
     def invoices_not_logged(self):
         invoices = set(
-            self.invoices.filter(
+            self.get_invoices.filter(
                 Q(next_date__isnull=False)
                 & Q(hours_tracked__date_tracked__exact=date.today())
             )
         )
         remaining_invoices = (
-            set(self.invoices.filter(next_date__isnull=False)) - invoices
+            set(self.get_invoices.filter(next_date__isnull=False)) - invoices
         )
         return remaining_invoices
 
@@ -326,7 +328,7 @@ class User(AbstractUser, BaseModel):
 
     @property
     def can_create_invoices(self):
-        invoices_count = self.invoices.count()
+        invoices_count = self.get_invoices.count()
         if invoices_count == 0:
             # Empty state
             return False
@@ -351,6 +353,10 @@ class User(AbstractUser, BaseModel):
         elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
             mem_tier = "Business"
         return f"Upgrade your membership tier to {mem_tier} to create new invoices."
+
+    @property
+    def get_invoices(self):
+        return self.invoices.filter(is_archived=False)
 
 
 class QuickbooksOAuth(BaseModel):

@@ -226,6 +226,12 @@ class TestUser(TestCase):
             },
         )
 
+    def test_get_active_invoices(self):
+        user = UserFactory()
+        InvoiceFactory(user=user)
+        InvoiceFactory(user=user, is_archived=True)
+        self.assertEqual(len(user.get_invoices), 1)
+
     def test_get_remaining_invoices(self):
         user = UserFactory()
         InvoiceFactory(user=user)

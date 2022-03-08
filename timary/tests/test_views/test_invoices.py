@@ -256,6 +256,27 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(response.status_code, 302)
 
+    def test_archive_invoice(self):
+        Invoice.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        response = self.client.get(
+            reverse("timary:archive_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        self.user.refresh_from_db()
+        invoice.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(invoice.is_archived)
+        self.assertEqual(self.user.get_invoices.count(), 0)
+
+    def test_archive_invoice_error(self):
+        response = self.client.get(
+            reverse(
+                "timary:archive_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
+            ),
+            data={},
+        )
+        self.assertEqual(response.status_code, 302)
+
     def test_resend_invoice_email(self):
         invoice = InvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(invoice=invoice)

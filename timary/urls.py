@@ -60,6 +60,11 @@ urlpatterns += [
         "invoices/<uuid:invoice_id>/pause/", views.pause_invoice, name="pause_invoice"
     ),
     path(
+        "invoices/<uuid:invoice_id>/archive/",
+        views.archive_invoice,
+        name="archive_invoice",
+    ),
+    path(
         "invoices/<uuid:invoice_id>/update/",
         views.update_invoice,
         name="update_invoice",

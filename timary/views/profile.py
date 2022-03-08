@@ -22,6 +22,7 @@ def user_profile(request):
         "profile": request.user,
         "settings": request.user.settings,
         "sent_invoices": request.user.sent_invoices.order_by("-date_sent"),
+        "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
     return render(request, "timary/profile.html", context)
 
