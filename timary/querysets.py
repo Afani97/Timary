@@ -10,6 +10,7 @@ class HoursQuerySet(models.QuerySet):
         return (
             self.filter(
                 invoice__user=user,
+                invoice__is_archived=False,
                 date_tracked__month__gte=current_date.month,
                 date_tracked__year__gte=current_date.year,
             )
@@ -23,6 +24,7 @@ class HoursQuerySet(models.QuerySet):
         return (
             self.filter(
                 invoice__user=user,
+                invoice__is_archived=False,
                 date_tracked__month__gte=last_month.month,
                 date_tracked__month__lt=current_date.month,
                 date_tracked__year__gte=last_month.year,
@@ -37,6 +39,7 @@ class HoursQuerySet(models.QuerySet):
         return (
             self.filter(
                 invoice__user=user,
+                invoice__is_archived=False,
                 date_tracked__month__gte=1,
                 date_tracked__year__gte=current_date.year,
             )
