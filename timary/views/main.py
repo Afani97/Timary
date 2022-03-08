@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput, Invoice
+from timary.services.stripe_service import StripeService
 
 
 def bad_request(request, exception):
@@ -94,5 +95,6 @@ def confirm_close_account(request):
         return close_account(request, {"error": "Incorrect password"})
     user = request.user
     logout(request)
+    StripeService.close_stripe_account(user)
     user.delete()
     return redirect(reverse("timary:register"))

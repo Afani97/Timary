@@ -133,3 +133,10 @@ class StripeService:
             type="account_update",
         )
         return account_link["url"]
+
+    @classmethod
+    def close_stripe_account(cls, user):
+        sub = stripe.Subscription.delete(
+            user.stripe_subscription_id, stripe_account=user.stripe_connect_id
+        )
+        return sub is not None

@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
@@ -58,7 +59,11 @@ class TestMain(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 200)
 
-    def test_close_account(self):
+    @patch(
+        "timary.services.stripe_service.StripeService.close_stripe_account",
+        return_value=True,
+    )
+    def test_close_account(self, stripe_mock):
         user = UserFactory()
         invoice = InvoiceFactory(user=user)
         self.client.force_login(user)
