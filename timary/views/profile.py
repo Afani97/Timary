@@ -11,7 +11,7 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 from timary.forms import SettingsForm, UserForm
-from timary.models import SentInvoice
+from timary.models import SentInvoice, User
 from timary.services.stripe_service import StripeService
 
 
@@ -46,13 +46,10 @@ def edit_user_profile(request):
 @login_required()
 @require_http_methods(["PUT"])
 def update_user_profile(request):
-    current_membership_tier = request.user.membership_tier
     put_params = QueryDict(request.body)
     user_form = UserForm(put_params, instance=request.user, is_mobile=request.is_mobile)
     if user_form.is_valid():
         user = user_form.save()
-        if user_form.cleaned_data.get("membership_tier") != current_membership_tier:
-            StripeService.create_subscription(user, delete_current=True)
         return render(request, "partials/_profile.html", {"user": user})
     ctx = {}
     ctx.update(csrf(request))
@@ -64,7 +61,9 @@ def update_user_profile(request):
 @require_http_methods(["GET"])
 def settings_partial(request):
     return render(
-        request, "partials/_settings.html", {"settings": request.user.settings}
+        request,
+        "partials/_settings.html",
+        {"settings": request.user.settings},
     )
 
 
@@ -73,15 +72,27 @@ def settings_partial(request):
 def update_user_settings(request):
     user_settings_form = SettingsForm(instance=request.user)
     if request.method == "PUT":
-        put_params = QueryDict(request.body)
+        current_membership_tier = request.user.membership_tier
+        put_params = dict(QueryDict(request.body))
+        put_params["membership_tier"] = str(
+            User.MembershipTier[put_params["membership_tier"][0]].value
+        )
         user_settings_form = SettingsForm(put_params, instance=request.user)
         if user_settings_form.is_valid():
             user_settings_form.save()
+            if (
+                user_settings_form.cleaned_data.get("membership_tier")
+                != current_membership_tier
+            ):
+                StripeService.create_subscription(request.user, delete_current=True)
             return render(
-                request, "partials/_settings.html", {"settings": request.user.settings}
+                request,
+                "partials/_settings.html",
+                {"settings": request.user.settings},
             )
     context = {
         "form": user_settings_form,
+        "current_plan": request.user.get_membership_tier_display().title(),
     }
     return render(request, "partials/_settings_form.html", context)
 

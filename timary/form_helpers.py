@@ -175,14 +175,13 @@ def profile_form_helper(is_mobile):
         "form_class": "card pb-5 bg-neutral text-neutral-content",
         "layout": Layout(
             Row(
-                "email",
                 "first_name",
                 "last_name",
                 css_class=f"card-body flex {flex_dir} justify-center",
             ),
             Row(
+                "email",
                 "phone_number",
-                "membership_tier",
                 css_class=f"flex {flex_dir} justify-center",
             ),
             ButtonHolder(

@@ -223,6 +223,7 @@ class TestUser(TestCase):
                 "xero_connected": False,
                 "zoho_connected": False,
                 "can_download_audit": False,
+                "current_plan": "Professional",
             },
         )
 

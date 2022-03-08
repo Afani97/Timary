@@ -245,20 +245,13 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number", "membership_tier"]
-        widgets = {
-            "membership_tier": forms.Select(
-                attrs={"class": "select select-bordered w-full"}
-            )
-        }
-        labels = {"membership_tier": "Subscription plan"}
+        fields = ["email", "first_name", "last_name", "phone_number"]
 
     field_order = [
         "first_name",
         "last_name",
         "email",
         "phone_number",
-        "membership_tier",
     ]
 
     def clean_first_name(self):
@@ -287,7 +280,7 @@ class UserForm(forms.ModelForm):
 class SettingsForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["phone_number_availability"]
+        fields = ["phone_number_availability", "membership_tier"]
 
 
 class RegisterForm(forms.ModelForm):

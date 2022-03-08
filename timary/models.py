@@ -292,6 +292,7 @@ class User(AbstractUser, BaseModel):
             "zoho_connected": False,
             "xero_connected": False,
             "can_download_audit": self.can_download_audit,
+            "current_plan": self.get_membership_tier_display().title(),
         }
 
     @property

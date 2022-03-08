@@ -206,6 +206,7 @@ CSP_SCRIPT_SRC = (
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",
     "'nonce-hours-timer'",
+    "'nonce-update-subscription'",
     "https://unpkg.com/htmx.org@1.7.0",
     "https://js.stripe.com",
 )

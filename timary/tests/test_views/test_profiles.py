@@ -88,7 +88,6 @@ class TestUserProfile(BaseTest):
             <h2 class="card-title">Test Test</h2>
             <p>user@test.com</p>
             <p>+17742613186</p>
-            <p>Current subscription: Professional</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -138,29 +137,20 @@ class TestUserProfile(BaseTest):
         stripe_subscription_mock.return_value = None
         self.assertEqual(self.user.membership_tier, 19)
         url_params = {
-            "email": self.user.email,
-            "first_name": self.user.first_name,
-            "last_name": self.user.last_name,
-            "phone_number": "+17742613186",
-            "membership_tier": "49",
+            "phone_number_availability": "Mon",
+            "membership_tier": "BUSINESS",
         }
         response = self.client.put(
-            reverse("timary:update_user_profile"),
+            reverse("timary:update_user_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.user.refresh_from_db()
-        self.assertEqual(self.user.membership_tier, 49)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, "partials/_settings.html")
         self.assertInHTML(
-            f"""
-            <h2 class="card-title">{self.user.get_full_name()}</h2>
-            <p>{self.user.email}</p>
-            <p>{self.user.formatted_phone_number}</p>
-            <p>Current subscription: Business</p>
-            """,
+            "Current: Business",
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_profile.html")
-        self.assertEqual(response.status_code, 200)
 
 
 class TestUserSettings(BaseTest):
@@ -190,7 +180,13 @@ class TestUserSettings(BaseTest):
 
     def test_get_settings_partial(self):
         rendered_template = self.setup_template(
-            "partials/_settings.html", {"settings": self.user.settings}
+            "partials/_settings.html",
+            {
+                "settings": self.user.settings,
+                "current_plan": User.MembershipTier(
+                    self.user.membership_tier
+                ).name.lower(),
+            },
         )
         response = self.client.get(reverse("timary:settings_partial"))
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
@@ -250,10 +246,15 @@ class TestUserSettings(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_settings_form.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_user_settings(self):
+    @patch(
+        "timary.services.stripe_service.StripeService.create_subscription",
+        return_value=None,
+    )
+    def test_update_user_settings(self, stripe_mock):
         url_params = [
             ("phone_number_availability", "Mon"),
             ("phone_number_availability", "Tue"),
+            ("membership_tier", "STARTER"),
         ]
         response = self.client.put(
             reverse("timary:update_user_settings"),
