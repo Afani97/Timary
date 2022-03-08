@@ -17,6 +17,12 @@ urlpatterns = [
     path("twilio-reply/", views.twilio_reply, name="twilio_reply"),
     path("terms/", views.terms_page, name="terms"),
     path("privacy/", views.privacy_page, name="privacy"),
+    path("close_account/", views.close_account, name="close_account"),
+    path(
+        "confirm_close_account/",
+        views.confirm_close_account,
+        name="confirm_close_account",
+    ),
 ]
 
 

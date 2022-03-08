@@ -1,0 +1,29 @@
+{% extends "timary/base.html" %}
+
+{% block content %}
+
+    <div id="container">
+
+        <h1 class="text-5xl text-center mt-5">Are you 1000% positive?</h1>
+        <p class="my-5 text-center">All your data will be lost, forever!</p>
+        <form action="/confirm_close_account/" method="post">
+            {% csrf_token %}
+            <p class="mb-5 text-center">Enter your password to confirm:
+                <input class="input input-bordered text-lg ml-5" name="password" type="password"/>
+            </p>
+            {% if error %}
+                <p class="text-lg text-center">{{ error}}</p>
+            {% endif %}
+
+            <div class="flex justify-center">
+                <button class="btn btn-error">
+                    Close my account.
+                </button>
+            </div>
+        </form>
+
+
+
+
+    </div>
+{% endblock %}

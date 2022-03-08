@@ -2,8 +2,10 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
+from django.utils.http import urlencode
 
-from timary.tests.factories import DailyHoursFactory, UserFactory
+from timary.models import Invoice, User
+from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
 from timary.views import get_hours_tracked
 
@@ -55,3 +57,23 @@ class TestMain(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 200)
+
+    def test_close_account(self):
+        user = UserFactory()
+        invoice = InvoiceFactory(user=user)
+        self.client.force_login(user)
+        data = urlencode({"password": "Apple101!"})
+        response = self.client.post(
+            reverse("timary:confirm_close_account"),
+            data,
+            content_type="application/x-www-form-urlencoded",
+        )
+        self.assertEqual(response.status_code, 302)
+
+        with self.assertRaises(User.DoesNotExist) as e:
+            user.refresh_from_db()
+            self.assertEqual(str(e.exception), "User matching query does not exist.")
+
+        with self.assertRaises(Invoice.DoesNotExist) as e:
+            invoice.refresh_from_db()
+            self.assertEqual(str(e.exception), "Invoice matching query does not exist.")

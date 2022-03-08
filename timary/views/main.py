@@ -1,3 +1,4 @@
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
 from django.shortcuts import redirect, render
@@ -75,3 +76,23 @@ def dashboard_stats(request):
         "partials/_dashboard_stats.html",
         get_hours_tracked(request.user),
     )
+
+
+@login_required()
+def close_account(request, error=None):
+    context = {}
+    if error:
+        context.update(error)
+    return render(request, "timary/close_account.html", context=context)
+
+
+@login_required()
+@require_http_methods(["POST"])
+def confirm_close_account(request):
+    user_password = request.POST.get("password")
+    if not request.user.check_password(user_password):
+        return close_account(request, {"error": "Incorrect password"})
+    user = request.user
+    logout(request)
+    user.delete()
+    return redirect(reverse("timary:register"))

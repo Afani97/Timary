@@ -92,7 +92,7 @@ class InvoiceForm(forms.ModelForm):
 
         super(InvoiceForm, self).__init__(*args, **kwargs)
 
-        num_invoices = user.invoices.count() if user else 0
+        num_invoices = user.get_invoices.count() if user else 0
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
