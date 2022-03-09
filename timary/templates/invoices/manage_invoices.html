@@ -6,7 +6,7 @@
     {% include 'partials/_new_invoice_btn.html' %}
 
     <div>
-        <ul class="space-y-5 mx-2" id="invoices-list">
+        <ul class="space-y-5" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}
             {% empty %}
@@ -21,10 +21,8 @@
                                     We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
                                 </p>
                             </div>
-                            <div class="card flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
-                                <div class="card-body">
-                                    {% crispy new_invoice %}
-                                </div>
+                            <div class="flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
+                                {% crispy new_invoice %}
                             </div>
                         </div>
                     </div>
