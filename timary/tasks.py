@@ -24,7 +24,7 @@ def gather_invoices():
         next_date__month=today.month,
         next_date__year=today.year,
     )
-    invoices = Invoice.objects.filter(null_query & today_query)
+    invoices = Invoice.objects.filter(null_query & today_query & Q(is_archived=False))
     for invoice in invoices:
         _ = async_task(send_invoice, invoice.id)
 

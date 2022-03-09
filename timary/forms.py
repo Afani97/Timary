@@ -38,7 +38,7 @@ class DailyHoursForm(forms.ModelForm):
             setattr(self.helper, key, helper_attributes[key])
 
         if user:
-            invoice_qs = Invoice.objects.filter(user=user)
+            invoice_qs = Invoice.objects.filter(user=user, is_archived=False)
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
