@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.timezone import localtime, now
 
 from timary.models import SentInvoice
-from timary.tasks import gather_invoices, send_invoice
+from timary.tasks import gather_invoices, send_invoice, send_invoice_preview
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory
 
 
@@ -28,7 +28,7 @@ class TestGatherInvoices(TestCase):
     def test_gather_0_invoices_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         DailyHoursFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
         )
         DailyHoursFactory(
             invoice__next_date=datetime.date.today() - datetime.timedelta(days=1)
@@ -56,7 +56,7 @@ class TestGatherInvoices(TestCase):
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         DailyHoursFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
         )
         DailyHoursFactory()
         invoices_sent = gather_invoices()
@@ -77,6 +77,55 @@ class TestGatherInvoices(TestCase):
         self.assertEquals(
             mail.outbox[0].subject,
             "Sent out 3 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_preview_for_tomorrow(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 1 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
+    def test_gather_3_invoice_previews_for_tomorrow(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 3", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 3 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_and_invoice_previews(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        DailyHoursFactory()
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        DailyHoursFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 2", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 2 invoices",
         )
 
 
@@ -191,6 +240,54 @@ class TestSendInvoice(TestCase):
         send_invoice(invoice.id)
         invoice.refresh_from_db()
 
+        html_message = TestSendInvoice.extract_html()
+
+        with self.subTest("Testing header"):
+            next_weeks_date = (
+                localtime(now()).date() + datetime.timedelta(weeks=1)
+            ).strftime("%B %-d, %Y")
+            msg = (
+                f'<span class="preheader">This is an invoice for '
+                f"{invoice.user.first_name}'s services. "
+                f"Please submit payment by {next_weeks_date}</span>"
+            )
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing title"):
+            msg = f"""
+            <h1>Hi {invoice.email_recipient_name},</h1>
+            <p>Thanks for using Timary. This is an invoice for {invoice.user.first_name}'s services.</p>
+            """
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing amount due"):
+            msg = "<strong>Amount Due: $150</strong>"
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing one day details"):
+            formatted_date = hours_1.date_tracked.strftime("%b %-d")
+            msg = f"""
+            <td width="80%" class="purchase_item"><span class="f-fallback">1.00 hours on { formatted_date }</span></td>
+            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
+            """
+            self.assertInHTML(msg, html_message)
+
+    def test_invoice_preview_context(self):
+        invoice = InvoiceFactory(
+            hourly_rate=25, next_date=datetime.date.today() - datetime.timedelta(days=1)
+        )
+        # Save last date before it's updated in send_invoice method to test email contents below
+        hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
+        DailyHoursFactory(invoice=invoice, hours=2)
+        DailyHoursFactory(invoice=invoice, hours=3)
+
+        send_invoice_preview(invoice.id)
+        invoice.refresh_from_db()
+
+        email = mail.outbox[0].message().as_string()
+        self.assertIn(
+            "Pssst! Here is a sneak peek of the invoice going out tomorrow.", email
+        )
         html_message = TestSendInvoice.extract_html()
 
         with self.subTest("Testing header"):

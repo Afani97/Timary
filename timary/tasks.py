@@ -18,25 +18,40 @@ from timary.services.twilio_service import TwilioClient
 
 def gather_invoices():
     today = localtime(now()).date()
+    tomorrow = today + timedelta(days=1)
     null_query = Q(next_date__isnull=False)
     today_query = Q(
         next_date__day=today.day,
         next_date__month=today.month,
         next_date__year=today.year,
     )
-    invoices = Invoice.objects.filter(null_query & today_query & Q(is_archived=False))
-    for invoice in invoices:
+    invoices_sent_today = Invoice.objects.filter(
+        null_query & today_query & Q(is_archived=False)
+    )
+    for invoice in invoices_sent_today:
         _ = async_task(send_invoice, invoice.id)
 
+    tomorrow_query = Q(
+        next_date__day=tomorrow.day,
+        next_date__month=tomorrow.month,
+        next_date__year=tomorrow.year,
+    )
+    invoices_sent_tomorrow = Invoice.objects.filter(
+        null_query & tomorrow_query & Q(is_archived=False)
+    )
+    for invoice in invoices_sent_tomorrow:
+        _ = async_task(send_invoice_preview, invoice.id)
+
+    invoices_sent = len(list(invoices_sent_today) + list(invoices_sent_tomorrow))
     send_mail(
-        f"Sent out {len(invoices)} invoices",
-        f'{date.strftime(today, "%m/%-d/%Y")}, there were {len(invoices)} invoices sent out.',
+        f"Sent out {invoices_sent} invoices",
+        f'{date.strftime(today, "%m/%-d/%Y")}, there were {invoices_sent} invoices sent out.',
         None,
         recipient_list=["aristotelf@gmail.com"],
         fail_silently=True,
     )
 
-    return f"Invoices sent: {invoices.count()}"
+    return f"Invoices sent: {invoices_sent}"
 
 
 def send_invoice(invoice_id):
@@ -86,6 +101,33 @@ def send_invoice(invoice_id):
         html_message=msg_body,
     )
     invoice.calculate_next_date()
+
+
+def send_invoice_preview(invoice_id):
+    invoice = Invoice.objects.get(id=invoice_id)
+    hours_tracked, total_amount = invoice.get_hours_stats()
+    today = localtime(now()).date()
+
+    msg_body = render_to_string(
+        "email/sneak_peak_invoice_email.html",
+        {
+            "user_name": invoice.user.first_name,
+            "next_weeks_date": today + timedelta(weeks=1),
+            "recipient_name": invoice.email_recipient_name,
+            "total_amount": total_amount,
+            "invoice": invoice,
+            "hours_tracked": hours_tracked,
+            "tomorrows_date": today + timedelta(days=1),
+        },
+    )
+    send_mail(
+        "Pssst! Here is a sneak peek of the invoice going out tomorrow.",
+        "Make any modifications before it's sent tomorrow morning",
+        None,
+        recipient_list=[invoice.user.email],
+        fail_silently=False,
+        html_message=msg_body,
+    )
 
 
 def send_reminder_sms():
