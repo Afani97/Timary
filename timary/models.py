@@ -1,3 +1,4 @@
+import datetime
 import random
 import uuid
 from datetime import date, timedelta
@@ -104,6 +105,7 @@ class Invoice(BaseModel):
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
     is_archived = models.BooleanField(default=False, null=True, blank=True)
+    total_budget = models.IntegerField(null=True, blank=True)
 
     # Quickbooks
     quickbooks_customer_ref_id = models.CharField(max_length=200, null=True, blank=True)
@@ -140,6 +142,20 @@ class Invoice(BaseModel):
         return self.hours_tracked.filter(
             date_tracked__gte=F("invoice__last_date")
         ).order_by("date_tracked")
+
+    @property
+    def budget_percentage(self):
+        if not self.total_budget:
+            return 0
+
+        total_hours = self.hours_tracked.filter(
+            date_tracked__lte=datetime.date.today()
+        ).aggregate(total_hours=Sum("hours"))
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * self.hourly_rate
+
+        return (total_cost_amount / self.total_budget) * 100
 
     def get_next_date(self):
         if self.invoice_interval == Invoice.Interval.DAILY:

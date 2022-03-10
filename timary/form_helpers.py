@@ -167,16 +167,20 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
             },
             "form_class": "card pb-5 bg-neutral text-neutral-content",
             "layout": Layout(
-                Row(
-                    "title",
-                    "hourly_rate",
-                    "invoice_interval",
-                    css_class=f"card-body flex {flex_dir} justify-center",
-                ),
-                Row(
-                    "email_recipient_name",
-                    "email_recipient",
-                    css_class=f"flex {flex_dir} justify-center",
+                Column(
+                    Row(
+                        "title",
+                        "hourly_rate",
+                        "invoice_interval",
+                        "total_budget",
+                        css_class=f"flex {flex_dir} justify-center",
+                    ),
+                    Row(
+                        "email_recipient_name",
+                        "email_recipient",
+                        css_class=f"flex {flex_dir} justify-center",
+                    ),
+                    css_class="card-body space-y-5",
                 ),
                 Column(
                     ButtonHolder(

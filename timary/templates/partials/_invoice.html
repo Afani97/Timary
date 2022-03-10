@@ -1,29 +1,43 @@
 <li class="card shadow-lg bordered px-6 md:px-0" id="{{invoice.slug_title}}">
     <div class="card-body">
-        <h2 class="card-title">{{ invoice.title }} - Rate: ${{ invoice.hourly_rate }}</h2>
-        {% if invoice.next_date %}
-            <p class="text-xl">sent {{ invoice.get_invoice_interval_display | lower }} to {{ invoice.email_recipient_name }} ({{invoice.email_recipient}})</p>
-            <p class="text-xl">next date sent is: {{ invoice.next_date }}</p>
-        {% else %}
-            <p class="text-xl">invoice is paused</p>
-        {% endif %}
+        <div class="flex flex-col md:flex-row justify-between">
+            <div>
+                <h2 class="card-title">{{ invoice.title }} - Rate: ${{ invoice.hourly_rate }}</h2>
+                {% if invoice.next_date %}
+                    <p class="text-xl">sent {{ invoice.get_invoice_interval_display | lower }} to {{ invoice.email_recipient_name }} ({{invoice.email_recipient}})</p>
+                    <p class="text-xl">next date sent is: {{ invoice.next_date }}</p>
+                {% else %}
+                    <p class="text-xl">invoice is paused</p>
+                {% endif %}
 
-        <div class="card-actions">
-            <a class="btn btn-primary btn-sm md:btn-md"
-                hx-get="{% url 'timary:edit_invoice' invoice.id %}"
-                hx-target="closest li"
-                hx-swap="outerHTML"
-                hx-indicator="#{{invoice.slug_title}}">
-                Edit
-            </a>
+                <div class="card-actions">
+                    <a class="btn btn-primary btn-sm md:btn-md"
+                        hx-get="{% url 'timary:edit_invoice' invoice.id %}"
+                        hx-target="closest li"
+                        hx-swap="outerHTML"
+                        hx-indicator="#{{invoice.slug_title}}">
+                        Edit
+                    </a>
+                    {% include "partials/_spinnr.html" with spinner_id=invoice.slug_title %}
+                </div>
+            </div>
 
-            {% include "partials/_spinnr.html" with spinner_id=invoice.slug_title %}
+
+            {% if invoice.budget_percentage > 0 %}
+                <div class="hidden md:block">
+                    <p class="mb-2 ml-2">Budget</p>
+                    <div
+                        class="radial-progress text-black bg-accent  border-4 border-accent"
+                        style="--value:{{ invoice.budget_percentage }}; --thickness: 4px;"
+                    >
+                        {{ invoice.budget_percentage|floatformat:-2 }}%
+                    </div>
+                </div>
+            {% endif %}
 
         </div>
 
-
         {% if invoice.get_hours_tracked.count > 0 %}
-
             <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-3">
                 <div class="collapse-title text-xl font-medium">View hours logged this period</div>
                 <div class="collapse-content" id="hours-logged">
@@ -34,7 +48,6 @@
                     </ul>
                 </div>
             </div>
-
         {% endif %}
     </div>
 </li>

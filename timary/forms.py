@@ -108,6 +108,7 @@ class InvoiceForm(forms.ModelForm):
             "title",
             "hourly_rate",
             "invoice_interval",
+            "total_budget",
             "email_recipient_name",
             "email_recipient",
         ]
@@ -124,6 +125,14 @@ class InvoiceForm(forms.ModelForm):
                     "min": 1,
                     "max": 1000,
                     "class": "input input-bordered text-lg w-full",
+                }
+            ),
+            "total_budget": forms.NumberInput(
+                attrs={
+                    "min": 1,
+                    "max": 1_000_000,
+                    "class": "input input-bordered text-lg w-full",
+                    "placeholder": "10000",
                 }
             ),
             "invoice_interval": forms.Select(

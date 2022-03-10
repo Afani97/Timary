@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
@@ -191,6 +192,19 @@ class TestInvoice(TestCase):
 
         hours_logged = invoice.get_hours_tracked
         self.assertListEqual(list(hours_logged), hours_list)
+
+    def test_get_budget_percentage(self):
+        three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(
+            hourly_rate=50, last_date=two_days_ago, total_budget=1000
+        )
+        DailyHoursFactory(hours=3, invoice=invoice, date_tracked=three_days_ago)
+        DailyHoursFactory(hours=1, invoice=invoice, date_tracked=yesterday)
+        DailyHoursFactory(hours=2, invoice=invoice)
+        # (6 hours * $50) / $1000
+        self.assertEqual(invoice.budget_percentage, Decimal("30.0"))
 
 
 class TestUser(TestCase):
