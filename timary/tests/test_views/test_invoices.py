@@ -87,8 +87,20 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 302)
 
     def test_create_invoice_error(self):
-        response = self.client.post(reverse("timary:create_invoice"), {})
-        self.assertEqual(response.status_code, 400)
+        invoice = self.user.get_invoices.first()
+        response = self.client.post(
+            reverse("timary:create_invoice"),
+            {
+                "title": invoice.title,
+                "hourly_rate": 50,
+                "invoice_interval": "D",
+                "email_recipient_name": "John Smith",
+                "email_recipient": "john@test.com",
+            },
+        )
+        self.assertInHTML(
+            "Duplicate invoice title not allowed.", response.content.decode("utf-8")
+        )
 
     def test_get_invoice(self):
         rendered_template = self.setup_template(
