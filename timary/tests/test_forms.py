@@ -267,6 +267,24 @@ class TestInvoice(TestCase):
             form.errors, {"email_recipient": ["Enter a valid email address."]}
         )
 
+    def test_invoice_error_duplicate_title(self):
+        user = UserFactory()
+        invoice = InvoiceFactory(user=user)
+        form = InvoiceForm(
+            user=user,
+            data={
+                "title": invoice.title,
+                "hourly_rate": 100,
+                "invoice_interval": "M",
+                "email_recipient_name": "John Smith",
+                "email_recipient": "user@test.com",
+            },
+        )
+
+        self.assertEqual(
+            form.errors, {"title": ["Duplicate invoice title not allowed."]}
+        )
+
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):

@@ -5,7 +5,7 @@ from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
 from twilio.twiml.messaging_response import MessagingResponse
 
-from timary.models import DailyHoursInput, Invoice, User
+from timary.models import DailyHoursInput, User
 from timary.services.twilio_service import TwilioClient
 
 
@@ -17,7 +17,7 @@ def twilio_reply(request):
     messages = TwilioClient.get_user_messages()
 
     _, invoice_title = messages[1].body.split(":")
-    invoice = Invoice.objects.get(title=invoice_title.strip(), user=user)
+    invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
 
     try:
         hours = Decimal(twilio_request.body)

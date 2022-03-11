@@ -38,7 +38,7 @@ class DailyHoursForm(forms.ModelForm):
             setattr(self.helper, key, helper_attributes[key])
 
         if user:
-            invoice_qs = Invoice.objects.filter(user=user, is_archived=False)
+            invoice_qs = user.get_invoices
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
@@ -82,7 +82,7 @@ class DailyHoursForm(forms.ModelForm):
 
 class InvoiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user") if "user" in kwargs else None
+        self.user = kwargs.pop("user") if "user" in kwargs else None
         is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
         request_method = (
             kwargs.pop("request_method").lower()
@@ -92,7 +92,7 @@ class InvoiceForm(forms.ModelForm):
 
         super(InvoiceForm, self).__init__(*args, **kwargs)
 
-        num_invoices = user.get_invoices.count() if user else 0
+        num_invoices = self.user.get_invoices.count() if self.user else 0
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
@@ -160,6 +160,16 @@ class InvoiceForm(forms.ModelForm):
         if not all(x.isalpha() or x.isspace() for x in email_recipient_name):
             raise ValidationError("Only valid names allowed.")
         return email_recipient_name
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title")
+        if (
+            self.user
+            and self.user.get_invoices.count() > 0
+            and self.user.get_invoices.filter(title=title).exists()
+        ):
+            raise ValidationError("Duplicate invoice title not allowed.")
+        return title
 
 
 class PayInvoiceForm(forms.Form):

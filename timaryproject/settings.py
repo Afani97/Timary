@@ -205,6 +205,7 @@ CSP_SCRIPT_SRC = (
     "'nonce-pay-invoice'",
     "'nonce-clear-hours-modal'",
     "'nonce-clear-invoice-modal'",
+    "'nonce-reset-new-invoice-modal'",
     "'nonce-hours-timer'",
     "'nonce-update-subscription'",
     "https://unpkg.com/htmx.org@1.7.0",
