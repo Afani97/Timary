@@ -23,12 +23,12 @@ def create_new_ref_number():
 
 def validate_less_than_24_hours(value):
     if value > 23.5:
-        raise ValidationError(f"{value} cannot be greater than 24 hours")
+        raise ValidationError("Cannot log greater than 24 hours")
 
 
 def validate_greater_than_zero_hours(value):
     if value < 0:
-        raise ValidationError(f"{value} cannot be less than 0 hours")
+        raise ValidationError("Cannot log less than 0 hours")
 
 
 class BaseModel(models.Model):

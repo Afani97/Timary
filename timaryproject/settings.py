@@ -204,6 +204,7 @@ CSP_SCRIPT_SRC = (
     "'nonce-base'",
     "'nonce-pay-invoice'",
     "'nonce-clear-hours-modal'",
+    "'nonce-reset-new-hour-modal'",
     "'nonce-clear-invoice-modal'",
     "'nonce-reset-new-invoice-modal'",
     "'nonce-hours-timer'",

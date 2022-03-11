@@ -50,10 +50,6 @@
     </script>
 
     <script nonce="reset-new-invoice-modal">
-        document.body.addEventListener("resetNewInvoiceModal", function(){
-            document.getElementById("close-invoice-modal").click();
-            document.getElementById("new-invoice-form").reset();
-        })
         document.body.addEventListener('htmx:beforeSwap', function(evt) {
             let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialInvoiceModal");
             if (clearInitialForm === "resetNewInvoiceModal") {

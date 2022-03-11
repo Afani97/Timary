@@ -35,11 +35,20 @@ class TestDailyHours(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_create_daily_hours_error(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
-            data={},
+            data={
+                "hours": -1,
+                "date_tracked": datetime.date.today(),
+                "invoice": invoice.id,
+            },
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML(
+            "Cannot log less than 0 hours", response.content.decode("utf-8")
+        )
 
     def test_get_hours(self):
         rendered_template = self.setup_template(

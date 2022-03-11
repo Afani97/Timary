@@ -62,6 +62,14 @@
             document.getElementById("start_timer").addEventListener("click", start);
         })
     </script>
+    <script nonce="reset-new-hour-modal">
+        document.body.addEventListener('htmx:beforeSwap', function(evt) {
+            let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialHourModal");
+            if (clearInitialForm === "resetNewHourModal") {
+                document.getElementById("new-hours-form").remove();
+            }
+        });
+    </script>
     <script nonce="hours-timer">
         let timer_container = document.getElementById("timer_container");
         let start_timer_btn = document.getElementById("start_timer");

@@ -52,7 +52,7 @@ class DailyHoursForm(forms.ModelForm):
                     "value": 1.0,
                     "max": 24,
                     "min": 0,
-                    "step": 0.01,
+                    "step": 0.1,
                     "class": "input input-bordered text-lg w-full",
                 },
             ),
