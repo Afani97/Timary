@@ -178,12 +178,24 @@ class PayInvoiceForm(forms.Form):
     email = forms.EmailField(
         label="Your email",
         widget=forms.TextInput(
-            attrs={"placeholder": "john@appleseed.com", "classes": "col-span-2"}
+            attrs={
+                "placeholder": "john@appleseed.com",
+                "classes": "col-span-2",
+                "class": "input input-bordered text-lg bg-neutral "
+                "focus:border-primary focus:ring-0 focus:ring-primary w-full",
+            }
         ),
     )
     first_name = forms.CharField(
         label="Your first name",
-        widget=forms.TextInput(attrs={"placeholder": "John", "classes": "col-span-2"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "John",
+                "classes": "col-span-2",
+                "class": "input input-bordered text-lg bg-neutral "
+                "focus:border-primary focus:ring-0 focus:ring-primary w-full",
+            }
+        ),
     )
 
     def __init__(self, *args, **kwargs):

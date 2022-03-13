@@ -1,5 +1,4 @@
 {% extends 'timary/base.html' %}
-{% load filters %}
 
 {% block css %}
     <style>
@@ -167,7 +166,7 @@
                 {% for field in pay_invoice_form %}
                     <div class="form-control my-4 {{ field.field.widget.attrs.classes }}">
                         <label class="label"><span class="label-text">{{ field.label }}</span></label>
-                        {{ field | addclass:"input input-bordered text-lg bg-neutral focus:border-primary focus:ring-0 focus:ring-primary w-full" }}
+                        {{ field }}
                     </div>
                 {% endfor %}
             </div>

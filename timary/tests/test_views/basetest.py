@@ -7,11 +7,6 @@ class BaseTest(TestCase):
         self.client = Client()
 
     def setup_template(self, template_name: str, context: dict) -> Template:
-        template = Engine(
-            app_dirs=True,
-            libraries={
-                "filters": "timary.templatetags.filters",
-            },
-        ).get_template(template_name)
+        template = Engine(app_dirs=True).get_template(template_name)
         context = Context(context)
         return template.render(context)
