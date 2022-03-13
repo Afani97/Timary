@@ -23,6 +23,7 @@ urlpatterns = [
         views.confirm_close_account,
         name="confirm_close_account",
     ),
+    path("questions/", views.questions, name="questions"),
 ]
 
 

@@ -10,9 +10,14 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <meta name="theme-color" content="#2b2e36">
         <title>Hello from Timary!</title>
+        <style>
+            [data-loading] {
+                display: none;
+            }
+        </style>
         {% block css %}{% endblock %}
     </head>
-    <body>
+    <body class="static h-screen">
 
         {% include "partials/_navbar.html" %}
 
@@ -21,6 +26,26 @@
             {% block content %}{% endblock %}
         </main>
 
+        {% if request.user.is_authenticated %}
+            <div class="fixed bottom-0 right-0 mr-4 mb-4">
+                <label for="questions-modal" class="btn btn-primary btn-xs modal-button">Questions?</label>
+            </div>
+
+            <input type="checkbox" id="questions-modal" class="modal-toggle">
+            <div class="modal">
+                <div class="modal-box relative">
+                    <label for="questions-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+                    <form hx-post="/questions/">
+                        <h3 class="text-lg font-bold">Let me get you unstuck</h3>
+                        <p class="py-4">If something can be done better or you are getting an error, please let me know!</p>
+                        <textarea name="question" class="textarea textarea-bordered text-xl w-full" rows="7" placeholder="I need help with..." required></textarea>
+                        <div class="flex justify-center mt-4">
+                            <button type="submit" class="btn btn-primary mx-auto">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
 
         {# Third Part JS #}
         <script src="https://unpkg.com/htmx.org@1.7.0" async></script>

@@ -1,11 +1,13 @@
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.db.models import F, Sum
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import DailyHoursForm
+from timary.forms import DailyHoursForm, QuestionsForm
 from timary.models import DailyHoursInput
 from timary.services.stripe_service import StripeService
 
@@ -26,6 +28,24 @@ def terms_page(request):
 
 def privacy_page(request):
     return render(request, "company/privacy.html", {})
+
+
+@login_required()
+@require_http_methods(["POST"])
+def questions(request):
+    questions_form = QuestionsForm(request.POST)
+    if questions_form.is_valid():
+        send_mail(
+            f"{request.user.first_name} ({request.user.email}) asked a question",
+            questions_form.cleaned_data.get("question", ""),
+            None,
+            recipient_list=["ari@usetimary.com"],
+            fail_silently=False,
+        )
+        return HttpResponse("Your request has been sent. Thanks!")
+    return HttpResponse(
+        "Oops, something went wrong, please refresh the page and try again."
+    )
 
 
 def get_dashboard_stats(hours_tracked):

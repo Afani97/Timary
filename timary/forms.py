@@ -435,3 +435,10 @@ class LoginForm(forms.Form):
 
     class Meta:
         fields = ["email", "password"]
+
+
+class QuestionsForm(forms.Form):
+    question = forms.CharField(required=True)
+
+    class Meta:
+        fields = ["question"]
