@@ -13,6 +13,7 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from timary.forms import SettingsForm, UserForm
 from timary.models import SentInvoice, User
 from timary.services.stripe_service import StripeService
+from timary.utils import render_form_errors
 
 
 @login_required()
@@ -42,6 +43,7 @@ def edit_user_profile(request):
     profile_form = UserForm(instance=request.user, is_mobile=request.is_mobile)
     ctx = {}
     ctx.update(csrf(request))
+    profile_form.helper.layout.insert(0, render_form_errors(profile_form))
     html_form = render_crispy_form(profile_form, context=ctx)
     return HttpResponse(html_form)
 
@@ -54,8 +56,10 @@ def update_user_profile(request):
     if user_form.is_valid():
         user = user_form.save()
         return render(request, "partials/_profile.html", {"user": user})
+
     ctx = {}
     ctx.update(csrf(request))
+    user_form.helper.layout.insert(0, render_form_errors(user_form))
     html_form = render_crispy_form(user_form, context=ctx)
     return HttpResponse(html_form)
 

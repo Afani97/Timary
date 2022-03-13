@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
+from timary.utils import render_form_errors
 
 
 @login_required()
@@ -26,6 +27,7 @@ def create_daily_hours(request):
         return response
     ctx = {}
     ctx.update(csrf(request))
+    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
     response = HttpResponse(html_form)
     response["HX-Retarget"] = ".modal-box"
@@ -57,6 +59,7 @@ def edit_hours(request, hours_id):
     )
     ctx = {}
     ctx.update(csrf(request))
+    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
     return HttpResponse(html_form)
 
@@ -82,6 +85,7 @@ def update_hours(request, hours_id):
         return response
     ctx = {}
     ctx.update(csrf(request))
+    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
     return HttpResponse(html_form, status=400)
 

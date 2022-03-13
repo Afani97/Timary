@@ -107,13 +107,7 @@ class TestUserProfile(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertInHTML(
-            f"""
-            <input type="email" name="email" value="{user.email}" placeholder="john@appleseed.com"
-            class="input input-bordered text-lg w-full emailinput" required id="id_email">
-            <span id="error_1_id_email" class="help-inline">
-                <strong>Email already registered!</strong>
-            </span>
-            """,
+            '<li class="text-error">Email already registered!</li>',
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.status_code, 200)

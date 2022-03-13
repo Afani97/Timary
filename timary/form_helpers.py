@@ -10,7 +10,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
         "hours",
         "date_tracked",
         "invoice",
-        css_class=f"card-body flex {flex_dir} justify-center space-x-5 my-5",
+        css_class=f"card-body flex {flex_dir} justify-center space-x-5 ",
     )
     mobile_rows = Column(
         Row(
@@ -33,7 +33,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
                 "hx-target": "#hours-list",
                 "hx-swap": "afterbegin",
             },
-            "form_class": "card pb-5 bg-neutral text-neutral-content",
+            "form_class": "card bg-neutral text-neutral-content",
             "layout": Layout(
                 rows,
                 ButtonHolder(

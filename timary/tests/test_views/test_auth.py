@@ -26,7 +26,7 @@ class TestAuthViews(TestCase):
             reverse("timary:login"), {"email": "user@test.com", "password": "pass"}
         )
         self.assertInHTML(
-            "<strong>Unable to verify credentials</strong>",
+            "Unable to verify credentials",
             response.content.decode("utf-8"),
         )
 

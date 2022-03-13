@@ -33,6 +33,7 @@ class DailyHoursForm(forms.ModelForm):
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
+        self.helper.form_show_errors = False
         helper_attributes = hours_form_helper(request_method, is_mobile, self.instance)
         for key in helper_attributes:
             setattr(self.helper, key, helper_attributes[key])
@@ -96,6 +97,7 @@ class InvoiceForm(forms.ModelForm):
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
+        self.helper.form_show_errors = False
         helper_attributes = invoice_form_helper(
             request_method, is_mobile, self.instance, num_invoices != 0
         )
@@ -258,6 +260,7 @@ class UserForm(forms.ModelForm):
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
+        self.helper.form_show_errors = False
         helper_attributes = profile_form_helper(is_mobile)
         for key in helper_attributes:
             setattr(self.helper, key, helper_attributes[key])
@@ -346,6 +349,7 @@ class RegisterForm(forms.ModelForm):
 
         self.helper = FormHelper(self)
         self.helper.form_method = "post"
+        self.helper.form_show_errors = False
         helper_attributes = register_form_helper()
         for key in helper_attributes:
             setattr(self.helper, key, helper_attributes[key])
@@ -412,6 +416,7 @@ class LoginForm(forms.Form):
 
         self.helper = FormHelper(self)
         self.helper.form_method = "post"
+        self.helper.form_show_errors = False
         helper_attributes = login_form_helper()
         for key in helper_attributes:
             setattr(self.helper, key, helper_attributes[key])
