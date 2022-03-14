@@ -168,6 +168,7 @@ class InvoiceForm(forms.ModelForm):
         if (
             self.user
             and self.user.get_invoices.count() > 0
+            and self.instance.title != title
             and self.user.get_invoices.filter(title=title).exists()
         ):
             raise ValidationError("Duplicate invoice title not allowed.")
