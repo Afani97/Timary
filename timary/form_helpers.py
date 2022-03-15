@@ -252,7 +252,12 @@ def login_form_helper():
         "layout": Layout(
             Column(
                 "email",
-                "password",
+                Column(
+                    "password",
+                    HTML(
+                        '<a href="{% url "password_reset" %}" class="link">Forgot password?</a>'
+                    ),
+                ),
                 css_class="card-body flex justify-center",
             ),
             ButtonHolder(
