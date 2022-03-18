@@ -37,17 +37,19 @@
 
         </div>
 
-        {% if invoice.get_hours_tracked.count > 0 %}
-            <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-3">
-                <div class="collapse-title text-xl font-medium">View hours logged this period</div>
-                <div class="collapse-content" id="hours-logged">
-                    <ul class="list-disc mx-5">
-                        {% for hour in invoice.get_hours_tracked %}
-                            <li class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
-                        {% endfor %}
-                    </ul>
+        {% if invoice.user.can_view_invoice_stats %}
+            {% if invoice.get_hours_tracked.count > 0 %}
+                <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-3">
+                    <div class="collapse-title text-xl font-medium">View hours logged this period</div>
+                    <div class="collapse-content" id="hours-logged">
+                        <ul class="list-disc mx-5">
+                            {% for hour in invoice.get_hours_tracked %}
+                                <li class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         {% endif %}
     </div>
 </li>

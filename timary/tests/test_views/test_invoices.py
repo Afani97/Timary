@@ -137,6 +137,28 @@ class TestInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
 
+    def test_starter_cannot_view_invoice_stats(self):
+        user = UserFactory(membership_tier=5)
+        hour = DailyHoursFactory(invoice__user=user)
+        response = self.client.get(
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": hour.invoice.id})
+        )
+        with self.assertRaises(AssertionError):
+            self.assertInHTML(
+                "View hours logged this period",
+                response.content.decode("utf-8"),
+            )
+
+    def test_professional_or_biz_can_view_invoice_stats(self):
+        DailyHoursFactory(invoice=self.invoice)
+        response = self.client.get(
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
+        )
+        self.assertInHTML(
+            "View hours logged this period",
+            response.content.decode("utf-8"),
+        )
+
     def test_get_invoice_error(self):
         response = self.client.get(
             reverse(
