@@ -65,6 +65,19 @@
                     </div>
                 </div>
 
+                <div class="stat flex flex-row md:flex-col justify-center content-center justify-between">
+                    <div>
+                        <div class="stat-title">Fee</div>
+                        <div class="stat-value">1% fee</div>
+                        <div class="stat-desc">same features as Business</div>
+                    </div>
+                    <div>
+                        <div class="stat-actions">
+                            <button class="btn btn-sm btn-accent btn-outline" type="button" id="Invoice_Fee">Select</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -85,10 +98,12 @@
     var starter_plan = document.getElementById("Starter");
     var professional_plan = document.getElementById("Professional");
     var business_plan = document.getElementById("Business");
+    var invoice_fee_plan = document.getElementById("Invoice_Fee")
 
     starter_plan.addEventListener("click", selectSubscriptionPlan);
     professional_plan.addEventListener("click", selectSubscriptionPlan);
     business_plan.addEventListener("click", selectSubscriptionPlan);
+    invoice_fee_plan.addEventListener("click", selectSubscriptionPlan);
 
     function selectSubscriptionPlan(e) {
         e.preventDefault();

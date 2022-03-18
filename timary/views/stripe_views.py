@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
-from timary.models import SentInvoice
+from timary.models import SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.stripe_service import StripeService
@@ -68,17 +68,13 @@ def invoice_payment_success(request, sent_invoice_id):
 @require_http_methods(["GET"])
 @login_required()
 def onboard_success(request):
-    success = StripeService.create_subscription(request.user)
-    if success:
-        connect_account = StripeService.get_connect_account(
-            request.user.stripe_connect_id
-        )
-        request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-        request.user.save()
-        return redirect(reverse("timary:manage_invoices"))
-    else:
-        # TODO: Redirect to error page to error missing details
-        return redirect(reverse("timary:index"))
+    if request.user.membership_tier != User.MembershipTier.INVOICE_FEE:
+        StripeService.create_subscription(request.user)
+
+    connect_account = StripeService.get_connect_account(request.user.stripe_connect_id)
+    request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
+    request.user.save()
+    return redirect(reverse("timary:manage_invoices"))
 
 
 @require_http_methods(["GET"])

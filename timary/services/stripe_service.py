@@ -3,6 +3,8 @@ import time
 import stripe
 from django.conf import settings
 
+from timary.models import User
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -75,12 +77,17 @@ class StripeService:
     @classmethod
     def create_payment_intent_for_payout(cls, sent_invoice):
         stripe.api_key = cls.stripe_api_key
+        application_fee = 0
+        if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
+            application_fee = int(sent_invoice.total_price)
         intent = stripe.PaymentIntent.create(
-            amount=sent_invoice.total_price * 100,
+            payment_method_types=["card"],
+            amount=int(sent_invoice.total_price * 100),
             currency="usd",
             automatic_payment_methods={
                 "enabled": True,
             },
+            application_fee_amount=application_fee,
             transfer_data={
                 "destination": sent_invoice.user.stripe_connect_id,
             },
@@ -116,7 +123,6 @@ class StripeService:
         )
         user.stripe_subscription_id = subscription["id"]
         user.save()
-        return True
 
     @classmethod
     def get_connect_account(cls, account_id):

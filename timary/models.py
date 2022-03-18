@@ -262,6 +262,7 @@ class User(AbstractUser, BaseModel):
         STARTER = 5, "STARTER"
         PROFESSIONAL = 19, "PROFESSIONAL"
         BUSINESS = 49, "BUSINESS"
+        INVOICE_FEE = 1, "INVOICE_FEE"
 
     membership_tier = models.PositiveSmallIntegerField(
         default=MembershipTier.STARTER,
@@ -337,6 +338,7 @@ class User(AbstractUser, BaseModel):
         return (
             self.membership_tier == User.MembershipTier.PROFESSIONAL
             or self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
     @property
@@ -344,11 +346,15 @@ class User(AbstractUser, BaseModel):
         return (
             self.membership_tier == User.MembershipTier.PROFESSIONAL
             or self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
     @property
     def can_integrate_with_accounting_tools(self):
-        return self.membership_tier == User.MembershipTier.BUSINESS
+        return (
+            self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        )
 
     @property
     def can_create_invoices(self):
@@ -360,14 +366,20 @@ class User(AbstractUser, BaseModel):
             return False
         elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
             return invoices_count <= 1
-        elif self.membership_tier == User.MembershipTier.BUSINESS:
+        elif (
+            self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        ):
             return True
         else:
             return False
 
     @property
     def can_download_audit(self):
-        return self.membership_tier == User.MembershipTier.BUSINESS
+        return (
+            self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        )
 
     @property
     def upgrade_invoice_message(self):

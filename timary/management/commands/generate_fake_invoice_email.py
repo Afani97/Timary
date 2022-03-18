@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # Membership type
-        # FREE => 1, BASIC => 2, PREMIUM => 3
+        # FREE => 1, BASIC => 2, PREMIUM => 3, INVOICE_FEE => 4
         parser.add_argument("-mt", nargs="?", type=str, default="1")
 
     def handle(self, *args, **options):
@@ -20,8 +20,8 @@ class Command(BaseCommand):
             "1": User.MembershipTier.STARTER,
             "2": User.MembershipTier.PROFESSIONAL,
             "3": User.MembershipTier.BUSINESS,
+            "4": User.MembershipTier.INVOICE_FEE,
         }
-
         user = UserFactory(
             email="aristotelf@gmail.com",
             membership_tier=membership_tiers[options["mt"]],
