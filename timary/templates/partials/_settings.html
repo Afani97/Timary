@@ -3,13 +3,14 @@
         <tbody>
             {% include 'partials/settings/_sms.html' with settings=settings %}
             {% include 'partials/settings/_membership.html' with settings=settings %}
+            {% include 'partials/settings/_payment_method.html' %}
 
             {% if settings.can_download_audit %}
-            <tr class="flex justify-between">
-                <td>Invoice audit log </td>
-                <td></td>
-                <td><a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a></td>
-            </tr>
+                <tr class="flex justify-between">
+                    <td>Invoice audit log </td>
+                    <td></td>
+                    <td><a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a></td>
+                </tr>
             {% endif %}
         </tbody>
     </table>

@@ -48,6 +48,11 @@ urlpatterns += [
         name="update_membership_settings",
     ),
     path(
+        "profile/settings/payment-method/",
+        views.update_payment_method_settings,
+        name="update_payment_method_settings",
+    ),
+    path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",

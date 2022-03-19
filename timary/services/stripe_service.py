@@ -75,6 +75,26 @@ class StripeService:
         return intent["client_secret"]
 
     @classmethod
+    def update_payment_method(cls, user, first_token, second_token):
+        stripe.api_key = cls.stripe_api_key
+        customer_source = stripe.Customer.create_source(
+            user.stripe_customer_id,
+            source=first_token,
+            stripe_account=user.stripe_connect_id,
+        )
+        _ = stripe.Customer.modify(
+            user.stripe_customer_id,
+            default_source=customer_source["id"],
+            stripe_account=user.stripe_connect_id,
+        )
+        connect_source = stripe.Account.create_external_account(
+            user.stripe_connect_id,
+            external_account=second_token,
+            default_for_currency=True,
+        )
+        return customer_source and connect_source
+
+    @classmethod
     def create_payment_intent_for_payout(cls, sent_invoice):
         stripe.api_key = cls.stripe_api_key
         application_fee = 0

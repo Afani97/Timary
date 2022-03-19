@@ -1,12 +1,15 @@
 from tempfile import NamedTemporaryFile
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from stripe.error import InvalidRequestError
 
 from timary.forms import MembershipTierSettingsForm, SMSSettingsForm
 from timary.models import SentInvoice, User
@@ -21,6 +24,8 @@ def settings_partial(request, setting):
         template = "partials/settings/_sms.html"
     if setting == "membership":
         template = "partials/settings/_membership.html"
+    if setting == "payment_method":
+        template = "partials/settings/_payment_method.html"
     return render(
         request,
         template,
@@ -93,6 +98,41 @@ def update_membership_settings(request):
         else:
             context["settings_form"] = user_settings_form
             return render(request, "partials/settings/_edit_membership.html", context)
+    else:
+        raise Http404()
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def update_payment_method_settings(request):
+    context = {
+        "client_secret": StripeService.create_payment_intent(),
+        "stripe_public_key": StripeService.stripe_public_api_key,
+    }
+    if request.method == "GET":
+        return render(request, "partials/settings/_edit_payment_method.html", context)
+
+    elif request.method == "POST":
+        request_data = request.POST.copy()
+        try:
+            success = StripeService.update_payment_method(
+                request.user,
+                request_data.pop("first_token")[0],
+                request_data.pop("second_token")[0],
+            )
+        except InvalidRequestError:
+            messages.error(
+                request, "Error updating payment method, Stripe requires a debit card."
+            )
+            return redirect(reverse("timary:user_profile"))
+        if success:
+            messages.info(request, "Successfully updated debit card.")
+        else:
+            messages.error(
+                request, "Error updating payment method, Stripe requires a debit card."
+            )
+        return redirect(reverse("timary:user_profile"))
+
     else:
         raise Http404()
 
