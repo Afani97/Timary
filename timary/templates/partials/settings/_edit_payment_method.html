@@ -1,4 +1,4 @@
-<form action="{% url 'timary:update_payment_method_settings' %}" method="post">
+<form action="{% url 'timary:update_payment_method_settings' %}" method="post" class="col-span-3">
     {% csrf_token %}
     <div class="form-control">
         <label class="label"><span class="label-text">Debit card</span> </label>
@@ -9,7 +9,7 @@
         </label>
     </div>
 
-    <div class="flex justify-center">
+    <div class="flex justify-center space-x-4">
         <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost"> Cancel </a>
         <button class="btn btn-primary" id="submit-form" type="submit" hx-indicator="#spinnr"> Update </button>
     </div>

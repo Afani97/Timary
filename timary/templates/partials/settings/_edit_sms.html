@@ -1,25 +1,26 @@
 <form
     hx-put="{% url 'timary:update_sms_settings' %}"
     hx-target="this"
-    hx-swap="outerHTML">
+    hx-swap="outerHTML"
+    class="col-span-3">
     {% csrf_token %}
     <div class="flex justify-center space-x-5 mb-10">
-    {% for value, text in settings_form.phone_number_availability.field.choices %}
-        <div class="form-control">
-            <label class="label" for="id_phone_number_availability_{{ forloop.counter0 }}"><span class="label-text">{{ text }}</span></label>
-            <input
-                id="id_phone_number_availability_{{ forloop.counter0 }}"
-                name="{{ settings_form.phone_number_availability.name }}"
-                type="checkbox"
-                class="checkbox"
-                value="{{ value }}"
-                {% if value in settings.phone_number_availability %} checked="checked" {% endif %}
-            >
-        </div>
-    {% endfor %}
+        {% for value, text in settings_form.phone_number_availability.field.choices %}
+            <div class="form-control">
+                <label class="label" for="id_phone_number_availability_{{ forloop.counter0 }}"><span class="label-text">{{ text }}</span></label>
+                <input
+                    id="id_phone_number_availability_{{ forloop.counter0 }}"
+                    name="{{ settings_form.phone_number_availability.name }}"
+                    type="checkbox"
+                    class="checkbox"
+                    value="{{ value }}"
+                    {% if value in settings.phone_number_availability %} checked="checked" {% endif %}
+                >
+            </div>
+        {% endfor %}
     </div>
     <div class="flex justify-center space-x-4">
         <a hx-get="{% url 'timary:settings_partial' setting='sms'%}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost">Cancel</a>
-        <button type="submit" class="btn">Update</button>
+        <button type="submit" class="btn btn-primary">Update</button>
     </div>
 </form>

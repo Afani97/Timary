@@ -1,14 +1,10 @@
-<tr class="flex justify-between">
-    <td>
-        <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
-            <span>Payment method</span>
-        </div>
-    </td>
+<div class="container col-span-3 grid grid-cols-3 gap-4">
 
-    <td></td>
-    <td><a class="link"
+    <div> Payment method </div>
+    <div></div>
+    <a class="link"
         hx-get="{% url 'timary:update_payment_method_settings' %}"
-        hx-target="closest tr"
+        hx-target="closest .container"
         hx-swap="outerHTML"
-        hx-indicator="#settings_spinnr">Update</a></td>
-</tr>
+        hx-indicator="#settings_spinnr">Update</a>
+</div>

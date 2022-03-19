@@ -1,18 +1,12 @@
-<div class="card bg-base-200 bordered pt-10" id="user-settings">
-    <table class="table w-full max-w-xl mx-auto">
-        <tbody>
-            {% include 'partials/settings/_sms.html' with settings=settings %}
-            {% include 'partials/settings/_membership.html' with settings=settings %}
-            {% include 'partials/settings/_payment_method.html' %}
+<div class="grid grid-cols-3 gap-4 space-y-2" id="user-settings">
+    {% include 'partials/settings/_sms.html' with settings=settings %}
+    {% include 'partials/settings/_membership.html' with settings=settings %}
+    {% include 'partials/settings/_payment_method.html' %}
 
-            {% if settings.can_download_audit %}
-                <tr class="flex justify-between">
-                    <td>Invoice audit log </td>
-                    <td></td>
-                    <td><a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a></td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    {% include "partials/_spinnr.html" with spinner_id="settings_spinnr" %}
+    {% if settings.can_download_audit %}
+        <div>Invoice audit log</div>
+        <div></div>
+        <a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a>
+    {% endif %}
 </div>
+{% include "partials/_spinnr.html" with spinner_id="settings_spinnr" %}

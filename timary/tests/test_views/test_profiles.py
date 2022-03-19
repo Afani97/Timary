@@ -139,7 +139,7 @@ class TestUserProfile(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertInHTML(
-            "<td>  Mon </td>",
+            "<div>  Mon </div>",
             response.content.decode("utf-8"),
         )
 
@@ -176,20 +176,20 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <tr class="flex justify-between">
-                <td>
+            <div class="container col-span-3 grid grid-cols-3 gap-4">
+                <div>
                     <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
                         <span>SMS days preferred:</span>
                     </div>
-                </td>
+                </div>
 
-                <td>  Tue </td>
-                <td><a class="link"
+                <div>  Tue </div>
+                <a class="link"
                        hx-get="/profile/settings/sms/"
-                       hx-target="closest tr"
+                       hx-target="closest .container"
                        hx-swap="outerHTML"
-                       hx-indicator="#settings_spinnr">Edit availability</a></td>
-            </tr>
+                       hx-indicator="#settings_spinnr">Edit availability</a>
+            </div>
             """,
             response.content.decode("utf-8"),
         )
@@ -228,11 +228,9 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <tr class="flex justify-between">
-                <td>Invoice audit log </td>
-                <td></td>
-                <td><a href="/audit/" class="btn btn-sm">Download</a></td>
-            </tr>
+            <div>Invoice audit log </div>
+            <div></div>
+            <a href="/audit/" class="btn btn-sm">Download</a>
             """,
             response.content.decode("utf-8"),
         )
@@ -261,7 +259,7 @@ class TestUserSettings(BaseTest):
         )
         self.user.refresh_from_db()
         self.assertInHTML(
-            "<td>Mon Tue</td>",
+            "<div>Mon Tue</div>",
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")

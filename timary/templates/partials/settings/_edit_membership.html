@@ -2,7 +2,9 @@
     hx-put="{% url 'timary:update_membership_settings' %}"
     hx-target="this"
     hx-swap="outerHTML"
-    hx-vals='js:{membership_tier: get_membership_tier()}'>
+    hx-vals='js:{membership_tier: get_membership_tier()}'
+    class="col-span-3"
+>
     {% csrf_token %}
     <div class="flex justify-center space-x-5">
         <div class="shadow stats flex flex-col w-full md:flex-row mb-10 mx-5">
@@ -60,9 +62,9 @@
 
         </div>
     </div>
-    <div class="card-actions flex justify-center">
+    <div class="card-actions flex justify-center space-x-4">
         <a class="btn btn-ghost" hx-get="{% url 'timary:settings_partial' setting="membership" %}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#settings_spinnr"> Cancel </a>
-        <button class="btn" type="submit" hx-indicator="#settings_spinnr"> Update </button>
+        <button class="btn btn-primary" type="submit" hx-indicator="#settings_spinnr"> Update </button>
         {% include "partials/_spinnr.html" with spinner_id="settings_spinnr"%}
     </div>
 
