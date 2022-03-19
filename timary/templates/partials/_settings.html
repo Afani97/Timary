@@ -1,47 +1,17 @@
 <div class="card bg-base-200 bordered pt-10" id="user-settings">
-    <div class="card-body items-center text-center">
-        <div class="tooltip" data-tip="To log hours by text, your membership tier needs to be either Professional or Business.">
-            <h2 class="card-title">Phone number availability</h2>
-        </div>
-        <div class="flex justify-center space-x-5">
-            {% for day in settings.phone_number_availability %}
-                <div class="form-control">
-                    <label class="label" for="{{ day }}"><span class="label-text">{{ day }}</span></label>
-                    <input
-                        id="{{ day }}"
-                        type="checkbox"
-                        class="checkbox checkbox-primary"
-                        checked="checked"
-                        disabled
-                    >
-                </div>
-            {% empty %}
-                <label>Update availability to receive texts</label>
-            {% endfor %}
-        </div>
+    <table class="table w-full max-w-xl mx-auto">
+        <tbody>
+            {% include 'partials/settings/_sms.html' with settings=settings %}
+            {% include 'partials/settings/_membership.html' with settings=settings %}
 
-        <div class="tooltip mt-10" data-tip="Edit settings to change tier.">
-            <h2 class="card-title">Membership tier</h2>
-            <p>Current: {{ settings.current_plan }}</p>
-        </div>
-
-        {% if settings.can_download_audit %}
-            <h2 class="card-title text-center mt-10">Audit trail</h2>
-            <div class="mb-10">
-                <a href="{% url 'timary:audit' %}" class="btn btn-outline btn-accent">Download Audit</a>
-            </div>
-        {% endif %}
-
-        <div class="card-actions flex justify-center my-4">
-            <button class="btn btn-primary"
-                hx-get="{% url 'timary:update_user_settings' %}"
-                hx-target="#user-settings"
-                hx-swap="outerHTML"
-                hx-indicator="#settings_spinnr">
-                Edit Settings
-            </button>
-        </div>
-        {% include "partials/_spinnr.html" with spinner_id="settings_spinnr" %}
-    </div>
-
+            {% if settings.can_download_audit %}
+            <tr class="flex justify-between">
+                <td>Invoice audit log </td>
+                <td></td>
+                <td><a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a></td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% include "partials/_spinnr.html" with spinner_id="settings_spinnr" %}
 </div>

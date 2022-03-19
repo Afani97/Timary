@@ -318,6 +318,18 @@ class SettingsForm(forms.ModelForm):
         fields = ["phone_number_availability", "membership_tier"]
 
 
+class SMSSettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["phone_number_availability"]
+
+
+class MembershipTierSettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["membership_tier"]
+
+
 class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",

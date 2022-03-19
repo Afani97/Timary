@@ -1,0 +1,14 @@
+<tr class="flex justify-between">
+    <td>
+        <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
+            <span>SMS days preferred:</span>
+        </div>
+    </td>
+
+    <td> {% for day in settings.phone_number_availability %} {{ day }} {% endfor %}</td>
+    <td><a class="link"
+           hx-get="{% url 'timary:update_sms_settings' %}"
+           hx-target="closest tr"
+           hx-swap="outerHTML"
+           hx-indicator="#settings_spinnr">Edit availability</a></td>
+</tr>

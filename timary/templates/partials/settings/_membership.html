@@ -1,0 +1,9 @@
+<tr class="flex justify-between">
+    <td>Membership tier: </td>
+    <td>{{ settings.current_plan }}</td>
+    <td><a class="link"
+           hx-get="{% url 'timary:update_membership_settings' %}"
+           hx-target="closest tr"
+           hx-swap="outerHTML"
+           hx-indicator="#settings_spinnr">Update membership</a></td>
+</tr>
