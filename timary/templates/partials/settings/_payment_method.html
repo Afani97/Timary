@@ -1,0 +1,10 @@
+<div class="container col-span-3 grid grid-cols-3 gap-4">
+
+    <div> Payment method </div>
+    <div></div>
+    <a class="link"
+        hx-get="{% url 'timary:update_payment_method_settings' %}"
+        hx-target="closest .container"
+        hx-swap="outerHTML"
+        hx-indicator="#settings_spinnr">Update</a>
+</div>

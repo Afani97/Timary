@@ -7,9 +7,10 @@ from timary.forms import (
     DailyHoursForm,
     InvoiceForm,
     LoginForm,
+    MembershipTierSettingsForm,
     PayInvoiceForm,
     RegisterForm,
-    SettingsForm,
+    SMSSettingsForm,
     UserForm,
 )
 from timary.models import User
@@ -498,11 +499,11 @@ class TestUser(TestCase):
 
 
 class TestSettings(TestCase):
-    def test_update_settings(self):
+    def test_update_sms_settings(self):
         user = UserFactory()
-        form = SettingsForm(
+        form = SMSSettingsForm(
             instance=user,
-            data={"phone_number_availability": ["Mon", "Tue"], "membership_tier": "19"},
+            data={"phone_number_availability": ["Mon", "Tue"]},
         )
         self.assertTrue(form.is_valid())
         self.assertEqual(form.errors, {})
@@ -510,7 +511,14 @@ class TestSettings(TestCase):
         user.refresh_from_db()
         self.assertEqual(user.phone_number_availability, ["Mon", "Tue"])
 
-    def test_update_settings_errors(self):
+    def test_update_membership_tier_settings_errors(self):
         user = UserFactory()
-        form = SettingsForm(instance=user, data={})
-        self.assertEqual(form.errors, {"membership_tier": ["This field is required."]})
+        form = MembershipTierSettingsForm(
+            instance=user,
+            data={"membership_tier": "5"},
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
+        form.save()
+        user.refresh_from_db()
+        self.assertEqual(user.membership_tier, 5)

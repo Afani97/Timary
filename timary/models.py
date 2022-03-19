@@ -267,7 +267,7 @@ class User(AbstractUser, BaseModel):
     membership_tier = models.PositiveSmallIntegerField(
         default=MembershipTier.STARTER,
         choices=MembershipTier.choices,
-        blank=False,
+        blank=True,
     )
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
@@ -308,8 +308,11 @@ class User(AbstractUser, BaseModel):
             "freshbooks_connected": self.freshbooks_account_id is not None,
             "zoho_connected": False,
             "xero_connected": False,
+            "sage_connected": False,
             "can_download_audit": self.can_download_audit,
-            "current_plan": self.get_membership_tier_display().title(),
+            "current_plan": " ".join(
+                self.get_membership_tier_display().split("_")
+            ).title(),
         }
 
     @property

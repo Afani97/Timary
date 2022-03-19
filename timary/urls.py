@@ -33,13 +33,27 @@ urlpatterns += [
     path("profile/partial/", views.profile_partial, name="user_profile_partial"),
     path("profile/update/", views.update_user_profile, name="update_user_profile"),
     path("profile/edit/", views.edit_user_profile, name="edit_user_profile"),
+]
+
+# SETTINGS URLS
+urlpatterns += [
     path(
-        "profile/settings/",
-        views.update_user_settings,
-        name="update_user_settings",
+        "profile/settings/sms/",
+        views.update_sms_settings,
+        name="update_sms_settings",
     ),
     path(
-        "profile/settings/partial/",
+        "profile/settings/membership/",
+        views.update_membership_settings,
+        name="update_membership_settings",
+    ),
+    path(
+        "profile/settings/payment-method/",
+        views.update_payment_method_settings,
+        name="update_payment_method_settings",
+    ),
+    path(
+        "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",
     ),

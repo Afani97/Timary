@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.urls import reverse
 from django.utils.http import urlencode
 
+from timary.forms import SMSSettingsForm
 from timary.models import User
 from timary.tests.factories import UserFactory
 from timary.tests.test_views.basetest import BaseTest
@@ -126,23 +127,40 @@ class TestUserProfile(BaseTest):
         )
         self.assertEqual(response.status_code, 302)
 
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
-    def test_update_user_subscription(self, stripe_subscription_mock):
-        stripe_subscription_mock.return_value = None
-        self.assertEqual(self.user.membership_tier, 19)
+    def test_update_sms_user_subscription(self):
         url_params = {
             "phone_number_availability": "Mon",
-            "membership_tier": "BUSINESS",
         }
         response = self.client.put(
-            reverse("timary:update_user_settings"),
+            reverse("timary:update_sms_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.user.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, "partials/_settings.html")
+        self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertInHTML(
-            "Current: Business",
+            "<div>  Mon </div>",
+            response.content.decode("utf-8"),
+        )
+
+    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    def test_update_membership_tier_user_subscription(self, stripe_subscription_mock):
+        stripe_subscription_mock.return_value = None
+        self.assertEqual(self.user.membership_tier, 19)
+        url_params = {
+            "membership_tier": "BUSINESS",
+        }
+        response = self.client.put(
+            reverse("timary:update_membership_settings"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/_membership.html"
+        )
+        self.assertInHTML(
+            "Business",
             response.content.decode("utf-8"),
         )
 
@@ -158,48 +176,48 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <div class="form-control">
-                <label class="label" for="Tue"><span class="label-text">Tue</span></label>
-                <input
-                    id="Tue"
-                    type="checkbox"
-                    class="checkbox checkbox-primary"
-                    checked="checked"
-                    disabled
-                >
+            <div class="container col-span-3 grid grid-cols-3 gap-4">
+                <div>
+                    <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
+                        <span>SMS days preferred:</span>
+                    </div>
+                </div>
+
+                <div>  Tue </div>
+                <a class="link"
+                       hx-get="/profile/settings/sms/"
+                       hx-target="closest .container"
+                       hx-swap="outerHTML"
+                       hx-indicator="#settings_spinnr">Edit availability</a>
             </div>
             """,
             response.content.decode("utf-8"),
         )
 
-    def test_get_settings_partial(self):
+    def test_get_sms_settings_partial(self):
         rendered_template = self.setup_template(
-            "partials/_settings.html",
+            "partials/settings/_sms.html",
             {
+                "settings_form": SMSSettingsForm(instance=self.user),
                 "settings": self.user.settings,
-                "current_plan": User.MembershipTier(
-                    self.user.membership_tier
-                ).name.lower(),
             },
         )
-        response = self.client.get(reverse("timary:settings_partial"))
+        response = self.client.get(
+            reverse("timary:settings_partial", kwargs={"setting": "sms"})
+        )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
-    def test_get_settings_partial_with_no_phone_avail(self):
-        self.user.phone_number_availability = None
-        self.user.save()
-        self.user.refresh_from_db()
-        response = self.client.get(reverse("timary:settings_partial"))
-        self.assertInHTML(
-            "<label>Update availability to receive texts</label>",
-            response.content.decode("utf-8"),
-        )
-
     def test_get_settings_partial_cannot_download_audit(self):
-        response = self.client.get(reverse("timary:settings_partial"))
+        response = self.client.get(reverse("timary:user_profile"))
         with self.assertRaises(AssertionError):
             self.assertInHTML(
-                "Audit trail",
+                """
+                <tr class="flex justify-between">
+                <td>Invoice audit log </td>
+                <td></td>
+                <td><a href="/audit/" class="btn btn-sm">Download</a></td>
+                </tr>
+                """,
                 response.content.decode("utf-8"),
             )
 
@@ -207,77 +225,78 @@ class TestUserSettings(BaseTest):
         self.client.logout()
         user = UserFactory(membership_tier=49)
         self.client.force_login(user=user)
-        response = self.client.get(reverse("timary:settings_partial"))
+        response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
-            "Audit trail",
+            """
+            <div>Invoice audit log </div>
+            <div></div>
+            <a href="/audit/" class="btn btn-sm">Download</a>
+            """,
             response.content.decode("utf-8"),
         )
         self.client.logout()
         self.client.force_login(user=self.user)
 
-    def test_get_edit_user_settings(self):
-        response = self.client.get(reverse("timary:update_user_settings"))
+    def test_get_edit_sms_settings(self):
+        response = self.client.get(reverse("timary:update_sms_settings"))
         for index, day in enumerate(User.WEEK_DAYS):
             with self.subTest(f"Testing {day[0]}"):
                 self.assertInHTML(
-                    f"""
-                    <div class="form-control">
-                        <label class="label" for="id_phone_number_availability_{index}">
-                            <span class="label-text">{day[0]}</span>
-                        </label>
-                        <input
-                            id="id_phone_number_availability_{index}"
-                            name="phone_number_availability"
-                            type="checkbox"
-                            class="checkbox"
-                            value="{day[0]}"
-                            {'checked=checked' if day[0] in self.user.phone_number_availability else ""}
-                        >
-                    </div>
-                    """,
+                    day[0],
                     response.content.decode("utf-8"),
                 )
-        self.assertEqual(response.templates[0].name, "partials/_settings_form.html")
+        self.assertEqual(response.templates[0].name, "partials/settings/_edit_sms.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_sms_settings(self):
+        url_params = [
+            ("phone_number_availability", "Mon"),
+            ("phone_number_availability", "Tue"),
+        ]
+        response = self.client.put(
+            reverse("timary:update_sms_settings"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+        self.user.refresh_from_db()
+        self.assertInHTML(
+            "<div>Mon Tue</div>",
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_edit_membership_tier_settings(self):
+        response = self.client.get(reverse("timary:update_membership_settings"))
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/_edit_membership.html"
+        )
         self.assertEqual(response.status_code, 200)
 
     @patch(
         "timary.services.stripe_service.StripeService.create_subscription",
         return_value=None,
     )
-    def test_update_user_settings(self, stripe_mock):
-        url_params = [
-            ("phone_number_availability", "Mon"),
-            ("phone_number_availability", "Tue"),
-            ("membership_tier", "STARTER"),
-        ]
+    def test_update_membership_tier_settings(self, stripe_mock):
+        url_params = [("membership_tier", "BUSINESS")]
         response = self.client.put(
-            reverse("timary:update_user_settings"),
+            reverse("timary:update_membership_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.user.refresh_from_db()
-        for index, day in enumerate(["Mon", "Tue"]):
-            with self.subTest(f"Testing {day}"):
-                self.assertInHTML(
-                    f"""
-                    <div class="form-control">
-                        <label class="label" for="{day}"><span class="label-text">{day}</span></label>
-                        <input
-                            id="{day}"
-                            type="checkbox"
-                            class="checkbox checkbox-primary"
-                            checked="checked"
-                            disabled
-                        >
-                    </div>
-                    """,
-                    response.content.decode("utf-8"),
-                )
-        self.assertEqual(response.templates[0].name, "partials/_settings.html")
+        self.assertInHTML(
+            "Business",
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/_membership.html"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_profile_partial_redirect(self):
         self.client.logout()
-        response = self.client.get(reverse("timary:settings_partial"))
+        response = self.client.get(
+            reverse("timary:settings_partial", kwargs={"setting": "sms"})
+        )
         self.assertEqual(response.status_code, 302)
 
     def test_update_settings_redirect(self):
@@ -287,7 +306,7 @@ class TestUserSettings(BaseTest):
             ("phone_number_availability", "Tue"),
         ]
         response = self.client.put(
-            reverse("timary:update_user_settings"),
+            reverse("timary:update_sms_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertEqual(response.status_code, 302)
