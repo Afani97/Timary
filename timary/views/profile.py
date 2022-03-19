@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import SettingsForm, UserForm
+from timary.forms import UserForm
 from timary.utils import render_form_errors
 
 

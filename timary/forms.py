@@ -312,12 +312,6 @@ class UserForm(forms.ModelForm):
         return user
 
 
-class SettingsForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ["phone_number_availability", "membership_tier"]
-
-
 class SMSSettingsForm(forms.ModelForm):
     class Meta:
         model = User
