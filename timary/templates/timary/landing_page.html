@@ -225,13 +225,6 @@
                                         </svg>
                                     </span>Log hours through text
                                 </p>
-                                <p class="flex items-center text-gray-400 mb-6">
-                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
-                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
-                                            <path d="M20 6L9 17l-5-5"></path>
-                                        </svg>
-                                    </span>View stats per invoice
-                                </p>
                                 <a href="{% url 'timary:register' %}" class="flex items-center mt-auto text-white bg-indigo-500 border-0 py-2 px-4 w-full focus:outline-none hover:bg-indigo-600 rounded">Upgrade your workflow
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-auto" viewBox="0 0 24 24">
                                         <path d="M5 12h14M12 5l7 7-7 7"></path>
@@ -268,19 +261,26 @@
                                         </svg>
                                     </span>Sync with accounting software
                                 </p>
+                                {#                                <p class="flex items-center text-gray-400 mb-2">#}
+                                {#                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">#}
+                                {#                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">#}
+                                {#                                            <path d="M20 6L9 17l-5-5"></path>#}
+                                {#                                        </svg>#}
+                                {#                                    </span>Custom invoice branding#}
+                                {#                                </p>#}
                                 <p class="flex items-center text-gray-400 mb-2">
                                     <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
                                         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
                                             <path d="M20 6L9 17l-5-5"></path>
                                         </svg>
-                                    </span>Custom invoice branding
+                                    </span>Analytics for growth
                                 </p>
                                 <p class="flex items-center text-gray-400 mb-6">
                                     <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
                                         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
                                             <path d="M20 6L9 17l-5-5"></path>
                                         </svg>
-                                    </span>Analytics for growth
+                                    </span>View stats per invoice
                                 </p>
                                 <a href="{% url 'timary:register' %}" class="flex items-center mt-auto text-white bg-gray-800 border-0 py-2 px-4 w-full focus:outline-none hover:bg-gray-700 rounded">Reach for the moon!
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-auto" viewBox="0 0 24 24">
@@ -294,10 +294,10 @@
                         <div class="p-4 xl:w-1/4 md:w-1/2 w-full">
                             <div class="h-full p-6 rounded-lg border-2 border-gray-700 flex flex-col relative overflow-hidden">
                                 <h2 class="text-sm tracking-widest text-gray-400 title-font mb-1 font-medium">USAGE BASED</h2>
-                                <h1 class="text-5xl text-white leading-none pb-4 mb-4 border-b border-gray-800">
+                                <h1 class="text-5xl text-white leading-none">
                                     <span>1% fee</span>
-                                    <span class="text-sm ml-1 font-normal text-gray-400">per invoice payment.</span>
                                 </h1>
+                                <span class="text-sm ml-1 font-normal text-gray-400 mb-4 pb-4 border-b border-gray-800">per invoice payment.</span>
                                 <p class="flex items-center text-gray-400 mb-2">
                                     <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
                                         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
@@ -312,12 +312,12 @@
                                         </svg>
                                     </span>For folks whose invoicing is not predictable
                                 </p>
-                                <a href="{% url 'timary:register' %}" class="flex items-center mt-auto text-white bg-gray-800 border-0 py-2 px-4 w-full focus:outline-none hover:bg-gray-700 rounded">Reach for the moon!
+                                <a href="{% url 'timary:register' %}" class="flex items-center mt-auto text-white bg-gray-800 border-0 py-2 px-4 w-full focus:outline-none hover:bg-gray-700 rounded">Start me off easy
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-auto" viewBox="0 0 24 24">
                                         <path d="M5 12h14M12 5l7 7-7 7"></path>
                                     </svg>
                                 </a>
-                                <p class="text-xs text-gray-400 mt-3">You can convert to monthly pricing anytime.</p>
+                                <p class="text-xs text-gray-400 mt-3">You can switch to monthly anytime.</p>
                             </div>
                         </div>
                     </div>

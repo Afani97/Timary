@@ -1,11 +1,9 @@
-<div class="container col-span-3 grid grid-cols-3 gap-4">
-
-
-    <div>Membership tier: </div>
-    <div>{{ settings.current_plan }}</div>
-    <a class="link"
+<div class="wrapper flex justify-between items-center">
+    <div class="text-left">Membership tier: </div>
+    <div class="text-left">{{ settings.current_plan }}</div>
+    <a class="link text-right"
         hx-get="{% url 'timary:update_membership_settings' %}"
-        hx-target="closest .container"
+        hx-target="closest .wrapper"
         hx-swap="outerHTML"
         hx-indicator="#settings_spinnr">Update membership</a>
 </div>

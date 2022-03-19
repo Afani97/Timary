@@ -21,9 +21,11 @@ class TestInvoices(BaseTest):
         super().setUp()
 
         self.user = UserFactory()
+        self.biz_user = UserFactory(membership_tier=49)
         self.client.force_login(self.user)
         self.invoice = InvoiceFactory(user=self.user)
         self.invoice_no_user = InvoiceFactory()
+        self.biz_invoice = InvoiceFactory(user=self.biz_user)
 
     def test_create_invoice(self):
         Invoice.objects.all().delete()
@@ -112,13 +114,16 @@ class TestInvoices(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_get_invoice_with_hours_logged(self):
-        hour = DailyHoursFactory(invoice=self.invoice)
+        self.client.force_login(self.biz_user)
+        hour = DailyHoursFactory(invoice=self.biz_invoice)
 
         rendered_template = self.setup_template(
-            "partials/_invoice.html", {"invoice": self.invoice}
+            "partials/_invoice.html", {"invoice": self.biz_invoice}
         )
         response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
+            reverse(
+                "timary:get_single_invoice", kwargs={"invoice_id": self.biz_invoice.id}
+            )
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
@@ -136,10 +141,11 @@ class TestInvoices(BaseTest):
            """,
             response.content.decode("utf-8"),
         )
+        self.client.force_login(self.user)
 
-    def test_starter_cannot_view_invoice_stats(self):
-        user = UserFactory(membership_tier=5)
-        hour = DailyHoursFactory(invoice__user=user)
+    def test_starter_or_professional_cannot_view_invoice_stats(self):
+        self.client.force_login(self.user)
+        hour = DailyHoursFactory(invoice=self.invoice)
         response = self.client.get(
             reverse("timary:get_single_invoice", kwargs={"invoice_id": hour.invoice.id})
         )
@@ -149,15 +155,19 @@ class TestInvoices(BaseTest):
                 response.content.decode("utf-8"),
             )
 
-    def test_professional_or_biz_can_view_invoice_stats(self):
-        DailyHoursFactory(invoice=self.invoice)
+    def test_biz_can_view_invoice_stats(self):
+        self.client.force_login(self.biz_user)
+        DailyHoursFactory(invoice=self.biz_invoice)
         response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
+            reverse(
+                "timary:get_single_invoice", kwargs={"invoice_id": self.biz_invoice.id}
+            )
         )
         self.assertInHTML(
             "View hours logged this period",
             response.content.decode("utf-8"),
         )
+        self.client.force_login(self.user)
 
     def test_get_invoice_error(self):
         response = self.client.get(

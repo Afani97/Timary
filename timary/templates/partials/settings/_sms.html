@@ -1,13 +1,11 @@
-<div class="container col-span-3 grid grid-cols-3 gap-4">
-    <div>
-        <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
-            <span>SMS days preferred:</span>
-        </div>
+<div class="wrapper flex justify-between items-center">
+    <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
+        <div class="text-left">SMS availability:</div>
     </div>
-    <div> {% for day in settings.phone_number_availability %} {{ day }} {% endfor %}</div>
-    <a class="link"
+    <div class="text-center"> {% for day in settings.phone_number_availability %} {{ day }} {% endfor %}</div>
+    <a class="link text-right"
         hx-get="{% url 'timary:update_sms_settings' %}"
-        hx-target="closest .container"
+        hx-target="closest .wrapper"
         hx-swap="outerHTML"
         hx-indicator="#settings_spinnr">Edit availability</a>
 

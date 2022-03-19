@@ -1,12 +1,17 @@
-<div class="grid grid-cols-3 gap-4 space-y-2" id="user-settings">
+<div class="flex flex-col w-full justify-center space-y-4 px-2" id="user-settings">
     {% include 'partials/settings/_sms.html' with settings=settings %}
+    <div class="divider"></div>
     {% include 'partials/settings/_membership.html' with settings=settings %}
+    <div class="divider"></div>
     {% include 'partials/settings/_payment_method.html' %}
+    <div class="divider"></div>
 
     {% if settings.can_download_audit %}
-        <div>Invoice audit log</div>
-        <div></div>
-        <a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a>
+        <div class="flex justify-between">
+            <div>Invoice audit log</div>
+            <div></div>
+            <a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a>
+        </div>
     {% endif %}
 </div>
 {% include "partials/_spinnr.html" with spinner_id="settings_spinnr" %}

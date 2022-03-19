@@ -347,8 +347,7 @@ class User(AbstractUser, BaseModel):
     @property
     def can_view_invoice_stats(self):
         return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
+            self.membership_tier == User.MembershipTier.BUSINESS
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 

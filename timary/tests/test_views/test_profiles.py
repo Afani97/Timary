@@ -139,7 +139,7 @@ class TestUserProfile(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertInHTML(
-            "<div>  Mon </div>",
+            "<div class='text-center'>  Mon </div>",
             response.content.decode("utf-8"),
         )
 
@@ -176,17 +176,14 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <div class="container col-span-3 grid grid-cols-3 gap-4">
-                <div>
-                    <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
-                        <span>SMS days preferred:</span>
-                    </div>
+            <div class="wrapper flex justify-between items-center">
+                <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
+                    <div class="text-left">SMS availability:</div>
                 </div>
-
-                <div>  Tue </div>
-                <a class="link"
+                <div class="text-center">  Tue </div>
+                <a class="link text-right"
                        hx-get="/profile/settings/sms/"
-                       hx-target="closest .container"
+                       hx-target="closest .wrapper"
                        hx-swap="outerHTML"
                        hx-indicator="#settings_spinnr">Edit availability</a>
             </div>
@@ -259,7 +256,7 @@ class TestUserSettings(BaseTest):
         )
         self.user.refresh_from_db()
         self.assertInHTML(
-            "<div>Mon Tue</div>",
+            "<div class='text-center'>Mon Tue</div>",
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")

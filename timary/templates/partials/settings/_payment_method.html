@@ -1,10 +1,9 @@
-<div class="container col-span-3 grid grid-cols-3 gap-4">
-
-    <div> Payment method </div>
+<div class="wrapper flex justify-between">
+    <div class="text-left"> Payment method </div>
     <div></div>
-    <a class="link"
+    <a class="link text-right"
         hx-get="{% url 'timary:update_payment_method_settings' %}"
-        hx-target="closest .container"
+        hx-target="closest .wrapper"
         hx-swap="outerHTML"
         hx-indicator="#settings_spinnr">Update</a>
 </div>
