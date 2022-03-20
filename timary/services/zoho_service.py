@@ -18,9 +18,9 @@ class ZohoService:
         client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
         auth_url = (
             f"https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInvoice.settings.CREATE,ZohoInvoice.settings.READ,"
-            f"ZohoInvoice.invoices.CREATE, "
+            f"ZohoInvoice.invoices.CREATE,"
             f"ZohoInvoice.invoices.READ,ZohoInvoice.invoices.UPDATE,ZohoInvoice.contacts.Create,"
-            f"ZohoInvoice.contacts.UPDATE,ZohoInvoice.customerpayments.Create,ZohoInvoice.customerpayments.UPDATE "
+            f"ZohoInvoice.contacts.UPDATE,ZohoInvoice.customerpayments.Create,ZohoInvoice.customerpayments.UPDATE"
             f"&client_id={settings.ZOHO_CLIENT_ID}&state=testing&response_type=code&redirect_uri="
             f"{client_redirect}&access_type=offline"
         )
