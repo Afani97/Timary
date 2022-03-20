@@ -13,9 +13,10 @@ from django.utils.timezone import localtime, now
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
-from timary.models import Invoice, SentInvoice
+from timary.models import Invoice, SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
+from timary.services.zoho_service import ZohoService
 from timary.utils import render_form_errors
 
 
@@ -39,7 +40,7 @@ def manage_invoices(request):
 @login_required()
 @require_http_methods(["POST"])
 def create_invoice(request):
-    user = request.user
+    user: User = request.user
     invoice_form = InvoiceForm(
         request.POST,
         user=request.user,
@@ -57,6 +58,9 @@ def create_invoice(request):
 
         if user.freshbooks_account_id:
             FreshbookService.create_customer(invoice)
+
+        if user.zoho_organization_id:
+            ZohoService.create_customer(invoice)
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         response["HX-Trigger"] = "newInvoice"  # To trigger button refresh

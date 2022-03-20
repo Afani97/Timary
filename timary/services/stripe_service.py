@@ -104,9 +104,6 @@ class StripeService:
             payment_method_types=["card"],
             amount=int(sent_invoice.total_price * 100),
             currency="usd",
-            automatic_payment_methods={
-                "enabled": True,
-            },
             application_fee_amount=application_fee,
             transfer_data={
                 "destination": sent_invoice.user.stripe_connect_id,

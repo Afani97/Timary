@@ -285,6 +285,10 @@ FRESHBOOKS_CLIENT_ID = config("FRESHBOOKS_CLIENT_ID", default="abc123")
 FRESHBOOKS_SECRET_KEY = config("FRESHBOOKS_SECRET_KEY", default="abc123")
 FRESHBOOKS_ENV = config("FRESHBOOKS_ENV", default="abc123")
 
+# ZOHO
+ZOHO_CLIENT_ID = config("ZOHO_CLIENT_ID", default="abc123")
+ZOHO_SECRET_KEY = config("ZOHO_SECRET_KEY", default="abc123")
+
 # PLAYWRIGHT
 HEADLESS_UI = True
 

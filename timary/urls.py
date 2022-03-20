@@ -126,6 +126,13 @@ urlpatterns += [
         name="freshbooks_disconnect",
     ),
     path("freshbooks-redirect/", views.freshbooks_redirect, name="freshbooks_redirect"),
+    path("zoho-connect/", views.zoho_connect, name="zoho_connect"),
+    path(
+        "zoho-disconnect/",
+        views.zoho_disconnect,
+        name="zoho_disconnect",
+    ),
+    path("zoho-redirect/", views.zoho_redirect, name="zoho_redirect"),
 ]
 
 

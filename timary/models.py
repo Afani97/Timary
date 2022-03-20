@@ -113,6 +113,10 @@ class Invoice(BaseModel):
     # Freshbooks
     freshbooks_client_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Zoho
+    zoho_contact_id = models.CharField(max_length=200, null=True, blank=True)
+    zoho_contact_persons_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -226,6 +230,9 @@ class SentInvoice(BaseModel):
     # Freshbooks
     freshbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
+    # Zoho
+    zoho_invoice_id = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return (
             f"SentInvoice(invoice={self.invoice.title}, "
@@ -294,6 +301,9 @@ class User(AbstractUser, BaseModel):
     # Freshbooks integration id
     freshbooks_account_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Zoho integration id
+    zoho_organization_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -306,7 +316,7 @@ class User(AbstractUser, BaseModel):
             "phone_number_availability": self.phone_number_availability,
             "quickbooks_connected": self.quickbooks_realm_id is not None,
             "freshbooks_connected": self.freshbooks_account_id is not None,
-            "zoho_connected": False,
+            "zoho_connected": self.zoho_organization_id is not None,
             "xero_connected": False,
             "sage_connected": False,
             "can_download_audit": self.can_download_audit,
@@ -405,5 +415,11 @@ class QuickbooksOAuth(BaseModel):
 
 class FreshbooksOAuth(BaseModel):
     """Keep track of refresh_token from Freshbooks OAuth so re-auth does not need to happen again."""
+
+    refresh_token = models.CharField(max_length=200, blank=True, null=True)
+
+
+class ZohoOAuth(BaseModel):
+    """Keep track of refresh_token from Zoho OAuth so re-auth does not need to happen again."""
 
     refresh_token = models.CharField(max_length=200, blank=True, null=True)

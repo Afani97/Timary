@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -6,8 +7,10 @@ from django.views.decorators.http import require_http_methods
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 
-
 # QUICKBOOKS
+from timary.services.zoho_service import ZohoService
+
+
 @login_required
 @require_http_methods(["GET"])
 def quickbooks_connect(request):
@@ -50,6 +53,34 @@ def freshbooks_redirect(request):
 @require_http_methods(["DELETE"])
 def freshbooks_disconnect(request):
     request.user.freshbooks_account_id = None
+    request.user.save()
+    return render(
+        request, "partials/_integrations.html", {"settings": request.user.settings}
+    )
+
+
+# ZOHO
+@login_required
+@require_http_methods(["GET"])
+def zoho_connect(request):
+    return redirect(ZohoService.get_auth_url())
+
+
+@login_required
+@require_http_methods(["GET"])
+def zoho_redirect(request):
+    access_token = ZohoService.get_auth_tokens(request)
+    if access_token:
+        ZohoService.get_organization_id(request.user, access_token)
+    else:
+        messages.info(request, "Unable to connect to Zoho")
+    return redirect(reverse("timary:user_profile"))
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def zoho_disconnect(request):
+    request.user.zoho_organization_id = None
     request.user.save()
     return render(
         request, "partials/_integrations.html", {"settings": request.user.settings}

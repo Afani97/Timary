@@ -29,6 +29,7 @@ class Command(BaseCommand):
             phone_number=None,
             quickbooks_realm_id="4620816365214495060",
             freshbooks_account_id="1QgX5J",
+            zoho_organization_id="774500758",
         )
         invoice = InvoiceFactory(
             user=user,
@@ -36,6 +37,7 @@ class Command(BaseCommand):
             last_date=datetime.date.today() - datetime.timedelta(days=3),
             quickbooks_customer_ref_id="58",
             freshbooks_client_id="204228",
+            zoho_contact_id="3159267000000077049",
         )
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(
