@@ -88,6 +88,7 @@ def update_membership_settings(request):
                 current_membership_tier
                 and user_settings_form.cleaned_data.get("membership_tier")
                 != current_membership_tier
+                and current_membership_tier != User.MembershipTier.INVOICE_FEE
             ):
                 StripeService.create_subscription(request.user, delete_current=True)
             return render(
