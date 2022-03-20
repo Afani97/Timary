@@ -6,7 +6,7 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
-from timary.models import ZohoOAuth, create_new_ref_number
+from timary.models import ZohoOAuth
 
 
 class ZohoService:
@@ -17,7 +17,8 @@ class ZohoService:
     def get_auth_url():
         client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
         auth_url = (
-            f"https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInvoice.settings.READ,ZohoInvoice.invoices.CREATE,"
+            f"https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInvoice.settings.CREATE,ZohoInvoice.settings.READ,"
+            f"ZohoInvoice.invoices.CREATE, "
             f"ZohoInvoice.invoices.READ,ZohoInvoice.invoices.UPDATE,ZohoInvoice.contacts.Create,"
             f"ZohoInvoice.contacts.UPDATE,ZohoInvoice.customerpayments.Create,ZohoInvoice.customerpayments.UPDATE "
             f"&client_id={settings.ZOHO_CLIENT_ID}&state=testing&response_type=code&redirect_uri="
@@ -64,7 +65,7 @@ class ZohoService:
         auth_token = ZohoService.get_refreshed_tokens()
         headers = {
             "Authorization": f"Zoho-oauthtoken {auth_token}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }
         if method_type == "get":
             response = requests.get(url, headers=headers)
@@ -119,15 +120,34 @@ class ZohoService:
 
     @staticmethod
     def create_invoice(sent_invoice):
-        # Generate invoice
-        today = datetime.date.today()
+        today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
+
+        # Generate item
         data = {
-            "customer_id": 3159267000000077029,
+            "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
+            "rate": sent_invoice.total_price,
+        }
+        item_request = ZohoService.create_request(
+            sent_invoice.user.zoho_organization_id,
+            "items",
+            "post",
+            data=data,
+        )
+        item_id = item_request["item"]["item_id"]
+
+        # Mark line item as active
+        ZohoService.create_request(
+            sent_invoice.user.zoho_organization_id, f"items/{item_id}/active", "post"
+        )
+
+        # Generate invoice
+        data = {
+            "customer_id": sent_invoice.invoice.zoho_contact_id,
             "date": today_formatted,
             "line_items": [
                 {
-                    "item_id": int(create_new_ref_number()),
+                    "item_id": item_id,
                     "rate": int(sent_invoice.total_price),
                     "quantity": 1,
                     "item_total": int(sent_invoice.total_price),
@@ -145,13 +165,13 @@ class ZohoService:
 
         # Generate payment for invoice
         data = {
-            "customer_id": str(sent_invoice.invoice.zoho_contact_id),
+            "customer_id": sent_invoice.invoice.zoho_contact_id,
             "payment_mode": "creditcard",
             "amount": int(sent_invoice.total_price),
             "date": today_formatted,
             "invoices": [
                 {
-                    "invoice_id": str(sent_invoice.zoho_invoice_id),
+                    "invoice_id": sent_invoice.zoho_invoice_id,
                     "amount_applied": int(sent_invoice.total_price),
                 }
             ],

@@ -37,7 +37,7 @@ class Command(BaseCommand):
             last_date=datetime.date.today() - datetime.timedelta(days=3),
             quickbooks_customer_ref_id="58",
             freshbooks_client_id="204228",
-            zoho_contact_id="3159267000000077049",
+            zoho_contact_id="3159267000000079014",
         )
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(
