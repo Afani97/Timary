@@ -11,6 +11,7 @@ from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
+from timary.services.xero_service import XeroService
 
 
 @require_http_methods(["GET", "POST"])
@@ -53,14 +54,18 @@ def invoice_payment_success(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
-    sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-    sent_invoice.save()
+    # sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+    # sent_invoice.save()
 
     if sent_invoice.user.quickbooks_realm_id:
         QuickbookService.create_invoice(sent_invoice)
 
     if sent_invoice.user.freshbooks_account_id:
         FreshbookService.create_invoice(sent_invoice)
+
+    if sent_invoice.user.xero_tenant_id:
+        XeroService.create_invoice(sent_invoice)
+
     TwilioClient.sent_payment_success(sent_invoice)
     return render(request, "invoices/success_pay_invoice.html", {})
 

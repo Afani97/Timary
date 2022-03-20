@@ -126,6 +126,13 @@ urlpatterns += [
         name="freshbooks_disconnect",
     ),
     path("freshbooks-redirect/", views.freshbooks_redirect, name="freshbooks_redirect"),
+    path("xero-connect/", views.xero_connect, name="xero_connect"),
+    path(
+        "xero-disconnect/",
+        views.xero_disconnect,
+        name="xero_disconnect",
+    ),
+    path("xero-redirect/", views.xero_redirect, name="xero_redirect"),
 ]
 
 

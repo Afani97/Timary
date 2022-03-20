@@ -32,7 +32,7 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
-SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
+SITE_URL = config("SITE_URL", default="http://localhost:8000")
 
 
 # Application definition
@@ -284,6 +284,10 @@ QUICKBOOKS_ENV = config("QUICKBOOKS_ENV", default="abc123")
 FRESHBOOKS_CLIENT_ID = config("FRESHBOOKS_CLIENT_ID", default="abc123")
 FRESHBOOKS_SECRET_KEY = config("FRESHBOOKS_SECRET_KEY", default="abc123")
 FRESHBOOKS_ENV = config("FRESHBOOKS_ENV", default="abc123")
+
+# XERO
+XERO_CLIENT_ID = config("XERO_CLIENT_ID", default="abc123")
+XERO_SECRET_KEY = config("XERO_SECRET_KEY", default="abc123")
 
 # PLAYWRIGHT
 HEADLESS_UI = True
