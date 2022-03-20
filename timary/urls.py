@@ -133,6 +133,13 @@ urlpatterns += [
         name="zoho_disconnect",
     ),
     path("zoho-redirect/", views.zoho_redirect, name="zoho_redirect"),
+    path("xero-connect/", views.xero_connect, name="xero_connect"),
+    path(
+        "xero-disconnect/",
+        views.xero_disconnect,
+        name="xero_disconnect",
+    ),
+    path("xero-redirect/", views.xero_redirect, name="xero_redirect"),
 ]
 
 

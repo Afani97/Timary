@@ -16,6 +16,7 @@ from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
+from timary.services.xero_service import XeroService
 from timary.services.zoho_service import ZohoService
 from timary.utils import render_form_errors
 
@@ -61,6 +62,10 @@ def create_invoice(request):
 
         if user.zoho_organization_id:
             ZohoService.create_customer(invoice)
+
+        if user.xero_tenant_id:
+            XeroService.create_customer(invoice)
+
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         response["HX-Trigger"] = "newInvoice"  # To trigger button refresh

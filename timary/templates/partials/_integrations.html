@@ -39,10 +39,24 @@
                         hx-swap="outerHTML"
                         hx-indicator="#spinnr"
                         class="btn btn-primary btn-outline">
-                        Disconnect zoho?
-                    </a>
+                        Disconnect zoho?</a>
                 {% else %}
                     <a href="{% url 'timary:zoho_connect' %}" class="btn btn-primary">Connect Zoho</a>
+                {% endif %}
+            </div>
+
+            <div>
+                {% if settings.xero_connected %}
+                    <a hx-delete="{% url 'timary:xero_disconnect' %}"
+                        hx-confirm="Are you sure you want to remove Xero?"
+                        hx-target="#integrations-container"
+                        hx-swap="outerHTML"
+                        hx-indicator="#spinnr"
+                        class="btn btn-primary btn-outline">
+                        Disconnect xero?
+                    </a>
+                {% else %}
+                    <a href="{% url 'timary:xero_connect' %}" class="btn btn-primary">Connect Xero</a>
                 {% endif %}
             </div>
         </div>

@@ -117,6 +117,9 @@ class Invoice(BaseModel):
     zoho_contact_id = models.CharField(max_length=200, null=True, blank=True)
     zoho_contact_persons_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Xero
+    xero_contact_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -233,6 +236,9 @@ class SentInvoice(BaseModel):
     # Zoho
     zoho_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
+    # Xero
+    xero_invoice_id = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return (
             f"SentInvoice(invoice={self.invoice.title}, "
@@ -304,6 +310,9 @@ class User(AbstractUser, BaseModel):
     # Zoho integration id
     zoho_organization_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Xero integration id
+    xero_tenant_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -317,7 +326,7 @@ class User(AbstractUser, BaseModel):
             "quickbooks_connected": self.quickbooks_realm_id is not None,
             "freshbooks_connected": self.freshbooks_account_id is not None,
             "zoho_connected": self.zoho_organization_id is not None,
-            "xero_connected": False,
+            "xero_connected": self.xero_tenant_id is not None,
             "sage_connected": False,
             "can_download_audit": self.can_download_audit,
             "current_plan": " ".join(
@@ -421,5 +430,11 @@ class FreshbooksOAuth(BaseModel):
 
 class ZohoOAuth(BaseModel):
     """Keep track of refresh_token from Zoho OAuth so re-auth does not need to happen again."""
+
+    refresh_token = models.CharField(max_length=200, blank=True, null=True)
+
+
+class XeroOAuth(BaseModel):
+    """Keep track of refresh_token from Xero OAuth so re-auth does not need to happen again."""
 
     refresh_token = models.CharField(max_length=200, blank=True, null=True)
