@@ -155,5 +155,9 @@ class StripeService:
 
     @classmethod
     def close_stripe_account(cls, user):
-        sub = stripe.Subscription.delete(user.stripe_subscription_id)
-        return sub is not None
+        stripe.api_key = cls.stripe_api_key
+        if user.stripe_subscription_id and stripe.Subscription.retrieve(
+            user.stripe_subscription_id
+        ):
+            sub = stripe.Subscription.delete(user.stripe_subscription_id)
+            return sub is not None
