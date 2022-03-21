@@ -20,6 +20,15 @@ class StripeService:
     stripe_public_api_key = settings.STRIPE_PUBLIC_API_KEY
 
     @classmethod
+    def get_product_id(cls, user):
+        if user.membership_tier == User.MembershipTier.STARTER:
+            return settings.STRIPE_STARTER_ID
+        if user.membership_tier == User.MembershipTier.PROFESSIONAL:
+            return settings.STRIPE_PROFESSIONAL_ID
+        if user.membership_tier == User.MembershipTier.BUSINESS:
+            return settings.STRIPE_BUSINESS_ID
+
+    @classmethod
     def create_new_account(cls, request, user, first_token, second_token):
         stripe.api_key = cls.stripe_api_key
         stripe_connect_account = stripe.Account.create(
@@ -45,14 +54,12 @@ class StripeService:
         stripe_customer = stripe.Customer.create(
             email=user.email,
             name=user.get_full_name(),
-            stripe_account=stripe_connect_account["id"],
         )
         stripe_connect_id = stripe_connect_account["id"]
         stripe_customer_id = stripe_customer["id"]
         stripe.Customer.create_source(
             stripe_customer_id,
             source=first_token,
-            stripe_account=stripe_connect_id,
         )
         stripe.Account.create_external_account(
             stripe_connect_id,
@@ -80,12 +87,10 @@ class StripeService:
         customer_source = stripe.Customer.create_source(
             user.stripe_customer_id,
             source=first_token,
-            stripe_account=user.stripe_connect_id,
         )
         _ = stripe.Customer.modify(
             user.stripe_customer_id,
             default_source=customer_source["id"],
-            stripe_account=user.stripe_connect_id,
         )
         connect_source = stripe.Account.create_external_account(
             user.stripe_connect_id,
@@ -114,29 +119,20 @@ class StripeService:
     @classmethod
     def create_subscription(cls, user, delete_current=None):
         stripe.api_key = cls.stripe_api_key
-        if delete_current:
-            stripe.Subscription.delete(
-                user.stripe_subscription_id, stripe_account=user.stripe_connect_id
-            )
 
-        product = stripe.Product.create(
-            name=user.get_membership_tier_display(),
-            stripe_account=user.stripe_connect_id,
-        )
-        price = stripe.Price.create(
-            unit_amount=user.membership_tier * 100,
-            currency="usd",
-            recurring={"interval": "month"},
-            product=product["id"],
-            stripe_account=user.stripe_connect_id,
-        )
+        if delete_current and user.stripe_subscription_id:
+            if stripe.Subscription.retrieve(user.stripe_subscription_id):
+                stripe.Subscription.delete(user.stripe_subscription_id)
+
+        if user.membership_tier == User.MembershipTier.INVOICE_FEE:
+            user.stripe_subscription_id = None
+            user.save()
 
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
             items=[
-                {"price": price["id"]},
+                {"price": StripeService.get_product_id(user)},
             ],
-            stripe_account=user.stripe_connect_id,
         )
         user.stripe_subscription_id = subscription["id"]
         user.save()
@@ -159,7 +155,5 @@ class StripeService:
 
     @classmethod
     def close_stripe_account(cls, user):
-        sub = stripe.Subscription.delete(
-            user.stripe_subscription_id, stripe_account=user.stripe_connect_id
-        )
+        sub = stripe.Subscription.delete(user.stripe_subscription_id)
         return sub is not None

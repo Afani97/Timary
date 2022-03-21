@@ -22,7 +22,7 @@ def quickbooks_connect(request):
 @require_http_methods(["GET"])
 def quickbooks_redirect(request):
     _ = QuickbookService.get_auth_tokens(request)
-
+    messages.info(request, "Successfully connected Quickbooks.")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -47,6 +47,7 @@ def freshbooks_connect(request):
 @require_http_methods(["GET"])
 def freshbooks_redirect(request):
     _ = FreshbookService.get_auth_tokens(request)
+    messages.info(request, "Successfully connected Freshbooks.")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -73,6 +74,7 @@ def zoho_redirect(request):
     access_token = ZohoService.get_auth_tokens(request)
     if access_token:
         ZohoService.get_organization_id(request.user, access_token)
+        messages.info(request, "Successfully connected Zoho.")
     else:
         messages.info(request, "Unable to connect to Zoho")
     return redirect(reverse("timary:user_profile"))
@@ -99,6 +101,7 @@ def xero_connect(request):
 @require_http_methods(["GET"])
 def xero_redirect(request):
     _ = XeroService.get_auth_tokens(request)
+    messages.info(request, "Successfully connected Xero.")
     return redirect(reverse("timary:user_profile"))
 
 

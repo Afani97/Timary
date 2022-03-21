@@ -268,6 +268,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # STRIPE
 STRIPE_PUBLIC_API_KEY = config("STRIPE_PUBLIC_API_KEY", default="abc123")
 STRIPE_SECRET_API_KEY = config("STRIPE_SECRET_API_KEY", default="abc123")
+STRIPE_STARTER_ID = config("STRIPE_STARTER_ID", default="abc123")
+STRIPE_PROFESSIONAL_ID = config("STRIPE_PROFESSIONAL_ID", default="abc123")
+STRIPE_BUSINESS_ID = config("STRIPE_BUSINESS_ID", default="abc123")
 
 
 # OTP

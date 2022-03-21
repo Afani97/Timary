@@ -91,6 +91,7 @@ def update_membership_settings(request):
                 and current_membership_tier != User.MembershipTier.INVOICE_FEE
             ):
                 StripeService.create_subscription(request.user, delete_current=True)
+            messages.info(request, "Successfully updated membership.")
             return render(
                 request,
                 "partials/settings/_membership.html",
