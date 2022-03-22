@@ -410,9 +410,9 @@ class User(AbstractUser, BaseModel):
     def upgrade_invoice_message(self):
         mem_tier = ""
         if self.membership_tier == User.MembershipTier.STARTER:
-            mem_tier = "Professional or Business"
+            mem_tier = "Professional or Business or Invoice Fee"
         elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
-            mem_tier = "Business"
+            mem_tier = "Business or Invoice Fee"
         return f"Upgrade your membership tier to {mem_tier} to create new invoices."
 
     @property

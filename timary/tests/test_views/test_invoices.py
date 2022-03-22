@@ -375,7 +375,7 @@ class TestInvoices(BaseTest):
         )
 
         self.assertIn(
-            "Upgrade your membership tier to Professional or Business to create new invoices.",
+            "Upgrade your membership tier to Professional or Business or Invoice Fee to create new invoices.",
             response.content.decode("utf-8"),
         )
 
@@ -394,6 +394,6 @@ class TestInvoices(BaseTest):
         )
 
         self.assertIn(
-            "Upgrade your membership tier to Business to create new invoices.",
+            "Upgrade your membership tier to Business or Invoice Fee to create new invoices.",
             response.content.decode("utf-8"),
         )
