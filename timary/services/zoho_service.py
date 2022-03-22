@@ -6,13 +6,8 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
-from timary.models import ZohoOAuth
-
 
 class ZohoService:
-    access_token = None
-    refresh_token = None
-
     @staticmethod
     def get_auth_url():
         client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
@@ -32,25 +27,22 @@ class ZohoService:
         if "code" in request.GET:
             auth_code = request.GET.get("code")
 
-            request = requests.post(
+            auth_request = requests.post(
                 f"https://accounts.zoho.com/oauth/v2/token?code={auth_code}"
                 f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
                 f"&redirect_uri={client_redirect}&grant_type=authorization_code"
             )
-            response = request.json()
-            ZohoService.refresh_token = response["refresh_token"]
-            ZohoService.access_token = response["access_token"]
-            if ZohoOAuth.objects.count() == 0:
-                ZohoOAuth.objects.create(refresh_token=response["refresh_token"])
-            return ZohoService.access_token
+            response = auth_request.json()
+            request.user.zoho_refresh_token = response["refresh_token"]
+            request.user.save()
+            return response["refresh_token"]
         return None
 
     @staticmethod
-    def get_refreshed_tokens():
+    def get_refreshed_tokens(user):
         client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
-        zoho_oauth_object = ZohoOAuth.objects.first()
         request = requests.post(
-            f"https://accounts.zoho.com/oauth/v2/token?refresh_token={zoho_oauth_object.refresh_token}"
+            f"https://accounts.zoho.com/oauth/v2/token?refresh_token={user.zoho_refresh_token}"
             f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
             f"&redirect_uri={client_redirect}&grant_type=refresh_token"
         )
@@ -59,10 +51,9 @@ class ZohoService:
         return response["access_token"]
 
     @staticmethod
-    def create_request(org_id, endpoint, method_type, data=None):
+    def create_request(auth_token, org_id, endpoint, method_type, data=None):
         base_url = "https://invoice.zoho.com/api/v3"
         url = f"{base_url}/{endpoint}?organization_id={org_id}"
-        auth_token = ZohoService.get_refreshed_tokens()
         headers = {
             "Authorization": f"Zoho-oauthtoken {auth_token}",
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -96,6 +87,7 @@ class ZohoService:
 
     @staticmethod
     def create_customer(invoice):
+        zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
         recipient_name = invoice.email_recipient_name.split(" ")
         data = {
             "contact_name": invoice.email_recipient_name,
@@ -110,7 +102,11 @@ class ZohoService:
             ],
         }
         response = ZohoService.create_request(
-            invoice.user.zoho_organization_id, "contacts", "post", data=data
+            zoho_auth_token,
+            invoice.user.zoho_organization_id,
+            "contacts",
+            "post",
+            data=data,
         )
         invoice.zoho_contact_id = response["contact"]["contact_id"]
         invoice.zoho_contact_persons_id = response["contact"]["contact_persons"][0][
@@ -120,6 +116,7 @@ class ZohoService:
 
     @staticmethod
     def create_invoice(sent_invoice):
+        zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -138,7 +135,10 @@ class ZohoService:
 
         # Mark line item as active
         ZohoService.create_request(
-            sent_invoice.user.zoho_organization_id, f"items/{item_id}/active", "post"
+            zoho_auth_token,
+            sent_invoice.user.zoho_organization_id,
+            f"items/{item_id}/active",
+            "post",
         )
 
         # Generate invoice
@@ -155,6 +155,7 @@ class ZohoService:
             ],
         }
         response = ZohoService.create_request(
+            zoho_auth_token,
             sent_invoice.user.zoho_organization_id,
             "invoices",
             "post",
@@ -177,6 +178,7 @@ class ZohoService:
             ],
         }
         response = ZohoService.create_request(
+            zoho_auth_token,
             sent_invoice.user.zoho_organization_id,
             "customerpayments",
             "post",

@@ -6,16 +6,11 @@ from django.conf import settings
 from django.urls import reverse
 from freshbooks import Client
 
-from timary.models import FreshbooksOAuth
-
 
 class FreshbookService:
-    access_token = None
-    refresh_token = None
-
     @staticmethod
     def get_domain():
-        ngrok_local_url = "https://7bf5-71-87-212-255.ngrok.io"
+        ngrok_local_url = "https://e277-71-87-212-255.ngrok.io"
 
         domain = (
             settings.SITE_URL
@@ -44,20 +39,14 @@ class FreshbookService:
         return freshbooks_client.get_auth_request_url()
 
     @staticmethod
-    def get_refreshed_tokens():
-        freshbooks_oauth_object = FreshbooksOAuth.objects.first()
+    def get_refreshed_tokens(user):
 
         auth_client = FreshbookService.get_client()
-        auth_client.refresh_access_token(
-            refresh_token=freshbooks_oauth_object.refresh_token
-        )
+        auth_client.refresh_access_token(refresh_token=user.freshbooks_refresh_token)
 
-        FreshbookService.access_token = auth_client.access_token
-        FreshbookService.refresh_token = auth_client.refresh_token
-
-        freshbooks_oauth_object.refresh_token = auth_client.refresh_token
-        freshbooks_oauth_object.save()
-        return auth_client.access_token
+        user.freshbooks_refresh_token = auth_client.refresh_token
+        user.save()
+        return user.freshbooks_refresh_token
 
     @staticmethod
     def get_auth_tokens(request):
@@ -71,20 +60,14 @@ class FreshbookService:
         ]["account_id"]
 
         request.user.freshbooks_account_id = freshbooks_account_id
+        request.user.freshbooks_refresh_token = auth_tokens.refresh_token
         request.user.save()
 
-        FreshbookService.access_token = auth_tokens.access_token
-        FreshbookService.refresh_token = auth_tokens.refresh_token
-
-        if FreshbooksOAuth.objects.count() == 0:
-            # There should only be one Freshbooks refresh token in db.
-            FreshbooksOAuth.objects.create(refresh_token=auth_tokens.refresh_token)
-
     @staticmethod
-    def create_request(endpoint, method_type, data=None):
+    def create_request(auth_token, endpoint, method_type, data=None):
         url = f"https://api.freshbooks.com/{endpoint}"
         headers = {
-            "Authorization": f"Bearer {FreshbookService.get_refreshed_tokens()}",
+            "Authorization": f"Bearer {auth_token}",
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
@@ -99,6 +82,7 @@ class FreshbookService:
 
     @staticmethod
     def create_customer(invoice):
+        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
         data = {
             "client": {
                 "email": invoice.email_recipient,
@@ -110,13 +94,14 @@ class FreshbookService:
             f"accounting/account/{invoice.user.freshbooks_account_id}/users/clients"
         )
         response = FreshbookService.create_request(
-            endpoint, method_type="post", data=data
+            freshbooks_auth_token, endpoint, method_type="post", data=data
         )
         invoice.freshbooks_client_id = response["response"]["result"]["client"]["id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
+        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(sent_invoice.user)
         today = datetime.date.today()
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -141,7 +126,7 @@ class FreshbookService:
         }
         endpoint = f"accounting/account/{sent_invoice.user.freshbooks_account_id}/invoices/invoices"
         response = FreshbookService.create_request(
-            endpoint, method_type="post", data=data
+            freshbooks_auth_token, endpoint, method_type="post", data=data
         )
 
         sent_invoice.freshbooks_invoice_id = response["response"]["result"]["invoice"][
@@ -161,5 +146,5 @@ class FreshbookService:
         }
         endpoint = f"accounting/account/{sent_invoice.user.freshbooks_account_id}/payments/payments"
         response = FreshbookService.create_request(
-            endpoint, method_type="post", data=data
+            freshbooks_auth_token, endpoint, method_type="post", data=data
         )

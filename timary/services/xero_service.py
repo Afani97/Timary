@@ -6,13 +6,8 @@ from django.conf import settings
 from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
-from timary.models import XeroOAuth
-
 
 class XeroService:
-    access_token = None
-    refresh_token = None
-
     @staticmethod
     def get_auth_url():
         redirect_uri = f"{settings.SITE_URL}{reverse('timary:xero_redirect')}"
@@ -43,12 +38,8 @@ class XeroService:
             )
             response = auth_request.json()
 
-            XeroService.access_token = response["access_token"]
-            XeroService.refresh_token = response["refresh_token"]
-
-            if XeroOAuth.objects.count() == 0:
-                # There should only be one Xero refresh token in db.
-                XeroOAuth.objects.create(refresh_token=response["refresh_token"])
+            request.user.xero_refresh_token = response["access_token"]
+            request.user.save()
 
             url = "https://api.xero.com/connections"
             tenant_request = requests.get(
@@ -63,32 +54,26 @@ class XeroService:
             request.user.save()
 
     @staticmethod
-    def get_refreshed_tokens():
-        xero_oauth_object = XeroOAuth.objects.first()
-
+    def get_refreshed_tokens(user):
         refresh_request = requests.post(
             "https://identity.xero.com/connect/token",
             auth=HTTPBasicAuth(settings.XERO_CLIENT_ID, settings.XERO_SECRET_KEY),
             data={
                 "grant_type": "refresh_token",
-                "refresh_token": xero_oauth_object.refresh_token,
+                "refresh_token": user.xero_refresh_token,
             },
         )
         response = refresh_request.json()
-
-        XeroService.access_token = response["access_token"]
-        XeroService.refresh_token = response["refresh_token"]
-
-        xero_oauth_object.refresh_token = response["refresh_token"]
-        xero_oauth_object.save()
-        return XeroService.access_token
+        user.xero_refresh_token = response["refresh_token"]
+        user.save()
+        return user.xero_refresh_token
 
     @staticmethod
-    def create_request(tenant_id, endpoint, method_type, data=None):
+    def create_request(auth_token, tenant_id, endpoint, method_type, data=None):
         base_url = "https://api.xero.com/api.xro/2.0"
         url = f"{base_url}/{endpoint}"
         headers = {
-            "Authorization": f"Bearer {XeroService.get_refreshed_tokens()}",
+            "Authorization": f"Bearer {auth_token}",
             "Accept": "application/json",
             "Xero-tenant-id": tenant_id,
         }
@@ -106,18 +91,20 @@ class XeroService:
 
     @staticmethod
     def create_customer(invoice):
+        xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
         data = {
             "Name": invoice.email_recipient_name,
             "EmailAddress": invoice.email_recipient,
         }
         response = XeroService.create_request(
-            invoice.user.xero_tenant_id, "Contacts", "post", data=data
+            xero_auth_token, invoice.user.xero_tenant_id, "Contacts", "post", data=data
         )
         invoice.xero_contact_id = response["Contacts"][0]["ContactID"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
+        xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
         # Generate invoice
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
@@ -138,7 +125,11 @@ class XeroService:
             ],
         }
         response = XeroService.create_request(
-            sent_invoice.user.xero_tenant_id, "Invoices", "post", data=data
+            xero_auth_token,
+            sent_invoice.user.xero_tenant_id,
+            "Invoices",
+            "post",
+            data=data,
         )
 
         sent_invoice.xero_invoice_id = response["Invoices"][0]["InvoiceID"]
@@ -153,5 +144,9 @@ class XeroService:
             "Status": "AUTHORISED",
         }
         response = XeroService.create_request(
-            sent_invoice.user.xero_tenant_id, "Payments", "put", data=data
+            xero_auth_token,
+            sent_invoice.user.xero_tenant_id,
+            "Payments",
+            "put",
+            data=data,
         )

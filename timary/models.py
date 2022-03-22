@@ -303,15 +303,19 @@ class User(AbstractUser, BaseModel):
 
     # Quickbooks integration id
     quickbooks_realm_id = models.CharField(max_length=200, null=True, blank=True)
+    quickbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     # Freshbooks integration id
     freshbooks_account_id = models.CharField(max_length=200, null=True, blank=True)
+    freshbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     # Zoho integration id
     zoho_organization_id = models.CharField(max_length=200, null=True, blank=True)
+    zoho_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     # Xero integration id
     xero_tenant_id = models.CharField(max_length=200, null=True, blank=True)
+    xero_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
@@ -414,27 +418,3 @@ class User(AbstractUser, BaseModel):
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
-
-
-class QuickbooksOAuth(BaseModel):
-    """Keep track of refresh_token from QuickBooks OAuth so re-auth does not need to happen again."""
-
-    refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-
-class FreshbooksOAuth(BaseModel):
-    """Keep track of refresh_token from Freshbooks OAuth so re-auth does not need to happen again."""
-
-    refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-
-class ZohoOAuth(BaseModel):
-    """Keep track of refresh_token from Zoho OAuth so re-auth does not need to happen again."""
-
-    refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-
-class XeroOAuth(BaseModel):
-    """Keep track of refresh_token from Xero OAuth so re-auth does not need to happen again."""
-
-    refresh_token = models.CharField(max_length=200, blank=True, null=True)

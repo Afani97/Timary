@@ -127,6 +127,7 @@ class StripeService:
         if user.membership_tier == User.MembershipTier.INVOICE_FEE:
             user.stripe_subscription_id = None
             user.save()
+            return
 
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
