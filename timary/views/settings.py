@@ -82,13 +82,9 @@ def update_membership_settings(request):
             User.MembershipTier[put_params["membership_tier"][0]].value
         )
         if user_settings_form.is_valid():
-
             user_settings_form.save()
-            if (
-                current_membership_tier
-                and user_settings_form.cleaned_data.get("membership_tier")
-                != current_membership_tier
-                and current_membership_tier != User.MembershipTier.INVOICE_FEE
+            if current_membership_tier and user_settings_form.cleaned_data.get(
+                "membership_tier"
             ):
                 StripeService.create_subscription(request.user, delete_current=True)
             messages.info(request, "Successfully updated membership.")
