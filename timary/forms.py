@@ -60,7 +60,7 @@ class DailyHoursForm(forms.ModelForm):
             "date_tracked": DateInput(
                 attrs={
                     "value": datetime.date.today(),
-                    "max": datetime.date.today(),
+                    "max": datetime.date.today() + datetime.timedelta(days=1),
                     "class": "input input-bordered text-lg w-full",
                 }
             ),
