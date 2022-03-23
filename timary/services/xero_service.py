@@ -38,7 +38,7 @@ class XeroService:
             )
             response = auth_request.json()
 
-            request.user.xero_refresh_token = response["access_token"]
+            request.user.xero_refresh_token = response["refresh_token"]
             request.user.save()
 
             url = "https://api.xero.com/connections"
@@ -66,7 +66,7 @@ class XeroService:
         response = refresh_request.json()
         user.xero_refresh_token = response["refresh_token"]
         user.save()
-        return user.xero_refresh_token
+        return response["access_token"]
 
     @staticmethod
     def create_request(auth_token, tenant_id, endpoint, method_type, data=None):

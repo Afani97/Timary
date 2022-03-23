@@ -40,10 +40,9 @@ class QuickbookService:
     def get_refreshed_tokens(user):
         auth_client = QuickbookService.get_auth_client()
         auth_client.refresh(refresh_token=user.quickbooks_refresh_token)
-
         user.quickbooks_refresh_token = auth_client.refresh_token
         user.save()
-        return user.quickbooks_refresh_token
+        return auth_client.access_token
 
     @staticmethod
     def create_request(auth_token, endpoint, method_type, data=None):

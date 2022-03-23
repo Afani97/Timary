@@ -40,13 +40,12 @@ class FreshbookService:
 
     @staticmethod
     def get_refreshed_tokens(user):
-
         auth_client = FreshbookService.get_client()
         auth_client.refresh_access_token(refresh_token=user.freshbooks_refresh_token)
 
         user.freshbooks_refresh_token = auth_client.refresh_token
         user.save()
-        return user.freshbooks_refresh_token
+        return auth_client.access_token
 
     @staticmethod
     def get_auth_tokens(request):

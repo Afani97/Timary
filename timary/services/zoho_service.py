@@ -35,7 +35,7 @@ class ZohoService:
             response = auth_request.json()
             request.user.zoho_refresh_token = response["refresh_token"]
             request.user.save()
-            return response["refresh_token"]
+            return response["access_token"]
         return None
 
     @staticmethod
