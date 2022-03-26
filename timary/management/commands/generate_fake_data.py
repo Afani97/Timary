@@ -3,7 +3,7 @@ import random
 
 from django.core.management.base import BaseCommand
 
-from timary.models import User
+from timary.models import SentInvoice, User
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, SentInvoiceFactory
 
 
@@ -27,7 +27,7 @@ class Command(BaseCommand):
                     date_tracked=datetime.date.today()
                     - datetime.timedelta(days=random_int),
                 )
-            for _ in range(0, 10):
+            for _ in range(0, 5):
                 random_int = random.randint(0, 3)
                 SentInvoiceFactory(
                     invoice=invoice,
@@ -35,4 +35,15 @@ class Command(BaseCommand):
                     total_price=float(random.randint(100, 500)),
                     date_sent=datetime.date.today()
                     - datetime.timedelta(days=random_int),
+                )
+
+            for _ in range(0, 5):
+                random_int = random.randint(0, 3)
+                SentInvoiceFactory(
+                    invoice=invoice,
+                    user=user,
+                    total_price=float(random.randint(100, 500)),
+                    date_sent=datetime.date.today()
+                    - datetime.timedelta(days=random_int),
+                    paid_status=SentInvoice.PaidStatus.PAID,
                 )

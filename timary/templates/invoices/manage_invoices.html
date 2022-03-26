@@ -6,6 +6,21 @@
     {% include 'partials/_new_invoice_btn.html' %}
 
     <div>
+        <div class="md:flex justify-center mb-4 hidden">
+            <div class="stats shadow">
+                <div class="stat place-items-center">
+                    <div class="stat-value">${{ sent_invoices_owed }}</div>
+                    <div class="stat-desc">owed</div>
+                </div>
+
+                <div class="stat place-items-center">
+                    <div class="stat-value">${{ sent_invoices_earned }}</div>
+                    <div class="stat-desc">total earned</div>
+                </div>
+
+            </div>
+        </div>
+
         <ul class="space-y-5" id="invoices-list">
             {% for invoice in invoices %}
                 {% include 'partials/_invoice.html' with invoice=invoice %}

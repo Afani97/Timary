@@ -4,6 +4,7 @@ from crispy_forms.utils import render_crispy_form
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
@@ -25,6 +26,19 @@ from timary.utils import render_form_errors
 @require_http_methods(["GET"])
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
+    sent_invoices_owed = request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PENDING
+    ).aggregate(total=Sum("total_price"))
+    sent_invoices_owed = (
+        sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
+    )
+
+    sent_invoices_paid = request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ).aggregate(total=Sum("total_price"))
+    sent_invoices_paid = (
+        sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
+    )
     return render(
         request,
         "invoices/manage_invoices.html",
@@ -34,6 +48,8 @@ def manage_invoices(request):
                 user=request.user, is_mobile=request.is_mobile, request_method="get"
             ),
             "upgrade_msg": request.user.upgrade_invoice_message,
+            "sent_invoices_owed": int(sent_invoices_owed),
+            "sent_invoices_earned": int(sent_invoices_paid),
         },
     )
 

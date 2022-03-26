@@ -397,3 +397,38 @@ class TestInvoices(BaseTest):
             "Upgrade your membership tier to Business or Invoice Fee to create new invoices.",
             response.content.decode("utf-8"),
         )
+
+    def test_total_invoice_stats(self):
+        self.client.logout()
+        self.client.force_login(self.user)
+
+        hours1 = DailyHoursFactory(invoice__user=self.user)
+        hours2 = DailyHoursFactory(invoice__user=self.user)
+        s1 = SentInvoiceFactory(invoice=hours1.invoice, user=self.user)
+        s2 = SentInvoiceFactory(
+            invoice=hours2.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+        )
+
+        response = self.client.get(
+            reverse(
+                "timary:manage_invoices",
+            ),
+        )
+
+        self.assertInHTML(
+            f"""
+            <div class="stats shadow">
+              <div class="stat place-items-center">
+                <div class="stat-value">${int(s1.total_price) }</div>
+                <div class="stat-desc">owed</div>
+              </div>
+
+              <div class="stat place-items-center">
+                <div class="stat-value">${ int(s2.total_price) }</div>
+                <div class="stat-desc">total earned</div>
+              </div>
+            </div>""",
+            response.content.decode("utf-8"),
+        )
