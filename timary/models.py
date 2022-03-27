@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
@@ -163,6 +164,29 @@ class Invoice(BaseModel):
             total_cost_amount = total_hours["total_hours"] * self.hourly_rate
 
         return (total_cost_amount / self.total_budget) * 100
+
+    def get_last_six_months(self):
+        six_months_ago = datetime.date.today() - relativedelta(months=6)
+        six_months_qs = (
+            self.hours_tracked.filter(date_tracked__gte=six_months_ago)
+            .annotate(month=TruncMonth("date_tracked"))
+            .distinct()
+            .values("month")
+            .order_by("month")
+            .annotate(h=Sum("hours"))
+            .values("month", "h")
+        )
+        data = [
+            {
+                "display": m["month"].strftime("%b"),
+                "size": round(
+                    float(m["h"]) / 60, 1
+                ),  # Divide by 60 to increase height of column.
+                "data": f"{round(float(m['h']), 1)}h",
+            }
+            for m in six_months_qs
+        ]
+        return data
 
     def get_next_date(self):
         if self.invoice_interval == Invoice.Interval.DAILY:

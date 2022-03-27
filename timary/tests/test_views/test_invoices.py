@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from dateutil.relativedelta import relativedelta
 from django.core import mail
 from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
@@ -127,18 +128,9 @@ class TestInvoices(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
-            f"""
-           <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-3">
-             <div class="collapse-title text-xl font-medium">View hours logged this period</div>
-             <div class="collapse-content" id="hours-logged">
-               <ul class="list-disc mx-5">
-
-                     <li class="text-xl">{floatformat(hour.hours)} hrs on {date(hour.date_tracked, "M jS")}</li>
-
-               </ul>
-             </div>
-           </div>
-           """,
+            f"""<ul class="list-disc mx-5">
+                <li class="text-xl">{floatformat(hour.hours)} hrs on {date(hour.date_tracked, "M jS")}</li>
+           </ul>""",
             response.content.decode("utf-8"),
         )
         self.client.force_login(self.user)
@@ -432,3 +424,34 @@ class TestInvoices(BaseTest):
             </div>""",
             response.content.decode("utf-8"),
         )
+
+    def test_total_invoice_last_six_months(self):
+        user = UserFactory(membership_tier=49)
+        self.client.force_login(user)
+
+        invoice = InvoiceFactory(user=user)
+        today = datetime.date.today()
+        hours = [DailyHoursFactory(invoice=invoice)]
+        for i in range(1, 6):
+            hours.append(
+                DailyHoursFactory(
+                    invoice=invoice, date_tracked=(today - relativedelta(months=i))
+                )
+            )
+        hours.sort(key=lambda h: h.date_tracked)
+        hours = "".join(
+            list(
+                map(
+                    lambda h: f"""
+                    <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
+                    <td style="--size:{round(h.hours / 60, 1)};">
+                    <span class="data"> { h.hours }h</span> </td></tr>""",
+                    hours,
+                )
+            )
+        )
+        response = self.client.get(
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+
+        self.assertInHTML(f"<tbody>{hours}</tbody>", response.content.decode("utf-8"))
