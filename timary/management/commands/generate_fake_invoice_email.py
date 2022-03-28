@@ -30,6 +30,7 @@ class Command(BaseCommand):
             quickbooks_realm_id="4620816365214495060",
             freshbooks_account_id="1QgX5J",
             zoho_organization_id="774500758",
+            xero_tenent_id="5a2c8c9e-ddcf-4fb6-a750-8f6e57ec23fa",
         )
         invoice = InvoiceFactory(
             user=user,
