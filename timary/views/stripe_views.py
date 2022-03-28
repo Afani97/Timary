@@ -9,6 +9,7 @@ from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
+from timary.services.sage_service import SageService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
 from timary.services.xero_service import XeroService
@@ -69,6 +70,9 @@ def invoice_payment_success(request, sent_invoice_id):
 
     if sent_invoice.user.xero_tenant_id:
         XeroService.create_invoice(sent_invoice)
+
+    if sent_invoice.user.sage_account_id:
+        SageService.create_invoice(sent_invoice)
 
     TwilioClient.sent_payment_success(sent_invoice)
     return render(request, "invoices/success_pay_invoice.html", {})

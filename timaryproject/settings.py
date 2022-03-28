@@ -299,6 +299,11 @@ ZOHO_SECRET_KEY = config("ZOHO_SECRET_KEY", default="abc123")
 XERO_CLIENT_ID = config("XERO_CLIENT_ID", default="abc123")
 XERO_SECRET_KEY = config("XERO_SECRET_KEY", default="abc123")
 
+# SAGE
+SAGE_CLIENT_ID = config("SAGE_CLIENT_ID", default="abc123")
+SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
+
+
 # PLAYWRIGHT
 HEADLESS_UI = True
 

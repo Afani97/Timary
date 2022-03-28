@@ -121,6 +121,9 @@ class Invoice(BaseModel):
     # Xero
     xero_contact_id = models.CharField(max_length=200, null=True, blank=True)
 
+    # Sage
+    sage_contact_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -263,6 +266,9 @@ class SentInvoice(BaseModel):
     # Xero
     xero_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
+    # Sage
+    sage_invoice_id = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return (
             f"SentInvoice(invoice={self.invoice.title}, "
@@ -325,21 +331,25 @@ class User(AbstractUser, BaseModel):
         choices=WEEK_DAYS, null=True, blank=True
     )
 
-    # Quickbooks integration id
+    # Quickbooks integration
     quickbooks_realm_id = models.CharField(max_length=200, null=True, blank=True)
     quickbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
-    # Freshbooks integration id
+    # Freshbooks integration
     freshbooks_account_id = models.CharField(max_length=200, null=True, blank=True)
     freshbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
-    # Zoho integration id
+    # Zoho integration
     zoho_organization_id = models.CharField(max_length=200, null=True, blank=True)
     zoho_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
-    # Xero integration id
+    # Xero integration
     xero_tenant_id = models.CharField(max_length=200, null=True, blank=True)
     xero_refresh_token = models.CharField(max_length=200, blank=True, null=True)
+
+    # Sage integration
+    sage_account_id = models.CharField(max_length=200, blank=True, null=True)
+    sage_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
@@ -355,7 +365,7 @@ class User(AbstractUser, BaseModel):
             "freshbooks_connected": self.freshbooks_account_id is not None,
             "zoho_connected": self.zoho_organization_id is not None,
             "xero_connected": self.xero_tenant_id is not None,
-            "sage_connected": False,
+            "sage_connected": self.sage_account_id is not None,
             "can_download_audit": self.can_download_audit,
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")

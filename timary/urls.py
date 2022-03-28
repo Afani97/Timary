@@ -140,6 +140,13 @@ urlpatterns += [
         name="xero_disconnect",
     ),
     path("xero-redirect/", views.xero_redirect, name="xero_redirect"),
+    path("sage-connect/", views.sage_connect, name="sage_connect"),
+    path(
+        "sage-disconnect/",
+        views.sage_disconnect,
+        name="sage_disconnect",
+    ),
+    path("sage-redirect/", views.sage_redirect, name="sage_redirect"),
 ]
 
 

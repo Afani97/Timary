@@ -59,6 +59,21 @@
                     <a href="{% url 'timary:xero_connect' %}" class="btn">Connect Xero</a>
                 {% endif %}
             </div>
+
+            <div>
+                {% if settings.sage_connected %}
+                    <a hx-delete="{% url 'timary:sage_disconnect' %}"
+                        hx-confirm="Are you sure you want to remove Sage?"
+                        hx-target="#integrations-container"
+                        hx-swap="outerHTML"
+                        hx-indicator="#spinnr"
+                        class="btn btn-outline">
+                        Disconnect sage?
+                    </a>
+                {% else %}
+                    <a href="{% url 'timary:sage_connect' %}" class="btn">Connect Sage</a>
+                {% endif %}
+            </div>
         </div>
         {% include "partials/_spinnr.html" %}
     </div>
