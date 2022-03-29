@@ -13,7 +13,10 @@ from django_q.tasks import async_task
 from timary.models import Invoice, SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
+from timary.services.sage_service import SageService
 from timary.services.twilio_service import TwilioClient
+from timary.services.xero_service import XeroService
+from timary.services.zoho_service import ZohoService
 
 
 def gather_invoices():
@@ -170,7 +173,18 @@ def backup_db_file():
 
 def refresh_accounting_integration_tokens():
     """Run this every first of the month"""
-    # TODO: Add in prod, every first of the month: (Cron: 0 6 1 * *)
-    _ = QuickbookService.get_refreshed_tokens()
-
-    _ = FreshbookService.get_refreshed_tokens()
+    users = User.objects.filter(
+        Q(membership_tier=User.MembershipTier.BUSINESS)
+        | Q(membership_tier=User.MembershipTier.INVOICE_FEE)
+    )
+    for user in users:
+        if user.quickbooks_realm_id:
+            QuickbookService.get_refreshed_tokens(user)
+        if user.freshbooks_account_id:
+            FreshbookService.get_refreshed_tokens(user)
+        if user.zoho_organization_id:
+            ZohoService.get_refreshed_tokens(user)
+        if user.xero_tenant_id:
+            XeroService.get_refreshed_tokens(user)
+        if user.sage_account_id:
+            SageService.get_refreshed_tokens(user)
