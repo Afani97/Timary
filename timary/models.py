@@ -243,7 +243,10 @@ class SentInvoice(BaseModel):
     )  # Ending date of hours tracked
     date_sent = models.DateField(null=False, blank=False)
     invoice = models.ForeignKey(
-        "timary.Invoice", on_delete=models.CASCADE, related_name="invoice_snapshots"
+        "timary.Invoice",
+        on_delete=models.SET_NULL,
+        related_name="invoice_snapshots",
+        null=True,
     )
 
     user = models.ForeignKey(

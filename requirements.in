@@ -18,5 +18,4 @@ qrcode
 sentry-sdk
 stripe
 twilio
-intuit-oauth
 whitenoise

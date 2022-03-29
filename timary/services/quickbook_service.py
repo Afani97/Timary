@@ -3,46 +3,64 @@ import json
 import requests
 from django.conf import settings
 from django.urls import reverse
-from intuitlib.client import AuthClient
-from intuitlib.enums import Scopes
+from requests.auth import HTTPBasicAuth
 
 
 class QuickbookService:
     @staticmethod
-    def get_auth_client():
-        auth_client = AuthClient(
-            settings.QUICKBOOKS_CLIENT_ID,
-            settings.QUICKBOOKS_SECRET_KEY,
-            f"{settings.SITE_URL}{reverse('timary:quickbooks_redirect')}",
-            settings.QUICKBOOKS_ENV,
-        )
-        return auth_client
-
-    @staticmethod
     def get_auth_url():
-        auth_client = QuickbookService.get_auth_client()
-        return auth_client.get_authorization_url([Scopes.ACCOUNTING])
+        redirect_uri = f"{settings.SITE_URL}{reverse('timary:quickbooks_redirect')}"
+        return (
+            f"https://appcenter.intuit.com/connect/oauth2?client_id={settings.QUICKBOOKS_CLIENT_ID}&response_type"
+            f"=code&scope=com.intuit.quickbooks.accounting&redirect_uri={redirect_uri}&state=sandbox"
+        )
 
     @staticmethod
     def get_auth_tokens(request):
-        auth_code = request.GET.get("code")
-        realm_id = request.GET.get("realmId")
-        auth_client = QuickbookService.get_auth_client()
-        auth_client.get_bearer_token(auth_code, realm_id=realm_id)
+        redirect_uri = f"{settings.SITE_URL}{reverse('timary:quickbooks_redirect')}"
+        if "code" in request.GET:
+            auth_code = request.GET.get("code")
+            realm_id = request.GET.get("realmId")
+            auth_request = requests.post(
+                "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+                auth=HTTPBasicAuth(
+                    settings.QUICKBOOKS_CLIENT_ID, settings.QUICKBOOKS_SECRET_KEY
+                ),
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                data={
+                    "grant_type": "authorization_code",
+                    "code": auth_code,
+                    "redirect_uri": redirect_uri,
+                },
+            )
+            response = auth_request.json()
 
-        request.user.quickbooks_realm_id = realm_id
-        request.user.quickbooks_refresh_token = auth_client.refresh_token
-        request.user.save()
-
-        return auth_client.access_token
+            request.user.quickbooks_refresh_token = response["refresh_token"]
+            request.user.quickbooks_realm_id = realm_id
+            request.user.save()
+            return response["access_token"]
 
     @staticmethod
     def get_refreshed_tokens(user):
-        auth_client = QuickbookService.get_auth_client()
-        auth_client.refresh(refresh_token=user.quickbooks_refresh_token)
-        user.quickbooks_refresh_token = auth_client.refresh_token
+        auth_request = requests.post(
+            "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+            auth=HTTPBasicAuth(
+                settings.QUICKBOOKS_CLIENT_ID, settings.QUICKBOOKS_SECRET_KEY
+            ),
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": user.quickbooks_refresh_token,
+            },
+        )
+        response = auth_request.json()
+        user.quickbooks_refresh_token = response["refresh_token"]
         user.save()
-        return auth_client.access_token
+        return response["access_token"]
 
     @staticmethod
     def create_request(auth_token, endpoint, method_type, data=None):
@@ -63,6 +81,7 @@ class QuickbookService:
             return response.json()
         elif method_type == "post":
             response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()
             return response.json()
         else:
             return None
