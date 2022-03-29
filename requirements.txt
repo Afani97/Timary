@@ -66,8 +66,6 @@ faker==10.0.0
     # via factory-boy
 filelock==3.4.2
     # via virtualenv
-freshbooks-sdk==1.0.0
-    # via -r requirements.in
 greenlet==1.1.2
     # via playwright
 identify==2.4.8
@@ -119,7 +117,6 @@ redis==3.5.3
     # via django-q
 requests==2.26.0
     # via
-    #   freshbooks-sdk
     #   stripe
     #   twilio
 s3transfer==0.5.1
@@ -151,7 +148,6 @@ typing-extensions==4.0.1
 urllib3==1.26.7
     # via
     #   botocore
-    #   freshbooks-sdk
     #   requests
     #   sentry-sdk
 virtualenv==20.13.1

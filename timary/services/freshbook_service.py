@@ -4,13 +4,12 @@ import json
 import requests
 from django.conf import settings
 from django.urls import reverse
-from freshbooks import Client
 
 
 class FreshbookService:
     @staticmethod
     def get_domain():
-        ngrok_local_url = "https://e277-71-87-212-255.ngrok.io"
+        ngrok_local_url = "https://c1e1-71-87-212-255.ngrok.io"
 
         domain = (
             settings.SITE_URL
@@ -20,47 +19,83 @@ class FreshbookService:
         return domain
 
     @staticmethod
-    def get_client():
-        freshbooks_client = Client(
-            client_id=settings.FRESHBOOKS_CLIENT_ID,
-            client_secret=settings.FRESHBOOKS_SECRET_KEY,
-            redirect_uri=f"{FreshbookService.get_domain()}{reverse('timary:freshbooks_redirect')}",
-        )
-        return freshbooks_client
-
-    @staticmethod
     def get_auth_url():
-        freshbooks_client = Client(
-            client_id=settings.FRESHBOOKS_CLIENT_ID,
-            client_secret=settings.FRESHBOOKS_SECRET_KEY,
-            redirect_uri=f"{FreshbookService.get_domain()}{reverse('timary:freshbooks_redirect')}",
+        redirect_uri = (
+            f"{FreshbookService.get_domain()}{reverse('timary:freshbooks_redirect')}"
         )
 
-        return freshbooks_client.get_auth_request_url()
-
-    @staticmethod
-    def get_refreshed_tokens(user):
-        auth_client = FreshbookService.get_client()
-        auth_client.refresh_access_token(refresh_token=user.freshbooks_refresh_token)
-
-        user.freshbooks_refresh_token = auth_client.refresh_token
-        user.save()
-        return auth_client.access_token
+        return (
+            f"https://auth.freshbooks.com/oauth/authorize/?response_type=code&redirect_uri={redirect_uri}"
+            f"&client_id={settings.FRESHBOOKS_CLIENT_ID}"
+        )
 
     @staticmethod
     def get_auth_tokens(request):
-        auth_code = request.GET.get("code")
-        client = FreshbookService.get_client()
-        auth_tokens = client.get_access_token(auth_code)
+        redirect_uri = (
+            f"{FreshbookService.get_domain()}{reverse('timary:freshbooks_redirect')}"
+        )
+        if "code" in request.GET:
+            auth_code = request.GET.get("code")
+            auth_request = requests.post(
+                "https://api.freshbooks.com/auth/oauth/token",
+                headers={
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "client_id": settings.FRESHBOOKS_CLIENT_ID,
+                    "client_secret": settings.FRESHBOOKS_SECRET_KEY,
+                    "grant_type": "authorization_code",
+                    "code": auth_code,
+                    "redirect_uri": redirect_uri,
+                },
+            )
+            auth_request.raise_for_status()
+            response = auth_request.json()
+            request.user.freshbooks_refresh_token = response["refresh_token"]
+            request.user.save()
+            return response["access_token"]
 
-        current_freshbooks_user = client.current_user()
-        freshbooks_account_id = current_freshbooks_user.data["business_memberships"][0][
-            "business"
-        ]["account_id"]
+    @staticmethod
+    def get_refreshed_tokens(user):
+        redirect_uri = (
+            f"{FreshbookService.get_domain()}{reverse('timary:freshbooks_redirect')}"
+        )
+        auth_request = requests.post(
+            "https://api.freshbooks.com/auth/oauth/token",
+            headers={
+                "Content-Type": "application/json",
+            },
+            json={
+                "client_id": settings.FRESHBOOKS_CLIENT_ID,
+                "client_secret": settings.FRESHBOOKS_SECRET_KEY,
+                "grant_type": "refresh_token",
+                "refresh_token": user.freshbooks_refresh_token,
+                "redirect_uri": redirect_uri,
+            },
+        )
+        response = auth_request.json()
+        user.freshbooks_refresh_token = response["refresh_token"]
+        user.save()
+        return response["access_token"]
 
-        request.user.freshbooks_account_id = freshbooks_account_id
-        request.user.freshbooks_refresh_token = auth_tokens.refresh_token
-        request.user.save()
+    @staticmethod
+    def get_current_user(user, access_token):
+        freshbooks_user_request = requests.get(
+            "https://api.freshbooks.com/auth/api/v1/users/me",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Api-Version": "alpha",
+                "Content-Type": "application/json",
+            },
+        )
+        freshbooks_user_request.raise_for_status()
+        freshbooks_user_response = freshbooks_user_request.json()
+        freshbooks_user_id = freshbooks_user_response["response"][
+            "business_memberships"
+        ][0]["business"]["account_id"]
+
+        user.freshbooks_account_id = freshbooks_user_id
+        user.save()
 
     @staticmethod
     def create_request(auth_token, endpoint, method_type, data=None):

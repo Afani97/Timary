@@ -47,8 +47,10 @@ def freshbooks_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def freshbooks_redirect(request):
-    _ = FreshbookService.get_auth_tokens(request)
-    messages.info(request, "Successfully connected Freshbooks.")
+    auth_token = FreshbookService.get_auth_tokens(request)
+    if auth_token:
+        FreshbookService.get_current_user(request.user, auth_token)
+        messages.info(request, "Successfully connected Freshbooks.")
     return redirect(reverse("timary:user_profile"))
 
 
