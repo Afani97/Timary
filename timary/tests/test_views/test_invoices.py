@@ -128,7 +128,7 @@ class TestInvoices(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
-            f"""<ul class="list-disc mx-5">
+            f"""<ul class="list-disc ml-5">
                 <li class="text-xl">{floatformat(hour.hours)} hrs on {date(hour.date_tracked, "M jS")}</li>
            </ul>""",
             response.content.decode("utf-8"),
@@ -444,8 +444,8 @@ class TestInvoices(BaseTest):
                 map(
                     lambda h: f"""
                     <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
-                    <td style="--size:{round(h.hours / 60, 1)};">
-                    <span class="data"> { h.hours }h</span> </td></tr>""",
+                    <td style="--size:{round(float(h.hours / 100), 2)};">
+                    <span class="tooltip"> { round(h.hours, 2) }h</span> </td></tr>""",
                     hours,
                 )
             )

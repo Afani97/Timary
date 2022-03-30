@@ -76,7 +76,7 @@
                     <div class="collapse-title text-xl font-medium">View hours logged this period</div>
                     <div class="collapse-content" id="hours-logged">
                         <div class="flex flex-col md:flex-row justify-between">
-                            <ul class="list-disc mx-5">
+                            <ul class="list-disc ml-5">
                                 {% for hour in invoice.get_hours_tracked %}
                                     <li class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
                                 {% endfor %}
@@ -90,9 +90,7 @@
                                                 {{ month.display }}
                                             </th>
                                             <td style="--size:{{ month.size}};">
-                                                <span class="data">
-                                                    {{ month.data }}
-                                                </span>
+                                                <span class="tooltip">{{ month.data }}</span>
                                             </td>
                                         </tr>
                                     {% endfor %}

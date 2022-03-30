@@ -169,9 +169,12 @@ class Invoice(BaseModel):
         return (total_cost_amount / self.total_budget) * 100
 
     def get_last_six_months(self):
-        six_months_ago = datetime.date.today() - relativedelta(months=6)
-        six_months_qs = (
-            self.hours_tracked.filter(date_tracked__gte=six_months_ago)
+        today = datetime.date.today()
+        date_times = [
+            (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
+        ]
+        six_months_qs = list(
+            self.hours_tracked.filter(date_tracked__gte=date_times[5])
             .annotate(month=TruncMonth("date_tracked"))
             .distinct()
             .values("month")
@@ -179,17 +182,22 @@ class Invoice(BaseModel):
             .annotate(h=Sum("hours"))
             .values("month", "h")
         )
-        data = [
-            {
-                "display": m["month"].strftime("%b"),
-                "size": round(
-                    float(m["h"]) / 60, 1
-                ),  # Divide by 60 to increase height of column.
-                "data": f"{round(float(m['h']), 1)}h",
+        data = []
+        for m in date_times:
+            datum = list(filter(lambda x: m == x["month"], six_months_qs))
+            obj = {
+                "month": m,
+                "display": m.strftime("%b"),
+                "size": 0,
+                "data": "0h",
             }
-            for m in six_months_qs
-        ]
-        return data
+            if len(datum) > 0:
+                datum = datum[0]
+                hours = round(float(datum["h"] / 100), 2)
+                obj["size"] = hours
+                obj["data"] = f"{round(datum['h'],2)}h"
+            data.append(obj)
+        return sorted(data, key=lambda x: x["month"])
 
     def get_next_date(self):
         if self.invoice_interval == Invoice.Interval.DAILY:
