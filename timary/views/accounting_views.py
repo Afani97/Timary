@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
+from timary.models import SentInvoice
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
@@ -23,6 +24,14 @@ def quickbooks_connect(request):
 @require_http_methods(["GET"])
 def quickbooks_redirect(request):
     _ = QuickbookService.get_auth_tokens(request)
+    for invoice in request.user.get_invoices:
+        if not invoice.quickbooks_customer_ref_id:
+            QuickbookService.create_customer(invoice)
+    for sent_invoice in request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ):
+        if not sent_invoice.quickbooks_invoice_id:
+            QuickbookService.create_invoice(sent_invoice)
     messages.info(request, "Successfully connected Quickbooks.")
     return redirect(reverse("timary:user_profile"))
 
@@ -50,6 +59,14 @@ def freshbooks_redirect(request):
     auth_token = FreshbookService.get_auth_tokens(request)
     if auth_token:
         FreshbookService.get_current_user(request.user, auth_token)
+        for invoice in request.user.get_invoices:
+            if not invoice.freshbooks_client_id:
+                FreshbookService.create_customer(invoice)
+        for sent_invoice in request.user.sent_invoices.filter(
+            paid_status=SentInvoice.PaidStatus.PAID
+        ):
+            if not sent_invoice.freshbooks_invoice_id:
+                FreshbookService.create_invoice(sent_invoice)
         messages.info(request, "Successfully connected Freshbooks.")
     return redirect(reverse("timary:user_profile"))
 
@@ -77,6 +94,14 @@ def zoho_redirect(request):
     access_token = ZohoService.get_auth_tokens(request)
     if access_token:
         ZohoService.get_organization_id(request.user, access_token)
+        for invoice in request.user.get_invoices:
+            if not invoice.zoho_contact_id:
+                ZohoService.create_customer(invoice)
+        for sent_invoice in request.user.sent_invoices.filter(
+            paid_status=SentInvoice.PaidStatus.PAID
+        ):
+            if not sent_invoice.zoho_invoice_id:
+                ZohoService.create_invoice(sent_invoice)
         messages.info(request, "Successfully connected Zoho.")
     else:
         messages.info(request, "Unable to connect to Zoho")
@@ -104,6 +129,14 @@ def xero_connect(request):
 @require_http_methods(["GET"])
 def xero_redirect(request):
     _ = XeroService.get_auth_tokens(request)
+    for invoice in request.user.get_invoices:
+        if not invoice.xero_contact_id:
+            XeroService.create_customer(invoice)
+    for sent_invoice in request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ):
+        if not sent_invoice.xero_invoice_id:
+            XeroService.create_invoice(sent_invoice)
     messages.info(request, "Successfully connected Xero.")
     return redirect(reverse("timary:user_profile"))
 
@@ -129,6 +162,14 @@ def sage_connect(request):
 @require_http_methods(["GET"])
 def sage_redirect(request):
     _ = SageService.get_auth_tokens(request)
+    for invoice in request.user.get_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ):
+        if not invoice.sage_contact_id:
+            SageService.create_customer(invoice)
+    for sent_invoice in request.user.sent_invoices:
+        if not sent_invoice.sage_invoice_id:
+            SageService.create_invoice(sent_invoice)
     messages.info(request, "Successfully connected Sage.")
     return redirect(reverse("timary:user_profile"))
 
