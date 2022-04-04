@@ -44,6 +44,10 @@ class DailyHoursForm(forms.ModelForm):
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
 
+        # Set date_tracked value/max when form is initialized
+        self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
+        self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
+
     class Meta:
         model = DailyHoursInput
         fields = ["hours", "date_tracked", "invoice"]
@@ -59,8 +63,6 @@ class DailyHoursForm(forms.ModelForm):
             ),
             "date_tracked": DateInput(
                 attrs={
-                    "value": datetime.date.today(),
-                    "max": datetime.date.today() + datetime.timedelta(days=1),
                     "class": "input input-bordered text-lg w-full",
                 }
             ),
