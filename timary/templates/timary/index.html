@@ -71,17 +71,17 @@
         });
     </script>
     <script nonce="hours-timer">
-        let timer_container = document.getElementById("timer_container");
-        let start_timer_btn = document.getElementById("start_timer");
-        let pause_timer_btn = document.getElementById("pause_timer");
-        let resume_timer_btn = document.getElementById("resume_timer");
-        let stop_timer_btn = document.getElementById("stop_timer");
-        let reset_timer_btn = document.getElementById("reset_timer");
-        let timer_hour_span = document.getElementById("timer_hour");
-        let timer_min_span = document.getElementById("timer_min");
-        let timer_sec_span = document.getElementById("timer_sec");
-        let timer_sec = 0;
-        let interval = null;
+        var timer_container = document.getElementById("timer_container");
+        var start_timer_btn = document.getElementById("start_timer");
+        var pause_timer_btn = document.getElementById("pause_timer");
+        var resume_timer_btn = document.getElementById("resume_timer");
+        var stop_timer_btn = document.getElementById("stop_timer");
+        var reset_timer_btn = document.getElementById("reset_timer");
+        var timer_hour_span = document.getElementById("timer_hour");
+        var timer_min_span = document.getElementById("timer_min");
+        var timer_sec_span = document.getElementById("timer_sec");
+        var timer_sec = 0;
+        var interval = null;
 
         start_timer_btn.addEventListener("click", start);
         pause_timer_btn.addEventListener("click", pause);

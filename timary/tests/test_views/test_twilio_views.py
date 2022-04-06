@@ -247,14 +247,14 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(
-            response.response, f"How many hours to log hours for: {invoice2.title}"
+            response.response, f"How many hours to log for: {invoice2.title}"
         )
         self.assertEqual(DailyHoursInput.objects.count(), 1)
 
         # SECOND INVOICE SMS SENT
         message_list_mock.return_value = [
             {},
-            Message(f"How many hours to log hours for: {invoice2.title}"),
+            Message(f"How many hours to log for: {invoice2.title}"),
         ]
         updated_data = self.data.copy()
         updated_data["Body"] = "2"
@@ -281,7 +281,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         message_list_mock.return_value = [
             {},
-            Message(f"How many hours to log hours for: {invoice.title}"),
+            Message(f"How many hours to log for: {invoice.title}"),
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -298,7 +298,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Wrong input, only numbers please. How many hours to log hours for: {invoice.title}",
+            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -312,7 +312,7 @@ class TestTwilioReplyWebhook(TestCase):
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
             {},
-            Message(f"How many hours to log hours for: {invoice.title}"),
+            Message(f"How many hours to log for: {invoice.title}"),
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -329,7 +329,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Hours have to be greater than 0.5. How many hours to log hours for: {invoice.title}",
+            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -337,7 +337,7 @@ class TestTwilioReplyWebhook(TestCase):
         message_list_mock.return_value = [
             {},
             Message(
-                f"Hours have to be greater than 0.5. How many hours to log hours for: {invoice.title}"
+                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}"
             ),
         ]
         updated_data = self.data.copy()

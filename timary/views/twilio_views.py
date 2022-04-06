@@ -24,11 +24,11 @@ def twilio_reply(request):
     except InvalidOperation:
         r = MessagingResponse()
         r.message(
-            f"Wrong input, only numbers please. How many hours to log hours for: {invoice.title}"
+            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}"
         )
         return r
 
-    if hours > 0.5:
+    if hours > 0:
         DailyHoursInput.objects.create(
             hours=hours,
             date_tracked=datetime.date.today(),
@@ -37,7 +37,7 @@ def twilio_reply(request):
     else:
         r = MessagingResponse()
         r.message(
-            f"Hours have to be greater than 0.5. How many hours to log hours for: {invoice.title}"
+            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}"
         )
         return r
 
@@ -45,7 +45,7 @@ def twilio_reply(request):
     if len(remaining_invoices) > 0:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()
-        r.message(f"How many hours to log hours for: {invoice.title}")
+        r.message(f"How many hours to log for: {invoice.title}")
         return r
     else:
         r = MessagingResponse()

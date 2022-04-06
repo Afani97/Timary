@@ -1,7 +1,8 @@
 {% extends 'timary/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block css %}
+{% block content %}
+    <link href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css" rel="stylesheet" type="text/css" />
     <style>
         #my-chart.column {
             height: 150px;
@@ -9,9 +10,6 @@
             margin: 0 auto;
         }
     </style>
-{% endblock %}
-
-{% block content %}
 
     {% include 'partials/_new_invoice_btn.html' %}
 

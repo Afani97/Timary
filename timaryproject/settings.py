@@ -66,7 +66,8 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django_otp.middleware.OTPMiddleware",
-    "csp.middleware.CSPMiddleware",
+    # Re-enable once inline-src errors are dealt with.
+    # "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # TIMARY
@@ -191,7 +192,7 @@ EMAIL_HOST_PASSWORD = config("NAMECHEAP_PASSWORD", default="abc123")
 EMAIL_USE_TLS = True
 
 # Content Security Policy
-CSP_DEFAULT_SRC = ("'none'",)
+CSP_DEFAULT_SRC = ("'self'",)
 CSP_STYLE_SRC = (
     "'self'",
     "'unsafe-inline'",
