@@ -32,9 +32,11 @@ class ZohoService:
                 f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
                 f"&redirect_uri={client_redirect}&grant_type=authorization_code"
             )
+            auth_request.raise_for_status()
             response = auth_request.json()
-            request.user.zoho_refresh_token = response["refresh_token"]
-            request.user.save()
+            if "refresh_token" in response:
+                request.user.zoho_refresh_token = response["refresh_token"]
+                request.user.save()
             return response["access_token"]
         return None
 
@@ -126,6 +128,7 @@ class ZohoService:
             "rate": sent_invoice.total_price,
         }
         item_request = ZohoService.create_request(
+            zoho_auth_token,
             sent_invoice.user.zoho_organization_id,
             "items",
             "post",
