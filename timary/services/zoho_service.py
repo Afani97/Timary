@@ -34,7 +34,7 @@ class ZohoService:
                 f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
                 f"&redirect_uri={client_redirect}&grant_type=authorization_code"
             )
-            if auth_request.status_code != requests.codes.ok:
+            if not auth_request.ok:
                 raise AccountingError(
                     service="Zoho",
                     user_id=request.user.id,
@@ -55,7 +55,7 @@ class ZohoService:
             f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
             f"&redirect_uri={client_redirect}&grant_type=refresh_token"
         )
-        if refresh_response.status_code != requests.codes.ok:
+        if not refresh_response.ok:
             raise AccountingError(
                 service="Zoho", user_id=user.id, requests_response=refresh_response
             )
@@ -79,7 +79,7 @@ class ZohoService:
                 headers=headers,
                 data=urllib.parse.urlencode({"JSONString": json.dumps(data)}),
             )
-            if response.status_code != requests.codes.ok:
+            if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
         return None

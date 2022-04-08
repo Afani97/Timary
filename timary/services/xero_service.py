@@ -38,7 +38,7 @@ class XeroService:
                     "redirect_uri": redirect_uri,
                 },
             )
-            if auth_request.status_code != requests.codes.ok:
+            if not auth_request.ok:
                 raise AccountingError(
                     service="Xero",
                     user_id=request.user.id,
@@ -57,7 +57,7 @@ class XeroService:
                     "Content-Type": "application/json",
                 },
             )
-            if tenant_request.status_code != requests.codes.ok:
+            if not tenant_request.ok:
                 raise AccountingError(
                     service="Xero",
                     user_id=request.user.id,
@@ -77,7 +77,7 @@ class XeroService:
                 "refresh_token": user.xero_refresh_token,
             },
         )
-        if refresh_request.status_code != requests.codes.ok:
+        if not refresh_request.ok:
             raise AccountingError(
                 service="Xero", user_id=user.id, requests_response=refresh_request
             )

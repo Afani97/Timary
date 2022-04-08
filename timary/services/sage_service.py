@@ -36,7 +36,7 @@ class SageService:
                     "redirect_uri": f"{settings.SITE_URL}{reverse('timary:sage_redirect')}",
                 },
             )
-            if auth_request.status_code != requests.codes.ok:
+            if not auth_request.ok:
                 raise AccountingError(
                     service="Sage",
                     user_id=request.user.id,
@@ -61,7 +61,7 @@ class SageService:
                 "refresh_token": user.sage_refresh_token,
             },
         )
-        if refresh_response.status_code != requests.codes.ok:
+        if not refresh_response.ok:
             raise AccountingError(
                 service="Sage", user_id=user.id, requests_response=refresh_response
             )
@@ -80,7 +80,7 @@ class SageService:
         }
         if method_type == "get":
             response = requests.get(url, headers=headers)
-            if response.status_code != requests.codes.ok:
+            if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()["$items"]
         elif method_type == "post":
@@ -89,7 +89,7 @@ class SageService:
                 headers=headers,
                 data=json.dumps(data),
             )
-            if response.status_code != requests.codes.ok:
+            if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
         return None

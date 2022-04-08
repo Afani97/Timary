@@ -51,7 +51,7 @@ class FreshbookService:
                     "redirect_uri": redirect_uri,
                 },
             )
-            if auth_request.status_code != requests.codes.ok:
+            if not auth_request.ok:
                 raise AccountingError(
                     service="Freshbooks",
                     user_id=request.user.id,
@@ -80,7 +80,7 @@ class FreshbookService:
                 "redirect_uri": redirect_uri,
             },
         )
-        if auth_request.status_code != requests.codes.ok:
+        if not auth_request.ok:
             raise AccountingError(
                 service="Freshbooks", user_id=user.id, requests_response=auth_request
             )
@@ -121,7 +121,7 @@ class FreshbookService:
             return response.json()
         elif method_type == "post":
             response = requests.post(url, headers=headers, data=json.dumps(data))
-            if response.status_code != requests.codes.ok:
+            if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
         return None
