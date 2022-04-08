@@ -1,3 +1,5 @@
+import sys
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -9,14 +11,14 @@ from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
 from timary.services.xero_service import XeroService
-
-# QUICKBOOKS
 from timary.services.zoho_service import ZohoService
 
 
+# QUICKBOOKS
 @login_required
 @require_http_methods(["GET"])
 def quickbooks_connect(request):
+    print("Logging to quickbooks", file=sys.stdout)
     return redirect(QuickbookService.get_auth_url())
 
 
