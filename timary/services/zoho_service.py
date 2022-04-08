@@ -36,7 +36,9 @@ class ZohoService:
             )
             if auth_request.status_code != requests.codes.ok:
                 raise AccountingError(
-                    user_id=request.user.id, requests_response=auth_request
+                    service="Zoho",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
                 )
             response = auth_request.json()
             if "refresh_token" in response:
@@ -54,7 +56,9 @@ class ZohoService:
             f"&redirect_uri={client_redirect}&grant_type=refresh_token"
         )
         if refresh_response.status_code != requests.codes.ok:
-            raise AccountingError(user_id=user.id, requests_response=refresh_response)
+            raise AccountingError(
+                service="Zoho", user_id=user.id, requests_response=refresh_response
+            )
         response = refresh_response.json()
         return response["access_token"]
 
@@ -124,7 +128,9 @@ class ZohoService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=invoice.user.id, requests_response=ae.requests_response
+                service="Zoho",
+                user_id=invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -160,7 +166,9 @@ class ZohoService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Zoho",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -176,7 +184,9 @@ class ZohoService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Zoho",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -204,7 +214,9 @@ class ZohoService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Zoho",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -234,7 +246,9 @@ class ZohoService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Zoho",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return

@@ -38,7 +38,11 @@ class QuickbookService:
                 },
             )
             if auth_request.status_code != requests.codes.ok:
-                raise AccountingError(request.user.id, auth_request)
+                raise AccountingError(
+                    service="Quickbooks",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
+                )
             response = auth_request.json()
 
             request.user.quickbooks_refresh_token = response["refresh_token"]
@@ -62,7 +66,9 @@ class QuickbookService:
             },
         )
         if auth_request.status_code != requests.codes.ok:
-            raise AccountingError(user.id, auth_request)
+            raise AccountingError(
+                service="Quickbooks", user_id=user.id, requests_response=auth_request
+            )
         response = auth_request.json()
         user.quickbooks_refresh_token = response["refresh_token"]
         user.save()
@@ -113,7 +119,9 @@ class QuickbookService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=invoice.user.id, requests_response=ae.requests_response
+                service="Quickbooks",
+                user_id=invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -150,7 +158,9 @@ class QuickbookService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Quickbooks",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -180,7 +190,9 @@ class QuickbookService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Quickbooks",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return

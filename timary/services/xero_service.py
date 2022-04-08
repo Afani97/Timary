@@ -40,7 +40,9 @@ class XeroService:
             )
             if auth_request.status_code != requests.codes.ok:
                 raise AccountingError(
-                    user_id=request.user.id, requests_response=auth_request
+                    service="Xero",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
                 )
             response = auth_request.json()
 
@@ -57,7 +59,9 @@ class XeroService:
             )
             if tenant_request.status_code != requests.codes.ok:
                 raise AccountingError(
-                    user_id=request.user.id, requests_response=tenant_request
+                    service="Xero",
+                    user_id=request.user.id,
+                    requests_response=tenant_request,
                 )
             tenant_response = tenant_request.json()
             request.user.xero_tenant_id = tenant_response[0]["tenantId"]
@@ -74,7 +78,9 @@ class XeroService:
             },
         )
         if refresh_request.status_code != requests.codes.ok:
-            raise AccountingError(user_id=user.id, requests_response=refresh_request)
+            raise AccountingError(
+                service="Xero", user_id=user.id, requests_response=refresh_request
+            )
         response = refresh_request.json()
         user.xero_refresh_token = response["refresh_token"]
         user.save()
@@ -107,7 +113,9 @@ class XeroService:
             xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=invoice.user.id, requests_response=ae.requests_response
+                service="Xero",
+                user_id=invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -126,7 +134,9 @@ class XeroService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=invoice.user.id, requests_response=ae.requests_response
+                service="Xero",
+                user_id=invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -170,7 +180,9 @@ class XeroService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Xero",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
@@ -196,7 +208,9 @@ class XeroService:
             )
         except AccountingError as ae:
             accounting_error = AccountingError(
-                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+                service="Xero",
+                user_id=sent_invoice.user.id,
+                requests_response=ae.requests_response,
             )
             accounting_error.log()
             return
