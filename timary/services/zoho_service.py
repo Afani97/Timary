@@ -6,6 +6,8 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
+from timary.custom_errors import AccountingError
+
 
 class ZohoService:
     @staticmethod
@@ -32,7 +34,10 @@ class ZohoService:
                 f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
                 f"&redirect_uri={client_redirect}&grant_type=authorization_code"
             )
-            auth_request.raise_for_status()
+            if auth_request.status_code != requests.codes.ok:
+                raise AccountingError(
+                    user_id=request.user.id, requests_response=auth_request
+                )
             response = auth_request.json()
             if "refresh_token" in response:
                 request.user.zoho_refresh_token = response["refresh_token"]
@@ -43,13 +48,14 @@ class ZohoService:
     @staticmethod
     def get_refreshed_tokens(user):
         client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
-        request = requests.post(
+        refresh_response = requests.post(
             f"https://accounts.zoho.com/oauth/v2/token?refresh_token={user.zoho_refresh_token}"
             f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
             f"&redirect_uri={client_redirect}&grant_type=refresh_token"
         )
-        request.raise_for_status()
-        response = request.json()
+        if refresh_response.status_code != requests.codes.ok:
+            raise AccountingError(user_id=user.id, requests_response=refresh_response)
+        response = refresh_response.json()
         return response["access_token"]
 
     @staticmethod
@@ -69,10 +75,10 @@ class ZohoService:
                 headers=headers,
                 data=urllib.parse.urlencode({"JSONString": json.dumps(data)}),
             )
-            response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise AccountingError(requests_response=response)
             return response.json()
-        else:
-            return None
+        return None
 
     @staticmethod
     def get_organization_id(user, access_token):
@@ -89,7 +95,12 @@ class ZohoService:
 
     @staticmethod
     def create_customer(invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
+        try:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
+
         recipient_name = invoice.email_recipient_name.split(" ")
         data = {
             "contact_name": invoice.email_recipient_name,
@@ -103,13 +114,20 @@ class ZohoService:
                 }
             ],
         }
-        response = ZohoService.create_request(
-            zoho_auth_token,
-            invoice.user.zoho_organization_id,
-            "contacts",
-            "post",
-            data=data,
-        )
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token,
+                invoice.user.zoho_organization_id,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         invoice.zoho_contact_id = response["contact"]["contact_id"]
         invoice.zoho_contact_persons_id = response["contact"]["contact_persons"][0][
             "contact_person_id"
@@ -118,7 +136,12 @@ class ZohoService:
 
     @staticmethod
     def create_invoice(sent_invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
+        try:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
+
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -127,22 +150,36 @@ class ZohoService:
             "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
             "rate": sent_invoice.total_price,
         }
-        item_request = ZohoService.create_request(
-            zoho_auth_token,
-            sent_invoice.user.zoho_organization_id,
-            "items",
-            "post",
-            data=data,
-        )
+        try:
+            item_request = ZohoService.create_request(
+                zoho_auth_token,
+                sent_invoice.user.zoho_organization_id,
+                "items",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         item_id = item_request["item"]["item_id"]
 
         # Mark line item as active
-        ZohoService.create_request(
-            zoho_auth_token,
-            sent_invoice.user.zoho_organization_id,
-            f"items/{item_id}/active",
-            "post",
-        )
+        try:
+            ZohoService.create_request(
+                zoho_auth_token,
+                sent_invoice.user.zoho_organization_id,
+                f"items/{item_id}/active",
+                "post",
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
 
         # Generate invoice
         data = {
@@ -157,13 +194,20 @@ class ZohoService:
                 }
             ],
         }
-        response = ZohoService.create_request(
-            zoho_auth_token,
-            sent_invoice.user.zoho_organization_id,
-            "invoices",
-            "post",
-            data=data,
-        )
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token,
+                sent_invoice.user.zoho_organization_id,
+                "invoices",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         sent_invoice.zoho_invoice_id = response["invoice"]["invoice_id"]
         sent_invoice.save()
 
@@ -180,10 +224,17 @@ class ZohoService:
                 }
             ],
         }
-        response = ZohoService.create_request(
-            zoho_auth_token,
-            sent_invoice.user.zoho_organization_id,
-            "customerpayments",
-            "post",
-            data=data,
-        )
+        try:
+            ZohoService.create_request(
+                zoho_auth_token,
+                sent_invoice.user.zoho_organization_id,
+                "customerpayments",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return

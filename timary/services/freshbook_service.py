@@ -5,6 +5,8 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
+from timary.custom_errors import AccountingError
+
 
 class FreshbookService:
     @staticmethod
@@ -49,7 +51,10 @@ class FreshbookService:
                     "redirect_uri": redirect_uri,
                 },
             )
-            auth_request.raise_for_status()
+            if auth_request.status_code != requests.codes.ok:
+                raise AccountingError(
+                    user_id=request.user.id, requests_response=auth_request
+                )
             response = auth_request.json()
             request.user.freshbooks_refresh_token = response["refresh_token"]
             request.user.save()
@@ -73,6 +78,8 @@ class FreshbookService:
                 "redirect_uri": redirect_uri,
             },
         )
+        if auth_request.status_code != requests.codes.ok:
+            raise AccountingError(user_id=user.id, requests_response=auth_request)
         response = auth_request.json()
         user.freshbooks_refresh_token = response["refresh_token"]
         user.save()
@@ -110,13 +117,18 @@ class FreshbookService:
             return response.json()
         elif method_type == "post":
             response = requests.post(url, headers=headers, data=json.dumps(data))
+            if response.status_code != requests.codes.ok:
+                raise AccountingError(requests_response=response)
             return response.json()
-        else:
-            return None
+        return None
 
     @staticmethod
     def create_customer(invoice):
-        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
+        try:
+            freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
         data = {
             "client": {
                 "email": invoice.email_recipient,
@@ -127,15 +139,29 @@ class FreshbookService:
         endpoint = (
             f"accounting/account/{invoice.user.freshbooks_account_id}/users/clients"
         )
-        response = FreshbookService.create_request(
-            freshbooks_auth_token, endpoint, method_type="post", data=data
-        )
+        try:
+            response = FreshbookService.create_request(
+                freshbooks_auth_token, endpoint, method_type="post", data=data
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         invoice.freshbooks_client_id = response["response"]["result"]["client"]["id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(sent_invoice.user)
+        try:
+            freshbooks_auth_token = FreshbookService.get_refreshed_tokens(
+                sent_invoice.user
+            )
+        except AccountingError as ae:
+            ae.log()
+            return
+
         today = datetime.date.today()
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -159,9 +185,16 @@ class FreshbookService:
             }
         }
         endpoint = f"accounting/account/{sent_invoice.user.freshbooks_account_id}/invoices/invoices"
-        response = FreshbookService.create_request(
-            freshbooks_auth_token, endpoint, method_type="post", data=data
-        )
+        try:
+            response = FreshbookService.create_request(
+                freshbooks_auth_token, endpoint, method_type="post", data=data
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
 
         sent_invoice.freshbooks_invoice_id = response["response"]["result"]["invoice"][
             "id"
@@ -179,6 +212,13 @@ class FreshbookService:
             }
         }
         endpoint = f"accounting/account/{sent_invoice.user.freshbooks_account_id}/payments/payments"
-        response = FreshbookService.create_request(
-            freshbooks_auth_token, endpoint, method_type="post", data=data
-        )
+        try:
+            FreshbookService.create_request(
+                freshbooks_auth_token, endpoint, method_type="post", data=data
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return

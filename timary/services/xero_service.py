@@ -6,6 +6,8 @@ from django.conf import settings
 from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
+from timary.custom_errors import AccountingError
+
 
 class XeroService:
     @staticmethod
@@ -36,6 +38,10 @@ class XeroService:
                     "redirect_uri": redirect_uri,
                 },
             )
+            if auth_request.status_code != requests.codes.ok:
+                raise AccountingError(
+                    user_id=request.user.id, requests_response=auth_request
+                )
             response = auth_request.json()
 
             request.user.xero_refresh_token = response["refresh_token"]
@@ -49,6 +55,10 @@ class XeroService:
                     "Content-Type": "application/json",
                 },
             )
+            if tenant_request.status_code != requests.codes.ok:
+                raise AccountingError(
+                    user_id=request.user.id, requests_response=tenant_request
+                )
             tenant_response = tenant_request.json()
             request.user.xero_tenant_id = tenant_response[0]["tenantId"]
             request.user.save()
@@ -63,6 +73,8 @@ class XeroService:
                 "refresh_token": user.xero_refresh_token,
             },
         )
+        if refresh_request.status_code != requests.codes.ok:
+            raise AccountingError(user_id=user.id, requests_response=refresh_request)
         response = refresh_request.json()
         user.xero_refresh_token = response["refresh_token"]
         user.save()
@@ -91,20 +103,44 @@ class XeroService:
 
     @staticmethod
     def create_customer(invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+        try:
+            xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         data = {
             "Name": invoice.email_recipient_name,
             "EmailAddress": invoice.email_recipient,
         }
-        response = XeroService.create_request(
-            xero_auth_token, invoice.user.xero_tenant_id, "Contacts", "post", data=data
-        )
+
+        try:
+            response = XeroService.create_request(
+                xero_auth_token,
+                invoice.user.xero_tenant_id,
+                "Contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         invoice.xero_contact_id = response["Contacts"][0]["ContactID"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
+        try:
+            xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
+
         # Generate invoice
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
@@ -124,13 +160,20 @@ class XeroService:
                 }
             ],
         }
-        response = XeroService.create_request(
-            xero_auth_token,
-            sent_invoice.user.xero_tenant_id,
-            "Invoices",
-            "post",
-            data=data,
-        )
+        try:
+            response = XeroService.create_request(
+                xero_auth_token,
+                sent_invoice.user.xero_tenant_id,
+                "Invoices",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
 
         sent_invoice.xero_invoice_id = response["Invoices"][0]["InvoiceID"]
         sent_invoice.save()
@@ -143,10 +186,17 @@ class XeroService:
             "Amount": sent_invoice.total_price,
             "Status": "AUTHORISED",
         }
-        response = XeroService.create_request(
-            xero_auth_token,
-            sent_invoice.user.xero_tenant_id,
-            "Payments",
-            "put",
-            data=data,
-        )
+        try:
+            XeroService.create_request(
+                xero_auth_token,
+                sent_invoice.user.xero_tenant_id,
+                "Payments",
+                "put",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return

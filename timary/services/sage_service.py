@@ -5,6 +5,8 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
+from timary.custom_errors import AccountingError
+
 
 class SageService:
     @staticmethod
@@ -34,6 +36,10 @@ class SageService:
                     "redirect_uri": f"{settings.SITE_URL}{reverse('timary:sage_redirect')}",
                 },
             )
+            if auth_request.status_code != requests.codes.ok:
+                raise AccountingError(
+                    user_id=request.user.id, requests_response=auth_request
+                )
             response = auth_request.json()
             request.user.sage_account_id = response["requested_by_id"]
             request.user.sage_refresh_token = response["refresh_token"]
@@ -41,7 +47,7 @@ class SageService:
 
     @staticmethod
     def get_refreshed_tokens(user):
-        request = requests.post(
+        refresh_response = requests.post(
             "https://oauth.accounting.sage.com/token",
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -53,8 +59,9 @@ class SageService:
                 "refresh_token": user.sage_refresh_token,
             },
         )
-        response = request.json()
-        request.raise_for_status()
+        if refresh_response.status_code != requests.codes.ok:
+            raise AccountingError(user_id=user.id, requests_response=refresh_response)
+        response = refresh_response.json()
         user.sage_refresh_token = response["refresh_token"]
         user.save()
         return response["access_token"]
@@ -69,6 +76,8 @@ class SageService:
         }
         if method_type == "get":
             response = requests.get(url, headers=headers)
+            if response.status_code != requests.codes.ok:
+                raise AccountingError(requests_response=response)
             return response.json()["$items"]
         elif method_type == "post":
             response = requests.post(
@@ -76,14 +85,18 @@ class SageService:
                 headers=headers,
                 data=json.dumps(data),
             )
-            response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise AccountingError(requests_response=response)
             return response.json()
-        else:
-            return None
+        return None
 
     @staticmethod
     def create_customer(invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
+        try:
+            sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
@@ -97,25 +110,44 @@ class SageService:
                 },
             }
         }
-        response = SageService.create_request(
-            sage_auth_token,
-            "contacts",
-            "post",
-            data=data,
-        )
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         invoice.sage_contact_id = response["id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
+        try:
+            sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
+        except AccountingError as ae:
+            ae.log()
+            return
+
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 
         # Get Professional Fees Ledger Id
-        ledger_response = SageService.create_request(
-            sage_auth_token, "ledger_accounts?items_per_page=200", "get"
-        )
+        try:
+            ledger_response = SageService.create_request(
+                sage_auth_token, "ledger_accounts?items_per_page=200", "get"
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         ledger_account_id = list(
             filter(
                 None,
@@ -127,15 +159,31 @@ class SageService:
         )[0]
 
         # Get Sage Bank Account Id
-        response = SageService.create_request(sage_auth_token, "bank_accounts", "get")
+        try:
+            response = SageService.create_request(
+                sage_auth_token, "bank_accounts", "get"
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         bank_account_id = response[0]["id"]
 
         # Get Tax Rate For User
-        response = SageService.create_request(
-            sage_auth_token,
-            "tax_rates?attributes=name,percentage&items_per_page=200",
-            "get",
-        )
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                "tax_rates?attributes=name,percentage&items_per_page=200",
+                "get",
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         no_tax_id = response[0]["id"]
 
         # Generate invoice
@@ -155,12 +203,19 @@ class SageService:
             }
         }
 
-        response = SageService.create_request(
-            sage_auth_token,
-            "sales_invoices",
-            "post",
-            data=data,
-        )
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                "sales_invoices",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return
         sent_invoice.sage_invoice_id = response["id"]
         sent_invoice.save()
 
@@ -182,9 +237,16 @@ class SageService:
             }
         }
 
-        response = SageService.create_request(
-            sage_auth_token,
-            "contact_payments",
-            "post",
-            data=data,
-        )
+        try:
+            SageService.create_request(
+                sage_auth_token,
+                "contact_payments",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            accounting_error = AccountingError(
+                user_id=sent_invoice.user.id, requests_response=ae.requests_response
+            )
+            accounting_error.log()
+            return

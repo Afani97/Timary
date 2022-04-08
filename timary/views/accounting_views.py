@@ -1,11 +1,10 @@
-import sys
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
+from timary.custom_errors import AccountingError
 from timary.models import SentInvoice
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
@@ -18,14 +17,19 @@ from timary.services.zoho_service import ZohoService
 @login_required
 @require_http_methods(["GET"])
 def quickbooks_connect(request):
-    print("Logging to quickbooks", file=sys.stdout)
     return redirect(QuickbookService.get_auth_url())
 
 
 @login_required
 @require_http_methods(["GET"])
 def quickbooks_redirect(request):
-    _ = QuickbookService.get_auth_tokens(request)
+    try:
+        QuickbookService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log()
+        messages.error(request, "Unable to connect to Quickbooks.")
+        return redirect(reverse("timary:user_profile"))
+
     for invoice in request.user.get_invoices:
         if not invoice.quickbooks_customer_ref_id:
             QuickbookService.create_customer(invoice)
@@ -58,7 +62,13 @@ def freshbooks_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def freshbooks_redirect(request):
-    auth_token = FreshbookService.get_auth_tokens(request)
+    try:
+        auth_token = FreshbookService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log()
+        messages.error(request, "Unable to connect to Freshbooks.")
+        return redirect(reverse("timary:user_profile"))
+
     if auth_token:
         FreshbookService.get_current_user(request.user, auth_token)
         for invoice in request.user.get_invoices:
@@ -93,7 +103,13 @@ def zoho_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def zoho_redirect(request):
-    access_token = ZohoService.get_auth_tokens(request)
+    try:
+        access_token = ZohoService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log()
+        messages.error(request, "Unable to connect to Zoho.")
+        return redirect(reverse("timary:user_profile"))
+
     if access_token:
         ZohoService.get_organization_id(request.user, access_token)
         for invoice in request.user.get_invoices:
@@ -130,7 +146,13 @@ def xero_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def xero_redirect(request):
-    _ = XeroService.get_auth_tokens(request)
+    try:
+        XeroService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log()
+        messages.info(request, "Unable to connect to Xero.")
+        return redirect(reverse("timary:user_profile"))
+
     for invoice in request.user.get_invoices:
         if not invoice.xero_contact_id:
             XeroService.create_customer(invoice)
@@ -163,7 +185,13 @@ def sage_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def sage_redirect(request):
-    _ = SageService.get_auth_tokens(request)
+    try:
+        SageService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log()
+        messages.error(request, "Unable to connect to Sage.")
+        return redirect(reverse("timary:user_profile"))
+
     for invoice in request.user.get_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
