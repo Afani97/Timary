@@ -467,7 +467,7 @@
                                                                 <tr>
                                                                     <td class="attributes_item">
                                                                         <span class="f-fallback">
-                                                                            <strong>Amount Due: ${{ total_amount | floatformat }}</strong>
+                                                                            <strong>Amount Due: ${{ total_amount|add:"10"|floatformat }}</strong>
                                                                         </span>
                                                                     </td>
                                                                 </tr>
@@ -527,11 +527,15 @@
                                                                     </tr>
                                                                 {% endfor %}
                                                                 <tr>
+                                                                    <td width="80%" class="purchase_item"><span class="f-fallback">Stripe Fee</span></td>
+                                                                    <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$10</span></td>
+                                                                </tr>
+                                                                <tr>
                                                                     <td width="80%" class="purchase_footer" valign="middle">
                                                                         <p class="f-fallback purchase_total purchase_total--label">Total</p>
                                                                     </td>
                                                                     <td width="20%" class="purchase_footer" valign="middle">
-                                                                        <p class="f-fallback purchase_total">${{ total_amount | floatformat }}</p>
+                                                                        <p class="f-fallback purchase_total">${{ total_amount|add:"10"|floatformat }}</p>
                                                                     </td>
                                                                 </tr>
                                                             </table>

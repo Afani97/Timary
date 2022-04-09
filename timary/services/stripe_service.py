@@ -102,12 +102,16 @@ class StripeService:
     @classmethod
     def create_payment_intent_for_payout(cls, sent_invoice):
         stripe.api_key = cls.stripe_api_key
-        application_fee = 0
+        application_fee = 1000
         if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
-            application_fee = int(sent_invoice.total_price)
+            application_fee = int(sent_invoice.total_price) + 1000
+        invoice_amount = (
+            int(sent_invoice.total_price * 100) + 1000
+        )  # Add $10 ACH Debit Fee
         intent = stripe.PaymentIntent.create(
-            payment_method_types=["card"],
-            amount=int(sent_invoice.total_price * 100),
+            payment_method_types=["us_bank_account"],
+            amount=invoice_amount,
+            setup_future_usage="off_session",
             currency="usd",
             application_fee_amount=application_fee,
             transfer_data={
