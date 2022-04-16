@@ -175,6 +175,12 @@
                     </div>
                 {% endfor %}
             </div>
+            {% if saved_payment_method %}
+                <div class="divider"></div>
+                <button id="quick-pay" class="flex self-center btn btn-primary">Use saved bank account ending in
+                    {{ last_4_bank }}</button>
+                <div class="divider"></div>
+            {% endif %}
             <div id="payment-element">
                 <!--Stripe.js injects the Payment Element-->
             </div>
@@ -204,6 +210,10 @@
         document
             .querySelector("#payment-form")
             .addEventListener("submit", handleSubmit);
+
+        document
+            .querySelector("#quick-pay")
+            .addEventListener("click", handleQuickPay);
 
         // Fetches a payment intent and captures the client secret
         async function initialize() {
@@ -292,6 +302,24 @@
             }
 
             setLoading(false);
+        }
+
+        async function handleQuickPay(e) {
+            e.preventDefault();
+            setLoading(true);
+
+            const formIsValid = await checkInvoicingDetailsValid();
+            if (!formIsValid) {
+                setLoading(false);
+                showMessage("Form details are not valid");
+                return;
+            }
+
+            const response = await fetch("{{ site_url }}/invoice-payment/{{sent_invoice.id}}/quick-pay/");
+
+            // TODO: Handle errors
+            let data = await response.json();
+            window.location.replace(data["return_url"])
         }
 
         // ------- UI helpers -------

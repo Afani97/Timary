@@ -99,6 +99,9 @@ class Invoice(BaseModel):
     )
     email_recipient_name = models.CharField(max_length=200, null=False, blank=False)
     email_recipient = models.EmailField(null=False, blank=False)
+    email_recipient_stripe_customer_id = models.CharField(
+        max_length=200, null=True, blank=True
+    )
 
     invoice_interval = models.CharField(
         max_length=1, choices=Interval.choices, default=Interval.MONTHLY

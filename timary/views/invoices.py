@@ -18,6 +18,7 @@ from timary.models import Invoice, SentInvoice, User
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
+from timary.services.stripe_service import StripeService
 from timary.services.xero_service import XeroService
 from timary.services.zoho_service import ZohoService
 from timary.utils import render_form_errors
@@ -71,6 +72,9 @@ def create_invoice(request):
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
+
+        StripeService.create_customer_for_invoice(invoice)
+
         if user.quickbooks_realm_id:
             QuickbookService.create_customer(invoice)
 

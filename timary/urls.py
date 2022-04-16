@@ -156,6 +156,11 @@ urlpatterns += [
         "invoice-payment/<uuid:sent_invoice_id>/", views.pay_invoice, name="pay_invoice"
     ),
     path(
+        "invoice-payment/<uuid:sent_invoice_id>/quick-pay/",
+        views.quick_pay_invoice,
+        name="quick_pay_invoice",
+    ),
+    path(
         "invoice-payment-success/<uuid:sent_invoice_id>/",
         views.invoice_payment_success,
         name="invoice_payment_success",

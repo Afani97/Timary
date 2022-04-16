@@ -74,6 +74,32 @@ class StripeService:
         return stripe_connect_id, stripe_customer_id, account_link["url"]
 
     @classmethod
+    def create_customer_for_invoice(cls, invoice):
+        stripe.api_key = cls.stripe_api_key
+        stripe_customer = stripe.Customer.create(
+            email=invoice.email_recipient,
+            name=invoice.email_recipient_name,
+        )
+        invoice.email_recipient_stripe_customer_id = stripe_customer["id"]
+        invoice.save()
+
+    @classmethod
+    def retrieve_customer(cls, customer_id):
+        stripe.api_key = cls.stripe_api_key
+        stripe_customer = stripe.Customer.retrieve(customer_id)
+        return stripe_customer
+
+    @classmethod
+    def retrieve_customer_payment_method(cls, customer_id):
+        stripe.api_key = cls.stripe_api_key
+        payment_methods = stripe.Customer.list_payment_methods(
+            customer_id, type="us_bank_account"
+        )
+        if len(payment_methods["data"]) > 0:
+            return payment_methods["data"][0]
+        return None
+
+    @classmethod
     def create_payment_intent(cls):
         stripe.api_key = cls.stripe_api_key
         intent = stripe.SetupIntent.create(
@@ -100,18 +126,52 @@ class StripeService:
         return customer_source and connect_source
 
     @classmethod
-    def create_payment_intent_for_payout(cls, sent_invoice):
-        stripe.api_key = cls.stripe_api_key
+    def calculate_application_fee(cls, sent_invoice):
         application_fee = 1000
         if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
             application_fee = int(sent_invoice.total_price) + 1000
         invoice_amount = (
             int(sent_invoice.total_price * 100) + 1000
         )  # Add $10 ACH Debit Fee
+        return application_fee, invoice_amount
+
+    @classmethod
+    def create_payment_intent_for_payout(cls, sent_invoice):
+        stripe.api_key = cls.stripe_api_key
+        application_fee, invoice_amount = StripeService.calculate_application_fee(
+            sent_invoice
+        )
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
+            customer=sent_invoice.invoice.email_recipient_stripe_customer_id,
             amount=invoice_amount,
             setup_future_usage="off_session",
+            currency="usd",
+            application_fee_amount=application_fee,
+            transfer_data={
+                "destination": sent_invoice.user.stripe_connect_id,
+            },
+        )
+        return intent["client_secret"]
+
+    @classmethod
+    def confirm_payment(cls, sent_invoice):
+        stripe.api_key = cls.stripe_api_key
+        application_fee, invoice_amount = StripeService.calculate_application_fee(
+            sent_invoice
+        )
+
+        # Retrieve the first bank account for invoicee and confirm the payment.
+        invoicee_payment_method = StripeService.retrieve_customer_payment_method(
+            sent_invoice.invoice.email_recipient_stripe_customer_id
+        )
+
+        intent = stripe.PaymentIntent.create(
+            payment_method_types=["us_bank_account"],
+            payment_method=invoicee_payment_method["id"],
+            customer=sent_invoice.invoice.email_recipient_stripe_customer_id,
+            amount=invoice_amount,
+            confirm=True,
             currency="usd",
             application_fee_amount=application_fee,
             transfer_data={

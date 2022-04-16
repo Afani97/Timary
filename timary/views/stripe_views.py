@@ -34,6 +34,15 @@ def pay_invoice(request, sent_invoice_id):
     else:
         client_secret = StripeService.create_payment_intent_for_payout(sent_invoice)
 
+        saved_payment_method = False
+        last_4_bank = ""
+        if sent_invoice.invoice.email_recipient_stripe_customer_id:
+            invoicee_payment_method = StripeService.retrieve_customer_payment_method(
+                sent_invoice.invoice.email_recipient_stripe_customer_id
+            )
+            saved_payment_method = True
+            last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
+
         context = {
             "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
@@ -41,6 +50,8 @@ def pay_invoice(request, sent_invoice_id):
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
             "client_secret": client_secret,
+            "saved_payment_method": saved_payment_method,
+            "last_4_bank": last_4_bank,
             "return_url": request.build_absolute_uri(
                 reverse(
                     "timary:invoice_payment_success",
@@ -52,12 +63,34 @@ def pay_invoice(request, sent_invoice_id):
 
 
 @require_http_methods(["GET"])
+def quick_pay_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+        return redirect(reverse("timary:login"))
+
+    # TODO: Handle confirm errors
+    _ = StripeService.confirm_payment(sent_invoice)
+    return JsonResponse(
+        {
+            "return_url": request.build_absolute_uri(
+                reverse(
+                    "timary:invoice_payment_success",
+                    kwargs={"sent_invoice_id": sent_invoice.id},
+                )
+            )
+        }
+    )
+
+
+@require_http_methods(["GET"])
 def invoice_payment_success(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
     sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
     sent_invoice.save()
+
+    TwilioClient.sent_payment_success(sent_invoice)
 
     if sent_invoice.user.quickbooks_realm_id:
         QuickbookService.create_invoice(sent_invoice)
@@ -74,7 +107,6 @@ def invoice_payment_success(request, sent_invoice_id):
     if sent_invoice.user.sage_account_id:
         SageService.create_invoice(sent_invoice)
 
-    TwilioClient.sent_payment_success(sent_invoice)
     return render(request, "invoices/success_pay_invoice.html", {})
 
 
