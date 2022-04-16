@@ -17,7 +17,7 @@ class TwilioClient:
                 to=sent_invoice.invoice.user.formatted_phone_number,
                 from_=settings.TWILIO_PHONE_NUMBER,
                 body=f"Invoice for {sent_invoice.invoice.title} has been paid! "
-                f"You should see {sent_invoice.total_price} deposited into your bank account shortly",
+                f"It will arrive into your bank account shortly",
             )
 
     @staticmethod
