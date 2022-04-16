@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.core import mail
@@ -28,7 +29,11 @@ class TestInvoices(BaseTest):
         self.invoice_no_user = InvoiceFactory()
         self.biz_invoice = InvoiceFactory(user=self.biz_user)
 
-    def test_create_invoice(self):
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice(self, customer_mock):
         Invoice.objects.all().delete()
         response = self.client.post(
             reverse("timary:create_invoice"),
@@ -89,7 +94,11 @@ class TestInvoices(BaseTest):
         self.assertRedirects(response, reverse("timary:manage_invoices"))
         self.assertEqual(response.status_code, 302)
 
-    def test_create_invoice_error(self):
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice_error(self, customer_mock):
         invoice = self.user.get_invoices.first()
         response = self.client.post(
             reverse("timary:create_invoice"),
