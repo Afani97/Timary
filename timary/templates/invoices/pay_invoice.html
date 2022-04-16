@@ -178,7 +178,9 @@
             {% if saved_payment_method %}
                 <div class="divider"></div>
                 <button id="quick-pay" class="flex self-center btn btn-primary">Use saved bank account ending in
-                    {{ last_4_bank }}</button>
+                    {{ last_4_bank }}
+                </button>
+                <p class="text-lg hidden mt-2 mx-2 text-red-300" id="quick-pay-error">Unable to process payment. Try re-adding the bank account below.</p>
                 <div class="divider"></div>
             {% endif %}
             <div id="payment-element">
@@ -307,6 +309,7 @@
         async function handleQuickPay(e) {
             e.preventDefault();
             setLoading(true);
+            document.getElementById("quick-pay-error").classList.add("hidden");
 
             const formIsValid = await checkInvoicingDetailsValid();
             if (!formIsValid) {
@@ -316,10 +319,15 @@
             }
 
             const response = await fetch("{{ site_url }}/invoice-payment/{{sent_invoice.id}}/quick-pay/");
+            setLoading(false);
 
             // TODO: Handle errors
             let data = await response.json();
-            window.location.replace(data["return_url"])
+            if (data["error"]) {
+                document.getElementById("quick-pay-error").classList.remove("hidden");
+            } else {
+                window.location.replace(data["return_url"])
+            }
         }
 
         // ------- UI helpers -------

@@ -1,3 +1,5 @@
+import sys
+
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -68,20 +70,26 @@ def quick_pay_invoice(request, sent_invoice_id):
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
 
-    intent = StripeService.confirm_payment(sent_invoice)
-    sent_invoice.stripe_payment_intent_id = intent["id"]
-    sent_invoice.save()
-
-    return JsonResponse(
-        {
-            "return_url": request.build_absolute_uri(
-                reverse(
-                    "timary:invoice_payment_success",
-                    kwargs={"sent_invoice_id": sent_invoice.id},
+    try:
+        intent = StripeService.confirm_payment(sent_invoice)
+    except stripe.error.InvalidRequestError as e:
+        intent = None
+        print(str(e), file=sys.stderr)
+    if intent:
+        sent_invoice.stripe_payment_intent_id = intent["id"]
+        sent_invoice.save()
+        return JsonResponse(
+            {
+                "return_url": request.build_absolute_uri(
+                    reverse(
+                        "timary:invoice_payment_success",
+                        kwargs={"sent_invoice_id": sent_invoice.id},
+                    )
                 )
-            )
-        }
-    )
+            }
+        )
+    else:
+        return JsonResponse({"error": "Unable to process payment"})
 
 
 @require_http_methods(["GET"])
