@@ -152,7 +152,7 @@ class StripeService:
                 "destination": sent_invoice.user.stripe_connect_id,
             },
         )
-        return intent["client_secret"]
+        return intent
 
     @classmethod
     def confirm_payment(cls, sent_invoice):
@@ -178,7 +178,7 @@ class StripeService:
                 "destination": sent_invoice.user.stripe_connect_id,
             },
         )
-        return intent["client_secret"]
+        return intent
 
     @classmethod
     def create_subscription(cls, user, delete_current=None):

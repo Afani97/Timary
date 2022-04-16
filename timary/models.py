@@ -16,6 +16,12 @@ from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.querysets import HoursQuerySet
+from timary.services.freshbook_service import FreshbookService
+from timary.services.quickbook_service import QuickbookService
+from timary.services.sage_service import SageService
+from timary.services.twilio_service import TwilioClient
+from timary.services.xero_service import XeroService
+from timary.services.zoho_service import ZohoService
 
 
 def create_new_ref_number():
@@ -245,6 +251,7 @@ class SentInvoice(BaseModel):
     class PaidStatus(models.IntegerChoices):
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
+        FAILED = 3, "FAILED"
 
     hours_start_date = models.DateField(
         null=True, blank=True
@@ -267,6 +274,7 @@ class SentInvoice(BaseModel):
     paid_status = models.PositiveSmallIntegerField(
         default=PaidStatus.PENDING, choices=PaidStatus.choices
     )
+    stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
 
     # Quickbooks
     quickbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
@@ -294,7 +302,7 @@ class SentInvoice(BaseModel):
 
     def __repr__(self):
         return (
-            f"SentInvoice(invoice={self.invoice.title}, "
+            f"SentInvoice(invoice={self.invoice}, "
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
@@ -312,6 +320,24 @@ class SentInvoice(BaseModel):
             .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
             .order_by("date_tracked")
         )
+
+    def success_notification(self):
+        TwilioClient.sent_payment_success(self)
+
+        if self.user.quickbooks_realm_id:
+            QuickbookService.create_invoice(self)
+
+        if self.user.freshbooks_account_id:
+            FreshbookService.create_invoice(self)
+
+        if self.user.zoho_organization_id:
+            ZohoService.create_invoice(self)
+
+        if self.user.xero_tenant_id:
+            XeroService.create_invoice(self)
+
+        if self.user.sage_account_id:
+            SageService.create_invoice(self)
 
 
 class User(AbstractUser, BaseModel):

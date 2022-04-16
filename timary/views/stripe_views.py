@@ -1,3 +1,5 @@
+import stripe
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,13 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice, User
-from timary.services.freshbook_service import FreshbookService
-from timary.services.quickbook_service import QuickbookService
-from timary.services.sage_service import SageService
 from timary.services.stripe_service import StripeService
-from timary.services.twilio_service import TwilioClient
-from timary.services.xero_service import XeroService
-from timary.services.zoho_service import ZohoService
 
 
 @require_http_methods(["GET", "POST"])
@@ -32,7 +28,9 @@ def pay_invoice(request, sent_invoice_id):
                 {"valid": False, "errors": pay_invoice_form.errors.as_json()}
             )
     else:
-        client_secret = StripeService.create_payment_intent_for_payout(sent_invoice)
+        intent = StripeService.create_payment_intent_for_payout(sent_invoice)
+        sent_invoice.stripe_payment_intent_id = intent["id"]
+        sent_invoice.save()
 
         saved_payment_method = False
         last_4_bank = ""
@@ -51,7 +49,7 @@ def pay_invoice(request, sent_invoice_id):
             "hours_tracked": sent_invoice.get_hours_tracked(),
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
-            "client_secret": client_secret,
+            "client_secret": intent["client_secret"],
             "saved_payment_method": saved_payment_method,
             "last_4_bank": last_4_bank,
             "return_url": request.build_absolute_uri(
@@ -70,8 +68,10 @@ def quick_pay_invoice(request, sent_invoice_id):
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
 
-    # TODO: Handle confirm errors
-    _ = StripeService.confirm_payment(sent_invoice)
+    intent = StripeService.confirm_payment(sent_invoice)
+    sent_invoice.stripe_payment_intent_id = intent["id"]
+    sent_invoice.save()
+
     return JsonResponse(
         {
             "return_url": request.build_absolute_uri(
@@ -89,25 +89,6 @@ def invoice_payment_success(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:login"))
-    sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-    sent_invoice.save()
-
-    TwilioClient.sent_payment_success(sent_invoice)
-
-    if sent_invoice.user.quickbooks_realm_id:
-        QuickbookService.create_invoice(sent_invoice)
-
-    if sent_invoice.user.freshbooks_account_id:
-        FreshbookService.create_invoice(sent_invoice)
-
-    if sent_invoice.user.zoho_organization_id:
-        ZohoService.create_invoice(sent_invoice)
-
-    if sent_invoice.user.xero_tenant_id:
-        XeroService.create_invoice(sent_invoice)
-
-    if sent_invoice.user.sage_account_id:
-        SageService.create_invoice(sent_invoice)
 
     return render(request, "invoices/success_pay_invoice.html", {})
 
@@ -138,3 +119,52 @@ def completed_connect_account(request):
     request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
     request.user.save()
     return redirect(reverse("timary:user_profile"))
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def stripe_webhook(request):
+    event = None
+    payload = request.body
+    sig_header = request.headers["STRIPE_SIGNATURE"]
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e:
+        # Invalid payload
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        raise e
+
+    # Handle the event
+    if event["type"] == "payment_intent.payment_failed":
+        payment_intent = event["data"]["object"]
+
+        # Notify email recipient that payment failed
+        sent_invoice = get_object_or_404(
+            SentInvoice, stripe_payment_intent_id=payment_intent["id"]
+        )
+        sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
+        sent_invoice.save()
+
+    elif event["type"] == "payment_intent.succeeded":
+        # Handle a successful payment
+        payment_intent = event["data"]["object"]
+        sent_invoice = get_object_or_404(
+            SentInvoice, stripe_payment_intent_id=payment_intent["id"]
+        )
+        if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+            return JsonResponse({"success": True})
+
+        sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+        sent_invoice.save()
+        sent_invoice.success_notification()
+
+    # ... handle other event types
+    else:
+        print("Unhandled event type {}".format(event["type"]))
+
+    return JsonResponse({"success": True})

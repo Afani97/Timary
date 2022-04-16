@@ -86,7 +86,10 @@ class TestStripeViews(BaseTest):
     )
     def test_pay_invoice_get_invoice_summary_and_stripe_form(self, stripe_intent_mock):
         self.client.logout()
-        stripe_intent_mock.return_value = "tok_abc123"
+        stripe_intent_mock.return_value = {
+            "client_secret": "tok_abc123",
+            "id": "abc123",
+        }
 
         sent_invoice = SentInvoiceFactory()
         today = datetime.date.today()
