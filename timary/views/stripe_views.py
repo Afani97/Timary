@@ -40,8 +40,10 @@ def pay_invoice(request, sent_invoice_id):
             invoicee_payment_method = StripeService.retrieve_customer_payment_method(
                 sent_invoice.invoice.email_recipient_stripe_customer_id
             )
-            saved_payment_method = True
-            last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
+            # TODO: Add tests
+            if invoicee_payment_method:
+                saved_payment_method = True
+                last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
         context = {
             "invoice": sent_invoice.invoice,
