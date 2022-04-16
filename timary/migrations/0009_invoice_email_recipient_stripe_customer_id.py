@@ -3,11 +3,11 @@
 from django.db import migrations, models
 from django.db.migrations import RunPython
 
+from timary.models import User
 from timary.services.stripe_service import StripeService
 
 
 def set_stripe_invoice_customer_ids(apps, schema_editor):
-    User = apps.get_model("timary", "User")
     for user in User.objects.all():
         for invoice in user.get_invoices:
             StripeService.create_customer_for_invoice(invoice)
