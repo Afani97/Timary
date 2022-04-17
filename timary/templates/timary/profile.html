@@ -7,66 +7,66 @@
 
         <div class="tabs flex justify-center my-10" hx-boost="true">
             <a class="tab tab-bordered {% if not tab or tab == '1' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=1">Settings</a>
-            {% if user.can_integrate_with_accounting_tools %}
-                <a class="tab tab-bordered {% if tab == '2' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=2">Integrations</a>
-            {% endif %}
-            <a class="tab tab-bordered {% if tab == '3' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=3">Sent Invoices</a>
-            <a class="tab tab-bordered {% if tab == '4' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=4">Archived Invoices</a>
-        </div>
-
-        {% if tab == "1" %}
-            <h1 class="text-3xl my-6 text-center">Your settings</h1>
-            {% include "partials/_settings.html" %}
-
-            <hr />
-            <h1 class="text-3xl my-6 text-center">Dangerous</h1>
-            <div class="flex justify-center">
-                <a class="link text-center" href="{% url 'timary:close_account' %}">Close account</a>
-            </div>
-
-        {% elif tab == "2" %}
-
-            {% if user.can_integrate_with_accounting_tools %}
-                <h1 class="text-3xl my-6 text-center">Your accounting integrations</h1>
-                {% include "partials/_integrations.html" %}
-            {% endif %}
-
-        {% elif tab == "3" %}
-
-            <div class="max-w-xl mx-auto">
-                <h3 class="text-3xl my-6 text-center">Sent invoices</h3>
-                {% if sent_invoices.count > 0 %}
-
-                    <ul>
-                        {% for sent_invoice in sent_invoices %}
-                            {% include "partials/_sent_invoice.html" with sent_invoice=sent_invoice %}
-                        {% endfor %}
-                    </ul>
+                {% if user.can_integrate_with_accounting_tools %}
+                    <a class="tab tab-bordered {% if tab == '2' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=2">Integrations</a>
                 {% endif %}
-            </div>
+                <a class="tab tab-bordered {% if tab == '3' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=3">Sent Invoices</a>
+                    <a class="tab tab-bordered {% if tab == '4' %} tab-active {% else %} "{% endif %} href="{% url 'timary:user_profile' %}?tab=4">Archived Invoices</a>
+                    </div>
 
-        {% elif tab == "4" %}
+                    {% if tab == "1" %}
+                        <h1 class="text-3xl my-6 text-center">Your settings</h1>
+                        {% include "partials/_settings.html" %}
 
-            <div class="max-w-xl mx-auto">
-                <h3 class="text-3xl my-6 text-center">Archived invoices</h3>
+                        <hr />
+                        <h1 class="text-3xl my-6 text-center">Dangerous</h1>
+                        <div class="flex justify-center">
+                            <a class="link text-center" href="{% url 'timary:close_account' %}">Close account</a>
+                        </div>
 
-                {% if archived_invoices.count > 0 %}
-                    <ul>
-                        {% for archive_invoice in archived_invoices %}
-                            {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
+                    {% elif tab == "2" %}
 
-        {% else %}
+                        {% if user.can_integrate_with_accounting_tools %}
+                            <h1 class="text-3xl my-6 text-center">Your accounting integrations</h1>
+                            {% include "partials/_integrations.html" %}
+                        {% endif %}
 
-            <h1 class="text-3xl my-6 text-center">Your settings</h1>
-            {% include "partials/_settings.html" %}
+                    {% elif tab == "3" %}
 
-        {% endif %}
+                        <div class="max-w-xl mx-auto">
+                            <h3 class="text-3xl my-6 text-center">Sent invoices</h3>
+                            {% if sent_invoices.count > 0 %}
 
-    </div>
+                                <ul>
+                                    {% for sent_invoice in sent_invoices %}
+                                        {% include "partials/_sent_invoice.html" with sent_invoice=sent_invoice %}
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+
+                    {% elif tab == "4" %}
+
+                        <div class="max-w-xl mx-auto">
+                            <h3 class="text-3xl my-6 text-center">Archived invoices</h3>
+
+                            {% if archived_invoices.count > 0 %}
+                                <ul>
+                                    {% for archive_invoice in archived_invoices %}
+                                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+
+                        <h1 class="text-3xl my-6 text-center">Your settings</h1>
+                        {% include "partials/_settings.html" %}
+
+                    {% endif %}
+
+                </div>
 
 {% endblock %}
 
