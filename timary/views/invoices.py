@@ -4,7 +4,7 @@ from crispy_forms.utils import render_crispy_form
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
@@ -15,12 +15,6 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
-from timary.services.freshbook_service import FreshbookService
-from timary.services.quickbook_service import QuickbookService
-from timary.services.sage_service import SageService
-from timary.services.stripe_service import StripeService
-from timary.services.xero_service import XeroService
-from timary.services.zoho_service import ZohoService
 from timary.utils import render_form_errors
 
 
@@ -29,7 +23,8 @@ from timary.utils import render_form_errors
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
     sent_invoices_owed = request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PENDING
+        Q(paid_status=SentInvoice.PaidStatus.PENDING)
+        | Q(paid_status=SentInvoice.PaidStatus.FAILED)
     ).aggregate(total=Sum("total_price"))
     sent_invoices_owed = (
         sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
@@ -72,23 +67,7 @@ def create_invoice(request):
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
-
-        StripeService.create_customer_for_invoice(invoice)
-
-        if user.quickbooks_realm_id:
-            QuickbookService.create_customer(invoice)
-
-        if user.freshbooks_account_id:
-            FreshbookService.create_customer(invoice)
-
-        if user.zoho_organization_id:
-            ZohoService.create_customer(invoice)
-
-        if user.xero_tenant_id:
-            XeroService.create_customer(invoice)
-
-        if user.sage_account_id:
-            SageService.create_customer(invoice)
+        invoice.sync_customer()
 
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing

@@ -127,7 +127,7 @@ class TestStripeViews(BaseTest):
         with self.subTest("Testing payment info form renders"):
             msg = """
             <div class="form-control my-4 col-span-2">
-                <label class="label"><span class="label-text">Your email</span></label>
+                <label class="label"><span class="label-text">Confirm your email</span></label>
                 <input type="text" name="email" placeholder="john@appleseed.com" classes="col-span-2"
                 class="input input-bordered text-lg bg-neutral
                 focus:border-primary focus:ring-0 focus:ring-primary w-full"
@@ -135,7 +135,7 @@ class TestStripeViews(BaseTest):
             </div>
 
             <div class="form-control my-4 col-span-2">
-                <label class="label"><span class="label-text">Your first name</span></label>
+                <label class="label"><span class="label-text">Confirm your first name</span></label>
                 <input type="text" name="first_name" placeholder="John" classes="col-span-2"
                 class="input input-bordered text-lg bg-neutral
                 focus:border-primary focus:ring-0 focus:ring-primary w-full"

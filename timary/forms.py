@@ -179,7 +179,7 @@ class InvoiceForm(forms.ModelForm):
 
 class PayInvoiceForm(forms.Form):
     email = forms.EmailField(
-        label="Your email",
+        label="Confirm your email",
         widget=forms.TextInput(
             attrs={
                 "placeholder": "john@appleseed.com",
@@ -190,7 +190,7 @@ class PayInvoiceForm(forms.Form):
         ),
     )
     first_name = forms.CharField(
-        label="Your first name",
+        label="Confirm your first name",
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John",

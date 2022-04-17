@@ -1,11 +1,15 @@
 import sys
+from datetime import timedelta
 
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.timezone import localtime, now
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -132,7 +136,6 @@ def completed_connect_account(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def stripe_webhook(request):
-    event = None
     payload = request.body
     sig_header = request.headers["STRIPE_SIGNATURE"]
 
@@ -151,12 +154,40 @@ def stripe_webhook(request):
     if event["type"] == "payment_intent.payment_failed":
         payment_intent = event["data"]["object"]
 
-        # Notify email recipient that payment failed
         sent_invoice = get_object_or_404(
             SentInvoice, stripe_payment_intent_id=payment_intent["id"]
         )
         sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
         sent_invoice.save()
+
+        hours_tracked = sent_invoice.get_hours_tracked()
+        today = localtime(now()).date()
+
+        # Notify email recipient that payment failed
+        msg_body = render_to_string(
+            "email/styled_email.html",
+            {
+                "can_accept_payments": sent_invoice.user.can_accept_payments,
+                "site_url": settings.SITE_URL,
+                "user_name": sent_invoice.user.first_name,
+                "next_weeks_date": today + timedelta(weeks=1),
+                "recipient_name": sent_invoice.invoice.email_recipient_name,
+                "total_amount": sent_invoice.total_price,
+                "sent_invoice_id": sent_invoice.id,
+                "invoice": sent_invoice.invoice,
+                "hours_tracked": hours_tracked,
+                "tomorrows_date": today + timedelta(days=1),
+            },
+        )
+        send_mail(
+            f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. An error occurred while trying to "
+            f"transfer the funds for this invoice. Please give it another try.",
+            "",
+            None,
+            recipient_list=[sent_invoice.invoice.email_recipient],
+            fail_silently=False,
+            html_message=msg_body,
+        )
 
     elif event["type"] == "payment_intent.succeeded":
         # Handle a successful payment

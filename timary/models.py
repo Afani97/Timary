@@ -19,6 +19,7 @@ from timary.querysets import HoursQuerySet
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
+from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
 from timary.services.xero_service import XeroService
 from timary.services.zoho_service import ZohoService
@@ -245,6 +246,24 @@ class Invoice(BaseModel):
             total_cost_amount = total_hours["total_hours"] * self.hourly_rate
 
         return hours_tracked, total_cost_amount
+
+    def sync_customer(self):
+        StripeService.create_customer_for_invoice(self)
+
+        if self.user.quickbooks_realm_id:
+            QuickbookService.create_customer(self)
+
+        if self.user.freshbooks_account_id:
+            FreshbookService.create_customer(self)
+
+        if self.user.zoho_organization_id:
+            ZohoService.create_customer(self)
+
+        if self.user.xero_tenant_id:
+            XeroService.create_customer(self)
+
+        if self.user.sage_account_id:
+            SageService.create_customer(self)
 
 
 class SentInvoice(BaseModel):

@@ -3,8 +3,6 @@ import time
 import stripe
 from django.conf import settings
 
-from timary.models import User
-
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -21,6 +19,8 @@ class StripeService:
 
     @classmethod
     def get_product_id(cls, user):
+        from timary.models import User
+
         if user.membership_tier == User.MembershipTier.STARTER:
             return settings.STRIPE_STARTER_ID
         if user.membership_tier == User.MembershipTier.PROFESSIONAL:
@@ -127,6 +127,8 @@ class StripeService:
 
     @classmethod
     def calculate_application_fee(cls, sent_invoice):
+        from timary.models import User
+
         application_fee = 1000
         if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
             application_fee = int(sent_invoice.total_price) + 1000
@@ -182,6 +184,8 @@ class StripeService:
 
     @classmethod
     def create_subscription(cls, user, delete_current=None):
+        from timary.models import User
+
         stripe.api_key = cls.stripe_api_key
 
         if delete_current and user.stripe_subscription_id:
