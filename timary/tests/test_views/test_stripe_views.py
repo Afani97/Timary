@@ -160,6 +160,126 @@ class TestStripeViews(BaseTest):
                 """
             self.assertInHTML(msg, html_body)
 
+    @patch(
+        "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
+    )
+    @patch(
+        "timary.services.stripe_service.StripeService.retrieve_customer_payment_method"
+    )
+    def test_quick_pay_invoice_button_displays(
+        self, stripe_customer_mock, stripe_intent_mock
+    ):
+        """Quick pay only shows if user has previously paid using ACH Debit"""
+        self.client.logout()
+        stripe_customer_mock.return_value = {"us_bank_account": {"last4": "1234"}}
+        stripe_intent_mock.return_value = {
+            "client_secret": "tok_abc123",
+            "id": "abc123",
+        }
+
+        sent_invoice = SentInvoiceFactory(
+            invoice__email_recipient_stripe_customer_id=12345
+        )
+        DailyHoursFactory(invoice=sent_invoice.invoice)
+        sent_invoice.refresh_from_db()
+        response = self.client.get(
+            reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
+        )
+        self.assertEqual(response.status_code, 200)
+
+        html_body = self.extract_html(response.content.decode("utf-8"))
+
+        msg = """
+            <button id="quick-pay" class="flex self-center btn btn-primary">
+                Use saved bank account ending in 1234
+            </button>
+            """
+        self.assertInHTML(msg, html_body)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
+    )
+    @patch(
+        "timary.services.stripe_service.StripeService.retrieve_customer_payment_method"
+    )
+    def test_quick_pay_invoice_button_not_available_if_no_valid_payment_method(
+        self, stripe_customer_mock, stripe_intent_mock
+    ):
+        """Quick pay does not show if customer does not have an attached payment method"""
+        self.client.logout()
+        stripe_customer_mock.return_value = None
+        stripe_intent_mock.return_value = {
+            "client_secret": "tok_abc123",
+            "id": "abc123",
+        }
+
+        sent_invoice = SentInvoiceFactory(
+            invoice__email_recipient_stripe_customer_id=12345
+        )
+        DailyHoursFactory(invoice=sent_invoice.invoice)
+        sent_invoice.refresh_from_db()
+        response = self.client.get(
+            reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
+        )
+        self.assertEqual(response.status_code, 200)
+
+        html_body = self.extract_html(response.content.decode("utf-8"))
+        msg = """
+                <button id="quick-pay" class="flex self-center btn btn-primary">
+                    Use saved bank account ending in 1234
+                </button>
+                """
+        self.assertNotIn(msg, html_body)
+
+    @patch("timary.services.stripe_service.StripeService.confirm_payment")
+    def test_quick_pay_confirm(self, stripe_payment_mock):
+        stripe_payment_mock.return_value = {"id": "12345"}
+
+        sent_invoice = SentInvoiceFactory(
+            invoice__email_recipient_stripe_customer_id=12345
+        )
+        DailyHoursFactory(invoice=sent_invoice.invoice)
+        sent_invoice.refresh_from_db()
+
+        response = self.client.get(
+            reverse(
+                "timary:quick_pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        json_content = json.loads(response.content)
+
+        self.assertIsNotNone(json_content["return_url"])
+
+    @patch("timary.services.stripe_service.StripeService.confirm_payment")
+    def test_quick_pay_confirm_fails(self, stripe_payment_mock):
+        stripe_payment_mock.return_value = None
+
+        sent_invoice = SentInvoiceFactory(
+            invoice__email_recipient_stripe_customer_id=12345
+        )
+        DailyHoursFactory(invoice=sent_invoice.invoice)
+        sent_invoice.refresh_from_db()
+
+        response = self.client.get(
+            reverse(
+                "timary:quick_pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        json_content = json.loads(response.content)
+
+        self.assertIsNotNone(json_content["error"])
+
+    def test_quick_pay_confirm_redirect(self):
+        sent_invoice = SentInvoiceFactory(paid_status=2)
+        response = self.client.get(
+            reverse(
+                "timary:quick_pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            )
+        )
+        self.assertRedirects(response, reverse("timary:login"), target_status_code=302)
+
     def test_invoice_payment_success_invalid_invoice_id(self):
         self.client.logout()
         response = self.client.get(
