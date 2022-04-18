@@ -22,6 +22,10 @@ def landing_page(request):
     return render(request, "timary/landing_page.html", {})
 
 
+def contract_builder(request):
+    return render(request, "contract/builder.html", {})
+
+
 def terms_page(request):
     return render(request, "company/terms.html", {})
 

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+        <title>Contract Builder by Timary</title>
+    </head>
+    <body>
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen">
+            <div class="bg-white md:overflow-y-hidden md:h-screen">
+
+                <p id="first_name" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+
+                <p id="client_name" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+
+            </div>
+            <div class="overflow-y-auto mt-5">
+
+                <h1 class="text-3xl font-bold tracking-wide mt-5">Start your new contract here.</h1>
+
+                <div id="step-1" class="">
+                    <h2>Your information</h2>
+                    <div>
+                        <input type="text" placeholder="Aristotel Fani" class="input input-bordered"
+                            _="on keyup put my.value into #first_name.innerHTML"
+                        />
+                    </div>
+                    <button _="on click add .hidden to #step-1 then remove .hidden from #step-2"
+                        class="btn btn-primary">Next</button>
+                </div>
+
+                <div id="step-2" class="hidden">
+                    <h2>Your client's information</h2>
+                    <div>
+                        <input type="text" placeholder="Elinda Fani" class="input input-bordered"
+                            _="on keyup put my.value into #client_name.innerHTML"
+                        />
+                    </div>
+                    <button _="on click add .hidden to #step-2 then remove .hidden from #step-1" class="btn btn-secondary">Prev</button>
+                    <button _="on click add .hidden to #step-2 then remove .hidden from #step-3" class="btn btn-primary">Next</button>
+                </div>
+
+                <div id="step-3" class="hidden">
+                    <h2>Project's information</h2>
+                    <div>
+                        <input type="text" placeholder="$1000" class="input input-bordered" />
+                    </div>
+                    <button _="on click add .hidden to #step-3 then remove .hidden from #step-2" class="btn btn-secondary">Prev</button>
+                    <button _="on click add .hidden to #step-3 then remove .hidden from #step-4" class="btn btn-primary">Next</button>
+                </div>
+
+                <div id="step-4" class="hidden">
+                    <h2>Review</h2>
+                    <button _="on click add .hidden to #step-4 then remove .hidden from #step-3" class="btn btn-secondary">Prev</button>
+                    <button class="btn btn-primary">Download</button>
+                </div>
+
+            </div>
+        </main>
+
+        {# Third Part JS #}
+        <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
+        <script nonce="base">
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            })
+            document.addEventListener("click", (e) => {
+                if (document.activeElement.id !== "hamburger-menu") {
+                    document.getElementById("dropdown-menu").blur()
+                }
+            })
+        </script>
+    </body>
+</html>
