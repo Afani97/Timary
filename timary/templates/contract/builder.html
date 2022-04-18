@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta charset="UTF-8" />
@@ -14,31 +14,93 @@
         <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen">
             <div class="bg-white md:overflow-y-hidden md:h-screen">
 
-                <p id="first_name" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p class="text-2xl text-black font-bold tracking-wide mt-5">
+                    <span id="first_name"></span>
+                    <span id="last_name"></span>
+                </p>
+                <p id="phone" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p id="email" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p id="street_address" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p class="text-2xl text-black font-bold tracking-wide mt-5">
+                    <span id="city"></span>
+                    <span id="state"></span>
+                </p>
 
-                <p id="client_name" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p class="text-2xl text-black font-bold tracking-wide mt-5">
+                    <span id="client_first_name"></span>
+                    <span id="client_last_name"></span>
+                </p>
+                <p id="client_phone" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p id="client_email" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p id="client_street_address" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
+                <p class="text-2xl text-black font-bold tracking-wide mt-5">
+                    <span id="client_city"></span>
+                    <span id="client_state"></span>
+                </p>
 
             </div>
             <div class="overflow-y-auto mt-5">
 
-                <h1 class="text-3xl font-bold tracking-wide mt-5">Start your new contract here.</h1>
+                <h1 class="text-3xl font-bold tracking-wide mt-5 text-center">Start your new contract here.</h1>
+                <h2 class="text-xl font-bold tracking-wide my-2 text-center">Free, no strings attached.</h2>
 
-                <div id="step-1" class="">
+                <div id="step-1" class="mx-5">
                     <h2>Your information</h2>
-                    <div>
-                        <input type="text" placeholder="Aristotel Fani" class="input input-bordered"
-                            _="on keyup put my.value into #first_name.innerHTML"
+                    <div class="flex flex-col space-y-2 mb-5">
+                        <div class="flex justify-between space-x-2">
+                            <input type="text" placeholder="John" class="input input-bordered w-full"
+                                _="on keyup put my.value into #first_name.innerHTML"
+                            />
+                            <input type="text" placeholder="Appleseed" class="input input-bordered w-full"
+                                _="on keyup put my.value into #last_name.innerHTML"
+                            />
+                        </div>
+
+                        <input type="text" placeholder="123-456-7890" class="input input-bordered"
+                            _="on keyup put my.value into #phone.innerHTML"
+                        />
+                        <input type="text" placeholder="john@appleseed.com" class="input input-bordered"
+                            _="on keyup put my.value into #email.innerHTML"
+                        />
+                        <input type="text" placeholder="123 Main St" class="input input-bordered"
+                            _="on keyup put my.value into #street_address.innerHTML"
+                        />
+                        <input type="text" placeholder="New York" class="input input-bordered"
+                            _="on keyup put my.value into #city.innerHTML"
+                        />
+                        <input type="text" placeholder="NY" class="input input-bordered"
+                            _="on keyup put my.value into #state.innerHTML"
                         />
                     </div>
                     <button _="on click add .hidden to #step-1 then remove .hidden from #step-2"
                         class="btn btn-primary">Next</button>
                 </div>
 
-                <div id="step-2" class="hidden">
+                <div id="step-2" class="hidden mx-5">
                     <h2>Your client's information</h2>
-                    <div>
-                        <input type="text" placeholder="Elinda Fani" class="input input-bordered"
-                            _="on keyup put my.value into #client_name.innerHTML"
+                    <div class="flex flex-col space-y-2 mb-5">
+                        <div class="flex justify-between space-x-2">
+                            <input type="text" placeholder="Jane" class="input input-bordered w-full"
+                                _="on keyup put my.value into #client_first_name.innerHTML"
+                            />
+                            <input type="text" placeholder="Smith" class="input input-bordered w-full"
+                                _="on keyup put my.value into #client_last_name.innerHTML"
+                            />
+                        </div>
+                        <input type="text" placeholder="123-456-7890" class="input input-bordered"
+                            _="on keyup put my.value into #client_phone.innerHTML"
+                        />
+                        <input type="text" placeholder="jane@smith.com" class="input input-bordered"
+                            _="on keyup put my.value into #client_email.innerHTML"
+                        />
+                        <input type="text" placeholder="123 Main St" class="input input-bordered"
+                            _="on keyup put my.value into #client_street_address.innerHTML"
+                        />
+                        <input type="text" placeholder="New York" class="input input-bordered"
+                            _="on keyup put my.value into #client_city.innerHTML"
+                        />
+                        <input type="text" placeholder="NY" class="input input-bordered"
+                            _="on keyup put my.value into #client_state.innerHTML"
                         />
                     </div>
                     <button _="on click add .hidden to #step-2 then remove .hidden from #step-1" class="btn btn-secondary">Prev</button>
