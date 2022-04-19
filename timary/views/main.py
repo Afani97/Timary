@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -23,7 +25,8 @@ def landing_page(request):
 
 
 def contract_builder(request):
-    return render(request, "contract/builder.html", {})
+    context = {"today": datetime.datetime.today()}
+    return render(request, "contract/builder.html", context)
 
 
 def terms_page(request):
