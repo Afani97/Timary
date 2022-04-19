@@ -11,8 +11,12 @@
         <title>Contract Builder by Timary</title>
     </head>
     <body>
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen">
-            <div class="bg-white md:overflow-y-hidden md:h-screen text-black p-4">
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen" id="contract-builder">
+            <div class="bg-white md:overflow-y-hidden md:h-screen text-black p-4 max-w-3xl min-w-3xl mx-auto" id="contract">
+
+                <h1 class="text-4xl font-bold tracking-wider text-center border-b-2 border-solid py-4 mb-4">
+                    Freelance Contract
+                </h1>
 
                 <div>
                     This Freelance Contract (this  "Agreement") is made as of this
@@ -58,7 +62,7 @@
 
 
             </div>
-            <div class="overflow-y-auto mt-5">
+            <div class="overflow-y-auto mt-5" id="builder">
 
                 <h1 class="text-3xl font-bold tracking-wide mt-5 text-center">Start your new freelance contract here.</h1>
                 <h2 class="text-xl font-bold tracking-wide my-2 text-center">Free, no strings attached.</h2>
@@ -151,11 +155,29 @@
         <script src="https://unpkg.com/htmx.org@1.7.0"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
         <script nonce="contract-builder">
             function generateContract() {
-                const doc = new jspdf.jsPDF();
-                doc.text("Hello world!", 10, 10);
-                doc.save("a4.pdf");
+                document.getElementById("builder").classList.add("hidden");
+                document.getElementById("contract-builder").classList.remove("md:grid-cols-2");
+                let pWidth = 595.28;
+                let srcWidth = 800;
+                let margin = 18;
+                let scale = (pWidth - margin * 2) / srcWidth;
+                const doc = new jspdf.jsPDF('p', 'pt', 'a4');
+                doc.html(document.getElementById("contract"), {
+                    callback: function (doc) {
+                        document.getElementById("builder").classList.remove("hidden");
+                        document.getElementById("contract-builder").classList.add("md:grid-cols-2");
+                        doc.save("freelance-contract.pdf");
+                    },
+                    x: margin,
+                    y: margin / 2,
+                    html2canvas: {
+                        scale: scale,
+                    },
+                });
+
             }
             document.body.addEventListener('htmx:configRequest', (event) => {
                 event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
