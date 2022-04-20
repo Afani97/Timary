@@ -9,6 +9,7 @@ django-otp
 django-phonenumber-field
 django-q
 django-twilio
+httmock
 openpyxl
 playwright
 pre-commit
