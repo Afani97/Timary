@@ -4,8 +4,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
         <title>Contract Builder by Timary</title>
@@ -14,30 +14,30 @@
         <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen" id="contract-builder">
             <div class="bg-white md:overflow-y-scroll md:h-screen text-black p-4 max-w-3xl min-w-3xl mx-auto" id="contract">
 
-                <h1 class="text-4xl font-bold tracking-wider text-center border-b-2 border-solid py-4 mb-4">
+                <h1 class="text-4xl font-bold tracking-wider text-center mb-4 py-4 border-b-2 border-black border-solid">
                     Freelance Contract
                 </h1>
 
-                <div>
+                <div class="mt-4">
                     This Freelance Contract (this  "Agreement") is made as of this
-                    <span class="font-bold inline-block w-32 border-solid border-black border-b-2">
+                    <span class="font-bold inline-block w-32 border-solid border-black border-b-2 pb-1">
                         {{today|date:"M. j, Y"}}
                     </span>, (the “Effective Date”)
                     by and between
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2">
+                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1">
                         <span id="client_first_name"></span>
                         <span id="client_last_name"></span>
                     </p> located at
-                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2">
+                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2 pb-1">
                         <span id="client_street_address"></span> <span id="client_city"></span> <span id="client_state"></span>
                     </p>(“Client”)
                     and
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2">
+                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1">
                         <span id="first_name"></span>
                         <span id="last_name"></span>
                     </p>
                     located at
-                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2">
+                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2 pb-1">
                         <span id="street_address"></span> <span id="city"></span> <span id="state"></span>
                     </p> (“Independent Contractor”).
                     Client and Independent Contractor may each be referred to in this Agreement as a “Party” and
@@ -48,7 +48,7 @@
                 <div class="mt-4">
                     <span class="font-bold">1. Services.</span> Independent Contractor shall provide the following
                     services to Client (the “Services”):
-                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2 mt-2">
+                    <p class="font-bold inline-block w-80 mt-2 border-solid border-b-2 border-black pb-1">
                         <span id="service_description"></span>
                     </p> In addition, Independent Contractor shall perform such other duties and tasks, or changes
                     to the Services, as may be agreed upon by the Parties.
@@ -63,9 +63,9 @@
                 <div class="mt-4">
                     <span class="font-bold">4. Term and Termination.</span>
                     Independent Contractor’s engagement with Client under this Agreement shall commence on
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2" id="project_start_date"></p>.
+                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="project_start_date"></p>.
                     The Parties agree and acknowledge that this Agreement and Independent Contractor's engagement with Client under this Agreement shall terminate on
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2" id="project_end_date"></p>.
+                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="project_end_date"></p>.
                     At the time of termination, Independent Contractor agrees to return all Client property used in performance of the Services, including but not limited to computers, cell phones, keys, reports and other equipment and documents. Independent Contractor shall reimburse Client for any Client property lost or damaged in an amount equal to the market price of such property.
                 </div>
 
@@ -79,7 +79,6 @@
                     <ol type="a" class="ml-10">
                         <li>
                             <span class="font-bold">a. Confidential and Proprietary Information.</span>  In the course of performing the Services, Independent Contractor will be exposed to confidential and proprietary information of Client.
-                            <p style="page-break-after: always;">&nbsp;</p>
                             “Confidential Information” shall mean any data or information that is competitively sensitive material and not generally known to the public, including, but not limited to, information relating to development and plans, marketing strategies, finance, operations, systems, proprietary concepts, documentation, reports, data, specifications, computer software, source code, object code, flow charts, data, databases, inventions, know-how, trade secrets, customer lists, customer relationships, customer profiles, supplier lists, supplier relationships, supplier profiles, pricing, sales estimates, business plans and internal performance results relating to the past, present or future business activities, technical information, designs, processes, procedures, formulas or improvements, which Client considers confidential and proprietary. Independent Contractor acknowledges and agrees that the Confidential Information is valuable property of Client, developed over a long period of time at substantial expense and that it is worthy of protection.
                         </li>
                         <li>
@@ -95,9 +94,78 @@
                 </div>
 
                 <div class="mt-4">
-                    <span class="font-bold">7. Ownership of Work Product. </span> The Parties agree that all work product, information or other materials created and developed by Independent Contractor in connection with the performance of the Services under this Agreement and any resulting intellectual property rights (collectively, the “Work Product”) are the sole and exclusive property of Client. The Parties acknowledge that the Work Product shall, to the extent permitted by law, be considered a “work made for hire” within the definition of Section 101 of the Copyright Act of 1976, as amended, (the “Copyright Act”) and that Client is deemed to be the author and is the owner of all copyright and all other rights therein. If the work product is not deemed to be a “work made for hire” under the Copyright Act, then Independent Contractor hereby assigns to Client all of Independent Contractor’s rights, title and interest in and to the Work Product, including but not limited to all copyrights, publishing rights and rights to use, reproduce and otherwise exploit the Work Product in any and all formats, media, or all channels, whether now known or hereafter created.
-
+                    <span class="font-bold">7. Ownership of Work Product. </span> The Parties agree that all work product, information or other materials created and developed by Independent Contractor in connection with the performance of the Services under this Agreement and any resulting intellectual property rights (collectively, the “Work Product”) are the sole and exclusive property of Client. The Parties acknowledge that the Work Product shall, to the extent permitted by law, be considered a “work made for hire” within the definition of Section 101 of the Copyright Act of 1976, as amended, (the “Copyright Act”) and that Client is deemed to be the author and is the owner of all copyright and all other rights therein. If the work product is not deemed to be a “work made for hire” under the Copyright Act, then Independent Contractor hereby assigns to
+                    Client all of Independent Contractor’s rights, title and interest in and to the Work Product, including but not limited to all copyrights, publishing rights and rights to use,
+                    reproduce and otherwise exploit the Work Product in any and all formats, media, or all channels, whether now known or hereafter created.
                 </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">8. Insurance.</span>  For the term of this Agreement, Independent Contractor shall obtain and maintain a policy of insurance, with appropriate and adequate coverage and limits, to cover any claims for bodily injury, property damage or other losses which might arise out of any negligent act or omission committed by Independent Contractor or Independent Contractor’s employees or agents, if any, in connection with the performance of the Services under this Agreement.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">9. Non-Compete.</span>  Independent Contractor agrees and covenants that during the term of this Agreement, and for a period of __________ months following the termination of this Agreement, Independent Contractor will not, directly or indirectly, perform or engage in the same or similar activities as were performed for Client for any business that is directly or indirectly in completion with Client.
+                </div>
+
+                <div class="mt-4">
+                    <span class="mt-4">10. Non-Solicit.</span> Independent Contractor agrees and covenants that for a period of __________ months following the termination of this Agreement, Independent Contractor will not, directly or indirectly, solicit any officer, director or employee, or any customer, client, supplier or vendor of Client for the purpose of inducing such party to terminate its relationship with Client in favor of Independent Contractor or another business directly or indirectly in competition with Client.
+                </div>
+
+                <div class="mt-4">
+                    <span class="mt-4">11. Mutual Representations and Warranties.</span> Both Client and Independent Contractor represent and warrant that each Party has full power, authority and right to execute and deliver this Agreement, has full power and authority to perform its obligations under this Agreement, and has taken all necessary action to authorize the execution and delivery of this Agreement.  No other consents are necessary to enter into or perform this Agreement.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">12. Independent Contractor Representation and Warranties.</span> Independent Contractor represents and warrants that it has all the necessary licenses, permits and registrations, if any, required to perform the Services under this Agreement in accordance with applicable federal, state and local laws, rules and regulations and that it will perform the Services according to the Client’s guidelines and specifications and with the standard of care prevailing in the industry.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">13. Indemnification.</span> The Independent Contractor shall indemnify and hold harmless Client from any damages, claims, liabilities, loss and expenses, including reasonable attorney’s fees, arising out of any act or omission of Independent Contractor in performing the Services or the breach of any provision of this Agreement by Independent Contractor.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">14. Governing Law.</span>  The terms of this Agreement and the rights of the Parties hereto shall be governed exclusively by the laws of the State of __________, without regarding its conflicts of law provisions.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">15. Disputes.</span> Any dispute arising from this Agreement shall be resolved through mediation. If the dispute cannot be resolved through mediation, then the dispute will be resolved through binding arbitration conducted in accordance with the rules of the American Arbitration Association.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">16. Binding Effect.</span>  This Agreement shall be binding upon and inure to the benefit of the Parties and their respective successors and permitted assigns.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">17. Assignment.</span> The interests of Independent Contractor are personal to Independent Contractor and cannot be assigned, transferred or sold without the prior written consent of Client.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">18. Entire Agreement.</span>  This Agreement constitutes the entire agreement between the Parties hereto with respect the subject matter hereof, and supersedes all prior negotiations, understandings and agreements of the Parties.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">19. Amendments. </span>No supplement, modification or amendment of this Agreement will be binding unless executed in writing by both of the Parties.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">20. Notices.</span>  Any notice or other communication given or made to either Party under this Agreement shall be in writing and delivered by hand, sent by overnight courier service or sent by certified or registered mail, return receipt requested, to the address stated above or to another address as that Party may subsequently designate by notice, and shall be deemed given on the date of delivery.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">21. Waiver.</span>  Neither Party shall be deemed to have waived any provision of this Agreement or the exercise of any rights held under this Agreement unless such waiver is made expressly and in writing. Waiver by either Party of a breach or violation of any provision of this Agreement shall not constitute a waiver of any subsequent or other breach or violation.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">22. Further Assurances.</span>  At the request of one Party, the other Party shall execute and deliver such other documents and take such other actions as may be reasonably necessary to effect the terms of this Agreement.
+                </div>
+
+                <div class="mt-4">
+                    <span class="font-bold">23. Severability.</span>  If any provision of this Agreement is held to be invalid, illegal or unenforceable in whole or in part, the remaining provisions shall not be affected and shall continue to be valid, legal and enforceable as though the invalid, illegal or unenforceable parts had not been included in this Agreement.
+                </div>
+
+                <br />
+
+                <p>IN WITNESS WHEREOF, this Agreement has been executed and delivered as of the date first written above.</p>
 
                 <p id="phone" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
                 <p id="email" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
@@ -225,8 +293,9 @@
                         doc.save("freelance-contract.pdf");
                     },
                     x: margin,
-                    y: margin / 2,
-                    margin: [60, 0, 60, 0],
+                    y: 0,
+                    autoPaging: 'text',
+                    margin: [margin, 0, margin, 0],
                     html2canvas: {
                         scale: scale,
                         scrollY: -window.scrollY
