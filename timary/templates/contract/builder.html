@@ -8,7 +8,19 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
         <title>Contract Builder by Timary</title>
+        <style>
+            #contract {
+                font-family: 'Playfair Display', serif;
+            }
+            .signatures {
+                font-family: 'Allura', cursive;
+            }
+        </style>
     </head>
     <body>
         <main class="grid grid-cols-1 md:grid-cols-2 gap-4 md:overflow-hidden md:h-screen" id="contract-builder">
@@ -44,7 +56,6 @@
                     collectively as the “Parties.”
 
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">1. Services.</span> Independent Contractor shall provide the following
                     services to Client (the “Services”):
@@ -54,12 +65,15 @@
                     to the Services, as may be agreed upon by the Parties.
                 </div>
                 <div class="mt-4">
-                    <span class="font-bold">2. Compensation.</span> Inconsideration for Independent Contractor’s performance of the Services, Client shall pay Independent Contractor
+                    <span class="font-bold">2. Compensation.</span> Inconsideration for Independent Contractor’s performance of the Services, Client shall pay the contractor Independent Contractor
+                    <p class="font-bold inline-block w-80 mt-2 border-solid border-b-2 border-black pb-1">
+                        $<span id="project_budget"></span>
+                    </p>
+                    in total of project's completion.
                 </div>
                 <div class="mt-4">
                     <span class="font-bold">3. Expenses.</span> All costs and expenses incurred by Independent Contractor in connection with the performance of the Services shall be the sole responsibility of and paid by Independent Contractor.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">4. Term and Termination.</span>
                     Independent Contractor’s engagement with Client under this Agreement shall commence on
@@ -68,12 +82,10 @@
                     <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="project_end_date"></p>.
                     At the time of termination, Independent Contractor agrees to return all Client property used in performance of the Services, including but not limited to computers, cell phones, keys, reports and other equipment and documents. Independent Contractor shall reimburse Client for any Client property lost or damaged in an amount equal to the market price of such property.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">5. Independent Contractor.</span>
                     The Parties agree and acknowledge that Independent Contractor is an independent contractor and is not, for any purpose, an employee of Client.  Independent Contractor does not have any authority to enter into agreements or contracts on behalf of Client, and shall not represent that it possesses any such authority. Independent Contractor shall not be entitled to any of Client’s benefits, including, but not limited to, coverage under medical, dental, retirement or other plans. Client shall not be obligated to pay worker's compensation insurance, unemployment compensation, social security tax, withholding tax or other taxes or withholdings for or on behalf of the Independent Contractor in connection with the performance of the Services under this Agreement. Nothing contained in this Agreement shall be deemed or construed by the Parties to create the relationship of a partnership, a joint venture or any other fiduciary relationship.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">6. Confidentiality. </span>
                     <ol type="a" class="ml-10">
@@ -92,80 +104,85 @@
                         </li>
                     </ol>
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">7. Ownership of Work Product. </span> The Parties agree that all work product, information or other materials created and developed by Independent Contractor in connection with the performance of the Services under this Agreement and any resulting intellectual property rights (collectively, the “Work Product”) are the sole and exclusive property of Client. The Parties acknowledge that the Work Product shall, to the extent permitted by law, be considered a “work made for hire” within the definition of Section 101 of the Copyright Act of 1976, as amended, (the “Copyright Act”) and that Client is deemed to be the author and is the owner of all copyright and all other rights therein. If the work product is not deemed to be a “work made for hire” under the Copyright Act, then Independent Contractor hereby assigns to
                     Client all of Independent Contractor’s rights, title and interest in and to the Work Product, including but not limited to all copyrights, publishing rights and rights to use,
                     reproduce and otherwise exploit the Work Product in any and all formats, media, or all channels, whether now known or hereafter created.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">8. Insurance.</span>  For the term of this Agreement, Independent Contractor shall obtain and maintain a policy of insurance, with appropriate and adequate coverage and limits, to cover any claims for bodily injury, property damage or other losses which might arise out of any negligent act or omission committed by Independent Contractor or Independent Contractor’s employees or agents, if any, in connection with the performance of the Services under this Agreement.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">9. Non-Compete.</span>  Independent Contractor agrees and covenants that during the term of this Agreement, and for a period of __________ months following the termination of this Agreement, Independent Contractor will not, directly or indirectly, perform or engage in the same or similar activities as were performed for Client for any business that is directly or indirectly in completion with Client.
                 </div>
-
                 <div class="mt-4">
                     <span class="mt-4">10. Non-Solicit.</span> Independent Contractor agrees and covenants that for a period of __________ months following the termination of this Agreement, Independent Contractor will not, directly or indirectly, solicit any officer, director or employee, or any customer, client, supplier or vendor of Client for the purpose of inducing such party to terminate its relationship with Client in favor of Independent Contractor or another business directly or indirectly in competition with Client.
                 </div>
-
                 <div class="mt-4">
                     <span class="mt-4">11. Mutual Representations and Warranties.</span> Both Client and Independent Contractor represent and warrant that each Party has full power, authority and right to execute and deliver this Agreement, has full power and authority to perform its obligations under this Agreement, and has taken all necessary action to authorize the execution and delivery of this Agreement.  No other consents are necessary to enter into or perform this Agreement.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">12. Independent Contractor Representation and Warranties.</span> Independent Contractor represents and warrants that it has all the necessary licenses, permits and registrations, if any, required to perform the Services under this Agreement in accordance with applicable federal, state and local laws, rules and regulations and that it will perform the Services according to the Client’s guidelines and specifications and with the standard of care prevailing in the industry.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">13. Indemnification.</span> The Independent Contractor shall indemnify and hold harmless Client from any damages, claims, liabilities, loss and expenses, including reasonable attorney’s fees, arising out of any act or omission of Independent Contractor in performing the Services or the breach of any provision of this Agreement by Independent Contractor.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">14. Governing Law.</span>  The terms of this Agreement and the rights of the Parties hereto shall be governed exclusively by the laws of the State of __________, without regarding its conflicts of law provisions.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">15. Disputes.</span> Any dispute arising from this Agreement shall be resolved through mediation. If the dispute cannot be resolved through mediation, then the dispute will be resolved through binding arbitration conducted in accordance with the rules of the American Arbitration Association.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">16. Binding Effect.</span>  This Agreement shall be binding upon and inure to the benefit of the Parties and their respective successors and permitted assigns.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">17. Assignment.</span> The interests of Independent Contractor are personal to Independent Contractor and cannot be assigned, transferred or sold without the prior written consent of Client.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">18. Entire Agreement.</span>  This Agreement constitutes the entire agreement between the Parties hereto with respect the subject matter hereof, and supersedes all prior negotiations, understandings and agreements of the Parties.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">19. Amendments. </span>No supplement, modification or amendment of this Agreement will be binding unless executed in writing by both of the Parties.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">20. Notices.</span>  Any notice or other communication given or made to either Party under this Agreement shall be in writing and delivered by hand, sent by overnight courier service or sent by certified or registered mail, return receipt requested, to the address stated above or to another address as that Party may subsequently designate by notice, and shall be deemed given on the date of delivery.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">21. Waiver.</span>  Neither Party shall be deemed to have waived any provision of this Agreement or the exercise of any rights held under this Agreement unless such waiver is made expressly and in writing. Waiver by either Party of a breach or violation of any provision of this Agreement shall not constitute a waiver of any subsequent or other breach or violation.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">22. Further Assurances.</span>  At the request of one Party, the other Party shall execute and deliver such other documents and take such other actions as may be reasonably necessary to effect the terms of this Agreement.
                 </div>
-
                 <div class="mt-4">
                     <span class="font-bold">23. Severability.</span>  If any provision of this Agreement is held to be invalid, illegal or unenforceable in whole or in part, the remaining provisions shall not be affected and shall continue to be valid, legal and enforceable as though the invalid, illegal or unenforceable parts had not been included in this Agreement.
                 </div>
-
                 <br />
 
                 <p>IN WITNESS WHEREOF, this Agreement has been executed and delivered as of the date first written above.</p>
+
+                <div class="flex justify-between mt-20 mx-4">
+                    <div class="flex flex-col">
+                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
+                        <p class="justify-center">Client signature</p>
+                    </div>
+                    <div class="flex flex-col">
+                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
+                        <p class="justify-center">Client full name</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-20 mx-4">
+                    <div class="flex flex-col">
+                        <p class="inline-block w-64 border-solid border-black border-b-2 pb-3 signatures text-4xl" id="contractor_signature"></p>
+                        <p class="justify-center">Independent contractor signature</p>
+                    </div>
+                    <div class="flex flex-col">
+                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-3 text-2xl" id="contractor_name"></p>
+                        <p class="justify-center">Independent contractor full name</p>
+                    </div>
+                </div>
+
 
                 <p id="phone" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
                 <p id="email" class="text-2xl text-black font-bold tracking-wide mt-5"></p>
@@ -181,81 +198,172 @@
                 <h2 class="text-xl font-bold tracking-wide my-2 text-center">Free, no strings attached</h2>
 
                 <div id="step-1" class="mx-5">
-                    <h2>Your information</h2>
                     <div class="flex flex-col space-y-2 mb-5">
                         <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
-                            <input type="text" placeholder="John" class="input input-bordered w-full"
-                                _="on keyup put my.value into #first_name.innerHTML"
-                            />
-                            <input type="text" placeholder="Appleseed" class="input input-bordered w-full"
-                                _="on keyup put my.value into #last_name.innerHTML"
-                            />
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your first name</span>
+                                </label>
+                                <input type="text" placeholder="John" class="input input-bordered w-full"
+                                    _="on keyup put my.value into #first_name.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your last name</span>
+                                </label>
+                                <input type="text" placeholder="Appleseed" class="input input-bordered w-full"
+                                    _="on keyup put my.value into #last_name.innerHTML"
+                                />
+                            </div>
+
                         </div>
 
-                        <input type="text" placeholder="123-456-7890" class="input input-bordered"
-                            _="on keyup put my.value into #phone.innerHTML"
-                        />
-                        <input type="text" placeholder="john@appleseed.com" class="input input-bordered"
-                            _="on keyup put my.value into #email.innerHTML"
-                        />
-                        <input type="text" placeholder="123 Main St" class="input input-bordered"
-                            _="on keyup put `${my.value},` into #street_address.innerHTML"
-                        />
-                        <input type="text" placeholder="New York" class="input input-bordered"
-                            _="on keyup put `${my.value},` into #city.innerHTML"
-                        />
-                        <input type="text" placeholder="NY" class="input input-bordered"
-                            _="on keyup put my.value into #state.innerHTML"
-                        />
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your phone number</span>
+                            </label>
+                            <input type="text" placeholder="123-456-7890" class="input input-bordered"
+                                _="on keyup put my.value into #phone.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your email</span>
+                            </label>
+                            <input type="text" placeholder="john@appleseed.com" class="input input-bordered"
+                                _="on keyup put my.value into #email.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your street address</span>
+                            </label>
+                            <input type="text" placeholder="123 Main St" class="input input-bordered"
+                                _="on keyup put `${my.value},` into #street_address.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your city</span>
+                            </label>
+                            <input type="text" placeholder="New York" class="input input-bordered"
+                                _="on keyup put `${my.value},` into #city.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your state</span>
+                            </label>
+                            <input type="text" placeholder="NY" class="input input-bordered"
+                                _="on keyup put my.value into #state.innerHTML"
+                            />
+                        </div>
                     </div>
                     <button _="on click add .hidden to #step-1 then remove .hidden from #step-2"
                         class="btn btn-primary">Next</button>
                 </div>
 
                 <div id="step-2" class="hidden mx-5">
-                    <h2>Your client's information</h2>
                     <div class="flex flex-col space-y-2 mb-5">
                         <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
-                            <input type="text" placeholder="Jane" class="input input-bordered w-full"
-                                _="on keyup put my.value into #client_first_name.innerHTML"
-                            />
-                            <input type="text" placeholder="Smith" class="input input-bordered w-full"
-                                _="on keyup put my.value into #client_last_name.innerHTML"
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's first name</span>
+                                </label>
+                                <input type="text" placeholder="Jane" class="input input-bordered w-full"
+                                    _="on keyup put my.value into #client_first_name.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's last name</span>
+                                </label>
+                                <input type="text" placeholder="Smith" class="input input-bordered w-full"
+                                    _="on keyup put my.value into #client_last_name.innerHTML"
+                                />
+                            </div>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your client's phone number</span>
+                            </label>
+                            <input type="text" placeholder="123-456-7890" class="input input-bordered"
+                                _="on keyup put my.value into #client_phone.innerHTML"
                             />
                         </div>
-                        <input type="text" placeholder="123-456-7890" class="input input-bordered"
-                            _="on keyup put my.value into #client_phone.innerHTML"
-                        />
-                        <input type="text" placeholder="jane@smith.com" class="input input-bordered"
-                            _="on keyup put my.value into #client_email.innerHTML"
-                        />
-                        <input type="text" placeholder="123 Main St" class="input input-bordered"
-                            _="on keyup put `${my.value},` into #client_street_address.innerHTML"
-                        />
-                        <input type="text" placeholder="New York" class="input input-bordered"
-                            _="on keyup put `${my.value},` into #client_city.innerHTML"
-                        />
-                        <input type="text" placeholder="NY" class="input input-bordered"
-                            _="on keyup put my.value into #client_state.innerHTML"
-                        />
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your client's email</span>
+                            </label>
+                            <input type="text" placeholder="jane@smith.com" class="input input-bordered"
+                                _="on keyup put my.value into #client_email.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your client's street address</span>
+                            </label>
+                            <input type="text" placeholder="123 Main St" class="input input-bordered"
+                                _="on keyup put `${my.value},` into #client_street_address.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your client's city</span>
+                            </label>
+                            <input type="text" placeholder="New York" class="input input-bordered"
+                                _="on keyup put `${my.value},` into #client_city.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your client's state</span>
+                            </label>
+                            <input type="text" placeholder="NY" class="input input-bordered"
+                                _="on keyup put my.value into #client_state.innerHTML"
+                            />
+                        </div>
                     </div>
                     <button _="on click add .hidden to #step-2 then remove .hidden from #step-1" class="btn btn-secondary">Prev</button>
                     <button _="on click add .hidden to #step-2 then remove .hidden from #step-3" class="btn btn-primary">Next</button>
                 </div>
 
                 <div id="step-3" class="hidden">
-                    <h2>Project's information</h2>
+
                     <div class="flex flex-col space-y-2 mb-5">
-                        <input type="text" placeholder="Service description" class="input input-bordered"
-                            _="on keyup put my.value into #service_description.innerHTML"
-                        />
-                        <input type="date" class="input input-bordered"
-                            _="on change put my.value into #project_start_date.innerHTML"
-                        />
-                        <input type="date" class="input input-bordered"
-                            _="on change put my.value into #project_end_date.innerHTML"
-                        />
-                        <input type="text" placeholder="$1000" class="input input-bordered" />
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Description of service</span>
+                            </label>
+                            <input type="text" placeholder="Web Development" class="input input-bordered"
+                                _="on keyup put my.value into #service_description.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Estimated project start date</span>
+                            </label>
+                            <input type="date" class="input input-bordered"
+                                _="on change put my.value into #project_start_date.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Estimated project end date</span>
+                            </label>
+                            <input type="date" class="input input-bordered"
+                                _="on change put my.value into #project_end_date.innerHTML"
+                            />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Estimated budget needed</span>
+                            </label>
+                            <input type="text" placeholder="10,000" class="input input-bordered"
+                                _="on keyup put `${my.value}` into #project_budget.innerHTML"
+                            />
+                        </div>
                     </div>
                     <button _="on click add .hidden to #step-3 then remove .hidden from #step-2" class="btn btn-secondary">Prev</button>
                     <button _="on click add .hidden to #step-3 then remove .hidden from #step-4" class="btn btn-primary">Next</button>
@@ -263,6 +371,27 @@
 
                 <div id="step-4" class="hidden">
                     <h2>Review</h2>
+                    <div class="flex flex-col space-y-2 mb-5">
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your signature</span>
+                            </label>
+                            <input type="text" placeholder="John Appleseed" class="input input-bordered"
+                                _="on keyup put my.value into #contractor_signature.innerHTML"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2 mb-5">
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Your full name</span>
+                            </label>
+                            <input type="text" placeholder="John Appleseed" class="input input-bordered"
+                                _="on keyup put my.value into #contractor_name.innerHTML"
+                            />
+                        </div>
+                    </div>
+
                     <button _="on click add .hidden to #step-4 then remove .hidden from #step-3" class="btn btn-secondary">Prev</button>
                     <button class="btn btn-primary" _="on click call generateContract()">Download</button>
                 </div>
@@ -289,7 +418,6 @@
                     callback: function (doc) {
                         document.getElementById("builder").classList.remove("hidden");
                         document.getElementById("contract-builder").classList.add("md:grid-cols-2");
-
                         doc.save("freelance-contract.pdf");
                     },
                     x: margin,
