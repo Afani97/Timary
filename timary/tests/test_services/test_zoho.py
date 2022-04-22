@@ -124,7 +124,6 @@ class TestZohoService(TestCase):
             ZohoMocks.zoho_invoice_items_active_mock,
             ZohoMocks.zoho_invoice_mock,
             ZohoMocks.zoho_payment_mock,
-            ZohoMocks,
         ):
             ZohoService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
