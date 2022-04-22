@@ -68,6 +68,8 @@ filelock==3.6.0
     # via virtualenv
 greenlet==1.1.2
     # via playwright
+httmock==1.4.0
+    # via -r requirements.in
 identify==2.4.12
     # via pre-commit
 idna==3.3
@@ -117,6 +119,7 @@ redis==3.5.3
     # via django-q
 requests==2.27.1
     # via
+    #   httmock
     #   stripe
     #   twilio
 s3transfer==0.5.2
