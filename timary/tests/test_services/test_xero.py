@@ -65,7 +65,7 @@ class XeroMocks:
         scheme="https",
         netloc="api.xero.com",
         path="/api.xro/2.0/Payments",
-        method="POST",
+        method="PUT",
     )
     def xero_payment_mock(url, request):
         r = Response()
