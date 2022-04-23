@@ -24,6 +24,7 @@ urlpatterns = [
         name="confirm_close_account",
     ),
     path("questions/", views.questions, name="questions"),
+    path("contract/", views.contract_builder, name="contract_builder"),
 ]
 
 

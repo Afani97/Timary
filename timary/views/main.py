@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -20,6 +22,11 @@ def landing_page(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
     return render(request, "timary/landing_page.html", {})
+
+
+def contract_builder(request):
+    context = {"today": datetime.datetime.today()}
+    return render(request, "contract/builder.html", context)
 
 
 def terms_page(request):

@@ -2,6 +2,7 @@ black
 boto3
 factory-boy
 django
+django-browser-reload
 django-crispy-forms
 django-csp
 django-multiselectfield
