@@ -14,13 +14,18 @@
         <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
         <title>Contract Builder by Timary</title>
         <style>
-            .contract-legalize {
+            #contract {
                 font-family: "Playfair Display", serif;
             }
-
             .signatures {
-                font-family: 'Allura', cursive;
-                font-weight: 100;
+                font-family: Allura, cursive;
+                font-weight: 400;
+            }
+        </style>
+        <style media="print">
+            @page {
+                size: auto;   /* auto is the initial value */
+                margin: 25px 25px 50px;  /* this affects the margin in the printer settings */
             }
         </style>
     </head>
@@ -161,24 +166,24 @@
 
                 </div>
 
-                <div class="flex justify-between mt-20 mx-4">
+                <div class="flex justify-between mt-10 mx-4">
                     <div class="flex flex-col">
-                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
+                        <p class="inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
                         <p class="justify-center">Client signature</p>
                     </div>
                     <div class="flex flex-col">
-                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
+                        <p class="inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
                         <p class="justify-center">Client full name</p>
                     </div>
                 </div>
 
-                <div class="flex justify-between mt-20 mx-4">
+                <div class="flex justify-between mt-10 mx-4">
                     <div class="flex flex-col">
-                        <p class="inline-block w-64 border-solid border-black border-b-2 pb-3 signatures text-4xl" id="contractor_signature"></p>
+                        <p class="signatures inline-block w-64 border-solid border-black border-b-2 text-3xl" id="contractor_signature"></p>
                         <p class="justify-center">Independent contractor signature</p>
                     </div>
                     <div class="flex flex-col">
-                        <p class="font-bold inline-block w-64 border-solid border-black border-b-2 pb-5 text-2xl" id="contractor_name"></p>
+                        <p class="inline-block w-64 border-solid border-black border-b-2 pb-1 text-2xl" id="contractor_name"></p>
                         <p class="justify-center">Independent contractor full name</p>
                     </div>
                 </div>
@@ -187,7 +192,7 @@
             <div class="overflow-y-auto mt-5 mx-2" id="builder">
 
                 <h1 class="text-3xl font-bold tracking-wide mt-5 text-center">Start your new freelance contract here</h1>
-                <h2 class="text-xl font-bold tracking-wide my-2 text-center">Free, no strings attached</h2>
+                <h2 class="text-xl font-bold tracking-wide my-2 text-center">Free, no strings attached, just 4 easy steps.</h2>
 
                 <div id="step-1">
                     <div class="flex flex-col space-y-2 mb-5">
@@ -406,7 +411,7 @@
                         <div>
                             <h3 class="text-center font-bold text-3xl tracking-wide mb-10">Looking for time tracking and invoicing software?</h3>
                             <div class="flex justify-center mb-5">
-                                <a class="btn btn-primary flex self-center" href="{% url 'timary:landing_page' %}">Checkout Timary!</a>
+                                <a class="btn btn-primary flex self-center" href="{% url 'timary:landing_page' %}" target="_blank">Checkout Timary!</a>
                             </div>
                             <p class="text-center">We do just that and more!</p>
                         </div>
@@ -418,36 +423,15 @@
 
         {# Third Part JS #}
         <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
         <script>
             function generateContract() {
                 document.getElementById("builder").classList.add("hidden");
                 document.getElementById("contract-builder").classList.remove("md:grid-cols-2");
-                let pWidth = 595.28;
-                let srcWidth = 800;
-                let margin = 18;
-                let scale = (pWidth - margin * 2) / srcWidth;
-                let contract = document.getElementById("contract");
-                contract.style.height = "auto";
-                contract.style.fontFeatureSettings = '"liga" 0';
-                const doc = new jspdf.jsPDF('p', 'pt', 'a4');
-                doc.html(contract, {
-                    callback: function (doc) {
-                        document.getElementById("builder").classList.remove("hidden");
-                        document.getElementById("contract-builder").classList.add("md:grid-cols-2");
-                        doc.save("freelance-contract.pdf");
-                    },
-                    x: margin,
-                    y: 0,
-                    autoPaging: 'text',
-                    margin: [margin, 0, margin, 0],
-                    html2canvas: {
-                        scale: scale,
-                        scrollY: -window.scrollY
-                    }
-                });
 
+                window.print();
+
+                document.getElementById("builder").classList.remove("hidden");
+                document.getElementById("contract-builder").classList.add("md:grid-cols-2");
             }
         </script>
     </body>
