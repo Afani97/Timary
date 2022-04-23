@@ -7,6 +7,7 @@ from django.core import mail
 from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
+from django.utils.timezone import localtime, now
 
 from timary.models import Invoice, SentInvoice
 from timary.tests.factories import (
@@ -28,6 +29,14 @@ class TestInvoices(BaseTest):
         self.invoice = InvoiceFactory(user=self.user)
         self.invoice_no_user = InvoiceFactory()
         self.biz_invoice = InvoiceFactory(user=self.biz_user)
+
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
 
     @patch(
         "timary.services.stripe_service.StripeService.create_customer_for_invoice",
@@ -464,3 +473,19 @@ class TestInvoices(BaseTest):
         )
 
         self.assertInHTML(f"<tbody>{hours}</tbody>", response.content.decode("utf-8"))
+
+    def test_generate_invoice(self):
+        todays_date = localtime(now()).date()
+        current_month = datetime.date.strftime(todays_date, "%m/%Y")
+        hours = DailyHoursFactory(invoice=self.invoice)
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("timary:generate_invoice", kwargs={"invoice_id": self.invoice.id}),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {current_month}",
+        )
+        self.assertTemplateUsed(response, "partials/_invoice.html")

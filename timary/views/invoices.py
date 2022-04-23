@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
+from timary.tasks import send_invoice
 from timary.utils import render_form_errors
 
 
@@ -242,3 +243,13 @@ def resend_invoice_email(request, sent_invoice_id):
         "partials/_sent_invoice.html",
         {"sent_invoice": sent_invoice, "invoice_resent": True},
     )
+
+
+@login_required()
+@require_http_methods(["GET"])
+def generate_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    send_invoice(invoice.id)
+    return render(request, "partials/_invoice.html", {"invoice": invoice})

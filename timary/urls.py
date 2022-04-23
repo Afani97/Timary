@@ -101,6 +101,11 @@ urlpatterns += [
         views.resend_invoice_email,
         name="resend_invoice_email",
     ),
+    path(
+        "invoices/<uuid:invoice_id>/generate/",
+        views.generate_invoice,
+        name="generate_invoice",
+    ),
     path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 
