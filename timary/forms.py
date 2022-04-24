@@ -451,3 +451,26 @@ class QuestionsForm(forms.Form):
 
     class Meta:
         fields = ["question"]
+
+
+class ContractForm(forms.Form):
+    first_name = forms.CharField(required=False)
+    last_name = forms.CharField(required=False)
+    street_address = forms.CharField(required=False)
+    city = forms.CharField(required=False)
+    state = forms.CharField(required=False)
+    email = forms.CharField(required=False)
+    client_first_name = forms.CharField(required=False)
+    client_last_name = forms.CharField(required=False)
+    client_street_address = forms.CharField(required=False)
+    client_city = forms.CharField(required=False)
+    client_state = forms.CharField(required=False)
+    client_email = forms.CharField(required=False)
+    service_description = forms.CharField(required=False)
+    project_budget = forms.CharField(required=False)
+    start_date = forms.DateField(required=False)
+    end_date = forms.DateField(required=False)
+    state_work = forms.CharField(required=False)
+
+    class Meta:
+        fields = ["__all__"]

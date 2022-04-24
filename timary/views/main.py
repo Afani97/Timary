@@ -6,10 +6,11 @@ from django.core.mail import send_mail
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import DailyHoursForm, QuestionsForm
+from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import DailyHoursInput
 from timary.services.stripe_service import StripeService
 
@@ -26,6 +27,28 @@ def landing_page(request):
 
 def contract_builder(request):
     context = {"today": datetime.datetime.today()}
+    if request.method == "POST":
+        contract_form = ContractForm(request.POST)
+        if contract_form.is_valid():
+            msg_body = render_to_string(
+                "contract/contract_pdf.html",
+                {
+                    "form": contract_form.cleaned_data,
+                    "today": datetime.datetime.today(),
+                },
+            )
+            send_mail(
+                "Hey! Here is your contract by Timary. Good luck!",
+                None,
+                None,
+                recipient_list=[
+                    contract_form.cleaned_data.get("email"),
+                    contract_form.cleaned_data.get("client_email"),
+                ],
+                fail_silently=False,
+                html_message=msg_body,
+            )
+            return HttpResponse("Sent! Check your email")
     return render(request, "contract/builder.html", context)
 
 

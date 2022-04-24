@@ -31,7 +31,7 @@
     </head>
     <body>
         <main class="grid grid-cols-1 md:grid-cols-2 gap-2 md:overflow-hidden md:h-screen" id="contract-builder">
-            <div class="bg-white md:overflow-y-scroll md:h-screen text-black p-4" id="contract">
+            <div class="bg-white md:overflow-y-scroll md:h-screen text-black p-4 hidden md:block" id="contract">
 
                 <div class="contract-legalize">
                     <h1 class="text-4xl font-bold tracking-wider text-center mb-4 py-4 border-b-2 border-black border-solid">
@@ -193,249 +193,221 @@
 
                 <h1 class="text-3xl font-bold tracking-wide mt-5 text-center">Start your new freelance contract here</h1>
                 <h2 class="text-xl font-bold tracking-wide mt-2 text-center">Free, no strings attached, just 4 easy steps.</h2>
-                <p class="text-center mb-5">(Works best using Chrome)</p>
 
                 <div class="divider"></div>
 
-                <div id="step-1">
-                    <div class="flex flex-col space-y-2 mb-5">
-                        <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
+                <form hx-post="/contract/" hx-target="#submit-btn" hx-swap="innerHTML">
+                    {% csrf_token %}
+
+                    <div id="step-1">
+                        <div class="flex flex-col space-y-2 mb-5">
+                            <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">Your first name</span>
+                                    </label>
+                                    <input name="first_name" type="text" placeholder="John" class="input input-bordered w-full"
+                                        _="on focus go to the middle of #first_name instantly then on keyup put my.value into #first_name.innerHTML"
+                                    />
+                                </div>
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">Your last name</span>
+                                    </label>
+                                    <input name="last_name" type="text" placeholder="Appleseed" class="input input-bordered w-full"
+                                        _="on keyup put my.value into #last_name.innerHTML"
+                                    />
+                                </div>
+
+                            </div>
                             <div class="form-control w-full">
                                 <label class="label">
-                                    <span class="label-text">Your first name</span>
+                                    <span class="label-text">Your street address</span>
                                 </label>
-                                <input type="text" placeholder="John" class="input input-bordered w-full"
-                                    _="on focus go to the middle of #first_name instantly then on keyup put my.value into #first_name.innerHTML"
+                                <input name="street_address" type="text" placeholder="123 Main St" class="input input-bordered"
+                                    _="on keyup put `${my.value},` into #street_address.innerHTML"
                                 />
                             </div>
                             <div class="form-control w-full">
                                 <label class="label">
-                                    <span class="label-text">Your last name</span>
+                                    <span class="label-text">Your city</span>
                                 </label>
-                                <input type="text" placeholder="Appleseed" class="input input-bordered w-full"
-                                    _="on keyup put my.value into #last_name.innerHTML"
-                                />
-                            </div>
-
-                        </div>
-
-                        {# Uncomment if needed #}
-                        {% comment %}
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your phone number</span>
-                            </label>
-                            <input type="text" placeholder="123-456-7890" class="input input-bordered"
-                                _="on keyup put my.value into #phone.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your email</span>
-                            </label>
-                            <input type="text" placeholder="john@appleseed.com" class="input input-bordered"
-                                _="on keyup put my.value into #email.innerHTML"
-                            />
-                        </div>
-                        {% endcomment %}
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your street address</span>
-                            </label>
-                            <input type="text" placeholder="123 Main St" class="input input-bordered"
-                                _="on keyup put `${my.value},` into #street_address.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your city</span>
-                            </label>
-                            <input type="text" placeholder="New York" class="input input-bordered"
-                                _="on keyup put `${my.value},` into #city.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your state</span>
-                            </label>
-                            <input type="text" placeholder="NY" class="input input-bordered"
-                                _="on keyup put my.value into #state.innerHTML"
-                            />
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <div></div>
-                        <button _="on click add .hidden to #step-1 then remove .hidden from #step-2" class="btn btn-primary">Next</button>
-                    </div>
-                </div>
-
-                <div id="step-2" class="hidden">
-                    <div class="flex flex-col space-y-2 mb-5">
-                        <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
-                            <div class="form-control w-full">
-                                <label class="label">
-                                    <span class="label-text">Your client's first name</span>
-                                </label>
-                                <input type="text" placeholder="Jane" class="input input-bordered w-full"
-                                    _="on focus go to the middle of #client_first_name instantly then on keyup put my.value into #client_first_name.innerHTML"
+                                <input name="city" type="text" placeholder="New York" class="input input-bordered"
+                                    _="on keyup put `${my.value},` into #city.innerHTML"
                                 />
                             </div>
                             <div class="form-control w-full">
                                 <label class="label">
-                                    <span class="label-text">Your client's last name</span>
+                                    <span class="label-text">Your state</span>
                                 </label>
-                                <input type="text" placeholder="Smith" class="input input-bordered w-full"
-                                    _="on keyup put my.value into #client_last_name.innerHTML"
+                                <input name="state" type="text" placeholder="NY" class="input input-bordered"
+                                    _="on keyup put my.value into #state.innerHTML"
                                 />
                             </div>
                         </div>
-                        {# Uncomment if needed #}
-                        {% comment %}
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your client's phone number</span>
-                            </label>
-                            <input type="text" placeholder="123-456-7890" class="input input-bordered"
-                                _="on keyup put my.value into #client_phone.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your client's email</span>
-                            </label>
-                            <input type="text" placeholder="jane@smith.com" class="input input-bordered"
-                                _="on keyup put my.value into #client_email.innerHTML"
-                            />
-                        </div>
-                        {% endcomment %}
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your client's street address</span>
-                            </label>
-                            <input type="text" placeholder="123 Main St" class="input input-bordered"
-                                _="on keyup put `${my.value},` into #client_street_address.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your client's city</span>
-                            </label>
-                            <input type="text" placeholder="New York" class="input input-bordered"
-                                _="on keyup put `${my.value},` into #client_city.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your client's state</span>
-                            </label>
-                            <input type="text" placeholder="NY" class="input input-bordered"
-                                _="on keyup put my.value into #client_state.innerHTML"
-                            />
+                        <div class="flex justify-between">
+                            <div></div>
+                            <button _="on click add .hidden to #step-1 then remove .hidden from #step-2" type="button" class="btn btn-primary">Next</button>
                         </div>
                     </div>
-                    <div class="flex justify-between">
-                        <button _="on click add .hidden to #step-2 then remove .hidden from #step-1" class="btn btn-secondary">Prev</button>
-                        <button _="on click add .hidden to #step-2 then remove .hidden from #step-3" class="btn btn-primary">Next</button>
-                    </div>
-                </div>
 
-                <div id="step-3" class="hidden">
-
-                    <div class="flex flex-col space-y-2 mb-5">
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Description of service</span>
-                            </label>
-                            <input type="text" placeholder="Web Development" class="input input-bordered"
-                                _="on focus go to the middle of #service_description instantly then on keyup put my.value into #service_description.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Estimated budget needed</span>
-                            </label>
-                            <input type="text" placeholder="10,000" class="input input-bordered"
-                                _="on keyup put `${my.value}` into #project_budget.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Estimated project start date</span>
-                            </label>
-                            <input type="date" class="input input-bordered"
-                                _="on change put my.value into #project_start_date.innerHTML"
-                            />
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Estimated project end date</span>
-                            </label>
-                            <input type="date" class="input input-bordered"
-                                _="on change put my.value into #project_end_date.innerHTML"
-                            />
-                        </div>
-
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">State work taking place in</span>
-                            </label>
-                            <input type="text" placeholder="New York" class="input input-bordered"
-                                _="on focus go to the middle of #state_working instantly then on keyup put my.value into #state_working.innerHTML"
-                            />
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <button _="on click add .hidden to #step-3 then remove .hidden from #step-2" class="btn btn-secondary">Prev</button>
-                        <button _="on click add .hidden to #step-3 then remove .hidden from #step-4" class="btn btn-primary">Next</button>
-                    </div>
-                </div>
-
-                <div id="step-4" class="hidden">
-                    <h2>Review</h2>
-                    <div class="flex flex-col space-y-2 mb-5">
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Your signature</span>
-                            </label>
-                            <input type="text" placeholder="John Appleseed" class="input input-bordered"
-                                _="on focus go to the top of #contractor_signature instantly then
-                                    on keyup put my.value into #contractor_signature.innerHTML then
-                                    put my value into #contractor_name.innerHTML"
-                            />
-                        </div>
-                    </div>
-                    <div class="flex justify-between mb-10">
-                        <button _="on click add .hidden to #step-4 then remove .hidden from #step-3" class="btn btn-secondary">Prev</button>
-                        <button class="btn btn-primary" _="on click call generateContract()">Generate my contract</button>
-                    </div>
-                    <div class="divider"></div>
-
-                    <div class="flex justify-center">
-                        <div>
-                            <h3 class="text-center font-bold text-3xl tracking-wide mb-10">Looking for time tracking and invoicing software?</h3>
-                            <div class="flex justify-center mb-5">
-                                <a class="btn btn-primary flex self-center" href="{% url 'timary:landing_page' %}" target="_blank">Checkout Timary!</a>
+                    <div id="step-2" class="hidden">
+                        <div class="flex flex-col space-y-2 mb-5">
+                            <div class="flex flex-col md:flex-row justify-between space-y-2 md:space-x-2 md:space-y-0">
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">Your client's first name</span>
+                                    </label>
+                                    <input name="client_first_name" type="text" placeholder="Jane" class="input input-bordered w-full"
+                                        _="on focus go to the middle of #client_first_name instantly then on keyup put my.value into #client_first_name.innerHTML"
+                                    />
+                                </div>
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">Your client's last name</span>
+                                    </label>
+                                    <input name="client_last_name" type="text" placeholder="Smith" class="input input-bordered w-full"
+                                        _="on keyup put my.value into #client_last_name.innerHTML"
+                                    />
+                                </div>
                             </div>
-                            <p class="text-center">We do just that and more!</p>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's street address</span>
+                                </label>
+                                <input name="client_street_address" type="text" placeholder="123 Main St" class="input input-bordered"
+                                    _="on keyup put `${my.value},` into #client_street_address.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's city</span>
+                                </label>
+                                <input name="client_city" type="text" placeholder="New York" class="input input-bordered"
+                                    _="on keyup put `${my.value},` into #client_city.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's state</span>
+                                </label>
+                                <input name="client_state" type="text" placeholder="NY" class="input input-bordered"
+                                    _="on keyup put my.value into #client_state.innerHTML"
+                                />
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button _="on click add .hidden to #step-2 then remove .hidden from #step-1" type="button" class="btn btn-secondary">Prev</button>
+                            <button _="on click add .hidden to #step-2 then remove .hidden from #step-3" type="button" class="btn btn-primary">Next</button>
                         </div>
                     </div>
-                </div>
+
+                    <div id="step-3" class="hidden">
+
+                        <div class="flex flex-col space-y-2 mb-5">
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Description of service</span>
+                                </label>
+                                <input name="service_description" type="text" placeholder="Web Development" class="input input-bordered"
+                                    _="on focus go to the middle of #service_description instantly then on keyup put my.value into #service_description.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Estimated budget needed</span>
+                                </label>
+                                <input name="project_budget" type="text" placeholder="10,000" class="input input-bordered"
+                                    _="on keyup put `${my.value}` into #project_budget.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Estimated project start date</span>
+                                </label>
+                                <input name="start_date" type="date" class="input input-bordered"
+                                    _="on change put my.value into #project_start_date.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Estimated project end date</span>
+                                </label>
+                                <input name="end_date" type="date" class="input input-bordered"
+                                    _="on change put my.value into #project_end_date.innerHTML"
+                                />
+                            </div>
+
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">State work taking place in</span>
+                                </label>
+                                <input name"state_work" type="text" placeholder="New York" class="input input-bordered"
+                                    _="on focus go to the middle of #state_working instantly then on keyup put my.value into #state_working.innerHTML"
+                                />
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button _="on click add .hidden to #step-3 then remove .hidden from #step-2" type="button" class="btn btn-secondary">Prev</button>
+                            <button _="on click add .hidden to #step-3 then remove .hidden from #step-4" type="button" class="btn btn-primary">Next</button>
+                        </div>
+                    </div>
+
+                    <div id="step-4" class="hidden">
+                        <h2>Review</h2>
+                        <div class="flex flex-col space-y-2 mb-5">
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your signature</span>
+                                </label>
+                                <input type="text" placeholder="John Appleseed" class="input input-bordered"
+                                    _="on focus go to the top of #contractor_signature instantly then
+                                        on keyup put my.value into #contractor_signature.innerHTML then
+                                        put my value into #contractor_name.innerHTML"
+                                />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your email to send you a copy</span>
+                                </label>
+                                <input name="email" type="text" placeholder="john@appleseed.com" class="input input-bordered" />
+                            </div>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">Your client's email to send them a copy</span>
+                                </label>
+                                <input name="client_email" type="text" placeholder="jane@smith.com" class="input input-bordered" />
+                            </div>
+                        </div>
+                        <div class="flex justify-between mb-10">
+                            <button _="on click add .hidden to #step-4 then remove .hidden from #step-3" type="button" class="btn btn-secondary">Prev</button>
+                            <button type="submit" class="btn btn-primary" id="submit-btn">Generate my contract</button>
+                        </div>
+                        <div class="divider"></div>
+
+                        <div class="flex justify-center mb-20">
+                            <div>
+                                <h3 class="text-center font-bold text-3xl tracking-wide mb-10">Looking for time tracking and invoicing software?</h3>
+                                <div class="flex justify-center mb-5">
+                                    <a class="btn btn-primary flex self-center" href="{% url 'timary:landing_page' %}" target="_blank">Checkout Timary!</a>
+                                </div>
+                                <p class="text-center">We do just that and more!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
 
             </div>
         </main>
 
         {# Third Part JS #}
+        <script src="https://unpkg.com/htmx.org@1.7.0"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
         <script>
-            function generateContract() {
-                document.getElementById("builder").classList.add("hidden");
-                document.getElementById("contract-builder").classList.remove("md:grid-cols-2");
-
-                window.print();
-
-                document.getElementById("builder").classList.remove("hidden");
-                document.getElementById("contract-builder").classList.add("md:grid-cols-2");
-            }
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            });
         </script>
     </body>
 </html>
