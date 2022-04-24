@@ -12,7 +12,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.timezone import localtime, now
 from django.views.decorators.http import require_http_methods
-from django_q.tasks import async_task
 
 from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
@@ -252,5 +251,5 @@ def generate_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    _ = async_task(send_invoice, invoice.id)
+    send_invoice(invoice.id)
     return render(request, "partials/_invoice.html", {"invoice": invoice})

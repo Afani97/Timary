@@ -457,12 +457,14 @@ class TestInvoices(BaseTest):
                 )
             )
         hours.sort(key=lambda h: h.date_tracked)
+        max_hr = int(max(hour.hours for hour in hours))
+
         hours = "".join(
             list(
                 map(
                     lambda h: f"""
                     <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
-                    <td style="--size:{round(float(h.hours / 100), 2)};">
+                    <td style="--size:{round((h.hours / (max_hr + 100)), 2)};">
                     <span class="tooltip"> { round(h.hours, 2) }h</span> </td></tr>""",
                     hours,
                 )

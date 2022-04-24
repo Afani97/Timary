@@ -192,6 +192,7 @@ class Invoice(BaseModel):
             .annotate(h=Sum("hours"))
             .values("month", "h")
         )
+        max_hr = int(max(hour["h"] for hour in six_months_qs))
         data = []
         for m in date_times:
             datum = list(filter(lambda x: m == x["month"], six_months_qs))
@@ -203,8 +204,8 @@ class Invoice(BaseModel):
             }
             if len(datum) > 0:
                 datum = datum[0]
-                hours = round(float(datum["h"] / 100), 2)
-                obj["size"] = hours
+                hours = datum["h"]
+                obj["size"] = round((hours / (max_hr + 100)), 2)
                 obj["data"] = f"{round(datum['h'],2)}h"
             data.append(obj)
         return sorted(data, key=lambda x: x["month"])

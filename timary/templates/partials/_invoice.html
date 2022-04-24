@@ -89,7 +89,7 @@
                                     <li class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
                                 {% endfor %}
                             </ul>
-                            <table id="my-chart" class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">
+                            <table class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">
                                 <caption> Hours logged last 6 months </caption>
                                 <tbody>
                                     {% for month in invoice.get_last_six_months %}
