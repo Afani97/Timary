@@ -64,6 +64,8 @@ class DailyHoursInput(BaseModel):
     objects = models.Manager()
     all_hours = HoursQuerySet.as_manager()
 
+    sent_invoice_id = models.CharField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.invoice.title} - {self.date_tracked} - {self.hours}"
 
@@ -161,7 +163,7 @@ class Invoice(BaseModel):
     @property
     def get_hours_tracked(self):
         return self.hours_tracked.filter(
-            date_tracked__gte=F("invoice__last_date")
+            date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
         ).order_by("date_tracked")
 
     @property
@@ -232,13 +234,13 @@ class Invoice(BaseModel):
         self.save()
 
     def get_hours_stats(self, date_range=None):
-        query = Q(date_tracked__gte=F("invoice__last_date"))
+        query = Q(date_tracked__gte=self.last_date)
         if date_range:
             query = Q(date_tracked__range=date_range)
             pass
         hours_tracked = (
             self.hours_tracked.filter(query)
-            .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
+            .annotate(cost=self.hourly_rate * Sum("hours"))
             .order_by("date_tracked")
         )
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
@@ -330,16 +332,18 @@ class SentInvoice(BaseModel):
         )
 
     def get_hours_tracked(self):
-        return (
-            self.invoice.hours_tracked.filter(
-                date_tracked__range=[
-                    self.hours_start_date,
-                    self.hours_end_date,
-                ]
-            )
+        hours_tracked = (
+            self.invoice.hours_tracked.filter(sent_invoice_id=self.id)
             .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
             .order_by("date_tracked")
         )
+
+        total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * self.invoice.hourly_rate
+
+        return hours_tracked, total_cost_amount
 
     def success_notification(self):
         TwilioClient.sent_payment_success(self)

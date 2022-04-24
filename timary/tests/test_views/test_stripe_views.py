@@ -145,7 +145,7 @@ class TestStripeViews(BaseTest):
             self.assertInHTML(msg, html_body)
 
         with self.subTest("Testing hours table renders all hours for invoice"):
-            hours_tracked = sent_invoice.get_hours_tracked()
+            hours_tracked, _ = sent_invoice.get_hours_tracked()
             msg = ""
             for i, hour in enumerate(hours_tracked, start=1):
                 msg += f"""

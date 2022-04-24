@@ -206,9 +206,7 @@ def resend_invoice_email(request, sent_invoice_id):
         raise Http404
     today = localtime(now()).date()
     current_month = date.strftime(today, "%m/%Y")
-    hours_tracked, total_amount = invoice.get_hours_stats(
-        (sent_invoice.hours_start_date, sent_invoice.hours_end_date)
-    )
+    hours_tracked, total_amount = sent_invoice.get_hours_tracked()
 
     msg_subject = render_to_string(
         "email/invoice_subject.html",

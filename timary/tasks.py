@@ -80,6 +80,9 @@ def send_invoice(invoice_id):
         user=invoice.user,
         total_price=total_amount,
     )
+    for hour in hours_tracked:
+        hour.sent_invoice_id = sent_invoice.id
+        hour.save()
     msg_body = render_to_string(
         "email/styled_email.html",
         {
