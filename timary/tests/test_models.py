@@ -7,7 +7,12 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 from timary.models import DailyHoursInput, Invoice, User
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import (
+    DailyHoursFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class TestDailyHours(TestCase):
@@ -192,6 +197,16 @@ class TestInvoice(TestCase):
 
         hours_logged = invoice.get_hours_tracked
         self.assertListEqual(list(hours_logged), hours_list)
+
+    def test_get_hours_logged_mid_cycle(self):
+        """invoice.get_hours_tracked should filter out already sent hours"""
+        invoice = InvoiceFactory(hourly_rate=50)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
+        DailyHoursFactory(invoice=invoice, sent_invoice_id=sent_invoice.id)
+        DailyHoursFactory(invoice=invoice)
+        DailyHoursFactory(invoice=invoice)
+        hours_logged = invoice.get_hours_tracked
+        self.assertEqual(len(hours_logged), 2)
 
     def test_get_budget_percentage(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
