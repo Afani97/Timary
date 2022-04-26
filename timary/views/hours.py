@@ -1,3 +1,5 @@
+import datetime
+
 from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
@@ -20,9 +22,24 @@ def create_daily_hours(request):
         request_method="get",
     )
     if hours_form.is_valid():
-        hours = hours_form.save()
-        response = render(request, "partials/_hour.html", {"hour": hours})
-        response["HX-Refresh"] = "true"
+        hours_form.save()
+        hours = DailyHoursInput.all_hours.current_month(request.user)
+        latest_date_tracked = (
+            hours.order_by("-date_tracked").first().date_tracked
+            if hours.order_by("-date_tracked").first()
+            else None
+        )
+        show_repeat = False
+        if latest_date_tracked != datetime.date.today():
+            show_repeat = True
+
+        context = {
+            "hours": hours,
+            "show_repeat": show_repeat,
+        }
+        response = render(request, "partials/_invoice_list.html", context=context)
+        response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         return response
     ctx = {}
     ctx.update(csrf(request))

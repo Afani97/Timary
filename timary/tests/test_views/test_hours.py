@@ -30,8 +30,10 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        hours = DailyHoursInput.objects.first()
-        rendered_template = self.setup_template("partials/_hour.html", {"hour": hours})
+        hours = [DailyHoursInput.objects.first()]
+        rendered_template = self.setup_template(
+            "partials/_invoice_list.html", {"hours": hours, "show_repeat": False}
+        )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_create_daily_hours_error(self):

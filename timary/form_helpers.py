@@ -31,7 +31,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
             "attrs": {
                 "hx-post": reverse("timary:create_hours"),
                 "hx-target": "#hours-list",
-                "hx-swap": "afterbegin",
+                "hx-swap": "outerHTML",
             },
             "form_class": "card bg-neutral text-neutral-content",
             "layout": Layout(

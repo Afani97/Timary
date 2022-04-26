@@ -110,9 +110,13 @@ def index(request):
     if user.get_invoices.count() == 0:
         return redirect(reverse("timary:manage_invoices"))
     hours = DailyHoursInput.all_hours.current_month(user)
-    latest_date_tracked = hours.order_by("-date_tracked").first().date_tracked
+    latest_date_tracked = (
+        hours.order_by("-date_tracked").first().date_tracked
+        if hours.order_by("-date_tracked").first()
+        else None
+    )
     show_repeat = False
-    if latest_date_tracked != datetime.date.today():
+    if latest_date_tracked and latest_date_tracked != datetime.date.today():
         show_repeat = True
 
     context = {
