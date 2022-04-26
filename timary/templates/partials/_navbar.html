@@ -7,6 +7,9 @@
     <div class="flex-none hidden px-2 mx-2 md:flex">
         <div class="flex items-stretch">
             {% if request.user.is_authenticated %}
+                <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:index' %}">
+                    Home
+                </a>
                 <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:manage_invoices' %}">
                     Invoices
                 </a>
@@ -33,9 +36,15 @@
             </div>
             <ul tabindex="0" class="p-2 shadow menu dropdown-content bg-base-200 rounded-box w-52">
                 {% if request.user.is_authenticated %}
-                    <li><a href="{% url 'timary:manage_invoices' %}">
-                        Invoices
-                    </a>
+                    <li>
+                        <a href="{% url 'timary:index' %}">
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'timary:manage_invoices' %}">
+                            Invoices
+                        </a>
                     </li>
                     <li>
                         <a href="{% url 'timary:user_profile' %}">
