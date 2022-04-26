@@ -1,9 +1,8 @@
 <li class="card shadow-lg bordered px-6 md:px-0" id="{{hour.slug_id}}">
     <div class="card-body">
-        <h2 class="card-title">{{ hour.hours|floatformat:2 }} hrs on {{ hour.date_tracked }}</h2>
-        <p>{{ hour.invoice.title }}</p>
+        <h2 class="card-title">{{ hour.hours|floatformat:2 }} hrs for {{ hour.invoice.title }}</h2>
         <div class="card-actions">
-            <a class="btn btn-primary btn-sm md:btn-md"
+            <a class="btn btn-primary btn-sm md:btn"
                 hx-get="{% url 'timary:edit_hours' hour.id %}"
                 hx-target="closest li"
                 hx-swap="outerHTML"
@@ -11,7 +10,7 @@
                 Edit
             </a>
 
-            <a class="btn btn-outline btn-error btn-sm md:btn-md"
+            <a class="btn btn-outline btn-error btn-sm md:btn"
                 hx-delete="{% url 'timary:delete_hours' hour.id %}"
                 hx-confirm="Are you sure you want to delete these hours?"
                 hx-target="closest li"

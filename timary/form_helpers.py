@@ -59,7 +59,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
                     "hours",
                     "date_tracked",
                     "invoice",
-                    css_class=f"card-body flex {flex_dir} justify-center",
+                    css_class="card-body flex flex-col space-y-5 justify-center",
                 ),
                 ButtonHolder(
                     HTML(

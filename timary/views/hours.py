@@ -22,8 +22,7 @@ def create_daily_hours(request):
     if hours_form.is_valid():
         hours = hours_form.save()
         response = render(request, "partials/_hour.html", {"hour": hours})
-        response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
-        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        response["HX-Refresh"] = "true"
         return response
     ctx = {}
     ctx.update(csrf(request))

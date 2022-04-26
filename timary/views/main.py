@@ -109,11 +109,18 @@ def index(request):
     user = request.user
     if user.get_invoices.count() == 0:
         return redirect(reverse("timary:manage_invoices"))
+    hours = DailyHoursInput.all_hours.current_month(user)
+    latest_date_tracked = hours.order_by("-date_tracked").first().date_tracked
+    show_repeat = False
+    if latest_date_tracked != datetime.date.today():
+        show_repeat = True
+
     context = {
         "new_hours": DailyHoursForm(
             user=user, is_mobile=request.is_mobile, request_method="get"
         ),
-        "hours": DailyHoursInput.all_hours.current_month(user),
+        "hours": hours,
+        "show_repeat": show_repeat,
     }
     context.update(get_hours_tracked(user))
     return render(request, "timary/index.html", context=context)
