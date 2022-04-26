@@ -1,9 +1,7 @@
 <ul id="hours-list" class="col-span-3 mt-10 mx-5 md:mt-0 md:col-span-4 space-y-5">
     {% if show_repeat %}
         <div class="text-3xl font-bold tracking-wide">{% now "M. j, Y" %}</div>
-        <div class="flex justify-center md:justify-start">
-            <button class="btn btn-info">Repeat last workday</button>
-        </div>
+        <p class="text-xl text-center">Add your hours for today.</p>
         <div class="divider"></div>
     {% endif %}
     {% regroup hours by date_tracked as grouped_hours %}
