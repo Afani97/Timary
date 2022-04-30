@@ -1,0 +1,103 @@
+{% extends 'admin/custom_page.html' %}
+
+
+{% block result_list %}
+
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <div>
+
+        <div class="text-4xl font-bold tracking-wide text-center mb-2">Users</div>
+        <div class="flex justify-center my-5">
+            <div class="stats shadow">
+
+                <div class="stat">
+                    <div class="stat-title">Total Users</div>
+                    <div class="stat-value">{{ users.total }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Starter</div>
+                    <div class="stat-value">{{ users.starter }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Professional</div>
+                    <div class="stat-value">{{ users.professional }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Business</div>
+                    <div class="stat-value">{{ users.business }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Invoice Fee</div>
+                    <div class="stat-value">{{ users.invoice_fee }}</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-4xl font-bold tracking-wide text-center mb-2">Sent Invoices</div>
+        <div class="flex justify-center my-5">
+            <div class="stats shadow">
+
+                <div class="stat">
+                    <div class="stat-title">Total </div>
+                    <div class="stat-value">{{ sent_invoices.total }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Pending</div>
+                    <div class="stat-value">{{ sent_invoices.pending }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Paid</div>
+                    <div class="stat-value">{{ sent_invoices.paid }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Failed</div>
+                    <div class="stat-value">{{ sent_invoices.failed }}</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-4xl font-bold tracking-wide text-center mb-2">Overall Stats</div>
+        <div class="flex justify-center my-5">
+            <div class="stats shadow">
+
+                <div class="stat">
+                    <div class="stat-title">Total Hours Logged</div>
+                    <div class="stat-value">{{ overall_stats.hour_total }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Total Invoices Created</div>
+                    <div class="stat-value">{{ overall_stats.invoice_total }}</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-4xl font-bold tracking-wide text-center mb-2">$$$$</div>
+        <div class="flex justify-center my-5">
+            <div class="stats shadow mr-5">
+
+                <div class="stat">
+                    <div class="stat-title">Recurring</div>
+                    <div class="stat-value">{{ money_stats.recurring }}</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-title">Fees made this month</div>
+                    <div class="stat-value">{{ money_stats.fees }}</div>
+                </div>
+            </div>
+            <div class="radial-progress" style="--value:70; --size:8rem; --thickness: 2px;">{{ money_stats.mrr_goal }}%</div>
+        </div>
+    </div>
+{% endblock result_list %}

@@ -101,7 +101,7 @@ class Invoice(BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)
     user = models.ForeignKey(
-        "timary.User", on_delete=models.CASCADE, related_name="invoices"
+        "timary.User", on_delete=models.CASCADE, related_name="invoices", null=True
     )
     hourly_rate = models.IntegerField(
         default=50, null=False, blank=False, validators=[MinValueValidator(1)]
@@ -287,6 +287,7 @@ class SentInvoice(BaseModel):
         on_delete=models.SET_NULL,
         related_name="invoice_snapshots",
         null=True,
+        blank=True,
     )
 
     user = models.ForeignKey(
@@ -315,7 +316,7 @@ class SentInvoice(BaseModel):
 
     def __str__(self):
         return (
-            f"SentInvoice(invoice={self.invoice.title}, "
+            f"SentInvoice(invoice={self.invoice.title if self.invoice else 'Deleted Invoice'}, "
             f"start_date={self.hours_start_date}, "
             f"end_date={self.hours_end_date}, "
             f"total_price={self.total_price}, "
