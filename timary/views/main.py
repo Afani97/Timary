@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
-from timary.models import DailyHoursInput
+from timary.models import Contract, DailyHoursInput
 from timary.services.stripe_service import StripeService
 
 
@@ -47,6 +47,10 @@ def contract_builder(request):
                 ],
                 fail_silently=False,
                 html_message=msg_body,
+            )
+            Contract.objects.create(
+                email=contract_form.get("email"),
+                name=f'{contract_form.get("first_name")} {contract_form.get("last_name")}',
             )
             return HttpResponse("Sent! Check your email")
     return render(request, "contract/builder.html", context)

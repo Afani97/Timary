@@ -8,7 +8,7 @@ from django.template.response import TemplateResponse
 from django.urls import path
 from django_otp.admin import OTPAdminSite
 
-from timary.models import DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import Contract, DailyHoursInput, Invoice, SentInvoice, User
 
 # Register your models here.
 admin.site.register(User)
@@ -74,6 +74,7 @@ class TimaryAdminSite(OTPAdminSite):
                 DailyHoursInput.objects.aggregate(total=Sum("hours"))["total"]
             ),
             "invoice_total": Invoice.objects.count(),
+            "contracts_total": Contract.objects.count(),
         }
         current_date = datetime.datetime.today()
         money_stats = {

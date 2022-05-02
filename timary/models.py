@@ -48,6 +48,11 @@ class BaseModel(models.Model):
         abstract = True
 
 
+class Contract(BaseModel):
+    email = models.CharField(max_length=200, null=True, blank=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
+
+
 class DailyHoursInput(BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="hours_tracked"
