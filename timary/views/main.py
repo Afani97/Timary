@@ -49,8 +49,8 @@ def contract_builder(request):
                 html_message=msg_body,
             )
             Contract.objects.create(
-                email=contract_form.get("email"),
-                name=f'{contract_form.get("first_name")} {contract_form.get("last_name")}',
+                email=contract_form.cleaned_data.get("email"),
+                name=f'{contract_form.cleaned_data.get("first_name")} {contract_form.cleaned_data.get("last_name")}',
             )
             return HttpResponse("Sent! Check your email")
     return render(request, "contract/builder.html", context)
