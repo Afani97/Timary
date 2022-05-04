@@ -1,8 +1,7 @@
 <li class="card shadow-lg bordered mb-2">
     <div class="card-body grid grid-cols-3 gap-4">
         <div class="col-span-2">
-            <p class="card-title">{{ sent_invoice.invoice.title }} - {{ sent_invoice.date_sent }}</p>
-            <p>Status:
+            <p  class="card-title">Status:
                 <span class="
                     {% if sent_invoice.paid_status == 2 %}
                         text-green-300
@@ -16,6 +15,7 @@
                 </span>
             </p>
             <p>Amount earned: ${{ sent_invoice.total_price }}</p>
+            <p>{{ sent_invoice.date_sent }}</p>
         </div>
         <div class="col-span-1">
             {% if sent_invoice.paid_status == 1 or sent_invoice.paid_status == 3 %}

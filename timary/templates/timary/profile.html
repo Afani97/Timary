@@ -35,14 +35,16 @@
 
                         <div class="max-w-xl mx-auto">
                             <h3 class="text-3xl my-6 text-center">Sent invoices</h3>
-                            {% if sent_invoices.count > 0 %}
-
-                                <ul>
-                                    {% for sent_invoice in sent_invoices %}
+                            <ul>
+                                {% regroup sent_invoices by invoice.title as grouped_invoices %}
+                                {% for sent_invoices_list in grouped_invoices %}
+                                    <div class="text-3xl font-bold tracking-wide mb-5">{{ sent_invoices_list.grouper|default_if_none:"Invoice"}}</div>
+                                    {% for sent_invoice in sent_invoices_list.list %}
                                         {% include "partials/_sent_invoice.html" with sent_invoice=sent_invoice %}
                                     {% endfor %}
-                                </ul>
-                            {% endif %}
+                                    <div class="divider"></div>
+                                {% endfor %}
+                            </ul>
                         </div>
 
                     {% elif tab == "4" %}

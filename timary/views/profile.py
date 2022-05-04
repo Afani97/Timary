@@ -16,7 +16,7 @@ def user_profile(request):
     context = {
         "profile": request.user,
         "settings": request.user.settings,
-        "sent_invoices": request.user.sent_invoices.order_by("-date_sent"),
+        "sent_invoices": request.user.sent_invoices.all(),
         "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
     if tab and 0 < int(tab) < 5:
