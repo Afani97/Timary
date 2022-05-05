@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 from decouple import config
+from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,6 +98,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "timaryproject.wsgi.application"
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "alert alert-info",
+    messages.INFO: "alert alert-info",
+    messages.SUCCESS: "alert alert-success",
+    messages.WARNING: "alert alert-warning",
+    messages.ERROR: "alert alert-error",
+}
 
 
 # Database

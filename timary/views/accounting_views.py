@@ -38,7 +38,7 @@ def quickbooks_redirect(request):
     ):
         if not sent_invoice.quickbooks_invoice_id:
             QuickbookService.create_invoice(sent_invoice)
-    messages.info(request, "Successfully connected Quickbooks.")
+    messages.success(request, "Successfully connected Quickbooks.")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -79,7 +79,7 @@ def freshbooks_redirect(request):
         ):
             if not sent_invoice.freshbooks_invoice_id:
                 FreshbookService.create_invoice(sent_invoice)
-        messages.info(request, "Successfully connected Freshbooks.")
+        messages.success(request, "Successfully connected Freshbooks.")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -120,9 +120,9 @@ def zoho_redirect(request):
         ):
             if not sent_invoice.zoho_invoice_id:
                 ZohoService.create_invoice(sent_invoice)
-        messages.info(request, "Successfully connected Zoho.")
+        messages.success(request, "Successfully connected Zoho.")
     else:
-        messages.info(request, "Unable to connect to Zoho")
+        messages.error(request, "Unable to connect to Zoho")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -161,7 +161,7 @@ def xero_redirect(request):
     ):
         if not sent_invoice.xero_invoice_id:
             XeroService.create_invoice(sent_invoice)
-    messages.info(request, "Successfully connected Xero.")
+    messages.success(request, "Successfully connected Xero.")
     return redirect(reverse("timary:user_profile"))
 
 
@@ -200,7 +200,7 @@ def sage_redirect(request):
     for sent_invoice in request.user.sent_invoices:
         if not sent_invoice.sage_invoice_id:
             SageService.create_invoice(sent_invoice)
-    messages.info(request, "Successfully connected Sage.")
+    messages.success(request, "Successfully connected Sage.")
     return redirect(reverse("timary:user_profile"))
 
 
