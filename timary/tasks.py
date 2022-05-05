@@ -4,13 +4,13 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
 
 from timary.models import Invoice, SentInvoice, User
+from timary.services.email_service import EmailService
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
@@ -46,12 +46,10 @@ def gather_invoices():
         _ = async_task(send_invoice_preview, invoice.id)
 
     invoices_sent = len(list(invoices_sent_today) + list(invoices_sent_tomorrow))
-    send_mail(
+    EmailService.send_plain(
         f"Sent out {invoices_sent} invoices",
         f'{date.strftime(today, "%m/%-d/%Y")}, there were {invoices_sent} invoices sent out.',
-        None,
-        recipient_list=["aristotelf@gmail.com"],
-        fail_silently=True,
+        "aristotelf@gmail.com",
     )
 
     return f"Invoices sent: {invoices_sent}"
@@ -98,14 +96,7 @@ def send_invoice(invoice_id):
             "todays_date": today,
         },
     )
-    send_mail(
-        msg_subject,
-        None,
-        None,
-        recipient_list=[invoice.email_recipient],
-        fail_silently=False,
-        html_message=msg_body,
-    )
+    EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
     invoice.calculate_next_date()
 
 
@@ -126,13 +117,11 @@ def send_invoice_preview(invoice_id):
             "tomorrows_date": today + timedelta(days=1),
         },
     )
-    send_mail(
-        "Pssst! Here is a sneak peek of the invoice going out tomorrow.",
-        "Make any modifications before it's sent tomorrow morning",
-        None,
-        recipient_list=[invoice.user.email],
-        fail_silently=False,
-        html_message=msg_body,
+    EmailService.send_html(
+        "Pssst! Here is a sneak peek of the invoice going out tomorrow. Make any modifications before it's sent "
+        "tomorrow morning",
+        msg_body,
+        invoice.user.email,
     )
 
 

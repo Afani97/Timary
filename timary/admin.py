@@ -2,7 +2,6 @@ import datetime
 
 from django import forms
 from django.contrib import admin, messages
-from django.core.mail import send_mail
 from django.db.models import Sum
 from django.template.response import TemplateResponse
 from django.urls import path
@@ -11,6 +10,8 @@ from django_otp.admin import OTPAdminSite
 from timary.models import Contract, DailyHoursInput, Invoice, SentInvoice, User
 
 # Register your models here.
+from timary.services.email_service import EmailService
+
 admin.site.register(User)
 admin.site.register(Invoice)
 admin.site.register(SentInvoice)
@@ -29,12 +30,8 @@ class SendEmailForm(forms.Form):
 
 
 def send_emails(subject, message):
-    send_mail(
-        subject,
-        message,
-        None,
-        recipient_list=User.objects.all().values_list("email", flat=True),
-        fail_silently=False,
+    EmailService.send_plain(
+        subject, message, User.objects.all().values_list("email", flat=True)
     )
 
 

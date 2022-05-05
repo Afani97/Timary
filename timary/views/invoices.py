@@ -3,7 +3,6 @@ from datetime import date, timedelta
 from crispy_forms.utils import render_crispy_form
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import InvoiceForm
 from timary.models import Invoice, SentInvoice, User
+from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import render_form_errors
 
@@ -228,14 +228,8 @@ def resend_invoice_email(request, sent_invoice_id):
             "todays_date": today,
         },
     )
-    send_mail(
-        msg_subject,
-        None,
-        None,
-        recipient_list=[invoice.email_recipient],
-        fail_silently=False,
-        html_message=msg_body,
-    )
+    EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
+
     return render(
         request,
         "partials/_sent_invoice.html",

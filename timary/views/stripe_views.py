@@ -4,7 +4,6 @@ from datetime import timedelta
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -15,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
 from timary.models import SentInvoice, User
+from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
 
@@ -178,14 +178,11 @@ def stripe_webhook(request):
                 "tomorrows_date": today + timedelta(days=1),
             },
         )
-        send_mail(
+        EmailService.send_html(
             f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. An error occurred while trying to "
             f"transfer the funds for this invoice. Please give it another try.",
-            "",
-            None,
-            recipient_list=[sent_invoice.invoice.email_recipient],
-            fail_silently=False,
-            html_message=msg_body,
+            msg_body,
+            sent_invoice.invoice.email_recipient,
         )
 
     elif event["type"] == "payment_intent.succeeded":

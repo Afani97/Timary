@@ -2,7 +2,6 @@ import datetime
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -12,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
+from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
 
@@ -37,16 +37,13 @@ def contract_builder(request):
                     "today": datetime.datetime.today(),
                 },
             )
-            send_mail(
+            EmailService.send_html(
                 "Hey! Here is your contract by Timary. Good luck!",
-                None,
-                None,
-                recipient_list=[
+                msg_body,
+                [
                     contract_form.cleaned_data.get("email"),
                     contract_form.cleaned_data.get("client_email"),
                 ],
-                fail_silently=False,
-                html_message=msg_body,
             )
             Contract.objects.create(
                 email=contract_form.cleaned_data.get("email"),
@@ -69,12 +66,10 @@ def privacy_page(request):
 def questions(request):
     questions_form = QuestionsForm(request.POST)
     if questions_form.is_valid():
-        send_mail(
+        EmailService.send_plain(
             f"{request.user.first_name} ({request.user.email}) asked a question",
             questions_form.cleaned_data.get("question", ""),
-            None,
-            recipient_list=["ari@usetimary.com"],
-            fail_silently=False,
+            "ari@usetimary.com",
         )
         return HttpResponse("Your request has been sent. Thanks!")
     return HttpResponse(
