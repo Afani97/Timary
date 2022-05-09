@@ -52,13 +52,10 @@ class DailyHoursForm(forms.ModelForm):
         model = DailyHoursInput
         fields = ["hours", "date_tracked", "invoice"]
         widgets = {
-            "hours": forms.NumberInput(
+            "hours": forms.TextInput(
                 attrs={
                     "value": 1.0,
-                    "max": 24,
-                    "min": 0,
-                    "step": 0.1,
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered text-lg w-20 hours-input",
                 },
             ),
             "date_tracked": DateInput(
@@ -81,6 +78,21 @@ class DailyHoursForm(forms.ModelForm):
         if date_tracked > datetime.date.today():
             raise ValidationError("Cannot set date into the future!")
         return date_tracked
+
+    def clean_hours(self):
+        hours = self.cleaned_data.get("hours")
+        try:
+            hours_float = float(hours)
+        except ValueError:
+            raise ValidationError(
+                "Invalid hours logged. Please log between 0 and 24 hours"
+            )
+        if 0 <= hours_float <= 24:
+            return hours
+        else:
+            raise ValidationError(
+                "Invalid hours logged. Please log between 0 and 24 hours"
+            )
 
 
 class InvoiceForm(forms.ModelForm):

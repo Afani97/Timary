@@ -10,7 +10,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
         "hours",
         "date_tracked",
         "invoice",
-        css_class=f"card-body flex {flex_dir} justify-center space-x-5 ",
+        css_class=f"card-body flex {flex_dir} justify-center space-x-5",
     )
     mobile_rows = Column(
         Row(
@@ -42,7 +42,7 @@ def hours_form_helper(method_type, is_mobile, hour=None):
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                         'type="submit" hx-indicator="#spinnr"> Add new hours</button>'
                     ),
-                    css_class="card-actions flex justify-center",
+                    css_class="card-actions mb-5 flex justify-center",
                 ),
             ),
         },

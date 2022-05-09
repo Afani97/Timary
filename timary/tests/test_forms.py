@@ -350,13 +350,19 @@ class TestDailyHours(TestCase):
         form = DailyHoursForm(
             data={"hours": -1, "invoice": self.invoice.id, "date_tracked": self.today}
         )
-        self.assertEqual(form.errors, {"hours": ["Cannot log less than 0 hours"]})
+        self.assertEqual(
+            form.errors,
+            {"hours": ["Invalid hours logged. Please log between 0 and 24 hours"]},
+        )
 
         form = DailyHoursForm(
             data={"hours": 25, "invoice": self.invoice.id, "date_tracked": self.today},
             request_method="get",
         )
-        self.assertEqual(form.errors, {"hours": ["Cannot log greater than 24 hours"]})
+        self.assertEqual(
+            form.errors,
+            {"hours": ["Invalid hours logged. Please log between 0 and 24 hours"]},
+        )
 
     def test_hours_error_missing_date_tracked(self):
         form = DailyHoursForm(data={"hours": 1, "invoice": self.invoice.id})

@@ -86,7 +86,7 @@
                         <div class="flex flex-col md:flex-row justify-between">
                             <ul class="list-disc ml-5">
                                 {% for hour in invoice.get_hours_tracked %}
-                                    <li class="text-xl">{{ hour.hours|floatformat }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
+                                    <li class="text-xl">{{ hour.hours|floatformat:2 }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
                                 {% endfor %}
                             </ul>
                             <table class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">

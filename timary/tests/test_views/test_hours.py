@@ -49,7 +49,8 @@ class TestDailyHours(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
         self.assertInHTML(
-            "Cannot log less than 0 hours", response.content.decode("utf-8")
+            "Invalid hours logged. Please log between 0 and 24 hours",
+            response.content.decode("utf-8"),
         )
 
     def test_get_hours(self):
