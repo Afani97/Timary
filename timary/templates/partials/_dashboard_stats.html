@@ -22,3 +22,13 @@
         <div class="stat-desc">earnings: ${{ current_year.total_amount | floatformat:2 }}</div>
     </div>
 </div>
+
+{# New hours modal #}
+<div id="hours-modal" class="modal items-center" hx-swap-oob="true">
+    <div class="modal-box bg-neutral">
+        <div class="inner-modal">
+            {{ new_hour_form }}
+        </div>
+    </div>
+</div>
+{# New hours modal #}

@@ -47,6 +47,9 @@ class DailyHoursForm(forms.ModelForm):
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
         self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
+        hours_css = self.fields["hours"].widget.attrs["class"]
+        text_width = "w-full" if request_method == "put" else "w-20"
+        self.fields["hours"].widget.attrs["class"] = f"{hours_css} {text_width}"
 
     class Meta:
         model = DailyHoursInput
@@ -55,7 +58,7 @@ class DailyHoursForm(forms.ModelForm):
             "hours": forms.TextInput(
                 attrs={
                     "value": 1.0,
-                    "class": "input input-bordered text-lg w-20 hours-input",
+                    "class": "input input-bordered text-lg hours-input",
                 },
             ),
             "date_tracked": DateInput(

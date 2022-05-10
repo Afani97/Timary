@@ -69,6 +69,18 @@ class TestUI(BaseUITest):
             self.assertEqual(page.inner_text(".stat-value"), "2.00")
 
     @tag("ui")
+    def test_log_first_hours_time_format(self):
+        invoice = InvoiceFactory()
+        with self.start_test(invoice.user) as page:
+            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.click("#log_hours_btn")
+            page.wait_for_selector("#new-hours-form", timeout=2000)
+            page.fill("#id_hours", ":25")
+            page.click('button:has-text("Add new hours")')
+            page.wait_for_selector("#hours-list li", timeout=2000)
+            self.assertEqual(page.inner_text(".stat-value"), "0.41")
+
+    @tag("ui")
     def test_edit_hours(self):
         hours = DailyHoursFactory()
         with self.start_test(hours.invoice.user) as page:

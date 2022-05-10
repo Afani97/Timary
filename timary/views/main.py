@@ -1,5 +1,6 @@
 import datetime
 
+from crispy_forms.utils import render_crispy_form
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
@@ -119,8 +120,8 @@ def index(request):
         show_repeat = True
 
     context = {
-        "new_hours": DailyHoursForm(
-            user=user, is_mobile=request.is_mobile, request_method="get"
+        "new_hour_form": render_crispy_form(
+            DailyHoursForm(user=user, is_mobile=request.is_mobile, request_method="get")
         ),
         "hours": hours,
         "show_repeat": show_repeat,
@@ -132,11 +133,19 @@ def index(request):
 @login_required()
 @require_http_methods(["GET"])
 def dashboard_stats(request):
-    return render(
+    context = get_hours_tracked(request.user)
+    context["new_hour_form"] = render_crispy_form(
+        DailyHoursForm(
+            user=request.user, is_mobile=request.is_mobile, request_method="get"
+        )
+    )
+    response = render(
         request,
         "partials/_dashboard_stats.html",
-        get_hours_tracked(request.user),
+        context,
     )
+    response["HX-ResetTimer"] = "resetTimer"
+    return response
 
 
 @login_required()

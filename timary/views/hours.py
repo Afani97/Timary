@@ -45,8 +45,15 @@ def create_daily_hours(request):
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
+    # Wrap html form in .inner-modal to replace and keep div in place inside modal, otherwise errors will override
+    # html form and remove it.
+    html_form = f"""
+    <div class="inner-modal">
+        {html_form}
+    </div>
+    """
     response = HttpResponse(html_form)
-    response["HX-Retarget"] = ".modal-box"
+    response["HX-Retarget"] = ".inner-modal"
     # Trigger removing first modal form until they enable a 'HX-Reswap'
     response["HX-RemoveInitialHourModal"] = "resetNewHourModal"
     return response

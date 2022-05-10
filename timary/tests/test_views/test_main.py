@@ -1,10 +1,12 @@
 import datetime
 from unittest.mock import patch
 
+from crispy_forms.utils import render_crispy_form
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from django.utils.http import urlencode
 
+from timary.forms import DailyHoursForm
 from timary.models import Invoice, User
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
@@ -52,9 +54,14 @@ class TestMain(BaseTest):
         )
         response = self.client.get(reverse("timary:dashboard_stats"))
 
+        context = get_hours_tracked(self.user)
+        context["new_hour_form"] = render_crispy_form(
+            DailyHoursForm(user=self.user, is_mobile=False, request_method="get")
+        )
+
         rendered_template = self.setup_template(
             "partials/_dashboard_stats.html",
-            get_hours_tracked(self.user),
+            context,
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 200)

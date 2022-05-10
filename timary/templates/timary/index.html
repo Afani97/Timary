@@ -1,5 +1,4 @@
 {% extends 'timary/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block content %}
     <h1 class="hidden md:block md:text-3xl text-center mt-10" id="dashboard-title">Dashboard</h1>
@@ -27,22 +26,11 @@
                     {% include 'partials/_dashboard_stats.html' %}
                 </div>
                 {# Dashboard stats #}
-
-                {# New hours modal #}
-                <div id="hours-modal" class="modal items-center">
-                    <div class="modal-box bg-neutral">
-                        <div>
-                            {% crispy new_hours %}
-                        </div>
-                    </div>
-                </div>
-                {# New hours modal #}
             </div>
         </div>
 
         {% include "partials/_invoice_list.html" %}
     </div>
-
 
 {% endblock %}
 
@@ -52,15 +40,24 @@
         document.body.addEventListener("clearModal", function(){
             document.getElementById("close-hours-modal").click();
             document.getElementById("new-hours-form").reset();
-            document.getElementById("start_timer").addEventListener("click", start);
         })
     </script>
     <script nonce="reset-new-hour-modal">
         document.body.addEventListener('htmx:beforeSwap', function(evt) {
             let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialHourModal");
             if (clearInitialForm === "resetNewHourModal") {
-                document.getElementById("new-hours-form").remove();
+                let newHourForm = document.getElementById("new-hours-form");
+                if (newHourForm) {
+                    newHourForm.remove();
+                }
             }
+        });
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            let resetTimer = evt.detail.xhr.getResponseHeader("HX-ResetTimer");
+            if (resetTimer === "resetTimer") {
+                document.getElementById("start_timer").addEventListener("click", start);
+            }
+            updateHourInputListener();
         });
     </script>
     <script nonce="hours-timer">
@@ -76,7 +73,6 @@
         var timer_min_span = document.getElementById("timer_min");
         var timer_sec_span = document.getElementById("timer_sec");
         var hoursTimer = new Timer();
-        var hoursInput = Array.from(document.querySelectorAll(".hours-input"));
 
 
         start_timer_btn.addEventListener("click", start);
@@ -84,20 +80,30 @@
         stop_timer_btn.addEventListener("click", stop);
         resume_timer_btn.addEventListener("click", resume);
         reset_timer_btn.addEventListener("click", reset);
-        hoursInput.forEach(hr => {
-            hr.addEventListener("input", function(e) {
-                e.target.value = e.target.value.replace(/[^0-9.:]/, '');
-            });
-            hr.addEventListener("blur", function(e) {
-                if (e.target.value.includes(":")) {
-                    let timeClocked = e.target.value.split(":");
-                    let val = timeToDecimal(timeClocked[0] || 0, timeClocked[1] || 0);
-                    if (!isNaN(val)) {
-                        e.target.value = val;
+
+        updateHourInputListener();
+
+        function updateHourInputListener() {
+            let hoursInput = Array.from(document.querySelectorAll(".hours-input"));
+            console.log(hoursInput);
+
+            hoursInput.forEach(hr => {
+                hr.addEventListener("input", function(e) {
+                    e.target.value = e.target.value.replace(/[^0-9.:]/, '');
+                });
+                hr.addEventListener("blur", function(e) {
+                    if (e.target.value.includes(":")) {
+                        let timeClocked = e.target.value.split(":");
+                        let val = timeToDecimal(timeClocked[0] || 0, timeClocked[1] || 0);
+                        if (!isNaN(val)) {
+                            e.target.value = val;
+                        }
                     }
-                }
-            })
-        });
+                })
+            });
+        }
+
+
 
         function update_timer(hrs, mins, secs) {
             timer_hour_span.style.cssText = `--value: ${hrs}`;
