@@ -108,7 +108,7 @@ class TestUserProfile(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertInHTML(
-            '<li class="text-error">Email already registered!</li>',
+            '<li class="text-error text-center">Email already registered!</li>',
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.status_code, 200)

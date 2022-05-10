@@ -110,7 +110,7 @@ def update_hours(request, hours_id):
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
-    return HttpResponse(html_form, status=400)
+    return HttpResponse(html_form, status=200)
 
 
 @login_required()

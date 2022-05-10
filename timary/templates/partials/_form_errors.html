@@ -2,7 +2,7 @@
     <ul class="list-disc">
         {% for key, errors in form_errors.items %}
             {% for error in errors %}
-                <li class="text-error">{{ error.message }}</li>
+                <li class="text-error text-center">{{ error.message }}</li>
             {% endfor %}
         {% endfor %}
     </ul>
