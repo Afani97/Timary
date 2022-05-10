@@ -58,6 +58,7 @@
                 document.getElementById("start_timer").addEventListener("click", start);
             }
             updateHourInputListener();
+            updateCancelModalListeners();
         });
     </script>
     <script nonce="hours-timer">
@@ -73,6 +74,24 @@
         var timer_min_span = document.getElementById("timer_min");
         var timer_sec_span = document.getElementById("timer_sec");
         var hoursTimer = new Timer();
+
+        updateCancelModalListeners();
+
+        function updateCancelModalListeners(){
+            var close_hours_modal_btn = document.getElementById("close-hours-modal");
+            if (close_hours_modal_btn) {
+                close_hours_modal_btn.addEventListener("click", function(e) {
+                    let errors_list = document.querySelector(".inner-modal .list-disc");
+                    if (errors_list) {
+                        errors_list.remove();
+                    }
+                    document.getElementById("id_hours").value = 1;
+                    document.getElementById("id_date_tracked").value = new Date().toISOString().split('T')[0];
+                })
+            }
+
+        }
+
 
 
         start_timer_btn.addEventListener("click", start);
