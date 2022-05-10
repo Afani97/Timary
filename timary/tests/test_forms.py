@@ -286,6 +286,19 @@ class TestInvoice(TestCase):
             form.errors, {"title": ["Duplicate invoice title not allowed."]}
         )
 
+    def test_invoice_error_title_begins_with_number(self):
+        form = InvoiceForm(
+            data={
+                "title": "1Password dev",
+                "hourly_rate": 100,
+                "invoice_interval": "M",
+                "email_recipient_name": "User Test",
+                "email_recipient": "user@test.com",
+            }
+        )
+
+        self.assertEqual(form.errors, {"title": ["Title cannot start with a number."]})
+
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):

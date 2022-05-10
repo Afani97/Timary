@@ -189,6 +189,8 @@ class InvoiceForm(forms.ModelForm):
             and self.user.get_invoices.filter(title=title).exists()
         ):
             raise ValidationError("Duplicate invoice title not allowed.")
+        if title[0].isdigit():
+            raise ValidationError("Title cannot start with a number.")
         return title
 
 
