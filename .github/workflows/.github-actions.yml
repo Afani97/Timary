@@ -19,3 +19,7 @@ jobs:
       run: python manage.py migrate
     - name: Run tests
       run: make test
+    - name: Install webkit
+      run: playwright install webkit
+    - name: Run UI tests
+      run: make test-ui
