@@ -327,3 +327,4 @@ if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
+    HEADLESS_UI = False

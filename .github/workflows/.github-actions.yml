@@ -3,7 +3,7 @@ name: Django CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +19,3 @@ jobs:
       run: python manage.py migrate
     - name: Run tests
       run: make test
-    - name: Install webkit
-      run: playwright install webkit --with-deps
-    - name: Run UI tests
-      run: make test-ui
