@@ -32,7 +32,7 @@ class TestDailyHours(BaseTest):
         self.assertEqual(response.status_code, 200)
         hours = [DailyHoursInput.objects.first()]
         rendered_template = self.setup_template(
-            "partials/_invoice_list.html", {"hours": hours, "show_repeat": False}
+            "partials/_hours_list.html", {"hours": hours, "show_repeat": False}
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
@@ -127,3 +127,27 @@ class TestDailyHours(BaseTest):
             data={},
         )
         self.assertEqual(response.status_code, 302)
+
+    def test_repeat_daily_hours(self):
+        DailyHoursInput.objects.all().delete()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 2)
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(DailyHoursInput.objects.count(), 4)
+        hours = DailyHoursInput.objects.filter(
+            invoice__user=self.user, date_tracked=datetime.date.today()
+        )
+        rendered_template = self.setup_template(
+            "partials/_hours_grid.html", {"hours": hours}
+        )
+        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))

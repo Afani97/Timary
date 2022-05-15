@@ -510,6 +510,28 @@ class User(AbstractUser, BaseModel):
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
+    def can_repeat_previous_hours_logged(self, hours):
+        """
+        :param hours:
+        :return: show_repeat:
+            0 == Don't show any message
+            1 == Show button to repeat
+            2 == Show message to log hours (no hours logged day before)
+        """
+        show_repeat = 2
+        latest_date_tracked = (
+            hours.order_by("-date_tracked").first().date_tracked
+            if hours.order_by("-date_tracked").first()
+            else None
+        )
+        if latest_date_tracked == datetime.date.today():
+            show_repeat = 0
+        elif latest_date_tracked == (
+            datetime.date.today() - datetime.timedelta(days=1)
+        ):
+            show_repeat = 1
+        return show_repeat
+
     @property
     def upgrade_invoice_message(self):
         mem_tier = ""

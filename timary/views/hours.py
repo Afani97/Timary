@@ -24,20 +24,13 @@ def create_daily_hours(request):
     if hours_form.is_valid():
         hours_form.save()
         hours = DailyHoursInput.all_hours.current_month(request.user)
-        latest_date_tracked = (
-            hours.order_by("-date_tracked").first().date_tracked
-            if hours.order_by("-date_tracked").first()
-            else None
-        )
-        show_repeat = False
-        if latest_date_tracked != datetime.date.today():
-            show_repeat = True
+        show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
 
         context = {
             "hours": hours,
-            "show_repeat": show_repeat,
+            "show_repeat": show_repeat_option,
         }
-        response = render(request, "partials/_invoice_list.html", context=context)
+        response = render(request, "partials/_hours_list.html", context=context)
         response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
         return response
@@ -121,5 +114,27 @@ def delete_hours(request, hours_id):
         raise Http404
     hours.delete()
     response = HttpResponse("", status=200)
+    response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def repeat_hours(request):
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    yesterday_hours = DailyHoursInput.objects.filter(
+        invoice__user=request.user, date_tracked=yesterday
+    )
+    hours = []
+    for hour in yesterday_hours:
+        hours.append(
+            DailyHoursInput.objects.create(
+                date_tracked=datetime.date.today(),
+                hours=hour.hours,
+                invoice=hour.invoice,
+            )
+        )
+
+    response = render(request, "partials/_hours_grid.html", {"hours": hours})
     response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
     return response

@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django.test import TestCase
 from django.utils.text import slugify
 
@@ -342,3 +343,30 @@ class TestUser(TestCase):
             user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
             InvoiceFactory(user=user)
             self.assertTrue(user.can_create_invoices)
+
+    def test_can_repeat_logged_days(self):
+        with self.subTest("No previous day with logged hours"):
+            user = UserFactory()
+            self.assertEqual(
+                user.can_repeat_previous_hours_logged(QuerySet(DailyHoursInput)), 2
+            )
+
+        with self.subTest("Show repeat button"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            qs = QuerySet(
+                DailyHoursFactory(
+                    invoice=InvoiceFactory(user=user),
+                    date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+                )
+            )
+            self.assertEqual(user.can_repeat_previous_hours_logged(qs), 1)
+
+        with self.subTest("Don't show any message"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            qs = QuerySet(
+                DailyHoursFactory(
+                    invoice=InvoiceFactory(user=user),
+                    date_tracked=datetime.date.today(),
+                )
+            )
+            self.assertEqual(user.can_repeat_previous_hours_logged(qs), 0)

@@ -110,21 +110,14 @@ def index(request):
     if user.get_invoices.count() == 0:
         return redirect(reverse("timary:manage_invoices"))
     hours = DailyHoursInput.all_hours.current_month(user)
-    latest_date_tracked = (
-        hours.order_by("-date_tracked").first().date_tracked
-        if hours.order_by("-date_tracked").first()
-        else None
-    )
-    show_repeat = False
-    if latest_date_tracked and latest_date_tracked != datetime.date.today():
-        show_repeat = True
+    show_repeat_option = user.can_repeat_previous_hours_logged(hours)
 
     context = {
         "new_hour_form": render_crispy_form(
             DailyHoursForm(user=user, is_mobile=request.is_mobile, request_method="get")
         ),
         "hours": hours,
-        "show_repeat": show_repeat,
+        "show_repeat": show_repeat_option,
     }
     context.update(get_hours_tracked(user))
     return render(request, "timary/index.html", context=context)

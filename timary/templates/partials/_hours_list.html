@@ -1,5 +1,16 @@
 <ul id="hours-list" class="col-span-3 mt-10 mx-5 md:mt-0 md:col-span-4 space-y-5">
-    {% if show_repeat %}
+    {% if show_repeat == 1 %}
+        <div class="repeat-day"></div>
+        <div class="text-3xl font-bold tracking-wide">{% now "M. j, Y" %}</div>
+        <div id="repeat-day" >
+            <div class="flex justify-center">
+                <button class="btn btn-secondary" hx-get="{% url 'timary:repeat_hours' %}" hx-target="#repeat-day" hx-swap="outerHTML">
+                    Repeat previous day?</button>
+            </div>
+            <div class="divider"></div>
+        </div>
+
+    {% elif show_repeat == 2 %}
         <div class="text-3xl font-bold tracking-wide">{% now "M. j, Y" %}</div>
         <p class="text-xl text-center">Add your hours for today.</p>
         <div class="divider"></div>
@@ -7,12 +18,7 @@
     {% regroup hours by date_tracked as grouped_hours %}
     {% for hours in grouped_hours %}
         <div class="text-3xl font-bold tracking-wide">{{ hours.grouper|date:"M. j, Y" }}</div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 ">
-            {% for hour in hours.list %}
-                {% include 'partials/_hour.html' with hour=hour %}
-            {% endfor %}
-        </div>
-        <div class="divider"></div>
+        {% include "partials/_hours_grid.html"  with hours=hours.list %}
     {% empty %}
         <h1 class="text-2xl text-center">Start logging hours!</h1>
         {% if request.user.can_receive_texts %}
