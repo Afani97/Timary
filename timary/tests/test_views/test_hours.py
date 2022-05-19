@@ -5,7 +5,12 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from timary.models import DailyHoursInput
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import (
+    DailyHoursFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -17,6 +22,26 @@ class TestDailyHours(BaseTest):
         self.client.force_login(self.user)
         self.hours = DailyHoursFactory(invoice__user=self.user)
         self.hours_no_user = DailyHoursFactory()
+
+    def test_get_hours_not_invoiced_yet(self):
+        sent_invoice = SentInvoiceFactory(invoice=self.hours.invoice)
+        hours_invoiced = DailyHoursFactory(
+            invoice=self.hours.invoice, sent_invoice_id=sent_invoice.id
+        )
+
+        response = self.client.get(reverse("timary:index"))
+
+        self.assertEqual(response.status_code, 200)
+        hours_invoiced_template = self.setup_template(
+            "partials/_hour.html",
+            {"hour": hours_invoiced},
+        )
+        self.assertNotIn('<div class="card-actions">', hours_invoiced_template)
+        hours_not_invoiced_template = self.setup_template(
+            "partials/_hour.html",
+            {"hour": self.hours},
+        )
+        self.assertIn('<div class="card-actions">', hours_not_invoiced_template)
 
     def test_create_daily_hours(self):
         DailyHoursInput.objects.all().delete()

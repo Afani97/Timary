@@ -93,11 +93,6 @@ urlpatterns += [
         name="update_invoice",
     ),
     path(
-        "invoices/<uuid:invoice_id>/delete/",
-        views.delete_invoice,
-        name="delete_invoice",
-    ),
-    path(
         "invoices/<uuid:sent_invoice_id>/remind/",
         views.resend_invoice_email,
         name="resend_invoice_email",

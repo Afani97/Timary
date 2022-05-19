@@ -174,21 +174,6 @@ def update_invoice(request, invoice_id):
 
 
 @login_required()
-@require_http_methods(["DELETE"])
-def delete_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
-    if request.user != invoice.user:
-        raise Http404
-    invoice.delete()
-    response = HttpResponse("", status=200)
-    if request.user.get_invoices.count() == 0:
-        response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
-    else:
-        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
-    return response
-
-
-@login_required()
 @require_http_methods(["GET"])
 def create_invoice_partial(request):
     context = {"upgrade_msg": request.user.upgrade_invoice_message}

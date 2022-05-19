@@ -188,21 +188,6 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(response.status_code, 302)
 
-    def test_delete_invoice(self):
-        response = self.client.delete(
-            reverse("timary:delete_invoice", kwargs={"invoice_id": self.invoice.id})
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_delete_daily_hours_error(self):
-        response = self.client.delete(
-            reverse(
-                "timary:delete_invoice", kwargs={"invoice_id": self.invoice_no_user.id}
-            ),
-            data={},
-        )
-        self.assertEqual(response.status_code, 302)
-
     def test_edit_invoice(self):
         response = self.client.get(
             reverse("timary:edit_invoice", kwargs={"invoice_id": self.invoice.id}),
