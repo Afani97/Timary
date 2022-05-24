@@ -165,7 +165,6 @@ class Invoice(BaseModel):
     def slug_title(self):
         return f"{slugify(self.title)}"
 
-    @property
     def get_hours_tracked(self):
         return self.hours_tracked.filter(
             date_tracked__gte=self.last_date, sent_invoice_id__isnull=True

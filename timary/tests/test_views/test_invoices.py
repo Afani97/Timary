@@ -174,7 +174,7 @@ class TestInvoices(BaseTest):
             )
         )
         self.assertInHTML(
-            "View hours logged this period",
+            "View more",
             response.content.decode("utf-8"),
         )
         self.client.force_login(self.user)

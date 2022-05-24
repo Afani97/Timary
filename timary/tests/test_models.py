@@ -183,7 +183,7 @@ class TestInvoice(TestCase):
         hours2 = DailyHoursFactory(invoice=invoice)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
 
-        hours_logged = invoice.get_hours_tracked
+        hours_logged = invoice.get_hours_tracked()
         self.assertListEqual(list(hours_logged), hours_list)
 
     def test_get_hours_logged_since_last_date(self):
@@ -196,7 +196,7 @@ class TestInvoice(TestCase):
         DailyHoursFactory(invoice=invoice, date_tracked=three_days_ago)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
 
-        hours_logged = invoice.get_hours_tracked
+        hours_logged = invoice.get_hours_tracked()
         self.assertListEqual(list(hours_logged), hours_list)
 
     def test_get_hours_logged_mid_cycle(self):
@@ -206,7 +206,7 @@ class TestInvoice(TestCase):
         DailyHoursFactory(invoice=invoice, sent_invoice_id=sent_invoice.id)
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(invoice=invoice)
-        hours_logged = invoice.get_hours_tracked
+        hours_logged = invoice.get_hours_tracked()
         self.assertEqual(len(hours_logged), 2)
 
     def test_get_budget_percentage(self):
