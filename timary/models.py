@@ -212,7 +212,9 @@ class Invoice(BaseModel):
                 datum = datum[0]
                 hours = datum["h"]
                 obj["size"] = round((hours / (max_hr + 100)), 2)
-                obj["data"] = f"{round(datum['h'],2)}h"
+                obj[
+                    "data"
+                ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.hourly_rate)}"
             data.append(obj)
         return sorted(data, key=lambda x: x["month"])
 

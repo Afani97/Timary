@@ -450,7 +450,8 @@ class TestInvoices(BaseTest):
                     lambda h: f"""
                     <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
                     <td style="--size:{round((h.hours / (max_hr + 100)), 2)};">
-                    <span class="tooltip"> { round(h.hours, 2) }h</span> </td></tr>""",
+                    <span class="tooltip"> { round(h.hours, 2) }h, ${round(h.hours) * invoice.hourly_rate}</span>
+                    </td></tr>""",
                     hours,
                 )
             )
