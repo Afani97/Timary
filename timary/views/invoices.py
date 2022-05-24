@@ -230,3 +230,13 @@ def generate_invoice(request, invoice_id):
         raise Http404
     send_invoice(invoice.id)
     return render(request, "partials/_invoice.html", {"invoice": invoice})
+
+
+@login_required()
+@require_http_methods(["GET"])
+def edit_invoice_hours(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    hours = invoice.get_hours_tracked()
+    return render(request, "partials/_hours_grid.html", {"hours": hours})
