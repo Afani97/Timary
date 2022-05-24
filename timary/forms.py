@@ -28,13 +28,16 @@ class DailyHoursForm(forms.ModelForm):
             if "request_method" in kwargs
             else "get"
         )
+        invoice_id = kwargs.pop("invoice_id") if "invoice_id" in kwargs else None
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper(self)
         self.helper._form_method = ""
         self.helper.form_show_errors = False
-        helper_attributes = hours_form_helper(request_method, is_mobile, self.instance)
+        helper_attributes = hours_form_helper(
+            request_method, is_mobile, self.instance, invoice_id
+        )
         for key in helper_attributes:
             setattr(self.helper, key, helper_attributes[key])
 
@@ -96,6 +99,19 @@ class DailyHoursForm(forms.ModelForm):
             raise ValidationError(
                 "Invalid hours logged. Please log between 0 and 24 hours"
             )
+
+    def clean(self):
+        validated_data = super().clean()
+
+        date_tracked = validated_data.get("date_tracked")
+        invoice = validated_data.get("invoice")
+        if date_tracked and invoice and invoice.last_date:
+            if date_tracked < invoice.last_date:
+                raise ValidationError(
+                    "Cannot set date since your last invoice's cutoff date."
+                )
+
+        return validated_data
 
 
 class InvoiceForm(forms.ModelForm):

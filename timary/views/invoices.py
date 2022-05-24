@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.timezone import localtime, now
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import InvoiceForm
+from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
@@ -239,4 +239,14 @@ def edit_invoice_hours(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     hours = invoice.get_hours_tracked()
-    return render(request, "partials/_hours_grid.html", {"hours": hours})
+    hour_forms = [
+        DailyHoursForm(
+            instance=hour,
+            user=request.user,
+            is_mobile=request.is_mobile,
+            request_method="patch",
+            invoice_id=hour.invoice.id,
+        )
+        for hour in hours
+    ]
+    return render(request, "partials/_edit_hours.html", {"hour_forms": hour_forms})

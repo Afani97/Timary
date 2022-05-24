@@ -69,6 +69,7 @@ urlpatterns += [
     path("hours/<uuid:hours_id>/", views.get_hours, name="get_single_hours"),
     path("hours/<uuid:hours_id>/edit/", views.edit_hours, name="edit_hours"),
     path("hours/<uuid:hours_id>/update/", views.update_hours, name="update_hours"),
+    path("hours/<uuid:hours_id>/patch/", views.patch_hours, name="patch_hours"),
     path("hours/<uuid:hours_id>/delete/", views.delete_hours, name="delete_hours"),
 ]
 

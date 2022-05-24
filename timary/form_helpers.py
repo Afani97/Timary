@@ -1,7 +1,9 @@
+import uuid
+
 from crispy_forms.layout import HTML, ButtonHolder, Column, Layout, Row
 
 
-def hours_form_helper(method_type, is_mobile, hour=None):
+def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
     from django.urls import reverse
 
     flex_dir = "flex-col space-y-5" if is_mobile else "flex-row space-x-5"
@@ -75,6 +77,27 @@ def hours_form_helper(method_type, is_mobile, hour=None):
                     ),
                     css_class="card-actions flex justify-center",
                 ),
+            ),
+        },
+        "patch": {
+            "form_id": f"update-hours-form-{str(uuid.uuid4())}",
+            "attrs": {
+                "hx-patch": reverse("timary:patch_hours", kwargs={"hours_id": hour.id}),
+                "hx-target": "this",
+                "hx-swap": "outerHTML",
+                "hx-vals": f'{{ "invoice": "{str(invoice_id)}" }}',
+            },
+            "form_class": "card pb-5 bg-neutral text-neutral-content",
+            "layout": Layout(
+                Row(
+                    "hours",
+                    "date_tracked",
+                    HTML(
+                        '<button hx-trigger="enterKey, click" class="btn btn-primary mt-5" '
+                        'type="submit" hx-indicator="#spinnr"> Update hours</button>'
+                    ),
+                    css_class=f"flex {flex_dir} justify-evenly content-center",
+                )
             ),
         },
     }[method_type]

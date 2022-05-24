@@ -77,7 +77,7 @@
                 <div class="collapse-content" id="hours-logged">
                     <div class="flex flex-col md:flex-row justify-between">
                         {% if invoice.get_hours_tracked.count > 0 %}
-                            <div class="flex flex-col space-y-2 items-center">
+                            <div class="flex flex-col space-y-2 items-center mb-5">
                                 <ul class="list-disc ml-5">
                                     {% for hour in invoice.get_hours_tracked %}
                                         <li class="text-xl">{{ hour.hours|floatformat:2 }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>

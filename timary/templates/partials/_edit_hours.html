@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+
+<div>
+    {% for hour_form in hour_forms %}
+        {% crispy hour_form %}
+        <div class="divider"></div>
+    {% endfor %}
+</div>

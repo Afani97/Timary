@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
-from timary.utils import render_form_errors
+from timary.utils import render_form_errors, render_form_messages
 
 
 @login_required()
@@ -99,6 +99,39 @@ def update_hours(request, hours_id):
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
         response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
         return response
+    ctx = {}
+    ctx.update(csrf(request))
+    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
+    html_form = render_crispy_form(hours_form, context=ctx)
+    return HttpResponse(html_form, status=200)
+
+
+@login_required()
+@require_http_methods(["PATCH"])
+def patch_hours(request, hours_id):
+    hour = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user != hour.invoice.user:
+        raise Http404
+    put_params = QueryDict(request.body)
+    hours_form = DailyHoursForm(
+        put_params,
+        instance=hour,
+        user=request.user,
+        is_mobile=request.is_mobile,
+        request_method="patch",
+        invoice_id=hour.invoice.id,
+    )
+    if hours_form.is_valid():
+        hour.hours = hours_form.cleaned_data.get("hours")
+        hour.date_tracked = hours_form.cleaned_data.get("date_tracked")
+        hour.save()
+        ctx = {}
+        ctx.update(csrf(request))
+        hours_form.helper.layout.insert(
+            0, render_form_messages(["Successfully updated hours"])
+        )
+        html_form = render_crispy_form(hours_form, context=ctx)
+        return HttpResponse(html_form)
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
