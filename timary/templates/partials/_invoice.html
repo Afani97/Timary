@@ -75,41 +75,7 @@
                 <input type="checkbox" />
                 <div class="collapse-title text-xl font-medium">View more</div>
                 <div class="collapse-content" id="hours-logged">
-                    <div class="flex flex-col md:flex-row justify-between">
-                        {% if invoice.get_hours_tracked.count > 0 %}
-                            <div class="flex flex-col space-y-2 items-center mb-5">
-                                <ul class="list-disc ml-5">
-                                    {% for hour in invoice.get_hours_tracked %}
-                                        <li class="text-xl">{{ hour.hours|floatformat:2 }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
-                                    {% endfor %}
-                                </ul>
-                                <label
-                                    for="edit-hours-modal"
-                                    class="btn btn-outline btn-xs modal-button"
-                                    hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"
-                                    hx-target=".inner-modal"
-                                    hx-swap="innerHTML"
-                                >
-                                    Edit hours
-                                </label>
-                            </div>
-                        {% endif %}
-                        <table class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">
-                            <caption> Hours logged last 6 months </caption>
-                            <tbody>
-                                {% for month in invoice.get_last_six_months %}
-                                    <tr>
-                                        <th scope="row">
-                                            {{ month.display }}
-                                        </th>
-                                        <td style="--size:{{ month.size}};">
-                                            <span class="tooltip">{{ month.data }}</span>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    {% include "partials/_invoice_collapsed_content.html" %}
                 </div>
             </div>
         {% endif %}

@@ -108,6 +108,11 @@ urlpatterns += [
         views.edit_invoice_hours,
         name="edit_invoice_hours",
     ),
+    path(
+        "invoices/<uuid:invoice_id>/invoice_hour_stats/",
+        views.invoice_hour_stats,
+        name="invoice_hour_stats",
+    ),
     path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 

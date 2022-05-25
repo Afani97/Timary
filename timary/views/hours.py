@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
@@ -131,7 +132,9 @@ def patch_hours(request, hours_id):
             0, render_form_messages(["Successfully updated hours"])
         )
         html_form = render_crispy_form(hours_form, context=ctx)
-        return HttpResponse(html_form)
+        response = HttpResponse(html_form)
+        response["HX-Trigger"] = "refreshHourStats"  # To trigger hours stats refresh
+        return response
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
@@ -147,7 +150,9 @@ def delete_hours(request, hours_id):
         raise Http404
     hours.delete()
     response = HttpResponse("", status=200)
-    response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+    response["HX-Trigger"] = json.dumps(
+        {"newHours": None, "refreshHourStats": None}
+    )  # To trigger stats refresh
     return response
 
 

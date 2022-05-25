@@ -96,6 +96,17 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                         '<button hx-trigger="enterKey, click" class="btn btn-primary mt-5" '
                         'type="submit" hx-indicator="#spinnr"> Update hours</button>'
                     ),
+                    HTML(
+                        f"""
+                        <button class="btn btn-error btn-sm btn-circle mt-6" hx-delete="{reverse(
+            "timary:delete_hours", kwargs={"hours_id": hour.id}
+        )}" hx-swap="outerHTML" hx-target="closest form">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        """
+                    ),
                     css_class=f"flex {flex_dir} justify-evenly content-center",
                 )
             ),

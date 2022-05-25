@@ -250,3 +250,14 @@ def edit_invoice_hours(request, invoice_id):
         for hour in hours
     ]
     return render(request, "partials/_edit_hours.html", {"hour_forms": hour_forms})
+
+
+@login_required()
+@require_http_methods(["GET"])
+def invoice_hour_stats(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    return render(
+        request, "partials/_invoice_collapsed_content.html", {"invoice": invoice}
+    )

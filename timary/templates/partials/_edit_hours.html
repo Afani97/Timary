@@ -3,6 +3,8 @@
 <div>
     {% for hour_form in hour_forms %}
         {% crispy hour_form %}
-        <div class="divider"></div>
+        {% if not forloop.last %}
+            <div class="divider"></div>
+        {% endif %}
     {% endfor %}
 </div>
