@@ -66,7 +66,7 @@ class DailyHoursForm(forms.ModelForm):
             ),
             "date_tracked": DateInput(
                 attrs={
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered text-lg ",
                 }
             ),
             "invoice": forms.Select(

@@ -87,18 +87,18 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                 "hx-swap": "outerHTML",
                 "hx-vals": f'{{ "invoice": "{str(invoice_id)}" }}',
             },
-            "form_class": "card pb-5 bg-neutral text-neutral-content",
+            "form_class": "card pb-5 bg-neutral text-neutral-content -mx-4",
             "layout": Layout(
                 Row(
                     "hours",
                     "date_tracked",
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary mt-5" '
-                        'type="submit" hx-indicator="#spinnr"> Update hours</button>'
+                        '<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7" '
+                        'type="submit" hx-indicator="#spinnr">Update</button>'
                     ),
                     HTML(
                         f"""
-                        <button class="btn btn-error btn-sm btn-circle mt-6" hx-delete="{reverse(
+                        <button class="btn btn-error btn-sm btn-circle mt-7" hx-delete="{reverse(
             "timary:delete_hours", kwargs={"hours_id": hour.id}
         )}" hx-swap="outerHTML" hx-target="closest form">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -107,7 +107,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                         </button>
                         """
                     ),
-                    css_class=f"flex {flex_dir} justify-evenly content-center",
+                    css_class="flex flex-row justify-evenly content-center",
                 )
             ),
         },
