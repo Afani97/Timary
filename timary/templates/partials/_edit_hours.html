@@ -7,4 +7,35 @@
             <div class="divider"></div>
         {% endif %}
     {% endfor %}
+
+    <script>
+
+        function timeToDecimal(hrs, mins) {
+            let arr = [hrs, mins];
+            let dec = parseInt((arr[1]/6)*10, 10);
+
+            return parseFloat(parseInt(arr[0], 10) + '.' + (dec<10?'0':'') + dec).toString();
+        }
+        updateHourInputListener();
+
+        function updateHourInputListener() {
+            let hoursInput = Array.from(document.querySelectorAll(".hours-input"));
+
+            hoursInput.forEach(hr => {
+                hr.addEventListener("input", function(e) {
+                    e.target.value = e.target.value.replace(/[^0-9.:]/, '');
+                });
+                hr.addEventListener("blur", function(e) {
+                    if (e.target.value.includes(":")) {
+                        let timeClocked = e.target.value.split(":");
+                        let val = timeToDecimal(timeClocked[0] || 0, timeClocked[1] || 0);
+                        if (!isNaN(val)) {
+                            e.target.value = val;
+                        }
+                    }
+                })
+            });
+        }
+
+    </script>
 </div>
