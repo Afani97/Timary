@@ -150,7 +150,7 @@ def xero_redirect(request):
         XeroService.get_auth_tokens(request)
     except AccountingError as ae:
         ae.log()
-        messages.info(request, "Unable to connect to Xero.")
+        messages.error(request, "Unable to connect to Xero.")
         return redirect(reverse("timary:user_profile"))
 
     for invoice in request.user.get_invoices:
@@ -192,12 +192,12 @@ def sage_redirect(request):
         messages.error(request, "Unable to connect to Sage.")
         return redirect(reverse("timary:user_profile"))
 
-    for invoice in request.user.get_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
+    for invoice in request.user.get_invoices:
         if not invoice.sage_contact_id:
             SageService.create_customer(invoice)
-    for sent_invoice in request.user.sent_invoices:
+    for sent_invoice in request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ):
         if not sent_invoice.sage_invoice_id:
             SageService.create_invoice(sent_invoice)
     messages.success(request, "Successfully connected Sage.")
