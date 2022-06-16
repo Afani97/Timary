@@ -140,6 +140,14 @@ class XeroService:
             )
             accounting_error.log()
             return
+        if "Contacts" not in response:
+            accounting_error = AccountingError(
+                service="Xero",
+                user_id=invoice.user.id,
+                requests_response=response,
+            )
+            accounting_error.log()
+            return
         invoice.xero_contact_id = response["Contacts"][0]["ContactID"]
         invoice.save()
 
