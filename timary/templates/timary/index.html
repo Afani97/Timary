@@ -217,7 +217,7 @@
                 let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
 
                 let hours_input = document.getElementById("id_hours");
-                hours_input.setAttribute("value", timeToDecimal(hrs, mins));
+                hours_input.value = timeToDecimal(hrs, mins);
 
                 hoursTimer.reset();
                 update_timer(0, 0, 0);
