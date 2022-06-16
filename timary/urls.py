@@ -69,6 +69,7 @@ urlpatterns += [
     path("hours/<uuid:hours_id>/", views.get_hours, name="get_single_hours"),
     path("hours/<uuid:hours_id>/edit/", views.edit_hours, name="edit_hours"),
     path("hours/<uuid:hours_id>/update/", views.update_hours, name="update_hours"),
+    path("hours/<uuid:hours_id>/patch/", views.patch_hours, name="patch_hours"),
     path("hours/<uuid:hours_id>/delete/", views.delete_hours, name="delete_hours"),
 ]
 
@@ -101,6 +102,16 @@ urlpatterns += [
         "invoices/<uuid:invoice_id>/generate/",
         views.generate_invoice,
         name="generate_invoice",
+    ),
+    path(
+        "invoices/<uuid:invoice_id>/edit_invoice_hours/",
+        views.edit_invoice_hours,
+        name="edit_invoice_hours",
+    ),
+    path(
+        "invoices/<uuid:invoice_id>/invoice_hour_stats/",
+        views.invoice_hour_stats,
+        name="invoice_hour_stats",
     ),
     path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]

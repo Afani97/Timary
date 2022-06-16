@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 
 from timary.forms import (
@@ -436,6 +437,32 @@ class TestDailyHours(TestCase):
                 "invoice": ["This field is required."],
                 "date_tracked": ["This field is required."],
             },
+        )
+
+    def test_clean_date_tracked(self):
+        """Hours should only be tracked after invoice's last date and up to current date"""
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today - relativedelta(months=2),
+            }
+        )
+        self.assertEqual(
+            form.errors,
+            {"__all__": ["Cannot set date since your last invoice's cutoff date."]},
+        )
+
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today + datetime.timedelta(days=7),
+            },
+            request_method="get",
+        )
+        self.assertEqual(
+            form.errors, {"date_tracked": ["Cannot set date into the future!"]}
         )
 
 

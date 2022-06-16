@@ -198,7 +198,9 @@ class Invoice(BaseModel):
             .annotate(h=Sum("hours"))
             .values("month", "h")
         )
-        max_hr = int(max(hour["h"] for hour in six_months_qs))
+        max_hr = 0
+        if six_months_qs:
+            max_hr = int(max(hour["h"] for hour in six_months_qs))
         data = []
         for m in date_times:
             datum = list(filter(lambda x: m == x["month"], six_months_qs))

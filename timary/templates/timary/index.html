@@ -29,6 +29,16 @@
             </div>
         </div>
 
+        {# New hours modal #}
+        <div id="hours-modal" class="modal items-center">
+            <div class="modal-box bg-neutral">
+                <div class="inner-modal">
+                    {{ new_hour_form }}
+                </div>
+            </div>
+        </div>
+        {# New hours modal #}
+
         {% include "partials/_hours_list.html" %}
     </div>
 
@@ -39,7 +49,7 @@
     <script nonce="clear-hours-modal">
         document.body.addEventListener("clearModal", function(){
             document.getElementById("close-hours-modal").click();
-            document.getElementById("new-hours-form").reset();
+            updateCancelModalListeners();
         })
     </script>
     <script nonce="reset-new-hour-modal">
@@ -73,7 +83,7 @@
         var timer_hour_span = document.getElementById("timer_hour");
         var timer_min_span = document.getElementById("timer_min");
         var timer_sec_span = document.getElementById("timer_sec");
-        var hoursTimer = new Timer();
+        var hoursTimer = new timaryTimer();
 
         updateCancelModalListeners();
 

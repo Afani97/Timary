@@ -1,7 +1,9 @@
+import uuid
+
 from crispy_forms.layout import HTML, ButtonHolder, Column, Layout, Row
 
 
-def hours_form_helper(method_type, is_mobile, hour=None):
+def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
     from django.urls import reverse
 
     flex_dir = "flex-col space-y-5" if is_mobile else "flex-row space-x-5"
@@ -75,6 +77,38 @@ def hours_form_helper(method_type, is_mobile, hour=None):
                     ),
                     css_class="card-actions flex justify-center",
                 ),
+            ),
+        },
+        "patch": {
+            "form_id": f"update-hours-form-{str(uuid.uuid4())}",
+            "attrs": {
+                "hx-patch": reverse("timary:patch_hours", kwargs={"hours_id": hour.id}),
+                "hx-target": "this",
+                "hx-swap": "outerHTML",
+                "hx-vals": f'{{ "invoice": "{str(invoice_id)}" }}',
+            },
+            "form_class": "card pb-5 bg-neutral text-neutral-content -mx-4",
+            "layout": Layout(
+                Row(
+                    "hours",
+                    "date_tracked",
+                    HTML(
+                        '<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7" '
+                        'type="submit" hx-indicator="#spinnr">Update</button>'
+                    ),
+                    HTML(
+                        f"""
+                        <button class="btn btn-error btn-sm btn-circle mt-7" hx-delete="{reverse(
+            "timary:delete_hours", kwargs={"hours_id": hour.id}
+        )}" hx-swap="outerHTML" hx-target="closest form">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        """
+                    ),
+                    css_class="flex flex-row justify-evenly content-center",
+                )
             ),
         },
     }[method_type]
