@@ -477,3 +477,42 @@ class TestInvoices(BaseTest):
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {current_month}",
         )
         self.assertTemplateUsed(response, "partials/_invoice.html")
+
+    def test_get_hour_forms_for_invoice(self):
+        """Only hours1 and hours2 show since its date_tracked
+        is within invoice's last date and current date"""
+        hours1 = DailyHoursFactory(invoice=self.invoice)
+        hours2 = DailyHoursFactory(invoice=self.invoice)
+        hours3 = DailyHoursFactory(
+            invoice=self.invoice,
+            date_tracked=datetime.date.today() - relativedelta(months=2),
+        )
+        response = self.client.get(
+            reverse("timary:edit_invoice_hours", kwargs={"invoice_id": self.invoice.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, "partials/_edit_hours.html")
+        self.assertInHTML(
+            f"""
+            <input type="text" name="hours" value="{str(round(hours1.hours, 2))}" value="1.0"
+            class="input input-bordered text-lg hours-input w-20 textinput textInput"
+            required id="id_hours">
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertInHTML(
+            f"""
+            <input type="text" name="hours" value="{str(round(hours2.hours, 2))}" value="1.0"
+            class="input input-bordered text-lg hours-input w-20 textinput textInput"
+            required id="id_hours">
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertNotIn(
+            f"""
+            <input type="text" name="hours" value="{str(round(hours3.hours, 2))}" value="1.0"
+            class="input input-bordered text-lg hours-input w-20 textinput textInput"
+            required id="id_hours">
+            """,
+            response.content.decode("utf-8"),
+        )
