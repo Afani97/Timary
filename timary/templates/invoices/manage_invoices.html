@@ -67,9 +67,11 @@
     <div for="edit-hours-modal" class="modal items-center">
         <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
             <h3 class="font-bold text-lg my-6">Update hours for this invoice period</h3>
-            <label for="edit-hours-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+            <label for="edit-hours-modal" class="btn btn-sm btn-circle absolute right-2 top-2 close-edit-hours-modal">✕</label>
             <div class="inner-modal">
-                <h1>Hello world</h1>
+                <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
+                </div>
             </div>
         </div>
     </div>
@@ -86,6 +88,14 @@
     </script>
 
     <script nonce="reset-new-invoice-modal">
+
+        Array.from(document.getElementsByClassName("close-edit-hours-modal"))[0].addEventListener("click", function(){
+            Array.from(document.getElementsByClassName("inner-modal"))[0].innerHTML = `
+            <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
+            </div>
+            `;
+        })
         document.body.addEventListener('htmx:beforeSwap', function(evt) {
             let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialInvoiceModal");
             if (clearInitialForm === "resetNewInvoiceModal") {
