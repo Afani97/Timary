@@ -1,3 +1,4 @@
+import datetime
 import os
 from contextlib import contextmanager
 
@@ -7,6 +8,7 @@ from django.test import tag
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
+from timary.models import User
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
@@ -107,6 +109,32 @@ class TestUI(BaseUITest):
             page.click('button:has-text("Update invoice")')
             page.wait_for_selector(".card-title", timeout=2000)
             self.assertEqual(page.inner_text(".card-title"), "Timary 2 - Rate: $100")
+
+    @tag("ui")
+    def test_edit_hours_within_invoice(self):
+        invoice = InvoiceFactory(
+            next_date=datetime.date.today() + datetime.timedelta(days=1),
+            user__membership_tier=User.MembershipTier.BUSINESS,
+        )
+        DailyHoursFactory(
+            invoice=invoice,
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        with self.start_test(invoice.user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.wait_for_selector("#current-invoices", timeout=2000)
+            page.click('input[type="checkbox"]')
+            page.wait_for_selector(".modal-button", timeout=2000)
+            page.click(".modal-button")
+            page.wait_for_selector(
+                'h3:has-text("Update hours for this invoice period")', timeout=3000
+            )
+            page.fill("#id_hours", ":30")
+            page.click('button:has-text("Update")')
+            page.wait_for_selector(".text-success", timeout=2000)
+            self.assertEqual(
+                page.inner_text(".text-success"), "Successfully updated hours"
+            )
 
     @tag("ui")
     def test_edit_profile(self):
