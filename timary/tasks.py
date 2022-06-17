@@ -115,6 +115,8 @@ def send_invoice_preview(invoice_id):
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "tomorrows_date": today + timedelta(days=1),
+            "can_view_invoice_stats": invoice.user.can_view_invoice_stats,
+            "site_url": settings.SITE_URL,
         },
     )
     EmailService.send_html(

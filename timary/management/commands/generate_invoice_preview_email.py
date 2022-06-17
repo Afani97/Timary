@@ -3,12 +3,12 @@ import datetime
 from django.core.management.base import BaseCommand
 
 from timary.models import User
-from timary.tasks import send_invoice
+from timary.tasks import send_invoice_preview
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
 class Command(BaseCommand):
-    help = "Generate fake invoicing email"
+    help = "Generate fake invoicing preview email"
 
     def add_arguments(self, parser):
         # Membership type
@@ -48,4 +48,4 @@ class Command(BaseCommand):
             date_tracked=datetime.date.today() - datetime.timedelta(days=2),
         )
 
-        send_invoice(invoice.id)
+        send_invoice_preview(invoice.id)
