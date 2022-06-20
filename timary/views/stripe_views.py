@@ -136,7 +136,7 @@ def completed_connect_account(request):
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-    sig_header = request.headers["STRIPE_SIGNATURE"]
+    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
 
     try:
         event = stripe.Webhook.construct_event(
@@ -153,50 +153,64 @@ def stripe_webhook(request):
     if event["type"] == "payment_intent.payment_failed":
         payment_intent = event["data"]["object"]
 
-        sent_invoice = get_object_or_404(
-            SentInvoice, stripe_payment_intent_id=payment_intent["id"]
-        )
-        sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
-        sent_invoice.save()
+        if SentInvoice.objects.filter(
+            stripe_payment_intent_id=payment_intent["id"]
+        ).exists():
+            sent_invoice = SentInvoice.objects.get(
+                stripe_payment_intent_id=payment_intent["id"]
+            )
 
-        hours_tracked = sent_invoice.get_hours_tracked()
-        today = localtime(now()).date()
+            sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
+            sent_invoice.save()
 
-        # Notify email recipient that payment failed
-        msg_body = render_to_string(
-            "email/styled_email.html",
-            {
-                "can_accept_payments": sent_invoice.user.can_accept_payments,
-                "site_url": settings.SITE_URL,
-                "user_name": sent_invoice.user.first_name,
-                "next_weeks_date": today + timedelta(weeks=1),
-                "recipient_name": sent_invoice.invoice.email_recipient_name,
-                "total_amount": sent_invoice.total_price,
-                "sent_invoice_id": sent_invoice.id,
-                "invoice": sent_invoice.invoice,
-                "hours_tracked": hours_tracked,
-                "tomorrows_date": today + timedelta(days=1),
-            },
-        )
-        EmailService.send_html(
-            f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. An error occurred while trying to "
-            f"transfer the funds for this invoice. Please give it another try.",
-            msg_body,
-            sent_invoice.invoice.email_recipient,
-        )
+            hours_tracked = sent_invoice.get_hours_tracked()
+            today = localtime(now()).date()
+
+            # Notify email recipient that payment failed
+            msg_body = render_to_string(
+                "email/styled_email.html",
+                {
+                    "can_accept_payments": sent_invoice.user.can_accept_payments,
+                    "site_url": settings.SITE_URL,
+                    "user_name": sent_invoice.user.first_name,
+                    "next_weeks_date": today + timedelta(weeks=1),
+                    "recipient_name": sent_invoice.invoice.email_recipient_name,
+                    "total_amount": sent_invoice.total_price,
+                    "sent_invoice_id": sent_invoice.id,
+                    "invoice": sent_invoice.invoice,
+                    "hours_tracked": hours_tracked,
+                    "tomorrows_date": today + timedelta(days=1),
+                },
+            )
+            EmailService.send_html(
+                f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. "
+                f"An error occurred while trying to "
+                f"transfer the funds for this invoice. Please give it another try.",
+                msg_body,
+                sent_invoice.invoice.email_recipient,
+            )
+        else:
+            # Other stripe webhook event
+            pass
 
     elif event["type"] == "payment_intent.succeeded":
         # Handle a successful payment
         payment_intent = event["data"]["object"]
-        sent_invoice = get_object_or_404(
-            SentInvoice, stripe_payment_intent_id=payment_intent["id"]
-        )
-        if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
-            return JsonResponse({"success": True})
+        if SentInvoice.objects.filter(
+            stripe_payment_intent_id=payment_intent["id"]
+        ).exists():
+            sent_invoice = SentInvoice.objects.get(
+                stripe_payment_intent_id=payment_intent["id"]
+            )
+            if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+                return JsonResponse({"success": True})
 
-        sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-        sent_invoice.save()
-        sent_invoice.success_notification()
+            sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+            sent_invoice.save()
+            sent_invoice.success_notification()
+        else:
+            # Other stripe webhook event
+            pass
 
     # ... handle other event types
     else:
