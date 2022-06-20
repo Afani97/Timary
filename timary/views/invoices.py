@@ -110,7 +110,7 @@ def pause_invoice(request, invoice_id):
         paused = True
         invoice.next_date = None
     else:
-        invoice.calculate_next_date()
+        invoice.calculate_next_date(update_last=False)
     invoice.save()
     response = render(request, "partials/_invoice.html", {"invoice": invoice})
     show_alert_message(

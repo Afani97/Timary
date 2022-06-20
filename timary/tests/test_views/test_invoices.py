@@ -286,6 +286,37 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
+    def test_pause_invoice_does_not_override_last_date(self):
+        """
+        Paused invoices shouldn't override the last date when unpaused
+        since hours may be tracked prior and are not included in next sent invoice.
+        """
+
+        # Pause invoice
+        invoice = InvoiceFactory(invoice_interval="M", user=self.user)
+        hours1 = DailyHoursFactory(invoice=invoice)
+        response = self.client.get(
+            reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        invoice.refresh_from_db()
+        self.assertIsNone(invoice.next_date)
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+        # Unpause invoice
+        response = self.client.get(
+            reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        invoice.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(
+            invoice.next_date,
+            datetime.date.today() + invoice.get_next_date(),
+        )
+        self.assertIn(hours1, invoice.get_hours_tracked())
+
     def test_pause_invoice_error(self):
         response = self.client.get(
             reverse(
