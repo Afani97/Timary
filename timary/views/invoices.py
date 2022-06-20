@@ -177,7 +177,9 @@ def update_invoice(request, invoice_id):
         invoice = invoice_form.save()
         if invoice.next_date:
             invoice.calculate_next_date(update_last=False)
-        return render(request, "partials/_invoice.html", {"invoice": invoice})
+        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        show_alert_message(response, "success", f"{invoice.title} was updated.")
+        return response
     ctx = {}
     ctx.update(csrf(request))
     invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
