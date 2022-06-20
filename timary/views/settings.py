@@ -14,6 +14,7 @@ from stripe.error import InvalidRequestError
 from timary.forms import MembershipTierSettingsForm, SMSSettingsForm
 from timary.models import SentInvoice, User
 from timary.services.stripe_service import StripeService
+from timary.utils import show_alert_message
 
 
 @login_required()
@@ -48,11 +49,17 @@ def update_sms_settings(request):
         user_settings_form = SMSSettingsForm(put_params, instance=request.user)
         if user_settings_form.is_valid():
             user_settings_form.save()
-            return render(
+            response = render(
                 request,
                 "partials/settings/_sms.html",
                 {"settings": request.user.settings},
             )
+            show_alert_message(
+                response,
+                "success",
+                "Settings updated",
+            )
+            return response
         else:
             context["settings_form"] = user_settings_form
             return render(request, "partials/settings/_edit_sms.html", context)
@@ -87,12 +94,17 @@ def update_membership_settings(request):
                 "membership_tier"
             ):
                 StripeService.create_subscription(request.user, delete_current=True)
-            messages.info(request, "Successfully updated membership.")
-            return render(
+            response = render(
                 request,
                 "partials/settings/_membership.html",
                 {"settings": request.user.settings},
             )
+            show_alert_message(
+                response,
+                "success",
+                "Settings updated",
+            )
+            return response
         else:
             context["settings_form"] = user_settings_form
             return render(request, "partials/settings/_edit_membership.html", context)

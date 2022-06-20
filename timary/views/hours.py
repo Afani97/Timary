@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
-from timary.utils import render_form_errors, render_form_messages
+from timary.utils import render_form_errors, render_form_messages, show_alert_message
 
 
 @login_required()
@@ -32,8 +32,9 @@ def create_daily_hours(request):
             "show_repeat": show_repeat_option,
         }
         response = render(request, "partials/_hours_list.html", context=context)
-        response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        # "newHours" - To trigger dashboard stats refresh
+        show_alert_message(response, "success", "New hours added!", "newHours")
         return response
     ctx = {}
     ctx.update(csrf(request))
@@ -98,7 +99,8 @@ def update_hours(request, hours_id):
     if hours_form.is_valid():
         updated_hours = hours_form.save()
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
-        response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+        # "newHours" - To trigger dashboard stats refresh
+        show_alert_message(response, "success", "Hours updated", "newHours")
         return response
     ctx = {}
     ctx.update(csrf(request))
@@ -174,5 +176,8 @@ def repeat_hours(request):
         )
 
     response = render(request, "partials/_hours_grid.html", {"hours": hours})
-    response["HX-Trigger"] = "newHours"  # To trigger dashboard stats refresh
+    # "newHours" - To trigger dashboard stats refresh
+    show_alert_message(
+        response, "success", "Yesterday's hours repeated again today", "newHours"
+    )
     return response

@@ -16,7 +16,7 @@ from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import render_form_errors
+from timary.utils import render_form_errors, show_alert_message
 
 
 @login_required()
@@ -72,7 +72,8 @@ def create_invoice(request):
 
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
-        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
+        # "newInvoice" - To trigger button refresh
+        show_alert_message(response, "success", "New invoice created!", "newInvoice")
         if prev_invoice_count == 0:
             response[
                 "HX-Redirect"
@@ -104,12 +105,20 @@ def pause_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
+    paused = False
     if invoice.next_date:
+        paused = True
         invoice.next_date = None
     else:
         invoice.calculate_next_date()
     invoice.save()
-    return render(request, "partials/_invoice.html", {"invoice": invoice})
+    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    show_alert_message(
+        response,
+        "info",
+        f"{invoice.title} has been {'paused' if paused else 'unpaused'}",
+    )
+    return response
 
 
 @login_required()
@@ -124,7 +133,10 @@ def archive_invoice(request, invoice_id):
     if request.user.get_invoices.count() == 0:
         response["HX-Refresh"] = "true"  # To trigger refresh to restore empty state
     else:
-        response["HX-Trigger"] = "newInvoice"  # To trigger button refresh
+        # "newInvoice" - To trigger button refresh
+        show_alert_message(
+            response, "success", f"{invoice.title} was archived", "newInvoice"
+        )
     return response
 
 
@@ -215,11 +227,17 @@ def resend_invoice_email(request, sent_invoice_id):
     )
     EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
 
-    return render(
+    response = render(
         request,
         "partials/_sent_invoice.html",
         {"sent_invoice": sent_invoice, "invoice_resent": True},
     )
+    show_alert_message(
+        response,
+        "success",
+        f"Invoice for {invoice.title} has been resent",
+    )
+    return response
 
 
 @login_required()
@@ -228,8 +246,22 @@ def generate_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    send_invoice(invoice.id)
-    return render(request, "partials/_invoice.html", {"invoice": invoice})
+    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    if invoice.get_hours_tracked().count() != 0:
+        send_invoice(invoice.id)
+
+        show_alert_message(
+            response,
+            "success",
+            f"Invoice for {invoice.title} has been sent to {invoice.email_recipient_name}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "info",
+            f"{invoice.title} does not have hours logged yet to invoice",
+        )
+    return response
 
 
 @login_required()

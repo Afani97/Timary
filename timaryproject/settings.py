@@ -100,11 +100,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "timaryproject.wsgi.application"
 
 MESSAGE_TAGS = {
-    messages.DEBUG: "alert alert-info",
-    messages.INFO: "alert alert-info",
-    messages.SUCCESS: "alert alert-success",
-    messages.WARNING: "alert alert-warning",
-    messages.ERROR: "alert alert-error",
+    messages.DEBUG: "alert-info",
+    messages.INFO: "alert-info",
+    messages.SUCCESS: "alert-success",
+    messages.WARNING: "alert-warning",
+    messages.ERROR: "alert-error",
 }
 
 
@@ -215,6 +215,7 @@ CSP_SCRIPT_SRC = (
     "'self'",
     "'unsafe-eval'",
     "'nonce-base'",
+    "'nonce-show-alert-message'",
     "'nonce-pay-invoice'",
     "'nonce-clear-hours-modal'",
     "'nonce-reset-new-hour-modal'",

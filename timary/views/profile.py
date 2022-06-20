@@ -6,7 +6,7 @@ from django.template.context_processors import csrf
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import UserForm
-from timary.utils import render_form_errors
+from timary.utils import render_form_errors, show_alert_message
 
 
 @login_required()
@@ -48,7 +48,13 @@ def update_user_profile(request):
     user_form = UserForm(put_params, instance=request.user, is_mobile=request.is_mobile)
     if user_form.is_valid():
         user = user_form.save()
-        return render(request, "partials/_profile.html", {"user": user})
+        response = render(request, "partials/_profile.html", {"user": user})
+        show_alert_message(
+            response,
+            "success",
+            "Profile updated.",
+        )
+        return response
 
     ctx = {}
     ctx.update(csrf(request))

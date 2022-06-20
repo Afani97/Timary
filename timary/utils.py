@@ -20,3 +20,15 @@ def render_form_messages(messages):
     context = Context({"form_msg": messages})
     form_messages = template.render(context)
     return HTML(form_messages)
+
+
+def show_alert_message(response, alert_type, message, other_trigger=None):
+    response["HX-Trigger"] = json.dumps(
+        {
+            other_trigger: None,
+            "showMessage": {
+                "alertType": f"alert-{alert_type}",
+                "message": message,
+            },
+        }
+    )
