@@ -82,8 +82,12 @@
 {% block js %}
     <script nonce="clear-invoice-modal">
         document.body.addEventListener("clearModal", function(){
-            document.getElementById("close-invoice-modal").click();
-            document.getElementById("new-invoice-form").reset();
+            if (document.getElementById("close-invoice-modal")) {
+                document.getElementById("close-invoice-modal").click();
+            }
+            if (document.getElementById("new-invoice-form")) {
+                document.getElementById("new-invoice-form").reset();
+            }
         })
     </script>
 

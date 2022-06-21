@@ -247,7 +247,7 @@ class Invoice(BaseModel):
             query = Q(date_tracked__range=date_range)
             pass
         hours_tracked = (
-            self.hours_tracked.filter(query)
+            self.hours_tracked.filter(query & Q(sent_invoice_id__isnull=True))
             .annotate(cost=self.hourly_rate * Sum("hours"))
             .order_by("date_tracked")
         )
