@@ -3,6 +3,7 @@ from django.test.client import RequestFactory
 from httmock import HTTMock, urlmatch
 from requests import Response
 
+from timary.custom_errors import AccountingError
 from timary.services.sage_service import SageService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
@@ -19,6 +20,19 @@ class SageMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"refresh_token": "abc123", "access_token": "abc123", "requested_by_id": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="oauth.accounting.sage.com",
+        path="/token",
+        method="POST",
+    )
+    def sage_oauth_error_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -113,8 +127,17 @@ class TestSageService(TestCase):
         get_request.user = self.user
 
         with HTTMock(SageMocks.sage_oauth_mock):
-            SageService.get_auth_tokens(get_request)
+            _ = SageService.get_auth_tokens(get_request)
             self.assertEquals(self.user.sage_account_id, "abc123")
+
+    def test_oauth_error(self):
+        rf = RequestFactory()
+        get_request = rf.get("/sage-redirect?code=abc123&realmId=abc123")
+        get_request.user = self.user
+
+        with HTTMock(SageMocks.sage_oauth_error_mock):
+            with self.assertRaises(AccountingError):
+                _ = SageService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(SageMocks.sage_oauth_mock):

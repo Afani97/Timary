@@ -43,9 +43,17 @@ class SageService:
                     requests_response=auth_request,
                 )
             response = auth_request.json()
+            if "refresh_token" not in response:
+                raise AccountingError(
+                    service="Sage",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
+                )
             request.user.sage_account_id = response["requested_by_id"]
             request.user.sage_refresh_token = response["refresh_token"]
             request.user.save()
+            return response["refresh_token"]
+        return None
 
     @staticmethod
     def get_refreshed_tokens(user):

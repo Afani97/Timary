@@ -45,10 +45,17 @@ class QuickbookService:
                 )
             response = auth_request.json()
 
+            if "access_token" not in response:
+                raise AccountingError(
+                    service="Quickbooks",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
+                )
             request.user.quickbooks_refresh_token = response["refresh_token"]
             request.user.quickbooks_realm_id = realm_id
             request.user.save()
             return response["access_token"]
+        return None
 
     @staticmethod
     def get_refreshed_tokens(user):

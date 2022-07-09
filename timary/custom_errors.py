@@ -33,17 +33,17 @@ class AccountingError(Exception):
         EmailService.send_plain(
             "Oops, we ran into an error at Timary",
             f"""
-            Hello {user.first_name},
+Hello {user.first_name},
 
-            It looks like we encountered when trying to sync with your accounting service.
+It looks like we encountered when trying to sync with your accounting service.
 
-            Please allow us to resolve this issue within 24-48 hours.
-            We will reach out to you if we cannot resolve it on our side.
+Please allow us to resolve this issue within 24-48 hours.
+We will reach out to you if we cannot resolve it on our side.
 
-            Please do not hesitate to reach out to us for any questions you have to: {settings.EMAIL_HOST_USER}
+Please do not hesitate to reach out to us for any questions you have to: {settings.EMAIL_HOST_USER}
 
-            Regards,
-            Timary Team
+Regards,
+Timary Team
             """,
             user.email,
         )

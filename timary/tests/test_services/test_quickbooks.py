@@ -3,6 +3,7 @@ from django.test.client import RequestFactory
 from httmock import HTTMock, urlmatch
 from requests import Response
 
+from timary.custom_errors import AccountingError
 from timary.services.quickbook_service import QuickbookService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
@@ -19,6 +20,19 @@ class QuickbookMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"refresh_token": "abc123", "access_token": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="oauth.platform.intuit.com",
+        path="/oauth2/v1/tokens/bearer",
+        method="POST",
+    )
+    def quickbook_oauth_error_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -74,6 +88,15 @@ class TestQuickbooksService(TestCase):
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
             auth_token = QuickbookService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
+
+    def test_oauth_token_error(self):
+        rf = RequestFactory()
+        get_request = rf.get("/quickbook-redirect?code=abc123&realmId=abc123")
+        get_request.user = self.user
+
+        with HTTMock(QuickbookMocks.quickbook_oauth_error_mock):
+            with self.assertRaises(AccountingError):
+                _ = QuickbookService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):

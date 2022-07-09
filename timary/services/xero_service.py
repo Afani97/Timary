@@ -46,6 +46,13 @@ class XeroService:
                 )
             response = auth_request.json()
 
+            if "access_token" not in response:
+                raise AccountingError(
+                    service="Xero",
+                    user_id=request.user.id,
+                    requests_response=response,
+                )
+
             request.user.xero_refresh_token = response["refresh_token"]
             request.user.save()
 
@@ -66,6 +73,8 @@ class XeroService:
             tenant_response = tenant_request.json()
             request.user.xero_tenant_id = tenant_response[0]["tenantId"]
             request.user.save()
+            return response["access_token"]
+        return None
 
     @staticmethod
     def get_refreshed_tokens(user):

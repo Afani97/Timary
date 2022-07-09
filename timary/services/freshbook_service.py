@@ -58,9 +58,16 @@ class FreshbookService:
                     requests_response=auth_request,
                 )
             response = auth_request.json()
+            if "access_token" not in response:
+                raise AccountingError(
+                    service="Freshbooks",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
+                )
             request.user.freshbooks_refresh_token = response["refresh_token"]
             request.user.save()
             return response["access_token"]
+        return None
 
     @staticmethod
     def get_refreshed_tokens(user):

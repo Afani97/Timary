@@ -3,6 +3,7 @@ from django.test.client import RequestFactory
 from httmock import HTTMock, urlmatch
 from requests import Response
 
+from timary.custom_errors import AccountingError
 from timary.services.xero_service import XeroService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
@@ -19,6 +20,19 @@ class XeroMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"refresh_token": "abc123", "access_token": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="identity.xero.com",
+        path="/connect/token",
+        method="POST",
+    )
+    def xero_oauth_error_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -85,8 +99,17 @@ class TestXeroService(TestCase):
         get_request.user = self.user
 
         with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_oauth_tenant_mock):
-            XeroService.get_auth_tokens(get_request)
+            _ = XeroService.get_auth_tokens(get_request)
             self.assertEquals(self.user.xero_tenant_id, "abc123")
+
+    def test_oauth_error(self):
+        rf = RequestFactory()
+        get_request = rf.get("/xero-redirect?code=abc123&realmId=abc123")
+        get_request.user = self.user
+
+        with HTTMock(XeroMocks.xero_oauth_error_mock, XeroMocks.xero_oauth_tenant_mock):
+            with self.assertRaises(AccountingError):
+                _ = XeroService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(XeroMocks.xero_oauth_mock):

@@ -40,10 +40,18 @@ class ZohoService:
                     user_id=request.user.id,
                     requests_response=auth_request,
                 )
+
             response = auth_request.json()
-            if "refresh_token" in response:
-                request.user.zoho_refresh_token = response["refresh_token"]
-                request.user.save()
+
+            if "access_token" not in response:
+                raise AccountingError(
+                    service="Zoho",
+                    user_id=request.user.id,
+                    requests_response=auth_request,
+                )
+
+            request.user.zoho_refresh_token = response["refresh_token"]
+            request.user.save()
             return response["access_token"]
         return None
 

@@ -3,6 +3,7 @@ from django.test.client import RequestFactory
 from httmock import HTTMock, urlmatch
 from requests import Response
 
+from timary.custom_errors import AccountingError
 from timary.services.zoho_service import ZohoService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
@@ -19,6 +20,19 @@ class ZohoMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"refresh_token": "abc123", "access_token": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="accounts.zoho.com",
+        path="/oauth/v2/token",
+        method="POST",
+    )
+    def zoho_oauth_error_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -100,6 +114,15 @@ class TestZohoService(TestCase):
         with HTTMock(ZohoMocks.zoho_oauth_mock):
             auth_token = ZohoService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
+
+    def test_oauth_error(self):
+        rf = RequestFactory()
+        get_request = rf.get("/zoho-redirect?code=abc123&realmId=abc123")
+        get_request.user = self.user
+
+        with HTTMock(ZohoMocks.zoho_oauth_error_mock):
+            with self.assertRaises(AccountingError):
+                _ = ZohoService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(ZohoMocks.zoho_oauth_mock):

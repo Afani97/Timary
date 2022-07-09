@@ -3,6 +3,7 @@ from django.test.client import RequestFactory
 from httmock import HTTMock, urlmatch
 from requests import Response
 
+from timary.custom_errors import AccountingError
 from timary.services.freshbook_service import FreshbookService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
@@ -19,6 +20,19 @@ class FreshbookMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"refresh_token": "abc123", "access_token": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.freshbooks.com",
+        path="/auth/oauth/token",
+        method="POST",
+    )
+    def freshbook_oauth_error_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -74,6 +88,15 @@ class TestFreshbooksService(TestCase):
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
             auth_token = FreshbookService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
+
+    def test_oauth_error(self):
+        rf = RequestFactory()
+        get_request = rf.get("/freshbooks-redirect?code=abc123&realmId=abc123")
+        get_request.user = self.user
+
+        with HTTMock(FreshbookMocks.freshbook_oauth_error_mock):
+            with self.assertRaises(AccountingError):
+                _ = FreshbookService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
