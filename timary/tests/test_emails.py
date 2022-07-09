@@ -4,12 +4,19 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core import mail
+from django.template.defaultfilters import date as template_date
+from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.timezone import localtime, now
 
 from timary.models import SentInvoice
-from timary.tasks import gather_invoices, send_invoice, send_invoice_preview
+from timary.tasks import (
+    gather_invoices,
+    send_invoice,
+    send_invoice_preview,
+    send_weekly_updates,
+)
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory
 
 
@@ -381,3 +388,64 @@ class TestSendInvoice(TestCase):
         """
         html_message = TestSendInvoice.extract_html()
         self.assertInHTML(button_missing, html_message)
+
+
+class TestWeeklyInvoiceUpdates(TestCase):
+    def setUp(self) -> None:
+        self.todays_date = localtime(now()).date()
+        self.current_month = date.strftime(self.todays_date, "%m/%Y")
+
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
+
+    def test_send_weekly_update(self):
+        """Only shows hours tracked for current week, not prior and send email update."""
+        invoice = InvoiceFactory(
+            last_date=(self.todays_date - datetime.timedelta(days=3))
+        )
+        hour = DailyHoursFactory(invoice=invoice)
+        DailyHoursFactory(
+            invoice=invoice,
+            date_tracked=(self.todays_date - datetime.timedelta(days=8)),
+        )
+
+        send_weekly_updates()
+
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            f"Here is a weekly progress update for {invoice.title}",
+        )
+
+        html_message = TestWeeklyInvoiceUpdates.extract_html()
+
+        with self.subTest("Testing hours line item"):
+            msg = f"""
+                <tr>
+                    <td width="80%" class="purchase_item">
+                        <span class="f-fallback">
+                            { floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}
+                        </span>
+                    </td>
+                    <td class="align-right" width="20%" class="purchase_item">
+                        <span class="f-fallback">${ floatformat(hour.hours * invoice.hourly_rate) }</span>
+                    </td>
+                </tr>
+                """
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing invoice budget"):
+            msg = f"""
+                <div
+                    class="radial-progress text-black bg-accent  border-4 border-accent"
+                    style="--value:{ invoice.budget_percentage }; --thickness: 4px;"
+                >
+                    { floatformat(invoice.budget_percentage,-2) }%
+                </div>
+                """
+            self.assertInHTML(msg, html_message)

@@ -4,7 +4,7 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
@@ -145,6 +145,41 @@ def send_reminder_sms():
             TwilioClient.log_hours(invoice)
             invoices_sent_count += 1
     return f"{invoices_sent_count} message(s) sent."
+
+
+def send_weekly_updates():
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    all_invoices = Invoice.objects.filter(is_archived=False)
+    for invoice in all_invoices:
+        hours = invoice.get_hours_tracked()
+        if hours:
+            hours_tracked_this_week = hours.filter(
+                date_tracked__range=(week_start, today)
+            ).annotate(cost=invoice.hourly_rate * Sum("hours"))
+
+            total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
+            total_cost_amount = 0
+            if total_hours["total_hours"]:
+                total_cost_amount = total_hours["total_hours"] * invoice.hourly_rate
+            msg_body = render_to_string(
+                "email/weekly_update_email.html",
+                {
+                    "site_url": settings.SITE_URL,
+                    "user_name": invoice.user.first_name,
+                    "recipient_name": invoice.email_recipient_name,
+                    "invoice": invoice,
+                    "hours_tracked": hours_tracked_this_week,
+                    "week_starting_date": week_start,
+                    "todays_date": today,
+                    "total_amount": total_cost_amount,
+                },
+            )
+            EmailService.send_html(
+                f"Here is a weekly progress update for {invoice.title}",
+                msg_body,
+                invoice.email_recipient,
+            )
 
 
 def backup_db_file():
