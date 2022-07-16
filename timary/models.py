@@ -10,12 +10,14 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q, Sum
 from django.db.models.functions import TruncMonth
+from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.querysets import HoursQuerySet
+from timary.services.email_service import EmailService
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
@@ -355,7 +357,33 @@ class SentInvoice(BaseModel):
         return hours_tracked, total_cost_amount
 
     def success_notification(self):
+        """
+        1) Sends a notification using Twilio to user, if phone number is found
+        2) Sends email receipt to invoice recipient
+        3) Pushes updates to available accounting services.
+        """
         TwilioClient.sent_payment_success(self)
+
+        hours_tracked, _ = self.get_hours_tracked()
+
+        msg_body = render_to_string(
+            "email/styled_email.html",
+            {
+                "can_accept_payments": False,
+                "user_name": self.invoice.user.first_name,
+                "recipient_name": self.invoice.email_recipient_name,
+                "total_amount": self.total_price,
+                "sent_invoice_id": self.id,
+                "invoice": self.invoice,
+                "hours_tracked": hours_tracked,
+                "todays_date": self.date_sent,
+            },
+        )
+        EmailService.send_html(
+            f"Here is a receipt for {self.invoice.user.first_name}'s services for {self.invoice.title}",
+            msg_body,
+            self.invoice.email_recipient,
+        )
 
         if self.user.quickbooks_realm_id:
             QuickbookService.create_invoice(self)

@@ -1,3 +1,4 @@
+import datetime
 import sys
 from datetime import timedelta
 
@@ -214,6 +215,7 @@ def stripe_webhook(request):
                 return JsonResponse({"success": True})
 
             sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+            sent_invoice.date_sent = datetime.date.today()
             sent_invoice.save()
             sent_invoice.success_notification()
         else:

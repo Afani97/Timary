@@ -223,6 +223,27 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.budget_percentage, Decimal("30.0"))
 
 
+class TestSentInvoice(TestCase):
+    def test_get_hours_tracked(self):
+        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        hours1 = DailyHoursFactory(
+            invoice=invoice, date_tracked=yesterday, sent_invoice_id=123
+        )
+        hours2 = DailyHoursFactory(invoice=invoice, sent_invoice_id=123)
+
+        sent_invoice = SentInvoiceFactory(id=123, invoice=invoice)
+
+        hours_tracked, total_hours = sent_invoice.get_hours_tracked()
+        self.assertIn(hours1, hours_tracked)
+        self.assertIn(hours2, hours_tracked)
+        self.assertEqual(
+            total_hours,
+            (hours1.hours + hours2.hours) * sent_invoice.invoice.hourly_rate,
+        )
+
+
 class TestUser(TestCase):
     def test_user(self):
         user = User.objects.create(
