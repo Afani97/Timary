@@ -152,14 +152,6 @@ class TestDailyHours(BaseTest):
             data=urlencode(url_params),  # HTML PATCH FORM
         )
         self.hours.refresh_from_db()
-        self.assertInHTML(
-            f"""
-            <input type="text" name="hours" value="{random_hours}" value="1.0"
-            class="input input-bordered text-lg hours-input w-20 textinput textInput"
-            required id="id_hours">
-            """,
-            response.content.decode("utf-8"),
-        )
         self.assertEqual(response.templates[0].name, "partials/_form_success.html")
         self.assertEqual(response.status_code, 200)
         self.assertInHTML(

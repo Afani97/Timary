@@ -12,7 +12,9 @@
         <title>Hello from Timary!</title>
         {% block css %}{% endblock %}
         {# Third Party JS #}
-        <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+        <script src="https://unpkg.com/htmx.org@1.8.0"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
+
         <script nonce="base" defer>
             htmx.on("showMessage", (e) => {
                 let alertType = e.detail.alertType;
@@ -69,6 +71,28 @@
                     document.getElementById("dropdown-menu").blur()
                 }
             })
+
+            // Helper methods to clean hours input.
+            function filterHoursInput(e) {
+                e.value = e.value.replace(/[^0-9.:]/, '');
+            }
+
+            function timeToDecimal(hrs, mins) {
+                let arr = [hrs, mins];
+                let dec = parseInt((arr[1]/6)*10, 10);
+
+                return parseFloat(parseInt(arr[0], 10) + '.' + (dec<10?'0':'') + dec).toString();
+            }
+
+            function convertHoursInput(e) {
+                if (e.value.includes(":")) {
+                    let timeClocked = e.value.split(":");
+                    let val = timeToDecimal(timeClocked[0] || 0, timeClocked[1] || 0);
+                    if (!isNaN(val)) {
+                        e.value = val;
+                    }
+                }
+            }
         </script>
 
         {% block js %}{% endblock %}

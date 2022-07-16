@@ -46,32 +46,19 @@
 
 
 {% block js %}
-    <script nonce="clear-hours-modal">
-        document.body.addEventListener("clearModal", function(){
-            document.getElementById("close-hours-modal").click();
-            updateCancelModalListeners();
+    <script nonce="manage-hours">
+        function clearHoursModal() {
+            let errors_list = htmx.find(".inner-modal .list-disc");
+            if (errors_list) {
+                errors_list.remove();
+            }
+            htmx.find("#id_hours").value = 1;
+            htmx.find("#id_date_tracked").value = new Date().toISOString().split('T')[0];
+        }
+        htmx.on("clearModal", function(){
+            htmx.find("#close-hours-modal").click();
+            clearHoursModal();
         })
-    </script>
-    <script nonce="reset-new-hour-modal">
-        document.body.addEventListener('htmx:beforeSwap', function(evt) {
-            let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialHourModal");
-            if (clearInitialForm === "resetNewHourModal") {
-                let newHourForm = document.getElementById("new-hours-form");
-                if (newHourForm) {
-                    newHourForm.remove();
-                }
-            }
-        });
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            let resetTimer = evt.detail.xhr.getResponseHeader("HX-ResetTimer");
-            if (resetTimer === "resetTimer") {
-                document.getElementById("start_timer").addEventListener("click", start);
-            }
-            updateHourInputListener();
-            updateCancelModalListeners();
-        });
-    </script>
-    <script nonce="hours-timer">
         {% include "partials/timer_class.html" %}
 
         var timer_container = document.getElementById("timer_container");
@@ -85,53 +72,11 @@
         var timer_sec_span = document.getElementById("timer_sec");
         var hoursTimer = new timaryTimer();
 
-        updateCancelModalListeners();
-
-        function updateCancelModalListeners(){
-            var close_hours_modal_btn = document.getElementById("close-hours-modal");
-            if (close_hours_modal_btn) {
-                close_hours_modal_btn.addEventListener("click", function(e) {
-                    let errors_list = document.querySelector(".inner-modal .list-disc");
-                    if (errors_list) {
-                        errors_list.remove();
-                    }
-                    document.getElementById("id_hours").value = 1;
-                    document.getElementById("id_date_tracked").value = new Date().toISOString().split('T')[0];
-                })
-            }
-
-        }
-
-
-
         start_timer_btn.addEventListener("click", start);
         pause_timer_btn.addEventListener("click", pause);
         stop_timer_btn.addEventListener("click", stop);
         resume_timer_btn.addEventListener("click", resume);
         reset_timer_btn.addEventListener("click", reset);
-
-        updateHourInputListener();
-
-        function updateHourInputListener() {
-            let hoursInput = Array.from(document.querySelectorAll(".hours-input"));
-
-            hoursInput.forEach(hr => {
-                hr.addEventListener("input", function(e) {
-                    e.target.value = e.target.value.replace(/[^0-9.:]/, '');
-                });
-                hr.addEventListener("blur", function(e) {
-                    if (e.target.value.includes(":")) {
-                        let timeClocked = e.target.value.split(":");
-                        let val = timeToDecimal(timeClocked[0] || 0, timeClocked[1] || 0);
-                        if (!isNaN(val)) {
-                            e.target.value = val;
-                        }
-                    }
-                })
-            });
-        }
-
-
 
         function update_timer(hrs, mins, secs) {
             timer_hour_span.style.cssText = `--value: ${hrs}`;
@@ -177,13 +122,6 @@
             pause_timer_btn.classList.add("hidden");
             resume_timer_btn.classList.remove("hidden");
             stop_timer_btn.classList.remove("hidden");
-        }
-
-        function timeToDecimal(hrs, mins) {
-            let arr = [hrs, mins];
-            let dec = parseInt((arr[1]/6)*10, 10);
-
-            return parseFloat(parseInt(arr[0], 10) + '.' + (dec<10?'0':'') + dec).toString();
         }
 
         function reset() {

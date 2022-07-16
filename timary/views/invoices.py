@@ -85,8 +85,7 @@ def create_invoice(request):
     html_form = render_crispy_form(invoice_form, context=ctx)
     response = HttpResponse(html_form)
     response["HX-Retarget"] = ".modal-box"
-    # Trigger removing first modal form until they enable a 'HX-Reswap'
-    response["HX-RemoveInitialInvoiceModal"] = "resetNewInvoiceModal"
+    response["HX-Reswap"] = "innerHTML"
     return response
 
 

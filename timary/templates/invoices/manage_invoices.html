@@ -67,8 +67,14 @@
     <div for="edit-hours-modal" class="modal items-center">
         <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
             <h3 class="font-bold text-lg my-6">Update hours for this invoice period</h3>
-            <label for="edit-hours-modal" class="btn btn-sm btn-circle absolute right-2 top-2 close-edit-hours-modal">✕</label>
-            <div class="inner-modal">
+            <label
+                for="edit-hours-modal"
+                class="btn btn-sm btn-circle absolute right-2 top-2 close-edit-hours-modal"
+                _="on click call resetEditHoursView()"
+            >
+                ✕
+            </label>
+            <div class="inner-modal" id="edit-hours-inner">
                 <div class="flex justify-center">
                     <button class="btn btn-lg loading">loading</button>
                 </div>
@@ -80,57 +86,30 @@
 {% endblock %}
 
 {% block js %}
-    <script nonce="clear-invoice-modal">
-        document.body.addEventListener("clearModal", function(){
-            if (document.getElementById("close-invoice-modal")) {
-                document.getElementById("close-invoice-modal").click();
-            }
-            if (document.getElementById("new-invoice-form")) {
-                document.getElementById("new-invoice-form").reset();
-            }
-        })
-    </script>
-
-    <script nonce="reset-new-invoice-modal">
-
-        Array.from(document.getElementsByClassName("close-edit-hours-modal"))[0].addEventListener("click", function(){
-            Array.from(document.getElementsByClassName("inner-modal"))[0].innerHTML = `
-            <div class="flex justify-center">
-                    <button class="btn btn-lg loading">loading</button>
-            </div>
-            `;
-        })
-        document.body.addEventListener('htmx:beforeSwap', function(evt) {
-            let clearInitialForm = evt.detail.xhr.getResponseHeader("HX-RemoveInitialInvoiceModal");
-            if (clearInitialForm === "resetNewInvoiceModal") {
-                document.getElementById("new-invoice-form").remove();
-            }
-        });
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            let resetTimer = evt.detail.xhr.getResponseHeader("HX-ResetTimer");
-            if (resetTimer === "resetTimer") {
-                document.getElementById("start_timer").addEventListener("click", start);
-            }
-            updateCancelModalListeners();
-        });
-
-        updateCancelModalListeners();
-
-        function updateCancelModalListeners(){
-            var close_invoice_modal_btn = document.getElementById("close-invoice-modal");
-            if (close_invoice_modal_btn) {
-                close_invoice_modal_btn.addEventListener("click", function(e) {
-                    let errors_list = document.querySelector("#new-invoice-modal .list-disc");
-                    if (errors_list) {
-                        errors_list.remove();
-                    }
-                    document.getElementById("id_title").value = "";
-                    document.getElementById("id_hourly_rate").value = 50;
-                    document.getElementById("id_email_recipient_name").value = "";
-                    document.getElementById("id_email_recipient").value = "";
-                })
+    <script nonce="manage-invoices">
+        function clearInvoiceModal() {
+            let errors_list = htmx.find("#new-invoice-modal .list-disc");
+            if (errors_list) {
+                errors_list.remove();
             }
 
+            htmx.find("#id_title").value = "";
+            htmx.find("#id_hourly_rate").value = 50;
+            htmx.find("#id_email_recipient_name").value = "";
+            htmx.find("#id_email_recipient").value = "";
         }
+
+        function resetEditHoursView() {
+            htmx.find("#edit-hours-inner").innerHTML = `
+        <div class="flex justify-center">
+            <button class="btn btn-lg loading">loading</button>
+        </div>
+        `;
+        }
+
+        htmx.on("clearModal", function(){
+            htmx.find("#close-invoice-modal").click();
+            clearInvoiceModal();
+        });
     </script>
 {% endblock  %}

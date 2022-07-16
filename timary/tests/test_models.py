@@ -41,7 +41,7 @@ class TestDailyHours(TestCase):
         invoice = InvoiceFactory()
         with self.assertRaises(ValidationError):
             DailyHoursInput.objects.create(
-                invoice=invoice, hours=24, date_tracked=datetime.date.today()
+                invoice=invoice, hours=25, date_tracked=datetime.date.today()
             )
 
     def test_error_creating_hours_with_3_decimal_places(self):

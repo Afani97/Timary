@@ -39,7 +39,9 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
             "layout": Layout(
                 rows,
                 ButtonHolder(
-                    HTML('<a href="#" class="btn" id="close-hours-modal">Close</a>'),
+                    HTML(
+                        '<a href="#" class="btn" id="close-hours-modal" _="on click call clearHoursModal()">Close</a>'
+                    ),
                     HTML(
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
                         'type="submit" hx-indicator="#spinnr"> Add new hours</button>'
@@ -120,7 +122,9 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
     flex_dir = "card-body flex-col space-y-5" if is_mobile else "flex-row space-x-5"
 
     cancel_button = (
-        HTML('<a href="#" class="btn" id="close-invoice-modal">Close</a>')
+        HTML(
+            '<a href="#" class="btn" id="close-invoice-modal" _="on click call clearInvoiceModal()">Close</a>'
+        )
         if show_cancel_button
         else HTML("<span></span>")
     )

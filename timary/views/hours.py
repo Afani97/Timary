@@ -49,8 +49,7 @@ def create_daily_hours(request):
     """
     response = HttpResponse(html_form)
     response["HX-Retarget"] = ".inner-modal"
-    # Trigger removing first modal form until they enable a 'HX-Reswap'
-    response["HX-RemoveInitialHourModal"] = "resetNewHourModal"
+    response["HX-Swap"] = "innerHTML"
     return response
 
 

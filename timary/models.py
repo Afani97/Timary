@@ -30,7 +30,7 @@ def create_new_ref_number():
 
 
 def validate_less_than_24_hours(value):
-    if value > 23.5:
+    if value > 24:
         raise ValidationError("Cannot log greater than 24 hours")
 
 

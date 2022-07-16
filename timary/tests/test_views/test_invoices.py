@@ -527,7 +527,7 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours1.hours, 2))}" value="1.0"
             class="input input-bordered text-lg hours-input w-20 textinput textInput"
-            required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
             """,
             response.content.decode("utf-8"),
         )
@@ -535,7 +535,7 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours2.hours, 2))}" value="1.0"
             class="input input-bordered text-lg hours-input w-20 textinput textInput"
-            required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
             """,
             response.content.decode("utf-8"),
         )
@@ -543,7 +543,7 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours3.hours, 2))}" value="1.0"
             class="input input-bordered text-lg hours-input w-20 textinput textInput"
-            required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
             """,
             response.content.decode("utf-8"),
         )

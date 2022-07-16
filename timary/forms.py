@@ -62,6 +62,7 @@ class DailyHoursForm(forms.ModelForm):
                 attrs={
                     "value": 1.0,
                     "class": "input input-bordered text-lg hours-input",
+                    "_": "on input call filterHoursInput(me) end on blur call convertHoursInput(me) end",
                 },
             ),
             "date_tracked": DateInput(
@@ -93,7 +94,7 @@ class DailyHoursForm(forms.ModelForm):
             raise ValidationError(
                 "Invalid hours logged. Please log between 0 and 24 hours"
             )
-        if 0 <= hours_float <= 24:
+        if 0 < hours_float <= 24:
             return hours
         else:
             raise ValidationError(
