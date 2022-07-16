@@ -135,6 +135,10 @@ def completed_connect_account(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def stripe_webhook(request):
+    """
+    Test locally => stripe listen --forward-to localhost:8000/stripe-webhook/
+    Copy webhook secret into STRIPE_WEBHOOK_SECRET
+    """
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
 
@@ -193,7 +197,11 @@ def stripe_webhook(request):
             # Other stripe webhook event
             pass
 
-    elif event["type"] == "payment_intent.succeeded":
+    elif event["type"] in [
+        "payment_intent.succeeded",
+        "charge.succeeded",
+        "transfer.created",
+    ]:
         # Handle a successful payment
         payment_intent = event["data"]["object"]
         if SentInvoice.objects.filter(
