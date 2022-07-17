@@ -193,7 +193,7 @@ def backup_db_file():
     )
     try:
         _ = s3_client.upload_file(
-            file.name, settings.AWS_BUCKET_NAME, "db_backups/backup.sqlite3"
+            file.name, settings.AWS_STORAGE_BUCKET_NAME, "db_backups/backup.sqlite3"
         )
     except ClientError:
         return False

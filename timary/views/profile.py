@@ -1,6 +1,6 @@
 from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, QueryDict
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.views.decorators.http import require_http_methods
@@ -42,10 +42,11 @@ def edit_user_profile(request):
 
 
 @login_required()
-@require_http_methods(["PUT"])
+@require_http_methods(["POST"])
 def update_user_profile(request):
-    put_params = QueryDict(request.body)
-    user_form = UserForm(put_params, instance=request.user, is_mobile=request.is_mobile)
+    user_form = UserForm(
+        request.POST, request.FILES, instance=request.user, is_mobile=request.is_mobile
+    )
     if user_form.is_valid():
         user = user_form.save()
         response = render(request, "partials/_profile.html", {"user": user})

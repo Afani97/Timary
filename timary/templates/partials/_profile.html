@@ -1,5 +1,12 @@
 <div class="card bg-base-200 bordered" id="user-profile">
     <div class="card-body items-center text-center">
+        {% if user.profile_pic %}
+            <div class="avatar">
+                <div class="w-24 rounded-full">
+                    <img src="{{ user.profile_pic.url }}" />
+                </div>
+            </div>
+        {% endif %}
         <h2 class="card-title">{{user.first_name }} {{ user.last_name }}</h2>
         <p>{{ user.email }}</p>
         <p>{{ user.phone_number|default:"" }}</p>

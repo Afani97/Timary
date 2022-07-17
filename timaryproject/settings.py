@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "crispy_forms",
     "django_browser_reload",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -250,9 +251,13 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 # AWS
-AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default="abc123")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="abc123")
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="abc123")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="abc123")
+
+
+# DJANGO STORAGES
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 
 # DJANGO Q

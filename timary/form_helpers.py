@@ -210,12 +210,17 @@ def profile_form_helper(is_mobile):
     return {
         "form_id": "update-user-profile",
         "attrs": {
-            "hx-put": reverse("timary:update_user_profile"),
+            "hx-post": reverse("timary:update_user_profile"),
             "hx-target": "this",
             "hx-swap": "outerHTML",
+            "hx-encoding": "multipart/form-data",
         },
         "form_class": "card pb-5 bg-neutral text-neutral-content",
         "layout": Layout(
+            Row(
+                "profile_pic",
+                css_class=f"card-body flex {flex_dir} justify-center",
+            ),
             Row(
                 "first_name",
                 "last_name",

@@ -452,6 +452,8 @@ class User(AbstractUser, BaseModel):
     sage_account_id = models.CharField(max_length=200, blank=True, null=True)
     sage_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
+    profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 

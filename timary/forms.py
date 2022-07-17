@@ -301,6 +301,7 @@ class UserForm(forms.ModelForm):
             }
         ),
     )
+    profile_pic = forms.ImageField(required=False)
 
     def __init__(self, *args, **kwargs):
         is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
@@ -316,9 +317,10 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number"]
+        fields = ["email", "first_name", "last_name", "phone_number", "profile_pic"]
 
     field_order = [
+        "profile_pic",
         "first_name",
         "last_name",
         "email",
