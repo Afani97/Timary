@@ -147,6 +147,40 @@ def update_payment_method_settings(request):
         raise Http404()
 
 
+@login_required()
+@require_http_methods(["GET", "PUT"])
+def update_invoice_branding(request):
+    context = {
+        "settings_form": SMSSettingsForm(instance=request.user),
+        "settings": request.user.settings,
+    }
+    if request.method == "GET":
+        return render(request, "invoices/invoice_branding.html", {})
+
+    elif request.method == "PUT":
+        put_params = dict(QueryDict(request.body))
+        user_settings_form = SMSSettingsForm(put_params, instance=request.user)
+        if user_settings_form.is_valid():
+            user_settings_form.save()
+            response = render(
+                request,
+                "partials/settings/_sms.html",
+                {"settings": request.user.settings},
+            )
+            show_alert_message(
+                response,
+                "success",
+                "Settings updated",
+            )
+            return response
+        else:
+            context["settings_form"] = user_settings_form
+            return render(request, "partials/settings/_edit_sms.html", context)
+
+    else:
+        raise Http404()
+
+
 @login_required
 @require_http_methods(["GET"])
 def audit(request):

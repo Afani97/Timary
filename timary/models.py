@@ -454,6 +454,9 @@ class User(AbstractUser, BaseModel):
 
     profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
 
+    # Custom invoice branding
+    invoice_branding = models.JSONField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -473,6 +476,7 @@ class User(AbstractUser, BaseModel):
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")
             ).title(),
+            "can_customize_invoice": self.can_customize_invoice,
         }
 
     @property
@@ -543,6 +547,13 @@ class User(AbstractUser, BaseModel):
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
+    @property
+    def can_customize_invoice(self):
+        return (
+            self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        )
+
     def can_repeat_previous_hours_logged(self, hours):
         """
         :param hours:
@@ -577,3 +588,10 @@ class User(AbstractUser, BaseModel):
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
+
+    def invoice_branding_properties(self):
+        if not self.can_customize_invoice:
+            # Timary branding/defaults
+            return {}
+        else:
+            return {}

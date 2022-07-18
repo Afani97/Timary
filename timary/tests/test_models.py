@@ -276,6 +276,7 @@ class TestUser(TestCase):
                 "sage_connected": False,
                 "can_download_audit": False,
                 "current_plan": "Professional",
+                "can_customize_invoice": False,
             },
         )
 
