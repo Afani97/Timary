@@ -9,6 +9,7 @@ django-multiselectfield
 django-otp
 django-phonenumber-field
 django-q
+django-storages
 django-twilio
 httmock
 openpyxl

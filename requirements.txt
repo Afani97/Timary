@@ -40,6 +40,7 @@ django==3.2.13
     #   django-phonenumber-field
     #   django-picklefield
     #   django-q
+    #   django-storages
     #   django-twilio
 django-browser-reload==1.3.0
     # via -r requirements.in
@@ -58,6 +59,8 @@ django-phonenumber-field==6.1.0
 django-picklefield==3.0.1
     # via django-q
 django-q==1.3.9
+    # via -r requirements.in
+django-storages==1.12.3
     # via -r requirements.in
 django-twilio==0.13.2
     # via -r requirements.in

@@ -72,17 +72,14 @@ class TestUserProfile(BaseTest):
     @patch("timary.services.stripe_service.StripeService.create_subscription")
     def test_update_user_profile(self, stripe_subscription_mock):
         stripe_subscription_mock.return_value = None
-        url_params = {
+        data = {
             "email": "user@test.com",
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+17742613186",
             "membership_tier": "19",
         }
-        response = self.client.put(
-            reverse("timary:update_user_profile"),
-            data=urlencode(url_params),  # HTMX PUT FORM
-        )
+        response = self.client.post(reverse("timary:update_user_profile"), data=data)
         self.user.refresh_from_db()
         self.assertInHTML(
             """
@@ -97,16 +94,13 @@ class TestUserProfile(BaseTest):
 
     def test_update_user_email_already_registered(self):
         user = UserFactory()
-        url_params = {
+        data = {
             "email": user.email,
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+14445556666",
         }
-        response = self.client.put(
-            reverse("timary:update_user_profile"),
-            data=urlencode(url_params),  # HTMX PUT FORM
-        )
+        response = self.client.post(reverse("timary:update_user_profile"), data=data)
         self.assertInHTML(
             '<li class="text-error text-center">Email already registered!</li>',
             response.content.decode("utf-8"),
@@ -115,16 +109,13 @@ class TestUserProfile(BaseTest):
 
     def test_update_user_redirect(self):
         self.client.logout()
-        url_params = {
+        data = {
             "email": "user@test.com",
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+13334445555",
         }
-        response = self.client.put(
-            reverse("timary:update_user_profile"),
-            data=urlencode(url_params),  # HTMX PUT FORM
-        )
+        response = self.client.post(reverse("timary:update_user_profile"), data=data)
         self.assertEqual(response.status_code, 302)
 
     def test_update_sms_user_subscription(self):
