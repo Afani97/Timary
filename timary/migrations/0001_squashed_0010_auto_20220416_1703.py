@@ -18,19 +18,6 @@ import timary.models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ("timary", "0001_squashed_0020_invoice_total_budget"),
-        ("timary", "0002_alter_user_membership_tier"),
-        ("timary", "0003_alter_user_membership_tier"),
-        ("timary", "0004_auto_20220319_2137"),
-        ("timary", "0005_auto_20220319_2015"),
-        ("timary", "0006_auto_20220322_1910"),
-        ("timary", "0007_auto_20220328_1948"),
-        ("timary", "0008_alter_sentinvoice_invoice"),
-        ("timary", "0009_invoice_email_recipient_stripe_customer_id"),
-        ("timary", "0010_auto_20220416_1703"),
-    ]
-
     initial = True
 
     dependencies = [
