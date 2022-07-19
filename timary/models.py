@@ -455,7 +455,7 @@ class User(AbstractUser, BaseModel):
     profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
 
     # Custom invoice branding
-    invoice_branding = models.JSONField(blank=True, null=True)
+    invoice_branding = models.JSONField(blank=True, null=True, default=dict)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
@@ -594,4 +594,7 @@ class User(AbstractUser, BaseModel):
             # Timary branding/defaults
             return {}
         else:
-            return {}
+            return {
+                "next_weeks_date": datetime.date.today()
+                + datetime.timedelta(weeks=int(self.invoice_branding["due_date"]))
+            }

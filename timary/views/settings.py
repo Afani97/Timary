@@ -1,3 +1,5 @@
+import copy
+import datetime
 from tempfile import NamedTemporaryFile
 
 from django.contrib import messages
@@ -148,34 +150,35 @@ def update_payment_method_settings(request):
 
 
 @login_required()
-@require_http_methods(["GET", "PUT"])
+@require_http_methods(["GET", "POST"])
 def update_invoice_branding(request):
     context = {
         "settings_form": SMSSettingsForm(instance=request.user),
         "settings": request.user.settings,
     }
     if request.method == "GET":
-        return render(request, "invoices/invoice_branding.html", {})
+        context = {
+            "user_name": request.user.first_name,
+            "todays_date": datetime.date.today(),
+            "yesterday_date": datetime.date.today() - datetime.timedelta(days=1),
+            "next_weeks_date": datetime.date.today() + datetime.timedelta(days=7),
+        }
+        return render(request, "invoices/invoice_branding.html", context)
 
-    elif request.method == "PUT":
-        put_params = dict(QueryDict(request.body))
-        user_settings_form = SMSSettingsForm(put_params, instance=request.user)
-        if user_settings_form.is_valid():
-            user_settings_form.save()
-            response = render(
-                request,
-                "partials/settings/_sms.html",
-                {"settings": request.user.settings},
-            )
-            show_alert_message(
-                response,
-                "success",
-                "Settings updated",
-            )
-            return response
-        else:
-            context["settings_form"] = user_settings_form
-            return render(request, "partials/settings/_edit_sms.html", context)
+    elif request.method == "POST" and request.user.can_customize_invoice:
+        user: User = request.user
+        request_data = copy.copy(request.POST)
+        request_data.pop("csrfmiddlewaretoken")
+        for k, v in request_data.items():
+            user.invoice_branding[k] = v
+        user.save()
+        response = render(request, "invoices/invoice_branding.html", context)
+        show_alert_message(
+            response,
+            "success",
+            "Invoice branding updated",
+        )
+        return response
 
     else:
         raise Http404()
