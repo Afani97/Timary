@@ -1,4 +1,3 @@
-import copy
 import datetime
 from tempfile import NamedTemporaryFile
 
@@ -13,7 +12,11 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from stripe.error import InvalidRequestError
 
-from timary.forms import MembershipTierSettingsForm, SMSSettingsForm
+from timary.forms import (
+    InvoiceBrandingSettingsForm,
+    MembershipTierSettingsForm,
+    SMSSettingsForm,
+)
 from timary.models import SentInvoice, User
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
@@ -167,18 +170,26 @@ def update_invoice_branding(request):
 
     elif request.method == "POST" and request.user.can_customize_invoice:
         user: User = request.user
-        request_data = copy.copy(request.POST)
-        request_data.pop("csrfmiddlewaretoken")
-        for k, v in request_data.items():
-            user.invoice_branding[k] = v
-        user.save()
-        response = render(request, "invoices/invoice_branding.html", context)
-        show_alert_message(
-            response,
-            "success",
-            "Invoice branding updated",
-        )
-        return response
+        invoice_branding_form = InvoiceBrandingSettingsForm(request.POST)
+        if invoice_branding_form.is_valid():
+            for k, v in invoice_branding_form.cleaned_data.items():
+                user.invoice_branding[k] = v
+            user.save()
+            response = render(request, "invoices/invoice_branding.html", context)
+            show_alert_message(
+                response,
+                "success",
+                "Invoice branding updated",
+            )
+            return response
+        else:
+            response = render(request, "invoices/invoice_branding.html", context)
+            show_alert_message(
+                response,
+                "error",
+                "Unable to update Invoice branding",
+            )
+            return response
 
     else:
         raise Http404()

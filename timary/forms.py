@@ -362,6 +362,20 @@ class MembershipTierSettingsForm(forms.ModelForm):
         fields = ["membership_tier"]
 
 
+def validate_due_date_integer(val):
+    """Valid values are 1, 2, 4, corresponding to weeks"""
+    if val not in [1, 2, 4]:
+        raise ValidationError("Invalid due date value")
+    return val
+
+
+class InvoiceBrandingSettingsForm(forms.Form):
+    due_date = forms.IntegerField(validators=[validate_due_date_integer])
+
+    class Meta:
+        fields = ["invoice_branding"]
+
+
 class RegisterForm(forms.ModelForm):
     email = forms.EmailField(
         label="Email",
