@@ -371,9 +371,7 @@ def validate_due_date_integer(val):
 
 class InvoiceBrandingSettingsForm(forms.Form):
     due_date = forms.IntegerField(validators=[validate_due_date_integer])
-
-    class Meta:
-        fields = ["invoice_branding"]
+    company_name = forms.CharField(max_length=50, required=False)
 
 
 class RegisterForm(forms.ModelForm):

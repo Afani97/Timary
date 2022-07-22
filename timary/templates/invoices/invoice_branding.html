@@ -282,16 +282,33 @@
                 <form hx-post="{% url 'timary:update_invoice_branding' %}" hx-swap="none">
                     {% csrf_token %}
                     <div class="form-control">
-                        <label class="label">
+                        <label class="label" for="due_date">
                             <span class="label-text">Due date</span>
                         </label>
-                        <select class="select select-bordered" name="due_date" _="on change put updateDueDate(my.value) into #next_week.innerHTML">
+                        <select class="select select-bordered" name="due_date"
+                            _=" on load set my.value to {{ invoice_branding_config.due_date_selected }}
+                                on change put updateDueDate(my.value) into #next_week.innerHTML">
                             <option value="1" selected>1 Week</option>
                             <option value="2">2 Weeks</option>
                             <option value="4">1 Month</option>
                         </select>
                     </div>
 
+                    <div class="divider"></div>
+                    <div class="form-control">
+                        <label class="label" for="company_name">
+                            <span class="label-text">Business name</span>
+                        </label>
+                        <input
+                            name="company_name"
+                            class="input input-bordered w-full"
+                            placeholder="Company Inc"
+                            value="{{ settings_form.company_name.value|default_if_none:'' }}"
+                            _="
+                                set element oldValue to #biz_display_name.innerHTML
+                                on keyup if my.value put my.value into #biz_display_name.innerHTML else put oldValue into #biz_display_name.innerHTML
+                            "/>
+                    </div>
                     <div class="divider"></div>
                     <div class="flex justify-center">
                         <button class="btn btn-primary" type="submit">Update</button>
@@ -321,7 +338,7 @@
                                                 <td class="content-cell">
                                                     <div class="f-fallback">
                                                         <h1>Hi Bob,</h1>
-                                                        <p>Thanks for using Timary. This is an invoice for {{ user_name }}'s services.</p>
+                                                        <p>Thanks for using Timary. This is an invoice for <span id="biz_display_name">{{ invoice_branding_config.user_name }}</span>'s services.</p>
                                                         <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                                                             <tr>
                                                                 <td class="attributes_content">
@@ -336,7 +353,7 @@
                                                                         <tr>
                                                                             <td class="attributes_item">
                                                                                 <span class="f-fallback">
-                                                                                    <strong>Due By:</strong> <span id="next_week">{{ next_weeks_date }}</span>
+                                                                                    <strong>Due By:</strong> <span id="next_week">{{ invoice_branding_config.next_weeks_date }}</span>
                                                                                 </span>
                                                                             </td>
                                                                         </tr>
