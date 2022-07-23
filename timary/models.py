@@ -595,8 +595,12 @@ class User(AbstractUser, BaseModel):
             return {}
         else:
             return {
-                "due_date_selected": self.invoice_branding["due_date"],
+                "due_date_selected": self.invoice_branding.get("due_date"),
                 "next_weeks_date": datetime.date.today()
-                + datetime.timedelta(weeks=int(self.invoice_branding["due_date"])),
-                "user_name": self.invoice_branding["company_name"] or self.first_name,
+                + datetime.timedelta(
+                    weeks=int(self.invoice_branding.get("due_date") or 1)
+                ),
+                "user_name": self.invoice_branding.get("company_name")
+                or self.first_name,
+                "hide_timary": self.invoice_branding.get("hide_timary") or False,
             }
