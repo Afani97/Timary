@@ -6,6 +6,7 @@ from stripe.error import InvalidRequestError
 
 from timary.forms import LoginForm, RegisterForm
 from timary.models import User
+from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.utils import render_form_errors
 
@@ -51,6 +52,26 @@ def register_user(request):
                 )
                 if authenticated_user:
                     login(request, authenticated_user)
+                    EmailService.send_plain(
+                        "Welcome to Timary!",
+                        """
+I want to personally thank you for joining Timary.
+
+It's not everyday that someone signs up for a new service.
+I'm glad to see you've chosen my app to help alleviate some of your difficulties.
+
+As will most products, Timary will improve with time and that can happen a lot faster if you help out!
+Please do not hesitate to email me with any pain points you run into while using the app.
+Any and all feedback is welcome!
+
+I really appreciate for the opportunity to work with you,
+Aristotel F
+Timary
+
+
+                    """,
+                        user.email,
+                    )
                     return redirect(account_link_url)
                 else:
                     form.add_error("email", "Unable to create account with credentials")
