@@ -54,6 +54,23 @@
         </ul>
     </div>
 
+    {% if invoices.count > 0 %}
+        <div class="divider"></div>
+
+        <div>
+            <h3 class="text-xl my-3 font-bold">Archived invoices</h3>
+
+            {% if archived_invoices.count > 0 %}
+                <ul>
+                    {% for archive_invoice in archived_invoices %}
+                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box bg-neutral">

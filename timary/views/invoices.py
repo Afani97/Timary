@@ -37,18 +37,20 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
+    context = {
+        "invoices": invoices,
+        "new_invoice": InvoiceForm(
+            user=request.user, is_mobile=request.is_mobile, request_method="get"
+        ),
+        "upgrade_msg": request.user.upgrade_invoice_message,
+        "sent_invoices_owed": int(sent_invoices_owed),
+        "sent_invoices_earned": int(sent_invoices_paid),
+        "archived_invoices": request.user.invoices.filter(is_archived=True),
+    }
     return render(
         request,
         "invoices/manage_invoices.html",
-        {
-            "invoices": invoices,
-            "new_invoice": InvoiceForm(
-                user=request.user, is_mobile=request.is_mobile, request_method="get"
-            ),
-            "upgrade_msg": request.user.upgrade_invoice_message,
-            "sent_invoices_owed": int(sent_invoices_owed),
-            "sent_invoices_earned": int(sent_invoices_paid),
-        },
+        context,
     )
 
 

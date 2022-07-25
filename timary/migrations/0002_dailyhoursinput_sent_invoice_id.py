@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("timary", "0001_squashed_0010_auto_20220416_1703"),
+        ("timary", "0001_initial"),
     ]
 
     operations = [
