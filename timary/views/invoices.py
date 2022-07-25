@@ -300,3 +300,22 @@ def invoice_hour_stats(request, invoice_id):
     return render(
         request, "partials/_invoice_collapsed_content.html", {"invoice": invoice}
     )
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sent_invoices_list(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    sent_invoices = SentInvoice.objects.filter(invoice=invoice).all()
+    if sent_invoices:
+        return render(
+            request,
+            "partials/_sent_invoices_list.html",
+            {"sent_invoices": sent_invoices},
+        )
+    else:
+        return HttpResponse(
+            "Looks like you haven't generated an invoice yet, log hours to do so."
+        )

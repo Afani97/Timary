@@ -1,0 +1,8 @@
+<ul>
+    {% for sent_invoice in sent_invoices %}
+        {% include "partials/_sent_invoice.html" with sent_invoice=sent_invoice %}
+        {% if not forloop.last %}
+            <div class="divider"></div>
+        {% endif %}
+    {% endfor %}
+</ul>
