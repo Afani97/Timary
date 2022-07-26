@@ -12,15 +12,10 @@ from timary.utils import render_form_errors, show_alert_message
 @login_required()
 @require_http_methods(["GET"])
 def user_profile(request):
-    tab = request.GET.get("tab", None)
     context = {
         "profile": request.user,
         "settings": request.user.settings,
-        "sent_invoices": request.user.sent_invoices.all(),
-        "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
-    if tab and 0 < int(tab) < 5:
-        context["tab"] = tab
     return render(request, "timary/profile.html", context)
 
 

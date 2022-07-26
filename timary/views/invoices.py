@@ -37,18 +37,20 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
+    context = {
+        "invoices": invoices,
+        "new_invoice": InvoiceForm(
+            user=request.user, is_mobile=request.is_mobile, request_method="get"
+        ),
+        "upgrade_msg": request.user.upgrade_invoice_message,
+        "sent_invoices_owed": int(sent_invoices_owed),
+        "sent_invoices_earned": int(sent_invoices_paid),
+        "archived_invoices": request.user.invoices.filter(is_archived=True),
+    }
     return render(
         request,
         "invoices/manage_invoices.html",
-        {
-            "invoices": invoices,
-            "new_invoice": InvoiceForm(
-                user=request.user, is_mobile=request.is_mobile, request_method="get"
-            ),
-            "upgrade_msg": request.user.upgrade_invoice_message,
-            "sent_invoices_owed": int(sent_invoices_owed),
-            "sent_invoices_earned": int(sent_invoices_paid),
-        },
+        context,
     )
 
 
@@ -298,3 +300,22 @@ def invoice_hour_stats(request, invoice_id):
     return render(
         request, "partials/_invoice_collapsed_content.html", {"invoice": invoice}
     )
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sent_invoices_list(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    sent_invoices = SentInvoice.objects.filter(invoice=invoice).all()
+    if sent_invoices:
+        return render(
+            request,
+            "partials/_sent_invoices_list.html",
+            {"sent_invoices": sent_invoices},
+        )
+    else:
+        return HttpResponse(
+            "Looks like you haven't generated an invoice yet, log hours to do so."
+        )

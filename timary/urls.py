@@ -54,6 +54,11 @@ urlpatterns += [
         name="update_payment_method_settings",
     ),
     path(
+        "profile/settings/accounting/",
+        views.update_accounting_integrations,
+        name="update_accounting_integrations",
+    ),
+    path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",
@@ -117,6 +122,11 @@ urlpatterns += [
         "invoices/<uuid:invoice_id>/invoice_hour_stats/",
         views.invoice_hour_stats,
         name="invoice_hour_stats",
+    ),
+    path(
+        "invoices/<uuid:invoice_id>/sent_invoices/",
+        views.sent_invoices_list,
+        name="sent_invoices_list",
     ),
     path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]

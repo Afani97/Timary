@@ -157,6 +157,8 @@ def send_weekly_updates():
             hours_tracked_this_week = hours.filter(
                 date_tracked__range=(week_start, today)
             ).annotate(cost=invoice.hourly_rate * Sum("hours"))
+            if not hours:
+                continue
 
             total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
             total_cost_amount = 0

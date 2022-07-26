@@ -32,10 +32,12 @@ def settings_partial(request, setting):
         template = "partials/settings/_membership.html"
     if setting == "payment_method":
         template = "partials/settings/_payment_method.html"
+    if setting == "accounting":
+        template = "partials/settings/_accounting.html"
     return render(
         request,
         template,
-        {"settings": request.user.settings},
+        {"profile": request.user, "settings": request.user.settings},
     )
 
 
@@ -196,6 +198,16 @@ def update_invoice_branding(request):
 
     else:
         raise Http404()
+
+
+@login_required
+@require_http_methods(["GET"])
+def update_accounting_integrations(request):
+    context = {
+        "profile": request.user,
+        "settings": request.user.settings,
+    }
+    return render(request, "partials/settings/_update_accounting.html", context)
 
 
 @login_required

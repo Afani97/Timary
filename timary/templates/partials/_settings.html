@@ -5,6 +5,10 @@
     <div class="divider"></div>
     {% include 'partials/settings/_payment_method.html' %}
     <div class="divider"></div>
+    {% if settings.can_integrate_with_accounting_tools %}
+        {% include 'partials/settings/_accounting.html' %}
+        <div class="divider"></div>
+    {% endif %}
 
     {% if settings.can_customize_invoice %}
         <div class="flex justify-between">

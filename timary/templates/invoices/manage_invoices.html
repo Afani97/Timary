@@ -54,6 +54,23 @@
         </ul>
     </div>
 
+    {% if invoices.count > 0 %}
+        <div class="divider"></div>
+
+        <div>
+            <h3 class="text-xl my-3 font-bold">Archived invoices</h3>
+
+            {% if archived_invoices.count > 0 %}
+                <ul>
+                    {% for archive_invoice in archived_invoices %}
+                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box bg-neutral">
@@ -83,6 +100,27 @@
     </div>
     {# Edit hours modal #}
 
+    {# Sent invoices modal #}
+    <input type="checkbox" id="sent-invoices-modal" class="modal-toggle" />
+    <div for="sent-invoices-modal" class="modal items-center">
+        <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
+            <h3 class="font-bold text-lg my-6">View sent invoices</h3>
+            <label
+                for="sent-invoices-modal"
+                class="btn btn-sm btn-circle absolute right-2 top-2 close-sent-invoices-modal"
+                _="on click call resetSentInvoicesView()"
+            >
+                ✕
+            </label>
+            <div class="sent-invoices-inner-modal" id="sent-invoices-inner">
+                <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# Sent invoices modal #}
+
 {% endblock %}
 
 {% block js %}
@@ -99,12 +137,18 @@
             htmx.find("#id_email_recipient").value = "";
         }
 
-        function resetEditHoursView() {
-            htmx.find("#edit-hours-inner").innerHTML = `
+        const LOADER = `
         <div class="flex justify-center">
             <button class="btn btn-lg loading">loading</button>
         </div>
         `;
+
+        function resetEditHoursView() {
+            htmx.find("#edit-hours-inner").innerHTML = LOADER;
+        }
+
+        function resetSentInvoicesView() {
+            htmx.find("#sent-invoices-inner").innerHTML = LOADER;
         }
 
         htmx.on("clearModal", function(){

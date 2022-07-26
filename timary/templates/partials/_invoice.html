@@ -51,6 +51,15 @@
                             Generate invoice today
                         </a>
                     </li>
+                    <li>
+                        <label
+                            for="sent-invoices-modal"
+                            hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}"
+                            hx-target=".sent-invoices-inner-modal"
+                            hx-swap="innerHTML">
+                            View sent invoices
+                        </label>
+                    </li>
                     <li><a
                         hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}"
                         hx-target="closest #{{ invoice.slug_title }}"

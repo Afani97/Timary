@@ -52,7 +52,9 @@ def quickbooks_disconnect(request):
     request.user.quickbooks_realm_id = None
     request.user.save()
     return render(
-        request, "partials/_integrations.html", {"settings": request.user.settings}
+        request,
+        "partials/settings/_update_accounting.html",
+        {"settings": request.user.settings},
     )
 
 
@@ -96,7 +98,9 @@ def freshbooks_disconnect(request):
     request.user.freshbooks_account_id = None
     request.user.save()
     return render(
-        request, "partials/_integrations.html", {"settings": request.user.settings}
+        request,
+        "partials/settings/_update_accounting.html",
+        {"settings": request.user.settings},
     )
 
 
@@ -140,7 +144,9 @@ def zoho_disconnect(request):
     request.user.zoho_organization_id = None
     request.user.save()
     return render(
-        request, "partials/_integrations.html", {"settings": request.user.settings}
+        request,
+        "partials/settings/_update_accounting.html",
+        {"settings": request.user.settings},
     )
 
 
@@ -183,7 +189,9 @@ def xero_disconnect(request):
     request.user.xero_tenant_id = None
     request.user.save()
     return render(
-        request, "partials/_integrations.html", {"settings": request.user.settings}
+        request,
+        "partials/settings/_update_accounting.html",
+        {"settings": request.user.settings},
     )
 
 
@@ -226,5 +234,7 @@ def sage_disconnect(request):
     request.user.sage_account_id = None
     request.user.save()
     return render(
-        request, "partials/_integrations.html", {"settings": request.user.settings}
+        request,
+        "partials/settings/_update_accounting.html",
+        {"settings": request.user.settings},
     )

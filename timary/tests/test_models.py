@@ -275,6 +275,7 @@ class TestUser(TestCase):
                 "zoho_connected": False,
                 "sage_connected": False,
                 "can_download_audit": False,
+                "can_integrate_with_accounting_tools": False,
                 "current_plan": "Professional",
                 "can_customize_invoice": False,
             },
