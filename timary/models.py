@@ -619,4 +619,6 @@ class User(AbstractUser, BaseModel):
                 "user_name": self.invoice_branding.get("company_name")
                 or self.first_name,
                 "hide_timary": self.invoice_branding.get("hide_timary") or False,
+                "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
+                "profile_pic": self.profile_pic,
             }

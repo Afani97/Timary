@@ -375,6 +375,7 @@ class InvoiceBrandingSettingsForm(forms.Form):
     )
     company_name = forms.CharField(max_length=50, required=False)
     hide_timary = forms.BooleanField(required=False)
+    show_profile_pic = forms.BooleanField(required=False)
 
 
 class RegisterForm(forms.ModelForm):

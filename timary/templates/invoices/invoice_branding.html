@@ -323,6 +323,22 @@
                                 on load if {{ invoice_branding_config.hide_timary|yesno:"true,false" }} add .invisible to .timary_branding else remove .invisible from .timary_branding end
                                     on change toggle .invisible on .timary_branding"/>
                     </div>
+                    {% if user.profile_pic %}
+                        <div class="divider"></div>
+                        <div class="form-control">
+                            <label class="label" for="company_name">
+                                <span class="label-text">Show your face picture</span>
+                            </label>
+                            <input
+                                type="checkbox"
+                                name="show_profile_pic"
+                                class="toggle"
+                                {% if invoice_branding_config.show_profile_pic %} checked {% endif %}
+                                _="
+                                    on load if {{ invoice_branding_config.show_profile_pic|yesno:"true,false" }} remove .invisible from .show_picture else add .invisible to .show_picture end
+                                        on change toggle .invisible on .show_picture"/>
+                        </div>
+                    {% endif %}
                     <div class="divider"></div>
                     <div class="flex justify-center">
                         <button class="btn btn-primary" type="submit">Update</button>
@@ -446,6 +462,23 @@
                             </table>
                         {% endcomment %}
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr class="show_picture">
+                                    <td>
+                                        <table class="email-footer" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation">
+                                            <tr>
+                                                <td class="content-cell" align="center">
+                                                    {% if user.profile_pic %}
+                                                        <div class="avatar">
+                                                            <div class="w-24 rounded-full">
+                                                                <img src="{{ user.profile_pic.url }}" />
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
                                                 </td>
                                             </tr>
                                         </table>

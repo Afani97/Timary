@@ -572,7 +572,12 @@ class TestSettings(TestCase):
 
     def test_valid_invoice_branding_options(self):
         form = InvoiceBrandingSettingsForm(
-            data={"due_date": "1", "company_name": "Awesome inc", "hide_timary": False},
+            data={
+                "due_date": "1",
+                "company_name": "Awesome inc",
+                "hide_timary": False,
+                "show_profile_pic": True,
+            },
         )
         self.assertTrue(form.is_valid())
         self.assertEqual(form.errors, {})
