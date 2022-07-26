@@ -463,6 +463,7 @@ class User(AbstractUser, BaseModel):
     @property
     def settings(self):
         return {
+            "can_integrate_with_accounting_tools": self.can_integrate_with_accounting_tools,
             "phone_number_availability": self.phone_number_availability,
             "quickbooks_connected": self.quickbooks_realm_id is not None,
             "freshbooks_connected": self.freshbooks_account_id is not None,
@@ -491,6 +492,21 @@ class User(AbstractUser, BaseModel):
     @property
     def formatted_phone_number(self):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+
+    @property
+    def get_accounting_integrations_connected(self):
+        accounts = []
+        if self.quickbooks_realm_id:
+            accounts.append("Quickbooks")
+        if self.freshbooks_account_id:
+            accounts.append("Freshbooks")
+        if self.zoho_organization_id:
+            accounts.append("Zoho")
+        if self.xero_tenant_id:
+            accounts.append("Xero")
+        if self.sage_account_id:
+            accounts.append("Sage")
+        return ", ".join(accounts)
 
     @property
     def can_accept_payments(self):

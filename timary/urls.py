@@ -54,6 +54,11 @@ urlpatterns += [
         name="update_payment_method_settings",
     ),
     path(
+        "profile/settings/accounting/",
+        views.update_accounting_integrations,
+        name="update_accounting_integrations",
+    ),
+    path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",

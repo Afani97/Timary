@@ -75,6 +75,8 @@
                 {% endif %}
             </div>
         </div>
-        {% include "partials/_spinnr.html" %}
+        <div class="card-actions flex justify-center mt-10">
+            <a hx-get="{% url 'timary:settings_partial' setting='accounting'%}" hx-target="#integrations-container" hx-swap="outerHTML" class="btn btn-sm btn-secondary">Cancel</a>
+        </div>
     </div>
 </div>
