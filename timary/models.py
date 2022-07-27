@@ -370,13 +370,16 @@ class SentInvoice(BaseModel):
             "email/styled_email.html",
             {
                 "can_accept_payments": False,
-                "user_name": self.invoice.user.first_name,
-                "recipient_name": self.invoice.email_recipient_name,
+                "user_name": self.user.invoice_branding_properties()["user_name"],
+                "next_weeks_date": self.user.invoice_branding_properties()[
+                    "next_weeks_date"
+                ],
                 "total_amount": self.total_price,
                 "sent_invoice_id": self.id,
                 "invoice": self.invoice,
                 "hours_tracked": hours_tracked,
                 "todays_date": self.date_sent,
+                "invoice_branding": self.user.invoice_branding_properties(),
             },
         )
         EmailService.send_html(
@@ -607,11 +610,17 @@ class User(AbstractUser, BaseModel):
         return self.invoices.filter(is_archived=False)
 
     def invoice_branding_properties(self):
+        properties = {
+            "next_weeks_date": datetime.date.today() + datetime.timedelta(weeks=1),
+            "user_name": self.first_name,
+        }
+
+        # Timary branding/defaults
         if not self.can_customize_invoice:
-            # Timary branding/defaults
-            return {}
-        else:
-            return {
+            return properties
+
+        properties.update(
+            {
                 "due_date_selected": self.invoice_branding.get("due_date"),
                 "next_weeks_date": datetime.date.today()
                 + datetime.timedelta(
@@ -626,3 +635,5 @@ class User(AbstractUser, BaseModel):
                 "twitter": self.invoice_branding.get("twitter") or "",
                 "youtube": self.invoice_branding.get("youtube") or "",
             }
+        )
+        return properties

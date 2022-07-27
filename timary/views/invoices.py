@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 
 from crispy_forms.utils import render_crispy_form
 from django.conf import settings
@@ -218,14 +218,17 @@ def resend_invoice_email(request, sent_invoice_id):
         {
             "can_accept_payments": invoice.user.can_accept_payments,
             "site_url": settings.SITE_URL,
-            "user_name": invoice.user.first_name,
-            "next_weeks_date": today + timedelta(weeks=1),
+            "user_name": invoice.user.invoice_branding_properties()["user_name"],
+            "next_weeks_date": invoice.user.invoice_branding_properties()[
+                "next_weeks_date"
+            ],
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_amount,
             "sent_invoice_id": sent_invoice.id,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "todays_date": today,
+            "invoice_branding": invoice.user.invoice_branding_properties(),
         },
     )
     EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
