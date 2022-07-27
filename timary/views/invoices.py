@@ -205,12 +205,12 @@ def resend_invoice_email(request, sent_invoice_id):
     if request.user != invoice.user:
         raise Http404
     today = localtime(now()).date()
-    current_month = date.strftime(today, "%m/%Y")
+    month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
     hours_tracked, total_amount = sent_invoice.get_hours_tracked()
 
     msg_subject = render_to_string(
         "email/invoice_subject.html",
-        {"invoice": invoice, "current_month": current_month},
+        {"invoice": invoice, "current_month": month_sent},
     ).strip()
 
     msg_body = render_to_string(
@@ -225,7 +225,7 @@ def resend_invoice_email(request, sent_invoice_id):
             "sent_invoice_id": sent_invoice.id,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
-            "todays_date": today,
+            "todays_date": sent_invoice.date_sent,
         },
     )
     EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
