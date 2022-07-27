@@ -621,4 +621,7 @@ class User(AbstractUser, BaseModel):
                 "hide_timary": self.invoice_branding.get("hide_timary") or False,
                 "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
                 "profile_pic": self.profile_pic,
+                "linked_in": self.invoice_branding.get("linked_in") or "",
+                "twitter": self.invoice_branding.get("twitter") or "",
+                "youtube": self.invoice_branding.get("youtube") or "",
             }

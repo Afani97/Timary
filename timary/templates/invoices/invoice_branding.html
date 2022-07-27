@@ -320,8 +320,8 @@
                             class="toggle"
                             {% if invoice_branding_config.hide_timary %} checked {% endif %}
                             _="
-                                on load if {{ invoice_branding_config.hide_timary|yesno:"true,false" }} add .invisible to .timary_branding else remove .invisible from .timary_branding end
-                                    on change toggle .invisible on .timary_branding"/>
+                                on load if {{ invoice_branding_config.hide_timary|yesno:"true,false" }} add .hidden to .timary_branding else remove .hidden from .timary_branding end
+                                    on change toggle .hidden on .timary_branding"/>
                     </div>
                     {% if user.profile_pic %}
                         <div class="divider"></div>
@@ -335,10 +335,58 @@
                                 class="toggle"
                                 {% if invoice_branding_config.show_profile_pic %} checked {% endif %}
                                 _="
-                                    on load if {{ invoice_branding_config.show_profile_pic|yesno:"true,false" }} remove .invisible from .show_picture else add .invisible to .show_picture end
-                                        on change toggle .invisible on .show_picture"/>
+                                    on load if {{ invoice_branding_config.show_profile_pic|yesno:"true,false" }} remove .hidden from .show_picture else add .hidden  to .show_picture end
+                                        on change toggle .hidden on .show_picture"/>
                         </div>
                     {% endif %}
+                    <div class="divider"></div>
+                    <div class="form-control">
+                        <label class="label" for="linked_in">
+                            <span class="label-text">LinkedIn</span>
+                        </label>
+                        <input
+                            name="linked_in"
+                            class="input input-bordered w-full"
+                            placeholder=""
+                            value="{{ invoice_branding_config.linked_in }}"
+                            _="on load if {{ invoice_branding_config.linked_in|yesno:"true,false" }} remove .hidden from #linked_in else add .hidden to #linked_in end
+                                on keyup if my.value put my.value into #linked_in.href then remove .hidden from #linked_in else add .hidden to #linked_in"/>
+                        <label class="label">
+                            <span class="label-text-alt">Include https://www.</span>
+                        </label>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="form-control">
+                        <label class="label" for="twitter">
+                            <span class="label-text">Twitter</span>
+                        </label>
+                        <input
+                            name="twitter"
+                            class="input input-bordered w-full"
+                            placeholder=""
+                            value="{{ invoice_branding_config.twitter }}"
+                            _="on load if {{ invoice_branding_config.twitter|yesno:"true,false" }} remove .hidden from #twitter else add .hidden to #twitter end
+                                on keyup if my.value put my.value into #twitter.href then remove .hidden from #twitter else add .hidden to #twitter"/>
+                        <label class="label">
+                            <span class="label-text-alt">Include https://www.</span>
+                        </label>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="form-control">
+                        <label class="label" for="youtube">
+                            <span class="label-text">Youtube</span>
+                        </label>
+                        <input
+                            name="youtube"
+                            class="input input-bordered w-full"
+                            placeholder=""
+                            value="{{ invoice_branding_config.youtube }}"
+                            _="on load if {{ invoice_branding_config.youtube|yesno:"true,false" }} remove .hidden from #youtube else add .hidden to #youtube end
+                                on keyup if my.value put my.value into #youtube.href then remove .hidden from #youtube else add .hidden to #youtube"/>
+                        <label class="label">
+                            <span class="label-text-alt">Include https://www.</span>
+                        </label>
+                    </div>
                     <div class="divider"></div>
                     <div class="flex justify-center">
                         <button class="btn btn-primary" type="submit">Update</button>
@@ -352,9 +400,9 @@
                     <tr>
                         <td align="center">
                             <table class="email-content" width="100%" cellpadding="0" cellspacing="0" role="presentation">
-                                <tr class="timary_branding">
+                                <tr>
                                     <td class="email-masthead">
-                                        <a href="https://www.usetimary.com" class="f-fallback email-masthead_name">
+                                        <a href="https://www.usetimary.com" class="f-fallback email-masthead_name timary_branding">
                                             Timary
                                         </a>
                                     </td>
@@ -450,27 +498,16 @@
                                                         <p>If you have any questions about this invoice, reach out to our <a href="#">support team</a> for help.</p>
                                                         <p>Cheers,
                                                             <br>The Timary Team</p>
-                                                        <!-- Sub copy -->
-                                                        {% comment %}
-                            <table class="body-sub" role="presentation">
-                              <tr>
-                                <td>
-                                  <p class="f-fallback sub">If you’re having trouble with the button above, copy and paste the URL below into your web browser.</p>
-                                  <p class="f-fallback sub">action_url</p>
-                                </td>
-                              </tr>
-                            </table>
-                        {% endcomment %}
                                                     </div>
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
                                 </tr>
-                                <tr class="show_picture">
+                                <tr>
                                     <td>
                                         <table class="email-footer" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation">
-                                            <tr>
+                                            <tr class="show_picture">
                                                 <td class="content-cell" align="center">
                                                     {% if user.profile_pic %}
                                                         <div class="avatar">
@@ -481,13 +518,14 @@
                                                     {% endif %}
                                                 </td>
                                             </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                <tr class="timary_branding">
-                                    <td>
-                                        <table class="email-footer" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation">
-                                            <tr>
+                                            <tr class="social_media">
+                                                <td class="content-cell" align="center">
+                                                    <div><a href="{{ invoice_branding_config.linked_in }}" id="linked_in" class="link text-center hidden">Linkedin</a></div>
+                                                    <div><a href="{{ invoice_branding_config.twitter }}" id="twitter" class="link text-center hidden">Twitter</a></div>
+                                                    <div><a href="{{ invoice_branding_config.youtube }}" id="youtube" class="link text-center hidden">Youtube</a></div>
+                                                </td>
+                                            </tr>
+                                            <tr class="timary_branding">
                                                 <td class="content-cell" align="center">
                                                     <p class="f-fallback sub text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>
                                                     <p class="f-fallback sub text-center">

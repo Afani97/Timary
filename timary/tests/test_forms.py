@@ -577,6 +577,9 @@ class TestSettings(TestCase):
                 "company_name": "Awesome inc",
                 "hide_timary": False,
                 "show_profile_pic": True,
+                "linked_in": "some_url",
+                "twitter": "some_url",
+                "youtube": "some_url",
             },
         )
         self.assertTrue(form.is_valid())
