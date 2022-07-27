@@ -9,7 +9,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.timezone import localtime, now
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm, InvoiceForm
@@ -204,13 +203,12 @@ def resend_invoice_email(request, sent_invoice_id):
     invoice = sent_invoice.invoice
     if request.user != invoice.user:
         raise Http404
-    today = localtime(now()).date()
-    current_month = date.strftime(today, "%m/%Y")
+    month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
     hours_tracked, total_amount = sent_invoice.get_hours_tracked()
 
     msg_subject = render_to_string(
         "email/invoice_subject.html",
-        {"invoice": invoice, "current_month": current_month},
+        {"invoice": invoice, "current_month": month_sent},
     ).strip()
 
     msg_body = render_to_string(
@@ -227,7 +225,7 @@ def resend_invoice_email(request, sent_invoice_id):
             "sent_invoice_id": sent_invoice.id,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
-            "todays_date": today,
+            "todays_date": sent_invoice.date_sent,
             "invoice_branding": invoice.user.invoice_branding_properties(),
         },
     )
