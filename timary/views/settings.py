@@ -1,3 +1,4 @@
+import datetime
 from tempfile import NamedTemporaryFile
 
 from django.contrib import messages
@@ -11,7 +12,11 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from stripe.error import InvalidRequestError
 
-from timary.forms import MembershipTierSettingsForm, SMSSettingsForm
+from timary.forms import (
+    InvoiceBrandingSettingsForm,
+    MembershipTierSettingsForm,
+    SMSSettingsForm,
+)
 from timary.models import SentInvoice, User
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
@@ -144,6 +149,52 @@ def update_payment_method_settings(request):
                 request, "Error updating payment method, Stripe requires a debit card."
             )
         return redirect(reverse("timary:user_profile"))
+
+    else:
+        raise Http404()
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def update_invoice_branding(request):
+    user: User = request.user
+    invoice_branding_form = InvoiceBrandingSettingsForm(
+        initial=user.invoice_branding, data=request.POST or None
+    )
+    context = {
+        "settings_form": invoice_branding_form,
+        "invoice_branding_config": user.invoice_branding_properties(),
+    }
+    if request.method == "GET":
+        context.update(
+            {
+                "todays_date": datetime.date.today(),
+                "yesterday_date": datetime.date.today() - datetime.timedelta(days=1),
+            }
+        )
+        return render(request, "invoices/invoice_branding.html", context)
+
+    elif request.method == "POST" and request.user.can_customize_invoice:
+
+        if invoice_branding_form.is_valid():
+            for k, v in invoice_branding_form.cleaned_data.items():
+                user.invoice_branding[k] = v
+            user.save()
+            response = render(request, "invoices/invoice_branding.html", context)
+            show_alert_message(
+                response,
+                "success",
+                "Invoice branding updated",
+            )
+            return response
+        else:
+            response = render(request, "invoices/invoice_branding.html", context)
+            show_alert_message(
+                response,
+                "error",
+                "Unable to update Invoice branding",
+            )
+            return response
 
     else:
         raise Http404()

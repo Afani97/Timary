@@ -370,13 +370,16 @@ class SentInvoice(BaseModel):
             "email/styled_email.html",
             {
                 "can_accept_payments": False,
-                "user_name": self.invoice.user.first_name,
-                "recipient_name": self.invoice.email_recipient_name,
+                "user_name": self.user.invoice_branding_properties()["user_name"],
+                "next_weeks_date": self.user.invoice_branding_properties()[
+                    "next_weeks_date"
+                ],
                 "total_amount": self.total_price,
                 "sent_invoice_id": self.id,
                 "invoice": self.invoice,
                 "hours_tracked": hours_tracked,
                 "todays_date": self.date_sent,
+                "invoice_branding": self.user.invoice_branding_properties(),
             },
         )
         EmailService.send_html(
@@ -454,6 +457,9 @@ class User(AbstractUser, BaseModel):
 
     profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
 
+    # Custom invoice branding
+    invoice_branding = models.JSONField(blank=True, null=True, default=dict)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -474,6 +480,7 @@ class User(AbstractUser, BaseModel):
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")
             ).title(),
+            "can_customize_invoice": self.can_customize_invoice,
         }
 
     @property
@@ -523,7 +530,8 @@ class User(AbstractUser, BaseModel):
     @property
     def can_view_invoice_stats(self):
         return (
-            self.membership_tier == User.MembershipTier.BUSINESS
+            self.membership_tier == User.MembershipTier.PROFESSIONAL
+            or self.membership_tier == User.MembershipTier.BUSINESS
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
@@ -554,6 +562,13 @@ class User(AbstractUser, BaseModel):
 
     @property
     def can_download_audit(self):
+        return (
+            self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        )
+
+    @property
+    def can_customize_invoice(self):
         return (
             self.membership_tier == User.MembershipTier.BUSINESS
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
@@ -593,3 +608,32 @@ class User(AbstractUser, BaseModel):
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
+
+    def invoice_branding_properties(self):
+        properties = {
+            "next_weeks_date": datetime.date.today() + datetime.timedelta(weeks=1),
+            "user_name": self.first_name,
+        }
+
+        # Timary branding/defaults
+        if not self.can_customize_invoice:
+            return properties
+
+        properties.update(
+            {
+                "due_date_selected": self.invoice_branding.get("due_date"),
+                "next_weeks_date": datetime.date.today()
+                + datetime.timedelta(
+                    weeks=int(self.invoice_branding.get("due_date") or 1)
+                ),
+                "user_name": self.invoice_branding.get("company_name")
+                or self.first_name,
+                "hide_timary": self.invoice_branding.get("hide_timary") or False,
+                "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
+                "profile_pic": self.profile_pic,
+                "linked_in": self.invoice_branding.get("linked_in") or "",
+                "twitter": self.invoice_branding.get("twitter") or "",
+                "youtube": self.invoice_branding.get("youtube") or "",
+            }
+        )
+        return properties

@@ -177,14 +177,19 @@ def stripe_webhook(request):
                 {
                     "can_accept_payments": sent_invoice.user.can_accept_payments,
                     "site_url": settings.SITE_URL,
-                    "user_name": sent_invoice.user.first_name,
-                    "next_weeks_date": today + timedelta(weeks=1),
+                    "user_name": sent_invoice.user.invoice_branding_properties()[
+                        "user_name"
+                    ],
+                    "next_weeks_date": sent_invoice.user.invoice_branding_properties()[
+                        "next_weeks_date"
+                    ],
                     "recipient_name": sent_invoice.invoice.email_recipient_name,
                     "total_amount": sent_invoice.total_price,
                     "sent_invoice_id": sent_invoice.id,
                     "invoice": sent_invoice.invoice,
                     "hours_tracked": hours_tracked,
                     "tomorrows_date": today + timedelta(days=1),
+                    "invoice_branding": sent_invoice.user.invoice_branding_properties(),
                 },
             )
             EmailService.send_html(

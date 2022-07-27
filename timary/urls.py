@@ -63,6 +63,11 @@ urlpatterns += [
         views.settings_partial,
         name="settings_partial",
     ),
+    path(
+        "profile/invoice_branding/",
+        views.update_invoice_branding,
+        name="update_invoice_branding",
+    ),
     path("audit/", views.audit, name="audit"),
 ]
 
