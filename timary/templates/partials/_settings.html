@@ -10,6 +10,15 @@
         <div class="divider"></div>
     {% endif %}
 
+    {% if settings.can_customize_invoice %}
+        <div class="flex justify-between">
+            <div>Your invoice branding</div>
+            <div></div>
+            <a href="{% url 'timary:update_invoice_branding' %}" class="link">Customize</a>
+        </div>
+        <div class="divider"></div>
+    {% endif %}
+
     {% if settings.can_download_audit %}
         <div class="flex justify-between">
             <div>Invoice audit log</div>

@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from timary.forms import (
     DailyHoursForm,
+    InvoiceBrandingSettingsForm,
     InvoiceForm,
     LoginForm,
     MembershipTierSettingsForm,
@@ -568,3 +569,18 @@ class TestSettings(TestCase):
         form.save()
         user.refresh_from_db()
         self.assertEqual(user.membership_tier, 5)
+
+    def test_valid_invoice_branding_options(self):
+        form = InvoiceBrandingSettingsForm(
+            data={
+                "due_date": "1",
+                "company_name": "Awesome inc",
+                "hide_timary": False,
+                "show_profile_pic": True,
+                "linked_in": "some_url",
+                "twitter": "some_url",
+                "youtube": "some_url",
+            },
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
