@@ -6,6 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="color-scheme" content="light dark" />
         <meta name="supported-color-schemes" content="light dark" />
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <title></title>
         <style type="text/css" rel="stylesheet" media="all">
             /* Base ------------------------------ */
@@ -545,19 +547,40 @@
                             </table>
                         {% endif %}
                         <tr>
-                            <td>
-                                <table class="email-footer" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation">
-                                    <tr>
-                                        <td class="content-cell" align="center">
-                                            <p class="f-fallback sub align-center">&copy; 2021 Timary. All rights reserved.</p>
-                                            <p class="f-fallback sub align-center">
-                                                Timary LLC
-                                                <br>
-                                                Worcester, MA
-                                            </p>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <td class="content-cell" align="center">
+                                {% if invoice_branding.show_profile_pic %}
+                                    <div class="show_picture my-4">
+
+                                        {% if invoice_branding.profile_pic %}
+                                            <div class="avatar">
+                                                <div class="w-24 rounded-full">
+                                                    <img src="{{ invoice_branding.profile_pic.url }}" />
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                <div class="social_media my-8">
+                                    {% if invoice_branding.linked_in %}
+                                        <div><a href="{{ invoice_branding.linked_in }}" id="linked_in" class="link text-center">Linkedin</a></div>
+                                    {% endif %}
+                                    {% if invoice_branding.twitter %}
+                                        <div><a href="{{ invoice_branding.twitter }}" id="twitter" class="link text-center">Twitter</a></div>
+                                    {% endif %}
+                                    {% if invoice_branding.youtube %}
+                                        <div><a href="{{ invoice_branding.youtube }}" id="youtube" class="link text-center">Youtube</a></div>
+                                    {% endif %}
+                                </div>
+                                {% if not invoice_branding.hide_timary %}
+                                    <div class="timary_branding">
+                                        <p class="f-fallback sub text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>
+                                        <p class="f-fallback sub text-center">
+                                            Timary LLC
+                                            <br>
+                                            Worcester, MA
+                                        </p>
+                                    </div>
+                                {% endif %}
                             </td>
                         </tr>
                     </table>

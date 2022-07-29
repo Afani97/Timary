@@ -108,8 +108,10 @@ def send_invoice_preview(invoice_id):
     msg_body = render_to_string(
         "email/sneak_peak_invoice_email.html",
         {
-            "user_name": invoice.user.first_name,
-            "next_weeks_date": today + timedelta(weeks=1),
+            "user_name": invoice.user.invoice_branding_properties().get("user_name"),
+            "next_weeks_date": invoice.user.invoice_branding_properties().get(
+                "next_weeks_date"
+            ),
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_amount,
             "invoice": invoice,
@@ -117,6 +119,7 @@ def send_invoice_preview(invoice_id):
             "tomorrows_date": today + timedelta(days=1),
             "can_view_invoice_stats": invoice.user.can_view_invoice_stats,
             "site_url": settings.SITE_URL,
+            "invoice_branding": invoice.user.invoice_branding_properties(),
         },
     )
     EmailService.send_html(
@@ -168,13 +171,16 @@ def send_weekly_updates():
                 "email/weekly_update_email.html",
                 {
                     "site_url": settings.SITE_URL,
-                    "user_name": invoice.user.first_name,
+                    "user_name": invoice.user.invoice_branding_properties().get(
+                        "user_name"
+                    ),
                     "recipient_name": invoice.email_recipient_name,
                     "invoice": invoice,
                     "hours_tracked": hours_tracked_this_week,
                     "week_starting_date": week_start,
                     "todays_date": today,
                     "total_amount": total_cost_amount,
+                    "invoice_branding": invoice.user.invoice_branding_properties(),
                 },
             )
             EmailService.send_html(

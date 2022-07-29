@@ -17,7 +17,7 @@ from timary.tasks import (
     send_invoice_preview,
     send_weekly_updates,
 )
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory
+from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
 class TestGatherInvoices(TestCase):
@@ -280,8 +280,11 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
     def test_invoice_preview_context(self):
+        user = UserFactory()
         invoice = InvoiceFactory(
-            hourly_rate=25, next_date=datetime.date.today() - datetime.timedelta(days=1)
+            user=user,
+            hourly_rate=25,
+            next_date=datetime.date.today() - datetime.timedelta(days=1),
         )
         # Save last date before it's updated in send_invoice method to test email contents below
         hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
