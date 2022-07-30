@@ -206,10 +206,9 @@ def resend_invoice_email(request, sent_invoice_id):
     month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
     hours_tracked, total_amount = sent_invoice.get_hours_tracked()
 
-    msg_subject = render_to_string(
-        "email/invoice_subject.html",
-        {"invoice": invoice, "current_month": month_sent},
-    ).strip()
+    msg_subject = (
+        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}"
+    )
 
     msg_body = render_to_string(
         "email/styled_email.html",

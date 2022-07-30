@@ -65,10 +65,7 @@ def send_invoice(invoice_id):
     today = localtime(now()).date()
     current_month = date.strftime(today, "%m/%Y")
 
-    msg_subject = render_to_string(
-        "email/invoice_subject.html",
-        {"invoice": invoice, "current_month": current_month},
-    ).strip()
+    msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
 
     sent_invoice = SentInvoice.objects.create(
         hours_start_date=hours_tracked.first().date_tracked or None,
