@@ -211,7 +211,7 @@ def resend_invoice_email(request, sent_invoice_id):
     )
 
     msg_body = render_to_string(
-        "email/styled_email.html",
+        "email/sent_invoice_email.html",
         {
             "can_accept_payments": invoice.user.can_accept_payments,
             "site_url": settings.SITE_URL,

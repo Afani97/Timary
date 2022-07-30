@@ -79,7 +79,7 @@ def send_invoice(invoice_id):
         hour.sent_invoice_id = sent_invoice.id
         hour.save()
     msg_body = render_to_string(
-        "email/styled_email.html",
+        "email/sent_invoice_email.html",
         {
             "can_accept_payments": invoice.user.can_accept_payments,
             "site_url": settings.SITE_URL,
