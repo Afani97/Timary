@@ -430,16 +430,8 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         with self.subTest("Testing hours line item"):
             msg = f"""
-                <tr>
-                    <td width="80%" class="purchase_item">
-                        <span class="f-fallback">
-                            { floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}
-                        </span>
-                    </td>
-                    <td class="align-right" width="20%" class="purchase_item">
-                        <span class="f-fallback">${ floatformat(hour.hours * invoice.hourly_rate) }</span>
-                    </td>
-                </tr>
+                <div>{ floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
+                <div>${ floatformat(hour.hours * invoice.hourly_rate) }</div>
                 """
             self.assertInHTML(msg, html_message)
 
