@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="x-apple-disable-message-reformatting" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <title></title>
+        <style type="text/css" rel="stylesheet" media="all">
+            @import url("https://fonts.googleapis.com/css?family=Nunito+Sans:400,700&display=swap");
+
+            .preheader {
+                display: none !important;
+                visibility: hidden;
+                mso-hide: all;
+                font-size: 1px;
+                line-height: 1px;
+                max-height: 0;
+                max-width: 0;
+                opacity: 0;
+                overflow: hidden;
+            }
+            body {
+                font-family: "Nunito Sans", Helvetica, Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body class="w-full m-0 px-0 pt-0 pb-10 bg-gray-100">
+        <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ next_weeks_date }}</span>
+
+        {% if not invoice_branding.hide_timary %}
+            <div class="py-8 text-center">
+                <a href="https://www.usetimary.com" class="text-xl font-bold text-gray-400 no-underline">
+                    Timary
+                </a>
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+        <div>
+            {% if invoice_branding.show_profile_pic %}
+                <div class="show_picture flex justify-center my-4">
+                    {% if invoice_branding.profile_pic %}
+                        <div class="avatar">
+                            <div class="w-24 rounded-full">
+                                <img src="{{ invoice_branding.profile_pic.url }}" />
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="social_media my-8 flex flex-col space-y-1">
+                {% if invoice_branding.linked_in %}
+                    <a href="{{ invoice_branding.linked_in }}" id="linked_in" class="link text-center">Linkedin</a>
+                {% endif %}
+                {% if invoice_branding.twitter %}
+                    <a href="{{ invoice_branding.twitter }}" id="twitter" class="link text-center">Twitter</a>
+                {% endif %}
+                {% if invoice_branding.youtube %}
+                    <a href="{{ invoice_branding.youtube }}" id="youtube" class="link text-center">Youtube</a>
+                {% endif %}
+            </div>
+            {% if not invoice_branding.hide_timary %}
+                <div class="timary_branding">
+                    <p class="text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>
+                    <p class="text-center">
+                        Timary LLC
+                        <br>
+                        Worcester, MA
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </body>
+</html>

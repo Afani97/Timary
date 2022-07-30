@@ -445,13 +445,15 @@
             <tr>
                 <td align="center">
                     <table class="email-content" width="100%" cellpadding="0" cellspacing="0" role="presentation">
-                        <tr>
-                            <td class="email-masthead">
-                                <a href="https://example.com" class="f-fallback email-masthead_name">
-                                    Timary
-                                </a>
-                            </td>
-                        </tr>
+                        {% if not invoice_branding.hide_timary %}
+                            <tr>
+                                <td class="email-masthead">
+                                    <a href="https://www.usetimary.com" class="f-fallback email-masthead_name">
+                                        Timary
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endif %}
                         <!-- Email Body -->
                         <tr>
                             <td class="email-body" width="100%" cellpadding="0" cellspacing="0">

@@ -313,8 +313,9 @@ class TestSendInvoice(TestCase):
 
         with self.subTest("Testing title"):
             msg = f"""
-            <h1>Hi {invoice.email_recipient_name},</h1>
-            <p>Thanks for using Timary. This is an invoice for {invoice.user.first_name}'s services.</p>
+            <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
+            <div class="my-2 text-xl leading-7">Thanks for using Timary.
+            This is an invoice for {invoice.user.first_name}'s services.</div>
             """
             self.assertInHTML(msg, html_message)
 
@@ -325,8 +326,8 @@ class TestSendInvoice(TestCase):
         with self.subTest("Testing one day details"):
             formatted_date = hours_1.date_tracked.strftime("%b %-d")
             msg = f"""
-            <td width="80%" class="purchase_item"><span class="f-fallback">1.00 hours on { formatted_date }</span></td>
-            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$25</span></td>
+            <div>1.00 hours on { formatted_date }</div>
+            <div>$25</div>
             """
             self.assertInHTML(msg, html_message)
 
