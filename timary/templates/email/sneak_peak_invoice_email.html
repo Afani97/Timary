@@ -1,5 +1,9 @@
 {% extends "email/base_invoice.html" %}
 
+{% block preheader %}
+    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ next_weeks_date }}</span>
+{% endblock %}
+
 {% block main %}
     <div class="mb-6">
         <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
