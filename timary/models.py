@@ -367,7 +367,7 @@ class SentInvoice(BaseModel):
         hours_tracked, _ = self.get_hours_tracked()
 
         msg_body = render_to_string(
-            "email/styled_email.html",
+            "email/sent_invoice_email.html",
             {
                 "can_accept_payments": False,
                 "user_name": self.user.invoice_branding_properties()["user_name"],

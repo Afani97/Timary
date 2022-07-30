@@ -173,7 +173,7 @@ def stripe_webhook(request):
 
             # Notify email recipient that payment failed
             msg_body = render_to_string(
-                "email/styled_email.html",
+                "email/sent_invoice_email.html",
                 {
                     "can_accept_payments": sent_invoice.user.can_accept_payments,
                     "site_url": settings.SITE_URL,
