@@ -39,7 +39,14 @@
             </div>
         {% endif %}
 
-        {% block content %}
+        <div class="bg-white">
+            <div class="max-w-2xl mx-auto pt-12 pb-1">
+                {% block main %}
+                {% endblock %}
+            </div>
+        </div>
+
+        {% block footer %}
         {% endblock %}
 
         <div>

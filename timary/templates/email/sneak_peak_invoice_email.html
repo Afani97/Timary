@@ -1,46 +1,43 @@
 {% extends "email/base_invoice.html" %}
 
-{% block content %}
-    <div class="bg-white">
-        <div class="max-w-2xl mx-auto pt-12 pb-1">
-            <div class="mb-6">
-                <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
-                <div class="my-2 text-xl leading-7">Thanks for using Timary. This is an invoice for {{ user_name }}'s services.</div>
-            </div>
-            <div class="text-xl font-medium bg-gray-100 text-grey-900 my-4 p-6 tracking-wide">
-                <div class="mb-1">
-                    <strong>Amount Due: ${{ total_amount | floatformat }}</strong>
-                </div>
-                <div>
-                    <strong>Due By:</strong> {{ next_weeks_date }}
-                </div>
-            </div>
-            <div class="mx-1">
-                <div class="flex justify-between mt-6 text-xl text-black font-medium">
-                    <div>Invoice #{{ invoice_id }}</div>
-                    <strong>{{ tomorrows_date }}</strong>
-                </div>
-                <div class="flex justify-between text-base pb-3 border-b border-gray-200">
-                    <div>Description</div>
-                    <div>Amount</div>
-                </div>
-                <div class="border-b border-gray-200 pb-2">
-                    {% for hour in hours_tracked %}
-                        <div class="flex justify-between py-3 text-xl">
-                            <div>{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</div>
-                            <div>${{ hour.cost | floatformat }}</div>
-                        </div>
-                    {% endfor %}
-                </div>
-                <div class="flex justify-end text-xl font-semibold text-black mt-6 mb-10">
-                    <div>Total</div>
-                    <div class="ml-24">${{ total_amount | floatformat }}</div>
-                </div>
-            </div>
-
+{% block main %}
+    <div class="mb-6">
+        <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
+        <div class="my-2 text-xl leading-7">Thanks for using Timary. This is an invoice for {{ user_name }}'s services.</div>
+    </div>
+    <div class="text-xl font-medium bg-gray-100 text-grey-900 my-4 p-6 tracking-wide">
+        <div class="mb-1">
+            <strong>Amount Due: ${{ total_amount | floatformat }}</strong>
+        </div>
+        <div>
+            <strong>Due By:</strong> {{ next_weeks_date }}
         </div>
     </div>
+    <div class="mx-1">
+        <div class="flex justify-between mt-6 text-xl text-black font-medium">
+            <div>Invoice #{{ invoice_id }}</div>
+            <strong>{{ tomorrows_date }}</strong>
+        </div>
+        <div class="flex justify-between text-base pb-3 border-b border-gray-200">
+            <div>Description</div>
+            <div>Amount</div>
+        </div>
+        <div class="border-b border-gray-200 pb-2">
+            {% for hour in hours_tracked %}
+                <div class="flex justify-between py-3 text-xl">
+                    <div>{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</div>
+                    <div>${{ hour.cost | floatformat }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="flex justify-end text-xl font-semibold text-black mt-6 mb-10">
+            <div>Total</div>
+            <div class="ml-24">${{ total_amount | floatformat }}</div>
+        </div>
+    </div>
+{% endblock %}
 
+{% block footer %}
     {% if can_view_invoice_stats %}
         <div class="flex justify-center my-12">
             <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:manage_invoices' %}">
@@ -48,5 +45,4 @@
             </a>
         </div>
     {% endif %}
-
 {% endblock %}
