@@ -35,7 +35,7 @@
 
     {% if can_accept_payments %}
         <div class="flex justify-center my-12">
-            <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:pay_invoice' sent_invoice_id=sent_invoice_id %}">
+            <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:pay_invoice' sent_invoice_id=sent_invoice.id %}">
                 Pay Invoice
             </a>
         </div>
@@ -43,7 +43,7 @@
 
     <div class="mx-1">
         <div class="flex justify-between mt-6 text-xl text-black font-medium">
-            <div>Invoice #{{ invoice.id }}</div>
+            <div>Invoice #{{ sent_invoice.email_id }}</div>
             <strong>{{ todays_date }}</strong>
         </div>
         <div class="flex justify-between text-base pb-3 border-b border-gray-200">

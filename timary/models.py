@@ -342,6 +342,10 @@ class SentInvoice(BaseModel):
             f"paid_status={self.get_paid_status_display()})"
         )
 
+    @property
+    def email_id(self):
+        return f"{str(self.id).split('-')[0]}"
+
     def get_hours_tracked(self):
         hours_tracked = (
             self.invoice.hours_tracked.filter(sent_invoice_id=self.id)

@@ -89,7 +89,7 @@ def send_invoice(invoice_id):
             ],
             "recipient_name": invoice.email_recipient_name,
             "total_amount": total_amount,
-            "sent_invoice_id": sent_invoice.id,
+            "sent_invoice": sent_invoice,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "todays_date": today,

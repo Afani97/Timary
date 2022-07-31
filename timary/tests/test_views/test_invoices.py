@@ -62,7 +62,7 @@ class TestInvoices(BaseTest):
             f"""
             <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
             <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
-            <p class="text-xl">next date sent is: {invoice.next_date.strftime("%B %-d, %Y")}</p>
+            <p class="text-xl">next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -222,7 +222,7 @@ class TestInvoices(BaseTest):
             f"""
             <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
             <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
-            <p class="text-xl">next date sent is: {self.invoice.next_date.strftime("%B %-d, %Y")}</p>
+            <p class="text-xl">next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
