@@ -314,7 +314,7 @@ class TestSendInvoice(TestCase):
 
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is an invoice for {invoice.user.first_name}'s services.</div>
             """
@@ -441,7 +441,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
         with self.subTest("Testing invoice budget"):
             msg = f"""
                 <div
-                    class="radial-progress text-black bg-accent  border-4 border-accent"
+                    class="radial-progress bg-accent  border-4 border-accent"
                     style="--value:{ invoice.budget_percentage }; --thickness: 4px;"
                 >
                     { floatformat(invoice.budget_percentage,-2) }%

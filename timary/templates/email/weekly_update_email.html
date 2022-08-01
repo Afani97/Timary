@@ -7,11 +7,11 @@
 {% block main %}
 
     <div class="mb-6">
-        <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
+        <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
         <div class="my-2 text-xl leading-7">Thanks for using Timary. This is an weekly progress report for {{ user_name }}'s services working on {{ invoice.title }}..</div>
     </div>
     <div class="mx-1">
-        <div class="flex justify-between text-base pb-3 border-b border-gray-200">
+        <div class="flex justify-between pb-3 border-b border-gray-200">
             <div>Description</div>
             <div>Amount</div>
         </div>
@@ -23,7 +23,7 @@
                 </div>
             {% endfor %}
         </div>
-        <div class="flex justify-end text-xl font-semibold text-black mt-6 mb-10">
+        <div class="flex justify-end text-xl font-semibold mt-6 mb-10">
             <div>Total This Week</div>
             <div class="ml-24">${{ total_amount | floatformat }}</div>
         </div>
@@ -35,7 +35,7 @@
         <div class="flex flex-col space-y-2 justify-center items-center my-12">
             <p class="mb-2 text-center text-xl font-medium">Invoice Budget</p>
             <div
-                class="radial-progress text-black bg-accent border-4 border-accent"
+                class="radial-progress bg-accent border-4 border-accent"
                 style="--value:{{ invoice.budget_percentage }}; --thickness: 4px;"
             >
                 {{ invoice.budget_percentage|floatformat:-2 }}%
