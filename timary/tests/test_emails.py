@@ -262,7 +262,7 @@ class TestSendInvoice(TestCase):
 
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-black text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is an invoice for {invoice.user.first_name}'s services.</div>
             """

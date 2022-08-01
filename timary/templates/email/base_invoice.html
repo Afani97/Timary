@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html data-theme="light">
+<html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="x-apple-disable-message-reformatting" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <meta name="color-scheme" content="light only" />
-        <meta name="supported-color-schemes" content="light only">
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark">
         <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <title></title>
@@ -26,24 +26,20 @@
             body {
                 font-family: "Nunito Sans", Helvetica, Arial, sans-serif;
             }
-            :root {
-                color-scheme: light;
-                supported-color-schemes: light;
-            }
         </style>
     </head>
-    <body class="w-full m-0 px-0 pt-0 pb-10 bg-gray-100" >
+    <body class="w-full m-0 px-0 pt-0 pb-10 bg-base-200" >
         {% block preheader %}{% endblock %}
 
         {% if not invoice_branding.hide_timary %}
             <div class="py-8 text-center">
-                <a href="https://www.usetimary.com" class="text-xl font-bold text-gray-400 no-underline">
+                <a href="https://www.usetimary.com" class="text-xl font-bold no-underline">
                     Timary
                 </a>
             </div>
         {% endif %}
 
-        <div class="bg-white">
+        <div class="bg-base-100">
             <div class="max-w-2xl mx-auto pt-12 pb-1 px-2">
                 {% block main %}
                 {% endblock %}
