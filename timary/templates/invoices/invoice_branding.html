@@ -131,13 +131,11 @@
             </div>
             <div class="divider divider-horizontal w-1/5"></div>
             <div class="w-3/5">
-                {% if not invoice_branding.hide_timary %}
-                    <div class="py-8 text-center">
-                        <a href="https://www.usetimary.com" class="text-xl font-bold no-underline timary_branding">
-                            Timary
-                        </a>
-                    </div>
-                {% endif %}
+                <div class="py-8 text-center">
+                    <a href="https://www.usetimary.com" class="text-xl font-bold no-underline timary_branding">
+                        Timary
+                    </a>
+                </div>
 
                 <div class="bg-base-100">
                     <div class="max-w-2xl mx-auto pt-12 pb-1 px-2">
@@ -195,32 +193,28 @@
                     </div>
 
                     <div>
-                        {% if invoice_branding_config.show_profile_pic %}
-                            <div class="show_picture flex justify-center my-4">
-                                {% if user.profile_pic %}
-                                    <div class="avatar">
-                                        <div class="w-24 rounded-full">
-                                            <img src="{{ user.profile_pic.url }}" />
-                                        </div>
+                        <div class="show_picture flex justify-center my-4">
+                            {% if user.profile_pic %}
+                                <div class="avatar">
+                                    <div class="w-24 rounded-full">
+                                        <img src="{{ user.profile_pic.url }}" />
                                     </div>
-                                {% endif %}
-                            </div>
-                        {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
                         <div class="social_media my-8 flex flex-col space-y-1">
                             <a href="{{ invoice_branding_config.linked_in }}" id="linked_in" class="link text-center hidden">Linkedin</a>
                             <a href="{{ invoice_branding_config.twitter }}" id="twitter" class="link text-center hidden">Twitter</a>
                             <a href="{{ invoice_branding_config.youtube }}" id="youtube" class="link text-center hidden">Youtube</a>
                         </div>
-                        {% if not invoice_branding_config.hide_timary %}
-                            <div class="timary_branding">
-                                <p class="text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>
-                                <p class="text-center">
-                                    Timary LLC
-                                    <br>
-                                    Worcester, MA
-                                </p>
-                            </div>
-                        {% endif %}
+                        <div class="timary_branding">
+                            <p class="text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>
+                            <p class="text-center">
+                                Timary LLC
+                                <br>
+                                Worcester, MA
+                            </p>
+                        </div>
                     </div>
 
                 </div>
