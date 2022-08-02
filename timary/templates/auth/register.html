@@ -18,7 +18,8 @@
                     </div>
                     <div>
                         <div class="stat-actions">
-                            <button class="btn btn-sm btn-accent btn-outline" id="starter">Select</button>
+                            <button class="btn btn-sm btn-accent btn-outline" id="starter"
+                                _="on click call selectSubscriptionPlan(event)">Select</button>
                         </div>
                     </div>
                 </div>
@@ -31,7 +32,8 @@
                     </div>
                     <div>
                         <div class="stat-actions">
-                            <button class="btn btn-sm btn-accent plan-chosen" id="professional">Chosen</button>
+                            <button class="btn btn-sm btn-accent plan-chosen" id="professional"
+                                _="on click call selectSubscriptionPlan(event)">Chosen</button>
                         </div>
                     </div>
                 </div>
@@ -44,7 +46,8 @@
                     </div>
                     <div>
                         <div class="stat-actions">
-                            <button class="btn btn-sm btn-accent btn-outline" id="business">Select</button>
+                            <button class="btn btn-sm btn-accent btn-outline" id="business"
+                                _="on click call selectSubscriptionPlan(event)">Select</button>
                         </div>
                     </div>
                 </div>
@@ -58,7 +61,8 @@
                     </div>
                     <div>
                         <div class="stat-actions">
-                            <button class="btn btn-sm btn-accent btn-outline" id="invoice_fee">Select</button>
+                            <button class="btn btn-sm btn-accent btn-outline" id="invoice_fee"
+                                _="on click call selectSubscriptionPlan(event)">Select</button>
                         </div>
                     </div>
                 </div>
@@ -88,16 +92,6 @@
     <script src="https://js.stripe.com/v3/"></script>
     <script nonce="pay-invoice">
         const stripe = Stripe('{{ stripe_public_key }}');
-
-        const starter_plan = document.getElementById("starter");
-        const professional_plan = document.getElementById("professional");
-        const business_plan = document.getElementById("business");
-        const invoice_fee_plan = document.getElementById("invoice_fee");
-
-        starter_plan.addEventListener("click", selectSubscriptionPlan);
-        professional_plan.addEventListener("click", selectSubscriptionPlan);
-        business_plan.addEventListener("click", selectSubscriptionPlan);
-        invoice_fee_plan.addEventListener("click", selectSubscriptionPlan);
 
         let elements;
         let cardElement;
