@@ -578,6 +578,14 @@ class User(AbstractUser, BaseModel):
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
+    @property
+    def can_generate_invoice(self):
+        return (
+            self.membership_tier == User.MembershipTier.PROFESSIONAL
+            or self.membership_tier == User.MembershipTier.BUSINESS
+            or self.membership_tier == User.MembershipTier.INVOICE_FEE
+        )
+
     def can_repeat_previous_hours_logged(self, hours):
         """
         :param hours:
