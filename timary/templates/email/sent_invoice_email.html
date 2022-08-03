@@ -21,14 +21,14 @@
     <div class="text-xl font-medium my-4 p-6 tracking-wide bg-base-300">
         {% if next_weeks_date %}
             <div class="mb-1">
-                <strong>Amount Due: ${{ total_amount|add:"10"|floatformat }}</strong>
+                <strong>Amount Due: ${{ total_amount|add:"5"|floatformat }}</strong>
             </div>
             <div>
                 <strong>Due By:</strong> {{ next_weeks_date }}
             </div>
         {% else %}
             <div class="mb-1">
-                <strong>Total Paid: ${{ total_amount|add:"10"|floatformat }}</strong>
+                <strong>Total Paid: ${{ total_amount|add:"5"|floatformat }}</strong>
             </div>
         {% endif %}
     </div>
@@ -58,13 +58,13 @@
                 </div>
             {% endfor %}
             <div class="flex justify-between py-3 text-xl">
-                <div>Stripe Fee</div>
-                <div>$10</div>
+                <div>Stripe ACH Fee</div>
+                <div>$5</div>
             </div>
         </div>
         <div class="flex justify-end text-xl font-semibold  mt-6 mb-10">
             <div>Total</div>
-            <div class="ml-24">${{ total_amount|add:"10"|floatformat }}</div>
+            <div class="ml-24">${{ total_amount|add:"5"|floatformat }}</div>
         </div>
 
         <div class="my-6">

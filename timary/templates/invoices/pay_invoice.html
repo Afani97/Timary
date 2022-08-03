@@ -125,7 +125,7 @@
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
                 <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
-                <p>Total Amount Due: ${{ sent_invoice.total_price|add:"10"|floatformat }}</p>
+                <p>Total Amount Due: ${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
             </div>
             <div class="overflow-y-auto mt-10">
                 <table class="table">
@@ -146,8 +146,8 @@
                         {% endfor %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td width="80%" class="purchase_item"><span class="f-fallback">Stripe Fee</span></td>
-                            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$10</span></td>
+                            <td width="80%" class="purchase_item"><span class="f-fallback">Stripe ACH Fee</span></td>
+                            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$5</span></td>
                         </tr>
                         <tr>
                             <td></td>
@@ -155,7 +155,7 @@
                                 <p class="f-fallback purchase_total purchase_total--label">Total</p>
                             </td>
                             <td width="20%" class="purchase_footer" valign="middle">
-                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|add:"10"|floatformat }}</p>
+                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
                             </td>
                         </tr>
                     </tbody>

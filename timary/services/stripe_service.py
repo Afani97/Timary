@@ -129,12 +129,13 @@ class StripeService:
     def calculate_application_fee(cls, sent_invoice):
         from timary.models import User
 
-        application_fee = 1000
+        # Add $5 ACH Debit Fee
+        application_fee = 500
         if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
-            application_fee = int(sent_invoice.total_price) + 1000
+            application_fee += int(sent_invoice.total_price)
         invoice_amount = (
-            int(sent_invoice.total_price * 100) + 1000
-        )  # Add $10 ACH Debit Fee
+            int(sent_invoice.total_price * 100) + 500
+        )  # Add $5 ACH Debit Fee
         return application_fee, invoice_amount
 
     @classmethod

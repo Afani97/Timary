@@ -111,7 +111,7 @@ class TestStripeViews(BaseTest):
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
                 <p class="mb-4">This is an invoice for {sent_invoice.invoice.user.first_name}'s services.</p>
-                <p>Total Amount Due: ${sent_invoice.total_price + 10}</p>
+                <p>Total Amount Due: ${sent_invoice.total_price + 5}</p>
             </div>
             """
             self.assertInHTML(msg, html_body)
@@ -119,7 +119,7 @@ class TestStripeViews(BaseTest):
         with self.subTest("Testing total price in table"):
             msg = f"""
             <td width="20%" class="purchase_footer" valign="middle">
-                <p class="f-fallback purchase_total">${sent_invoice.total_price + 10}</p>
+                <p class="f-fallback purchase_total">${sent_invoice.total_price + 5}</p>
             </td>
             """
             self.assertInHTML(msg, html_body)

@@ -269,7 +269,7 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing amount due"):
-            msg = "<strong>Amount Due: $160</strong>"
+            msg = "<strong>Amount Due: $155</strong>"
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing one day details"):
