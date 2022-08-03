@@ -168,7 +168,7 @@ def stripe_webhook(request):
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
 
-            (hours_tracked,) = sent_invoice.get_hours_tracked()
+            hours_tracked, _ = sent_invoice.get_hours_tracked()
             today = localtime(now()).date()
 
             # Notify email recipient that payment failed

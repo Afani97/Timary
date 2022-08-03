@@ -3,6 +3,7 @@ import json
 import uuid
 from unittest.mock import patch
 
+from django.core import mail
 from django.urls import reverse
 
 from timary.models import SentInvoice
@@ -368,3 +369,48 @@ class TestStripeViews(BaseTest):
 
         self.assertRedirects(response, reverse("timary:user_profile"))
         self.assertFalse(self.user.stripe_payouts_enabled)
+
+    @patch("stripe.Webhook.construct_event")
+    @patch("timary.models.SentInvoice.success_notification")
+    def test_stripe_webhook_success(
+        self, success_notification_mock, stripe_webhook_mock
+    ):
+        success_notification_mock.return_value = None
+        stripe_webhook_mock.return_value = {
+            "type": "charge.succeeded",
+            "data": {"object": {"id": "abc123"}},
+        }
+        sent_invoice = SentInvoiceFactory(stripe_payment_intent_id="abc123")
+
+        response = self.client.post(
+            reverse("timary:stripe_webhook"), data={}, HTTP_STRIPE_SIGNATURE="abc123"
+        )
+        sent_invoice.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.PAID)
+
+    @patch("stripe.Webhook.construct_event")
+    def test_stripe_webhook_error(self, stripe_webhook_mock):
+        sent_invoice = SentInvoiceFactory(stripe_payment_intent_id="abc123")
+        stripe_webhook_mock.return_value = {
+            "type": "payment_intent.payment_failed",
+            "data": {"object": {"id": "abc123"}},
+        }
+
+        response = self.client.post(
+            reverse("timary:stripe_webhook"), data={}, HTTP_STRIPE_SIGNATURE="abc123"
+        )
+        sent_invoice.refresh_from_db()
+
+        sent_invoice.refresh_from_db()
+
+        html_subject = (
+            f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. "
+            f"An error occurred while trying to transfer the funds for this invoice. "
+            f"Please give it another try."
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.FAILED)
+        self.assertEqual(mail.outbox[0].subject, html_subject)
