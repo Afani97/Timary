@@ -32,7 +32,9 @@ def create_daily_hours(request):
             "show_repeat": show_repeat_option,
         }
         response = render(request, "partials/_hours_list.html", context=context)
-        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        response[
+            "HX-Trigger-After-Swap"
+        ] = "clearHoursModal"  # To trigger modal closing
         # "newHours" - To trigger dashboard stats refresh
         show_alert_message(response, "success", "New hours added!", "newHours")
         return response
@@ -40,16 +42,8 @@ def create_daily_hours(request):
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
     html_form = render_crispy_form(hours_form, context=ctx)
-    # Wrap html form in .inner-modal to replace and keep div in place inside modal, otherwise errors will override
-    # html form and remove it.
-    html_form = f"""
-    <div class="inner-modal">
-        {html_form}
-    </div>
-    """
     response = HttpResponse(html_form)
-    response["HX-Retarget"] = ".inner-modal"
-    response["HX-Swap"] = "innerHTML"
+    response["HX-Retarget"] = "#new-hours-form"
     return response
 
 

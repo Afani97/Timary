@@ -72,7 +72,9 @@ def create_invoice(request):
         invoice.sync_customer()
 
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
-        response["HX-Trigger-After-Swap"] = "clearModal"  # To trigger modal closing
+        response[
+            "HX-Trigger-After-Swap"
+        ] = "clearInvoiceModal"  # To trigger modal closing
         # "newInvoice" - To trigger button refresh
         show_alert_message(response, "success", "New invoice created!", "newInvoice")
         if prev_invoice_count == 0:
@@ -85,8 +87,8 @@ def create_invoice(request):
     invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
     html_form = render_crispy_form(invoice_form, context=ctx)
     response = HttpResponse(html_form)
-    response["HX-Retarget"] = ".modal-box"
-    response["HX-Reswap"] = "innerHTML"
+    response["HX-Retarget"] = "#new-invoice-form"
+    response["HX-Reswap"] = "outerHTML"
     return response
 
 

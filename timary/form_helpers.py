@@ -40,11 +40,13 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                 rows,
                 ButtonHolder(
                     HTML(
-                        '<a href="#" class="btn" id="close-hours-modal" _="on click call clearHoursModal()">Close</a>'
+                        """
+                        <a href="#" class="btn" id="close-hours-modal" _="on click call clearHoursModal()">Close</a>
+                        """
                     ),
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit"> Add new hours</button>'
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        type="submit"> Add new hours</button>"""
                     ),
                     css_class="card-actions mb-5 flex justify-center",
                 ),
@@ -74,8 +76,8 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     """
                     ),
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit"> Update hours</button>'
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        type="submit"> Update hours</button>"""
                     ),
                     css_class="card-actions flex justify-center",
                 ),
@@ -95,8 +97,8 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     "hours",
                     "date_tracked",
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7" '
-                        'type="submit">Update</button>'
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7"
+                        type="submit">Update</button>"""
                     ),
                     HTML(
                         f"""
@@ -123,7 +125,9 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
 
     cancel_button = (
         HTML(
-            '<a href="#" class="btn" id="close-invoice-modal" _="on click call clearInvoiceModal()">Close</a>'
+            """
+            <a href="#" class="btn" id="close-invoice-modal" _="on click call clearInvoiceModal()">Close</a>
+            """
         )
         if show_cancel_button
         else HTML("<span></span>")
@@ -137,7 +141,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                 "hx-target": "#invoices-list",
                 "hx-swap": "beforeend",
             },
-            "form_class": "card p-5 bg-neutral text-neutral-content",
+            "form_class": "card px-5 bg-neutral text-neutral-content",
             "layout": Layout(
                 Column(
                     "title",
@@ -150,8 +154,8 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                 ButtonHolder(
                     cancel_button,
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit"> Add new invoice</button>'
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        type="submit"> Add new invoice</button>"""
                     ),
                     css_class="card-actions flex mt-4 justify-center",
                 ),
@@ -242,7 +246,7 @@ def profile_form_helper(is_mobile):
                     """<button hx-trigger="enterKey, click" class="btn btn-primary"
                     type="submit"> Update profile </button>"""
                 ),
-                css_class="card-actions flex justify-center mt-4",
+                css_class="card-actions flex justify-center mt-8",
             ),
         ),
     }
@@ -258,10 +262,13 @@ def login_form_helper():
                 Column(
                     "password",
                     HTML(
-                        '<a href="{% url "password_reset" %}" class="link">Forgot password?</a>'
+                        """
+                        <a href="{% url "password_reset" %}" class="link">Forgot password?</a>
+                        """
                     ),
+                    css_class="flex flex-col space-y-2",
                 ),
-                css_class="card-body flex justify-center",
+                css_class="card-body flex flex-col justify-center",
             ),
             ButtonHolder(
                 HTML(
@@ -285,14 +292,15 @@ def register_form_helper():
                 "password",
                 "membership_tier",
                 HTML(
-                    '<div class="form-control"> '
-                    '<label class="label"><span class="label-text">Debit card</span> </label>'
-                    '<div id="card-element"></div>'
-                    '<label class="label">'
-                    '<span class="label-text-alt">Stripe requires a debit card to process your invoices into your '
-                    "bank account.</span>"
-                    "</label>"
-                    "</div>",
+                    """<div class="form-control">
+                    <label class="label"><span class="label-text">Debit card</span> </label>
+                    <div id="card-element"></div>
+                    <label class="label">
+                    <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
+                    bank account.</span>
+                    </label>
+                    </div>
+                    """,
                 ),
                 css_class="card-body flex justify-center",
             ),

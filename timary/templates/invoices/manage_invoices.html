@@ -13,7 +13,7 @@
 
     {% include 'partials/_new_invoice_btn.html' %}
 
-    <div>
+    <div class="max-w-3xl mx-auto">
         <div class="md:flex justify-center mb-4 hidden">
             <div class="stats shadow">
                 <div class="stat place-items-center">
@@ -61,7 +61,7 @@
             <h3 class="text-xl my-3 font-bold">Archived invoices</h3>
 
             {% if archived_invoices.count > 0 %}
-                <ul>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {% for archive_invoice in archived_invoices %}
                         {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
                     {% endfor %}
@@ -151,7 +151,7 @@
             htmx.find("#sent-invoices-inner").innerHTML = LOADER;
         }
 
-        htmx.on("clearModal", function(){
+        htmx.on("clearInvoiceModal", function(){
             htmx.find("#close-invoice-modal").click();
             clearInvoiceModal();
         });

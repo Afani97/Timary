@@ -75,8 +75,8 @@ Timary
                     return redirect(account_link_url)
                 else:
                     form.add_error("email", "Unable to create account with credentials")
-
-    form.helper.layout.insert(0, render_form_errors(form))
+    if form.errors:
+        form.helper.layout.insert(0, render_form_errors(form))
     context = {
         "form": form,
         "client_secret": StripeService.create_payment_intent(),
@@ -102,7 +102,8 @@ def login_user(request):
         else:
             form.add_error("email", "Unable to verify credentials")
 
-    form.helper.layout.insert(0, render_form_errors(form))
+    if form.errors:
+        form.helper.layout.insert(0, render_form_errors(form))
     return render(request, "auth/login.html", {"form": form})
 
 
