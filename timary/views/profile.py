@@ -6,7 +6,7 @@ from django.template.context_processors import csrf
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import UserForm
-from timary.utils import render_form_errors, show_alert_message
+from timary.utils import add_loader, render_form_errors, show_alert_message
 
 
 @login_required()
@@ -32,7 +32,7 @@ def edit_user_profile(request):
     ctx = {}
     ctx.update(csrf(request))
     profile_form.helper.layout.insert(0, render_form_errors(profile_form))
-    html_form = render_crispy_form(profile_form, context=ctx)
+    html_form = add_loader(render_crispy_form(profile_form, context=ctx))
     return HttpResponse(html_form)
 
 
@@ -55,5 +55,5 @@ def update_user_profile(request):
     ctx = {}
     ctx.update(csrf(request))
     user_form.helper.layout.insert(0, render_form_errors(user_form))
-    html_form = render_crispy_form(user_form, context=ctx)
+    html_form = add_loader(render_crispy_form(user_form, context=ctx))
     return HttpResponse(html_form)

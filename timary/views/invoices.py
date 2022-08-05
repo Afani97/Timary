@@ -15,7 +15,7 @@ from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import render_form_errors, show_alert_message
+from timary.utils import add_loader, render_form_errors, show_alert_message
 
 
 @login_required()
@@ -36,10 +36,17 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
+    ctx = {}
+    ctx.update(csrf(request))
     context = {
         "invoices": invoices,
-        "new_invoice": InvoiceForm(
-            user=request.user, is_mobile=request.is_mobile, request_method="get"
+        "new_invoice": add_loader(
+            render_crispy_form(
+                InvoiceForm(
+                    user=request.user, is_mobile=request.is_mobile, request_method="get"
+                ),
+                context=ctx,
+            )
         ),
         "upgrade_msg": request.user.upgrade_invoice_message,
         "sent_invoices_owed": int(sent_invoices_owed),
@@ -85,7 +92,7 @@ def create_invoice(request):
     ctx = {}
     ctx.update(csrf(request))
     invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = render_crispy_form(invoice_form, context=ctx)
+    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
     response = HttpResponse(html_form)
     response["HX-Retarget"] = "#new-invoice-form"
     response["HX-Reswap"] = "outerHTML"
@@ -157,7 +164,7 @@ def edit_invoice(request, invoice_id):
     ctx = {}
     ctx.update(csrf(request))
     invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = render_crispy_form(invoice_form, context=ctx)
+    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
     return HttpResponse(html_form)
 
 
@@ -185,7 +192,7 @@ def update_invoice(request, invoice_id):
     ctx = {}
     ctx.update(csrf(request))
     invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = render_crispy_form(invoice_form, context=ctx)
+    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
     return HttpResponse(html_form)
 
 

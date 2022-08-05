@@ -17,6 +17,7 @@ Pillow
 playwright
 pre-commit
 python-decouple
+pyquery
 qrcode
 sentry-sdk
 stripe

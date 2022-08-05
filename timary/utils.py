@@ -2,6 +2,7 @@ import json
 
 from crispy_forms.layout import HTML
 from django.template import Context, Engine
+from pyquery import PyQuery as pq
 
 
 def render_form_errors(form):
@@ -32,3 +33,11 @@ def show_alert_message(response, alert_type, message, other_trigger=None):
             },
         }
     )
+
+
+def add_loader(form):
+    d = pq(form)
+    d("form").attr[
+        "_"
+    ] = "on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+    return str(d)

@@ -48,13 +48,13 @@ class TestUserProfile(BaseTest):
         response = self.client.get(reverse("timary:edit_user_profile"))
         self.assertInHTML(
             f'<input type="email" name="email" value="{self.user.email}" placeholder="john@appleseed.com"'
-            f'class="input input-bordered text-lg w-full emailinput" required '
+            f'class="input input-bordered text-lg w-full emailinput" required="" '
             f'id="id_email">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="first_name" value="{self.user.first_name}" placeholder="John"'
-            f'class="input input-bordered text-lg w-full textinput textInput" required id="id_first_name">',
+            f'class="input input-bordered text-lg w-full textinput textInput" required="" id="id_first_name">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(

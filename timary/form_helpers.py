@@ -45,7 +45,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                         """
                     ),
                     HTML(
-                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary submit-btn"
                         type="submit"> Add new hours</button>"""
                     ),
                     css_class="card-actions mb-5 flex justify-center",
@@ -76,7 +76,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     """
                     ),
                     HTML(
-                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary submit-btn"
                         type="submit"> Update hours</button>"""
                     ),
                     css_class="card-actions flex justify-center",
@@ -97,7 +97,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     "hours",
                     "date_tracked",
                     HTML(
-                        """<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7"
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7 submit-btn"
                         type="submit">Update</button>"""
                     ),
                     HTML(
@@ -154,7 +154,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                 ButtonHolder(
                     cancel_button,
                     HTML(
-                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary submit-btn"
                         type="submit"> Add new invoice</button>"""
                     ),
                     css_class="card-actions flex mt-4 justify-center",
@@ -196,7 +196,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                 """
                     ),
                     HTML(
-                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary submit-btn"
                         type="submit"> Update invoice</button>"""
                     ),
                     css_class="card-actions flex justify-center mt-4",
@@ -243,7 +243,7 @@ def profile_form_helper(is_mobile):
                     """
                 ),
                 HTML(
-                    """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                    """<button hx-trigger="enterKey, click" class="btn btn-primary submit-btn"
                     type="submit"> Update profile </button>"""
                 ),
                 css_class="card-actions flex justify-center mt-8",

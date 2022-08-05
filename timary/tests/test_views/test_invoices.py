@@ -75,7 +75,7 @@ class TestInvoices(BaseTest):
             response,
             f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
         )
-        self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
+        self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
 
     def test_manage_zero_invoices(self):
@@ -94,7 +94,7 @@ class TestInvoices(BaseTest):
             """,
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "invoices/manage_invoices.html")
+        self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
 
     def test_zero_invoices_redirects_main_page(self):

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.context_processors import csrf
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -14,6 +15,7 @@ from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
+from timary.utils import add_loader
 
 
 def bad_request(request, exception):
@@ -112,9 +114,16 @@ def index(request):
     hours = DailyHoursInput.all_hours.current_month(user)
     show_repeat_option = user.can_repeat_previous_hours_logged(hours)
 
+    ctx = {}
+    ctx.update(csrf(request))
     context = {
-        "new_hour_form": render_crispy_form(
-            DailyHoursForm(user=user, is_mobile=request.is_mobile, request_method="get")
+        "new_hour_form": add_loader(
+            render_crispy_form(
+                DailyHoursForm(
+                    user=user, is_mobile=request.is_mobile, request_method="get"
+                ),
+                context=ctx,
+            )
         ),
         "hours": hours,
         "show_repeat": show_repeat_option,
@@ -127,9 +136,14 @@ def index(request):
 @require_http_methods(["GET"])
 def dashboard_stats(request):
     context = get_hours_tracked(request.user)
-    context["new_hour_form"] = render_crispy_form(
-        DailyHoursForm(
-            user=request.user, is_mobile=request.is_mobile, request_method="get"
+    ctx = {}
+    ctx.update(csrf(request))
+    context["new_hour_form"] = add_loader(
+        render_crispy_form(
+            DailyHoursForm(
+                user=request.user, is_mobile=request.is_mobile, request_method="get"
+            ),
+            context=ctx,
         )
     )
     response = render(

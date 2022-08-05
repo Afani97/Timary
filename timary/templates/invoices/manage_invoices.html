@@ -45,7 +45,7 @@
                                 </p>
                             </div>
                             <div class="flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
-                                {% crispy new_invoice %}
+                                {{ new_invoice | safe }}
                             </div>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box bg-neutral">
-            {% crispy new_invoice %}
+            {{ new_invoice | safe }}
         </div>
     </div>
     {# New invoice modal #}
@@ -126,7 +126,7 @@
 {% block js %}
     <script nonce="manage-invoices">
         function clearInvoiceModal() {
-            let errors_list = htmx.find("#new-invoice-modal .list-disc");
+            let errors_list = htmx.find("#new-invoice-modal .list-none");
             if (errors_list) {
                 errors_list.remove();
             }

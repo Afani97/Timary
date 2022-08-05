@@ -10,7 +10,12 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
-from timary.utils import render_form_errors, render_form_messages, show_alert_message
+from timary.utils import (
+    add_loader,
+    render_form_errors,
+    render_form_messages,
+    show_alert_message,
+)
 
 
 @login_required()
@@ -41,7 +46,7 @@ def create_daily_hours(request):
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = render_crispy_form(hours_form, context=ctx)
+    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
     response = HttpResponse(html_form)
     response["HX-Retarget"] = "#new-hours-form"
     return response
@@ -71,7 +76,7 @@ def edit_hours(request, hours_id):
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = render_crispy_form(hours_form, context=ctx)
+    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
     return HttpResponse(html_form)
 
 
@@ -98,7 +103,7 @@ def update_hours(request, hours_id):
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = render_crispy_form(hours_form, context=ctx)
+    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
     return HttpResponse(html_form, status=200)
 
 
@@ -126,14 +131,14 @@ def patch_hours(request, hours_id):
         hours_form.helper.layout.insert(
             0, render_form_messages(["Successfully updated hours"])
         )
-        html_form = render_crispy_form(hours_form, context=ctx)
+        html_form = add_loader(render_crispy_form(hours_form, context=ctx))
         response = HttpResponse(html_form)
         response["HX-Trigger"] = "refreshHourStats"  # To trigger hours stats refresh
         return response
     ctx = {}
     ctx.update(csrf(request))
     hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = render_crispy_form(hours_form, context=ctx)
+    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
     return HttpResponse(html_form, status=200)
 
 
