@@ -23,6 +23,7 @@
                     hx-target="closest li"
                     hx-swap="outerHTML"
                     class="btn btn-secondary"
+                    _="on htmx:beforeRequest add .loading to me"
                     {% if invoice_resent %} disabled="disabled" {% endif %}
                 >
                     {% if invoice_resent %}
