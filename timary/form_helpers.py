@@ -44,7 +44,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     ),
                     HTML(
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit" _="on click add .loading to me"> Add new hours</button>'
+                        'type="submit"> Add new hours</button>'
                     ),
                     css_class="card-actions mb-5 flex justify-center",
                 ),
@@ -75,7 +75,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     ),
                     HTML(
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit" _="on click add .loading to me"> Update hours</button>'
+                        'type="submit"> Update hours</button>'
                     ),
                     css_class="card-actions flex justify-center",
                 ),
@@ -96,7 +96,7 @@ def hours_form_helper(method_type, is_mobile, hour=None, invoice_id=None):
                     "date_tracked",
                     HTML(
                         '<button hx-trigger="enterKey, click" class="btn btn-primary btn-sm mt-7" '
-                        'type="submit" _="on click add .loading to me">Update</button>'
+                        'type="submit">Update</button>'
                     ),
                     HTML(
                         f"""
@@ -151,7 +151,7 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                     cancel_button,
                     HTML(
                         '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        'type="submit" _="on click add .loading to me"> Add new invoice</button>'
+                        'type="submit"> Add new invoice</button>'
                     ),
                     css_class="card-actions flex mt-4 justify-center",
                 ),
@@ -192,9 +192,8 @@ def invoice_form_helper(method_type, is_mobile, invoice=None, show_cancel_button
                 """
                     ),
                     HTML(
-                        '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                        '_="on click add .loading to me"'
-                        'type="submit"> Update invoice</button>'
+                        """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                        type="submit"> Update invoice</button>"""
                     ),
                     css_class="card-actions flex justify-center mt-4",
                 ),
@@ -240,8 +239,8 @@ def profile_form_helper(is_mobile):
                     """
                 ),
                 HTML(
-                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                    'type="submit" _="on click add .loading to me"> Update profile </button>'
+                    """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                    type="submit"> Update profile </button>"""
                 ),
                 css_class="card-actions flex justify-center mt-4",
             ),
@@ -266,8 +265,8 @@ def login_form_helper():
             ),
             ButtonHolder(
                 HTML(
-                    '<button hx-trigger="enterKey, click" class="btn btn-primary" '
-                    'type="submit" _="on click add .loading to me"> Login </button>'
+                    """<button hx-trigger="enterKey, click" class="btn btn-primary"
+                    type="submit"> Login </button>"""
                 ),
                 css_class="card-actions flex justify-center",
             ),
@@ -299,8 +298,8 @@ def register_form_helper():
             ),
             ButtonHolder(
                 HTML(
-                    '<button class="btn btn-primary" id="submit-form"'
-                    'type="submit" _="on click add .loading to me"> Continue </button>'
+                    """<button class="btn btn-primary" id="submit-form"
+                    type="submit"> Continue </button>"""
                 ),
                 css_class="card-actions flex justify-center",
             ),

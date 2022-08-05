@@ -179,7 +179,7 @@ class InvoiceForm(forms.ModelForm):
             ),
             "email_recipient_name": forms.TextInput(
                 attrs={
-                    "placeholder": "John",
+                    "placeholder": "John Smith",
                     "class": "input input-bordered text-lg w-full",
                 }
             ),
@@ -470,7 +470,7 @@ class LoginForm(forms.Form):
         required=True,
         widget=forms.EmailInput(
             attrs={
-                "placeholder": "tom@test.com",
+                "placeholder": "johns@awesomeemail.com",
                 "class": "input input-bordered text-lg w-full mb-4",
             }
         ),
