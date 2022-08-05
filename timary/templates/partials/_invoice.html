@@ -47,8 +47,10 @@
                             <a
                                 hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
                                 hx-target="closest #{{ invoice.slug_title }}"
-                                hx-swap="outerHTML">
-                                Generate invoice today
+                                hx-swap="innerHTML"
+                                class="btn btn-sm"
+                                _="on click add .loading to me">
+                                Generate invoice
                             </a>
                         </li>
                     {% endif %}
@@ -58,7 +60,7 @@
                             hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}"
                             hx-target=".sent-invoices-inner-modal"
                             hx-swap="innerHTML"
-                            class="btn">
+                            class="btn btn-sm">
                             View sent invoices
                         </label>
                     </li>
@@ -66,7 +68,7 @@
                         hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}"
                         hx-target="closest #{{ invoice.slug_title }}"
                         hx-swap="outerHTML"
-                        class="btn"
+                        class="btn btn-sm"
                         _="on click add .loading to me">
                         {% if invoice.next_date is not None %} Pause {% else %} Unpause {% endif %}
                     </a></li>
@@ -76,7 +78,7 @@
                         hx-confirm="Are you sure you want to archive this invoice?"
                         hx-target="closest #{{ invoice.slug_title }}"
                         hx-swap="outerHTML"
-                        class="btn"
+                        class="btn btn-sm"
                         _="on htmx:beforeRequest add .loading to me">
                         Archive
                     </a></li>
