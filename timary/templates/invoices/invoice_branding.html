@@ -124,7 +124,9 @@
                     </div>
                     <div class="divider"></div>
                     <div class="flex justify-center">
-                        <button class="btn btn-primary" type="submit">Update</button>
+                        <button class="btn btn-primary" type="submit" id="submit_btn"
+                            _="on click add .loading to me"
+                        >Update</button>
                     </div>
                 </form>
 
@@ -243,5 +245,8 @@
             date.setDate(date.getDate() + numWeeks * 7);
             return date.toLocaleDateString('en-us', { month:"short", day:"2-digit", year: "numeric"});
         }
+        htmx.on("showMessage", function(e) {
+            htmx.removeClass(htmx.find("#submit_btn"), "loading")
+        })
     </script>
 {% endblock %}

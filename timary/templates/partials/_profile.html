@@ -15,10 +15,9 @@
                 hx-get="{% url 'timary:edit_user_profile' %}"
                 hx-target="#user-profile"
                 hx-swap="outerHTML"
-                hx-indicator="#profile_spinnr">
+                _="on click add .loading to me">
                 Edit Profile
             </button>
         </div>
-        {% include "partials/_spinnr.html" with spinner_id="profile_spinnr" %}
     </div>
 </div>

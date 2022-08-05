@@ -176,7 +176,7 @@ class TestUserSettings(BaseTest):
                        hx-get="/profile/settings/sms/"
                        hx-target="closest .wrapper"
                        hx-swap="outerHTML"
-                       hx-indicator="#settings_spinnr">Edit availability</a>
+                       >Edit availability</a>
             </div>
             """,
             response.content.decode("utf-8"),

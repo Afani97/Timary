@@ -17,10 +17,9 @@
                             hx-get="{% url 'timary:edit_invoice' invoice.id %}"
                             hx-target="closest li"
                             hx-swap="outerHTML"
-                            hx-indicator="#{{invoice.slug_title}}">
+                            _="on click add .loading to me">
                             Edit
                         </a>
-                        {% include "partials/_spinnr.html" with spinner_id=invoice.slug_title %}
                     </div>
                 </div>
 
@@ -58,14 +57,17 @@
                             for="sent-invoices-modal"
                             hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}"
                             hx-target=".sent-invoices-inner-modal"
-                            hx-swap="innerHTML">
+                            hx-swap="innerHTML"
+                            class="btn">
                             View sent invoices
                         </label>
                     </li>
                     <li><a
                         hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}"
                         hx-target="closest #{{ invoice.slug_title }}"
-                        hx-swap="outerHTML">
+                        hx-swap="outerHTML"
+                        class="btn"
+                        _="on click add .loading to me">
                         {% if invoice.next_date is not None %} Pause {% else %} Unpause {% endif %}
                     </a></li>
 
@@ -73,7 +75,9 @@
                         hx-get="{% url 'timary:archive_invoice' invoice_id=invoice.id %}"
                         hx-confirm="Are you sure you want to archive this invoice?"
                         hx-target="closest #{{ invoice.slug_title }}"
-                        hx-swap="outerHTML">
+                        hx-swap="outerHTML"
+                        class="btn"
+                        _="on htmx:beforeRequest add .loading to me">
                         Archive
                     </a></li>
                 </ul>

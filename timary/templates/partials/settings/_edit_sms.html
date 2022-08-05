@@ -20,7 +20,7 @@
         {% endfor %}
     </div>
     <div class="flex justify-center space-x-4">
-        <a hx-get="{% url 'timary:settings_partial' setting='sms'%}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost">Cancel</a>
-        <button type="submit" class="btn btn-primary">Update</button>
+        <a hx-get="{% url 'timary:settings_partial' setting='sms'%}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost" _="on click add .loading to me">Cancel</a>
+        <button type="submit" class="btn btn-primary" _="on click add .loading to me">Update</button>
     </div>
 </form>

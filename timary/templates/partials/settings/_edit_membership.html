@@ -67,9 +67,8 @@
         </div>
     </div>
     <div class="card-actions flex justify-center space-x-4">
-        <a class="btn btn-ghost" hx-get="{% url 'timary:settings_partial' setting="membership" %}" hx-target="closest form" hx-swap="outerHTML" hx-indicator="#settings_spinnr"> Cancel </a>
-        <button class="btn btn-primary" type="submit" hx-indicator="#settings_spinnr"> Update </button>
-        {% include "partials/_spinnr.html" with spinner_id="settings_spinnr"%}
+        <a class="btn btn-ghost" hx-get="{% url 'timary:settings_partial' setting="membership" %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
+        <button class="btn btn-primary" type="submit" _="on click add .loading to me"> Update </button>
     </div>
 
     <script nonce="update-subscription" defer>

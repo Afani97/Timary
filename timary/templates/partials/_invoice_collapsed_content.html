@@ -15,6 +15,8 @@
                 hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"
                 hx-target=".inner-modal"
                 hx-swap="innerHTML"
+                _="on click add .loading to me end
+                    on htmx:afterRequest remove .loading from me end"
             >
                 Edit hours
             </label>
