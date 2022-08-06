@@ -152,10 +152,10 @@ class TestDailyHours(BaseTest):
             data=urlencode(url_params),  # HTML PATCH FORM
         )
         self.hours.refresh_from_db()
-        self.assertEqual(response.templates[0].name, "partials/_form_success.html")
+        self.assertTemplateUsed(response, "hours/_patch.html")
         self.assertEqual(response.status_code, 200)
         self.assertInHTML(
-            '<li class="text-success text-center">Successfully updated hours</li>',
+            '<li class="text-success text-center">Successfully updated hours!</li>',
             response.content.decode("utf-8"),
         )
 

@@ -1,0 +1,39 @@
+<form class="card bg-neutral text-neutral-content"
+    hx-put="{% url 'timary:update_hours' hours_id=hour.id %}"
+    hx-swap="outerHTML"
+    hx-target="this"
+    id="update-hours-form"
+    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+>
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+
+    <div class="flex flex-col space-y-2 card-body">
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">Hours</span>
+            </label>
+            <div>{{ form.hours }}</div>
+        </div>
+
+        <div class="w-full">
+            <label class="label">
+                <span class="label-text">Date</span>
+            </label>
+            {{ form.date_tracked }}
+        </div>
+        <div class="w-full">
+            <label class="label">
+                <span class="label-text">Invoice</span>
+            </label>
+            {{ form.invoice }}
+        </div>
+
+    </div>
+    <div class="card-actions mb-5 flex justify-center">
+        <a class="btn btn-ghost" hx-get="{% url 'timary:get_single_hours' hours_id=hour.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Update hours</button>
+    </div>
+</form>

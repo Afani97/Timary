@@ -1,0 +1,27 @@
+<form class="card bg-neutral text-neutral-content"
+    hx-patch="{% url 'timary:patch_hours' hours_id=form.instance.id %}"
+    hx-swap="outerHTML"
+    hx-target="this"
+    hx-vals='{"invoice": "{{ form.instance.invoice.id }}" }'
+    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+>
+
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    {% if success_msg %}
+        {% include "partials/_form_success.html" with message=success_msg %}
+    {% endif %}
+
+    <div class="flex flex-row items-center card-body -mx-4">
+        <div class="w-full">{{ form.hours }}</div>
+        <div class="w-full">{{ form.date_tracked }}</div>
+        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm submit-btn" type="submit">Update</button>
+        <button class="btn btn-error btn-sm btn-circle" hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}" hx-swap="outerHTML" hx-target="closest form">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+</form>

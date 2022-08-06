@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
 from timary.form_helpers import (
-    hours_form_helper,
     invoice_form_helper,
     login_form_helper,
     profile_form_helper,
@@ -22,24 +21,8 @@ class DateInput(forms.DateInput):
 class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
-        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
-        request_method = (
-            kwargs.pop("request_method").lower()
-            if "request_method" in kwargs
-            else "get"
-        )
-        invoice_id = kwargs.pop("invoice_id") if "invoice_id" in kwargs else None
 
         super(DailyHoursForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper._form_method = ""
-        self.helper.form_show_errors = False
-        helper_attributes = hours_form_helper(
-            request_method, is_mobile, self.instance, invoice_id
-        )
-        for key in helper_attributes:
-            setattr(self.helper, key, helper_attributes[key])
 
         if user:
             invoice_qs = user.get_invoices
@@ -50,9 +33,6 @@ class DailyHoursForm(forms.ModelForm):
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
         self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
-        hours_css = self.fields["hours"].widget.attrs["class"]
-        text_width = "w-full" if request_method == "put" else "w-20"
-        self.fields["hours"].widget.attrs["class"] = f"{hours_css} {text_width}"
 
     class Meta:
         model = DailyHoursInput
@@ -61,13 +41,13 @@ class DailyHoursForm(forms.ModelForm):
             "hours": forms.TextInput(
                 attrs={
                     "value": 1.0,
-                    "class": "input input-bordered text-lg hours-input",
+                    "class": "input input-bordered text-lg hours-input w-full",
                     "_": "on input call filterHoursInput(me) end on blur call convertHoursInput(me) end",
                 },
             ),
             "date_tracked": DateInput(
                 attrs={
-                    "class": "input input-bordered text-lg ",
+                    "class": "input input-bordered text-lg w-full",
                 }
             ),
             "invoice": forms.Select(

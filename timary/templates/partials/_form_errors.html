@@ -1,9 +1,7 @@
-<div class="flex justify-center mt-4">
+<div class="flex justify-center m-4">
     <ul class="list-none">
         {% for key, errors in form_errors.items %}
-            {% for error in errors %}
-                <li class="text-error text-center">{{ error.message }}</li>
-            {% endfor %}
+            <li class="text-error text-center">{{ errors }}</li>
         {% endfor %}
     </ul>
 </div>

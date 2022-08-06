@@ -287,16 +287,7 @@ def edit_invoice_hours(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     hours = invoice.get_hours_tracked()
-    hour_forms = [
-        DailyHoursForm(
-            instance=hour,
-            user=request.user,
-            is_mobile=request.is_mobile,
-            request_method="patch",
-            invoice_id=hour.invoice.id,
-        )
-        for hour in hours
-    ]
+    hour_forms = [DailyHoursForm(instance=hour, user=request.user) for hour in hours]
     return render(request, "partials/_edit_hours.html", {"hour_forms": hour_forms})
 
 

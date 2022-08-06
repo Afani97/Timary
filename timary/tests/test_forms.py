@@ -372,7 +372,6 @@ class TestDailyHours(TestCase):
 
         form = DailyHoursForm(
             data={"hours": 25, "invoice": self.invoice.id, "date_tracked": self.today},
-            request_method="get",
         )
         self.assertEqual(
             form.errors,
@@ -460,7 +459,6 @@ class TestDailyHours(TestCase):
                 "invoice": self.invoice.id,
                 "date_tracked": self.today + datetime.timedelta(days=7),
             },
-            request_method="get",
         )
         self.assertEqual(
             form.errors, {"date_tracked": ["Cannot set date into the future!"]}

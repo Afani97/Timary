@@ -33,7 +33,7 @@
         {# New hours modal #}
         <div id="hours-modal" class="modal items-center">
             <div class="modal-box bg-neutral">
-                {{ new_hour_form | safe }}
+                {% include "hours/_create.html" with form=new_hour_form %}
             </div>
         </div>
         {# New hours modal #}

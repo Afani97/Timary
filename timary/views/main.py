@@ -114,17 +114,8 @@ def index(request):
     hours = DailyHoursInput.all_hours.current_month(user)
     show_repeat_option = user.can_repeat_previous_hours_logged(hours)
 
-    ctx = {}
-    ctx.update(csrf(request))
     context = {
-        "new_hour_form": add_loader(
-            render_crispy_form(
-                DailyHoursForm(
-                    user=user, is_mobile=request.is_mobile, request_method="get"
-                ),
-                context=ctx,
-            )
-        ),
+        "new_hour_form": DailyHoursForm(user=user),
         "hours": hours,
         "show_repeat": show_repeat_option,
     }
@@ -138,14 +129,7 @@ def dashboard_stats(request):
     context = get_hours_tracked(request.user)
     ctx = {}
     ctx.update(csrf(request))
-    context["new_hour_form"] = add_loader(
-        render_crispy_form(
-            DailyHoursForm(
-                user=request.user, is_mobile=request.is_mobile, request_method="get"
-            ),
-            context=ctx,
-        )
-    )
+    context["new_hour_form"] = DailyHoursForm(user=request.user)
     response = render(
         request,
         "partials/_dashboard_stats.html",
