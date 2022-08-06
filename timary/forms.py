@@ -5,11 +5,7 @@ from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
-from timary.form_helpers import (
-    invoice_form_helper,
-    profile_form_helper,
-    register_form_helper,
-)
+from timary.form_helpers import invoice_form_helper, profile_form_helper
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -367,7 +363,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered text-lg w-full mb-4",
             }
         ),
     )
@@ -377,7 +373,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John Appleseed",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered text-lg w-full mb-4",
             }
         ),
     )
@@ -387,7 +383,7 @@ class RegisterForm(forms.ModelForm):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered text-lg w-full mb-4",
             }
         ),
         required=True,
@@ -398,16 +394,6 @@ class RegisterForm(forms.ModelForm):
         ),
         required=True,
     )
-
-    def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_method = "post"
-        self.helper.form_show_errors = False
-        helper_attributes = register_form_helper()
-        for key in helper_attributes:
-            setattr(self.helper, key, helper_attributes[key])
 
     def clean_full_name(self):
         full_name = self.cleaned_data.get("full_name")

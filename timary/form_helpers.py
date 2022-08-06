@@ -133,37 +133,3 @@ def profile_form_helper(is_mobile):
             ),
         ),
     }
-
-
-def register_form_helper():
-    return {
-        "form_id": "register-form",
-        "form_class": "card pb-5 bg-neutral text-neutral-content",
-        "layout": Layout(
-            Column(
-                "full_name",
-                "email",
-                "password",
-                "membership_tier",
-                HTML(
-                    """<div class="form-control">
-                    <label class="label"><span class="label-text">Debit card</span> </label>
-                    <div id="card-element"></div>
-                    <label class="label">
-                    <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
-                    bank account.</span>
-                    </label>
-                    </div>
-                    """,
-                ),
-                css_class="card-body flex justify-center",
-            ),
-            ButtonHolder(
-                HTML(
-                    """<button class="btn btn-primary" id="submit-form"
-                    type="submit"> Continue </button>"""
-                ),
-                css_class="card-actions flex justify-center",
-            ),
-        ),
-    }
