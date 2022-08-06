@@ -1,0 +1,55 @@
+<form class="card bg-neutral text-neutral-content"
+    hx-post="{% url 'timary:update_user_profile' %}"
+    hx-swap="outerHTML"
+    hx-target="this"
+    hx-encoding="multipart/form-data"
+    id="update-hours-form"
+    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+>
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+
+    <div class="flex flex-col space-y-2 card-body">
+        <div class="form-control w-full">
+            <div>{{ form.profile_pic }}</div>
+        </div>
+
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
+            <div class="w-full">
+                <label class="label">
+                    <span class="label-text">First name</span>
+                </label>
+                {{ form.first_name }}
+            </div>
+            <div class="w-full">
+                <label class="label">
+                    <span class="label-text">Last name</span>
+                </label>
+                {{ form.last_name }}
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
+            <div class="w-full">
+                <label class="label">
+                    <span class="label-text">Email</span>
+                </label>
+                {{ form.email }}
+            </div>
+            <div class="w-full">
+                <label class="label">
+                    <span class="label-text">Phone number</span>
+                </label>
+                {{ form.phone_number }}
+            </div>
+        </div>
+
+
+    </div>
+    <div class="card-actions mb-5 flex justify-center">
+        <a class="btn btn-ghost" hx-get="{% url 'timary:user_profile_partial' %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Update profile</button>
+    </div>
+</form>

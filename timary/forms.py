@@ -5,7 +5,7 @@ from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
-from timary.form_helpers import invoice_form_helper, profile_form_helper
+from timary.form_helpers import invoice_form_helper
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -277,18 +277,6 @@ class UserForm(forms.ModelForm):
         ),
     )
     profile_pic = forms.ImageField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
-
-        super(UserForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper._form_method = ""
-        self.helper.form_show_errors = False
-        helper_attributes = profile_form_helper(is_mobile)
-        for key in helper_attributes:
-            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         model = User
