@@ -1,5 +1,3 @@
-import uuid
-
 from crispy_forms.layout import HTML, ButtonHolder, Column, Layout, Row
 
 
@@ -132,35 +130,6 @@ def profile_form_helper(is_mobile):
                     type="submit"> Update profile </button>"""
                 ),
                 css_class="card-actions flex justify-center mt-8",
-            ),
-        ),
-    }
-
-
-def login_form_helper():
-    return {
-        "form_id": "login-form",
-        "form_class": "card pb-5 bg-neutral text-neutral-content",
-        "layout": Layout(
-            Column(
-                "email",
-                Column(
-                    "password",
-                    HTML(
-                        """
-                        <a href="{% url "password_reset" %}" class="link">Forgot password?</a>
-                        """
-                    ),
-                    css_class="flex flex-col space-y-2",
-                ),
-                css_class="card-body flex flex-col justify-center",
-            ),
-            ButtonHolder(
-                HTML(
-                    """<button hx-trigger="enterKey, click" class="btn btn-primary"
-                    type="submit"> Login </button>"""
-                ),
-                css_class="card-actions flex justify-center",
             ),
         ),
     }

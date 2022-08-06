@@ -25,7 +25,6 @@ class TestAuthViews(TestCase):
         response = self.client.post(
             reverse("timary:login"), {"email": "user@test.com", "password": "pass"}
         )
-        print(response.content.decode())
         self.assertInHTML(
             "Unable to verify credentials",
             response.content.decode("utf-8"),

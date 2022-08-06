@@ -102,8 +102,6 @@ def login_user(request):
         else:
             form.add_error("email", "Unable to verify credentials")
 
-    if form.errors:
-        form.helper.layout.insert(0, render_form_errors(form))
     return render(request, "auth/login.html", {"form": form})
 
 
