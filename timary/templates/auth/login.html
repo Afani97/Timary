@@ -1,12 +1,31 @@
 {% extends 'timary/base.html' %}
-{% load crispy_forms_tags %}
 {% block title %} Login {% endblock %}
 
 {% block content %}
 
     <div class="max-w-xl mx-auto mt-6">
         <h1 class="text-3xl mb-4 text-center">Login</h1>
-        {% crispy form %}
+        <div class="card p-5 bg-neutral text-neutral-content">
+            <div class="card-body">
+                {% if form.errors %}
+                    {% include "partials/_form_errors.html" with form_errors=form.errors %}
+                {% endif %}
+
+                <form action="{% url 'timary:login' %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                    <div class="my-2">
+                        <a href="{% url "password_reset" %}" class="link ">Forgot password?</a>
+                    </div>
+
+                    <div class="card-actions flex justify-center mt-8">
+                        <button class="btn btn-primary" type="submit"> Login </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
 
         <p class="flex justify-center mt-6">
             <a class="text-sm link link-hover" href="{% url 'timary:register' %}">Register?</a>

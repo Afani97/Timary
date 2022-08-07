@@ -1,8 +1,6 @@
-{% load crispy_forms_tags %}
-
 <div>
     {% for hour_form in hour_forms %}
-        {% crispy hour_form %}
+        {% include "hours/_patch.html" with form=hour_form %}
         {% if not forloop.last %}
             <div class="divider"></div>
         {% endif %}

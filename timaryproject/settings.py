@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     "multiselectfield",
     "django_otp",
     "django_otp.plugins.otp_totp",
-    "crispy_forms",
     "django_browser_reload",
     "storages",
 ]

@@ -8,7 +8,6 @@ from timary.forms import LoginForm, RegisterForm
 from timary.models import User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
-from timary.utils import render_form_errors
 
 
 def register_user(request):
@@ -75,8 +74,7 @@ Timary
                     return redirect(account_link_url)
                 else:
                     form.add_error("email", "Unable to create account with credentials")
-    if form.errors:
-        form.helper.layout.insert(0, render_form_errors(form))
+
     context = {
         "form": form,
         "client_secret": StripeService.create_payment_intent(),
@@ -102,8 +100,6 @@ def login_user(request):
         else:
             form.add_error("email", "Unable to verify credentials")
 
-    if form.errors:
-        form.helper.layout.insert(0, render_form_errors(form))
     return render(request, "auth/login.html", {"form": form})
 
 

@@ -1,32 +1,20 @@
 import datetime
 import json
 
-from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
-from django.template.context_processors import csrf
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput
-from timary.utils import (
-    add_loader,
-    render_form_errors,
-    render_form_messages,
-    show_alert_message,
-)
+from timary.utils import show_alert_message
 
 
 @login_required()
 @require_http_methods(["POST"])
 def create_daily_hours(request):
-    hours_form = DailyHoursForm(
-        request.POST,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="get",
-    )
+    hours_form = DailyHoursForm(request.POST, user=request.user)
     if hours_form.is_valid():
         hours_form.save()
         hours = DailyHoursInput.all_hours.current_month(request.user)
@@ -43,13 +31,10 @@ def create_daily_hours(request):
         # "newHours" - To trigger dashboard stats refresh
         show_alert_message(response, "success", "New hours added!", "newHours")
         return response
-    ctx = {}
-    ctx.update(csrf(request))
-    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
-    response = HttpResponse(html_form)
-    response["HX-Retarget"] = "#new-hours-form"
-    return response
+    else:
+        response = render(request, "hours/_create.html", {"form": hours_form})
+        response["HX-Retarget"] = "#new-hours-form"
+        return response
 
 
 @login_required()
@@ -67,17 +52,8 @@ def edit_hours(request, hours_id):
     hours = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
-    hours_form = DailyHoursForm(
-        instance=hours,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="put",
-    )
-    ctx = {}
-    ctx.update(csrf(request))
-    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
-    return HttpResponse(html_form)
+    hours_form = DailyHoursForm(instance=hours, user=request.user)
+    return render(request, "hours/_update.html", {"hour": hours, "form": hours_form})
 
 
 @login_required()
@@ -87,24 +63,17 @@ def update_hours(request, hours_id):
     if request.user != hours.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    hours_form = DailyHoursForm(
-        put_params,
-        instance=hours,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="put",
-    )
+    hours_form = DailyHoursForm(put_params, instance=hours, user=request.user)
     if hours_form.is_valid():
         updated_hours = hours_form.save()
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
         # "newHours" - To trigger dashboard stats refresh
         show_alert_message(response, "success", "Hours updated", "newHours")
         return response
-    ctx = {}
-    ctx.update(csrf(request))
-    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
-    return HttpResponse(html_form, status=200)
+    else:
+        return render(
+            request, "hours/_update.html", {"hour": hours, "form": hours_form}
+        )
 
 
 @login_required()
@@ -114,32 +83,20 @@ def patch_hours(request, hours_id):
     if request.user != hour.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    hours_form = DailyHoursForm(
-        put_params,
-        instance=hour,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="patch",
-        invoice_id=hour.invoice.id,
-    )
+    hours_form = DailyHoursForm(put_params, instance=hour, user=request.user)
     if hours_form.is_valid():
         hour.hours = hours_form.cleaned_data.get("hours")
         hour.date_tracked = hours_form.cleaned_data.get("date_tracked")
         hour.save()
-        ctx = {}
-        ctx.update(csrf(request))
-        hours_form.helper.layout.insert(
-            0, render_form_messages(["Successfully updated hours"])
+        response = render(
+            request,
+            "hours/_patch.html",
+            {"form": hours_form, "success_msg": "Successfully updated hours!"},
         )
-        html_form = add_loader(render_crispy_form(hours_form, context=ctx))
-        response = HttpResponse(html_form)
         response["HX-Trigger"] = "refreshHourStats"  # To trigger hours stats refresh
         return response
-    ctx = {}
-    ctx.update(csrf(request))
-    hours_form.helper.layout.insert(0, render_form_errors(hours_form))
-    html_form = add_loader(render_crispy_form(hours_form, context=ctx))
-    return HttpResponse(html_form, status=200)
+    else:
+        return render(request, "hours/_patch.html", {"form": hours_form})
 
 
 @login_required()

@@ -1,5 +1,4 @@
 {% extends 'timary/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block title %} Signup {% endblock %}
 
@@ -71,7 +70,31 @@
         </div>
 
         <div class="max-w-xl mx-auto">
-            {% crispy form %}
+            <div class="card p-5 bg-neutral text-neutral-content">
+                <div class="card-body">
+                    {% if form.errors %}
+                        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+                    {% endif %}
+
+                    <form action="{% url 'timary:register' %}" method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Debit card</span> </label>
+                            <div id="card-element"></div>
+                            <label class="label">
+                                <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
+                                    bank account.</span>
+                            </label>
+                        </div>
+
+                        <div class="card-actions flex justify-center mt-8">
+                            <button class="btn btn-primary" type="submit"> Continue </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div class="flex justify-center invisible" id="loader">
                 <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

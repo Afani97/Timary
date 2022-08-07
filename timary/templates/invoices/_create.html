@@ -1,0 +1,26 @@
+<form class="card bg-neutral text-neutral-content"
+    hx-post="{% url 'timary:create_invoice' %}"
+    hx-swap="beforeend"
+    hx-target="#invoices-list"
+    id="new-invoice-form"
+    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+>
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    <div class="flex card-body -mt-5">
+        {% for field in form.visible_fields %}
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ field.label_tag }}</span>
+                </label>
+                <div>{{ field }}</div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-actions flex justify-center">
+        <a href="#" class="btn" id="close-invoice-modal" _="on click call clearInvoiceModal()">Close</a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Add new invoice</button>
+    </div>
+</form>

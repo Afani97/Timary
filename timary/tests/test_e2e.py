@@ -133,7 +133,7 @@ class TestUI(BaseUITest):
             page.click('button:has-text("Update")')
             page.wait_for_selector(".text-success", timeout=2000)
             self.assertEqual(
-                page.inner_text(".text-success"), "Successfully updated hours"
+                page.inner_text(".text-success"), "Successfully updated hours!"
             )
 
     @tag("ui")
