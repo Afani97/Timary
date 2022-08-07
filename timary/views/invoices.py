@@ -272,7 +272,7 @@ def sent_invoices_list(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    sent_invoices = SentInvoice.objects.filter(invoice=invoice).all()
+    sent_invoices = SentInvoice.objects.filter(invoice=invoice).order_by("-date_sent")
     if sent_invoices:
         return render(
             request,

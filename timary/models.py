@@ -347,16 +347,16 @@ class SentInvoice(BaseModel):
         return f"{str(self.id).split('-')[0]}"
 
     def get_hours_tracked(self):
-        hours_tracked = (
-            self.invoice.hours_tracked.filter(sent_invoice_id=self.id)
-            .annotate(cost=F("invoice__hourly_rate") * Sum("hours"))
-            .order_by("date_tracked")
-        )
+        hours_tracked = self.invoice.hours_tracked.filter(
+            sent_invoice_id=self.id
+        ).order_by("date_tracked")
 
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * self.invoice.hourly_rate
+            hourly_rate = round(self.total_price / total_hours["total_hours"], 1)
+            total_cost_amount = total_hours["total_hours"] * hourly_rate
+            hours_tracked = hours_tracked.annotate(cost=hourly_rate * F("hours"))
 
         return hours_tracked, total_cost_amount
 

@@ -7,7 +7,7 @@ from django.db.models import QuerySet
 from django.test import TestCase
 from django.utils.text import slugify
 
-from timary.models import DailyHoursInput, Invoice, User
+from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 from timary.tests.factories import (
     DailyHoursFactory,
     InvoiceFactory,
@@ -225,23 +225,39 @@ class TestInvoice(TestCase):
 
 class TestSentInvoice(TestCase):
     def test_get_hours_tracked(self):
-        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
+        three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
-        hours1 = DailyHoursFactory(
-            invoice=invoice, date_tracked=yesterday, sent_invoice_id=123
+        invoice = InvoiceFactory(hourly_rate=50, last_date=three_days_ago)
+        hours1 = DailyHoursFactory(hours=1, invoice=invoice, date_tracked=yesterday)
+        hours2 = DailyHoursFactory(hours=2, invoice=invoice)
+
+        invoice.refresh_from_db()
+
+        hours_tracked, total_cost = invoice.get_hours_stats()
+
+        sent_invoice = SentInvoice.objects.create(
+            hours_start_date=hours_tracked.first().date_tracked,
+            hours_end_date=hours_tracked.last().date_tracked,
+            date_sent=datetime.date.today(),
+            invoice=invoice,
+            user=invoice.user,
+            total_price=total_cost,
         )
-        hours2 = DailyHoursFactory(invoice=invoice, sent_invoice_id=123)
 
-        sent_invoice = SentInvoiceFactory(id=123, invoice=invoice)
+        hours1.sent_invoice_id = sent_invoice.id
+        hours1.save()
+        hours2.sent_invoice_id = sent_invoice.id
+        hours2.save()
 
-        hours_tracked, total_hours = sent_invoice.get_hours_tracked()
+        # If invoice's hourly_rate changes, make sure the sent invoice calculates the correct
+        # hourly rate from total cost / sum(hours_tracked)
+        invoice.hourly_rate = 25
+        invoice.save()
+
+        hours_tracked, total_cost = sent_invoice.get_hours_tracked()
         self.assertIn(hours1, hours_tracked)
         self.assertIn(hours2, hours_tracked)
-        self.assertEqual(
-            total_hours,
-            (hours1.hours + hours2.hours) * sent_invoice.invoice.hourly_rate,
-        )
+        self.assertEqual(total_cost, 150.0)
 
 
 class TestUser(TestCase):

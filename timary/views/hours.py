@@ -118,7 +118,7 @@ def delete_hours(request, hours_id):
 def repeat_hours(request):
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     yesterday_hours = DailyHoursInput.objects.filter(
-        invoice__user=request.user, date_tracked=yesterday
+        invoice__user=request.user, date_tracked=yesterday, invoice__is_archived=False
     )
     hours = []
     for hour in yesterday_hours:
