@@ -67,14 +67,7 @@ def send_invoice(invoice_id):
 
     msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
 
-    sent_invoice = SentInvoice.objects.create(
-        hours_start_date=hours_tracked.first().date_tracked or None,
-        hours_end_date=hours_tracked.last().date_tracked or None,
-        date_sent=today,
-        invoice=invoice,
-        user=invoice.user,
-        total_price=total_amount,
-    )
+    sent_invoice = SentInvoice.create(invoice=invoice)
     for hour in hours_tracked:
         hour.sent_invoice_id = sent_invoice.id
         hour.save()
