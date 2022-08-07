@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template.context_processors import csrf
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -125,8 +124,6 @@ def index(request):
 @require_http_methods(["GET"])
 def dashboard_stats(request):
     context = get_hours_tracked(request.user)
-    ctx = {}
-    ctx.update(csrf(request))
     context["new_hour_form"] = DailyHoursForm(user=request.user)
     response = render(
         request,
