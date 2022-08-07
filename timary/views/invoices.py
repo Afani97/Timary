@@ -1,12 +1,10 @@
 from datetime import date
 
-from crispy_forms.utils import render_crispy_form
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.context_processors import csrf
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -15,7 +13,7 @@ from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import add_loader, render_form_errors, show_alert_message
+from timary.utils import show_alert_message
 
 
 @login_required()
@@ -36,18 +34,10 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
-    ctx = {}
-    ctx.update(csrf(request))
+
     context = {
         "invoices": invoices,
-        "new_invoice": add_loader(
-            render_crispy_form(
-                InvoiceForm(
-                    user=request.user, is_mobile=request.is_mobile, request_method="get"
-                ),
-                context=ctx,
-            )
-        ),
+        "new_invoice": InvoiceForm(user=request.user),
         "upgrade_msg": request.user.upgrade_invoice_message,
         "sent_invoices_owed": int(sent_invoices_owed),
         "sent_invoices_earned": int(sent_invoices_paid),
@@ -64,12 +54,7 @@ def manage_invoices(request):
 @require_http_methods(["POST"])
 def create_invoice(request):
     user: User = request.user
-    invoice_form = InvoiceForm(
-        request.POST,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="get",
-    )
+    invoice_form = InvoiceForm(request.POST or None, user=user)
     if invoice_form.is_valid():
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
@@ -89,14 +74,11 @@ def create_invoice(request):
                 "HX-Redirect"
             ] = "/main/"  # To trigger refresh to remove empty state
         return response
-    ctx = {}
-    ctx.update(csrf(request))
-    invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
-    response = HttpResponse(html_form)
-    response["HX-Retarget"] = "#new-invoice-form"
-    response["HX-Reswap"] = "outerHTML"
-    return response
+    else:
+        response = render(request, "invoices/_create.html", {"form": invoice_form})
+        response["HX-Retarget"] = "#new-invoice-form"
+        response["HX-Reswap"] = "outerHTML"
+        return response
 
 
 @login_required()
@@ -155,17 +137,8 @@ def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    invoice_form = InvoiceForm(
-        instance=invoice,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="put",
-    )
-    ctx = {}
-    ctx.update(csrf(request))
-    invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
-    return HttpResponse(html_form)
+    invoice_form = InvoiceForm(instance=invoice, user=request.user)
+    return render(request, "invoices/_update.html", {"form": invoice_form})
 
 
 @login_required()
@@ -175,13 +148,7 @@ def update_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    invoice_form = InvoiceForm(
-        put_params,
-        instance=invoice,
-        user=request.user,
-        is_mobile=request.is_mobile,
-        request_method="put",
-    )
+    invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
         invoice = invoice_form.save()
         if invoice.next_date:
@@ -189,11 +156,8 @@ def update_invoice(request, invoice_id):
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         show_alert_message(response, "success", f"{invoice.title} was updated.")
         return response
-    ctx = {}
-    ctx.update(csrf(request))
-    invoice_form.helper.layout.insert(0, render_form_errors(invoice_form))
-    html_form = add_loader(render_crispy_form(invoice_form, context=ctx))
-    return HttpResponse(html_form)
+    else:
+        return render(request, "invoices/_update.html", {"form": invoice_form})
 
 
 @login_required()

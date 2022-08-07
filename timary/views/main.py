@@ -1,6 +1,5 @@
 import datetime
 
-from crispy_forms.utils import render_crispy_form
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum
@@ -15,7 +14,6 @@ from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
-from timary.utils import add_loader
 
 
 def bad_request(request, exception):

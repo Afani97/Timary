@@ -13,20 +13,20 @@
     <div class="flex flex-col space-y-2 card-body">
         <div class="form-control w-full">
             <label class="label">
-                <span class="label-text">Hours</span>
+                <span class="label-text">{{ form.hours.label_tag }}</span>
             </label>
             <div>{{ form.hours }}</div>
         </div>
 
         <div class="w-full">
             <label class="label">
-                <span class="label-text">Date</span>
+                <span class="label-text">{{ form.date_tracked.label_tag }}</span>
             </label>
             {{ form.date_tracked }}
         </div>
         <div class="w-full">
             <label class="label">
-                <span class="label-text">Invoice</span>
+                <span class="label-text">{{ form.invoice.label_tag }}</span>
             </label>
             {{ form.invoice }}
         </div>

@@ -1,0 +1,69 @@
+<form class="card bg-neutral text-neutral-content"
+    hx-put="{% url 'timary:update_invoice' invoice_id=form.instance.id %}"
+    hx-swap="outerHTML"
+    hx-target="this"
+    id="update-invoice-form"
+    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+>
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    <div class="flex card-body -mt-5">
+        <div class="flex flex-col space-y-1 md:flex-row md:space-x-3 md:space-y-0">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.title.label_tag }}</span>
+                </label>
+                <div>{{ form.title }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.hourly_rate.label_tag }}</span>
+                </label>
+                <div>{{ form.hourly_rate }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
+                </label>
+                <div>{{ form.invoice_interval }}</div>
+            </div>
+
+        </div>
+
+        <div class="flex flex-col space-y-1 md:flex-row md:space-x-3 md:space-y-0"">
+
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.total_budget.label_tag }}</span>
+                </label>
+                <div>{{ form.total_budget }}</div>
+                <label class="label">
+                    <span class="label-text-alt">Optional</span>
+                </label>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
+                </label>
+                <div>{{ form.email_recipient_name }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.email_recipient.label_tag }}</span>
+                </label>
+                <div>{{ form.email_recipient }}</div>
+            </div>
+
+
+        </div>
+
+
+
+        </div>
+        <div class="card-actions flex justify-center">
+            <a href="#" class="btn" id="close-invoice-modal" hx-get="{% url 'timary:get_single_invoice' invoice_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me">Cancel</a>
+            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Update invoice</button>
+        </div>
+    </form>

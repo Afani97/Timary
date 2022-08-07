@@ -1,11 +1,9 @@
 import datetime
 
-from crispy_forms.helper import FormHelper
 from django.contrib.auth.forms import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
-from timary.form_helpers import invoice_form_helper
 from timary.models import DailyHoursInput, Invoice, User
 
 
@@ -93,33 +91,15 @@ class DailyHoursForm(forms.ModelForm):
 class InvoiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
-        is_mobile = kwargs.pop("is_mobile") if "is_mobile" in kwargs else False
-        request_method = (
-            kwargs.pop("request_method").lower()
-            if "request_method" in kwargs
-            else "get"
-        )
-
         super(InvoiceForm, self).__init__(*args, **kwargs)
-
-        num_invoices = self.user.get_invoices.count() if self.user else 0
-
-        self.helper = FormHelper(self)
-        self.helper._form_method = ""
-        self.helper.form_show_errors = False
-        helper_attributes = invoice_form_helper(
-            request_method, is_mobile, self.instance, num_invoices != 0
-        )
-        for key in helper_attributes:
-            setattr(self.helper, key, helper_attributes[key])
 
     class Meta:
         model = Invoice
         fields = [
             "title",
             "hourly_rate",
-            "invoice_interval",
             "total_budget",
+            "invoice_interval",
             "email_recipient_name",
             "email_recipient",
         ]

@@ -3,7 +3,6 @@ boto3
 factory-boy
 django
 django-browser-reload
-django-crispy-forms
 django-csp
 django-multiselectfield
 django-otp
@@ -17,7 +16,6 @@ Pillow
 playwright
 pre-commit
 python-decouple
-pyquery
 qrcode
 sentry-sdk
 stripe

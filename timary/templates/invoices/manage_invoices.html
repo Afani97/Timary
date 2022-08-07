@@ -1,5 +1,4 @@
 {% extends 'timary/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block content %}
     <link href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css" rel="stylesheet" type="text/css" />
@@ -45,7 +44,7 @@
                                 </p>
                             </div>
                             <div class="flex-shrink-0 w-full max-w-xl shadow-2xl bg-base-100">
-                                {{ new_invoice | safe }}
+                                {% include "invoices/_create.html" with form=new_invoice %}
                             </div>
                         </div>
                     </div>
@@ -58,7 +57,7 @@
         <div class="divider"></div>
 
         <div>
-            <h3 class="text-xl my-3 font-bold">Archived invoices</h3>
+            <h3 class="text-xl my-3 font-bold mx-5">Archived invoices</h3>
 
             {% if archived_invoices.count > 0 %}
                 <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -74,7 +73,7 @@
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
         <div class="modal-box bg-neutral">
-            {{ new_invoice | safe }}
+            {% include "invoices/_create.html" with form=new_invoice %}
         </div>
     </div>
     {# New invoice modal #}
