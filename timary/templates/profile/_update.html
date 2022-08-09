@@ -4,7 +4,7 @@
     hx-target="this"
     hx-encoding="multipart/form-data"
     id="update-hours-form"
-    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}

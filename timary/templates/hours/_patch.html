@@ -3,7 +3,7 @@
     hx-swap="outerHTML"
     hx-target="this"
     hx-vals='{"invoice": "{{ form.instance.invoice.id }}" }'
-    _="on submit add .loading to .submit-btn end on htmx:afterRequest remove .loading from .submit-btn"
+    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
 >
 
     {% if form.errors %}
