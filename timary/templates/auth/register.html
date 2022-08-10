@@ -127,29 +127,7 @@
         // Fetches a payment intent and captures the client secret
         function initialize() {
             elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
-
-            cardElement = elements.create("card", {
-                style: {
-                    base: {
-                        iconColor: '#c4f0ff',
-                        color: '#fff',
-                        fontWeight: '500',
-                        fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
-                        fontSize: '16px',
-                        fontSmoothing: 'antialiased',
-                        ':-webkit-autofill': {
-                            color: '#fce883',
-                        },
-                    },
-                    invalid: {
-                        iconColor: '#ff5724',
-                        color: '#ff5724',
-                    },
-                },
-                classes: {
-                    base: 'input input-bordered text-lg px-2 py-3'
-                }
-            });
+            cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
             cardElement.mount("#card-element");
         }
 

@@ -79,6 +79,7 @@ Timary
         "form": form,
         "client_secret": StripeService.create_payment_intent(),
         "stripe_public_key": StripeService.stripe_public_api_key,
+        "stripe_card_element_ui": StripeService.frontend_ui(),
     }
     return render(request, "auth/register.html", context)
 
