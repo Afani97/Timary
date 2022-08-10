@@ -1,4 +1,8 @@
-<form action="{% url 'timary:update_payment_method_settings' %}" method="post" class="col-span-3">
+<form
+    action="{% url 'timary:update_payment_method_settings' %}"
+    method="post"
+    class="col-span-3"
+>
     {% csrf_token %}
     <div class="form-control">
         <label class="label"><span class="label-text">Debit card</span> </label>
@@ -17,26 +21,31 @@
             _="on click add .loading to me">
             Cancel
         </a>
-        <button class="btn btn-primary" id="submit-form" type="submit" _="on click add .loading to me"> Update </button>
+        <button class="btn btn-disabled" id="submit-form" type="submit" _="on click add .loading to me"> Update </button>
     </div>
 </form>
 
 <script nonce="update-payment-method" defer>
-    const stripe = Stripe('{{ stripe_public_key }}');
+    var stripe = Stripe('{{ stripe_public_key }}');
 
-    let elements;
-    let cardElement;
+    var elements;
+    var cardElement;
 
     initialize();
-
-    let signupButton = document.querySelector("#submit-form");
-    signupButton.addEventListener("click", handleSubmit);
 
     // Fetches a payment intent and captures the client secret
     function initialize() {
         elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
         cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
         cardElement.mount("#card-element");
+
+        cardElement.on('change', function(e) {
+            if (e.complete) {
+                let submitFormBtn = htmx.find("#submit-form");
+                htmx.removeClass(submitFormBtn, "btn-disabled");
+                htmx.addClass(submitFormBtn, "btn-primary")
+            }
+        })
     }
 
     function createHiddenInput(el, val) {

@@ -90,7 +90,7 @@
                         </div>
 
                         <div class="card-actions flex justify-center mt-8">
-                            <button class="btn btn-primary" type="submit"> Continue </button>
+                            <button class="btn btn-disabled" type="submit" id="register-btn"> Continue </button>
                         </div>
                     </form>
                 </div>
@@ -121,7 +121,7 @@
 
         initialize();
 
-        let signupButton = document.querySelector("#submit-form");
+        let signupButton = document.querySelector("#register-btn");
         signupButton.addEventListener("click", handleSubmit);
 
         // Fetches a payment intent and captures the client secret
@@ -129,6 +129,13 @@
             elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
             cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
             cardElement.mount("#card-element");
+            cardElement.on('change', function(e) {
+                if (e.complete) {
+                    let submitFormBtn = htmx.find("#register-btn");
+                    htmx.removeClass(submitFormBtn, "btn-disabled");
+                    htmx.addClass(submitFormBtn, "btn-primary")
+                }
+            })
         }
 
         function createHiddenInput(el, val) {
@@ -143,7 +150,7 @@
 
         function handleSubmit(e) {
             e.preventDefault();
-            document.getElementById("submit-form").classList.add("invisible");
+            document.getElementById("register-btn").classList.add("invisible");
             document.getElementById("loader").classList.remove("invisible");
 
             stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
@@ -163,7 +170,7 @@
                         // Remove event listener
                         signupButton.removeEventListener("click", handleSubmit);
                     } else {
-                        document.getElementById("submit-form").classList.remove("invisible");
+                        document.getElementById("register-btn").classList.remove("invisible");
                         document.getElementById("loader").classList.add("invisible");
                         if (secondToken.error.type === "card_error" || secondToken.error.type === "validation_error") {
                             showMessage(secondToken.error.message);

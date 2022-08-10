@@ -127,10 +127,7 @@ def update_payment_method_settings(request):
         "stripe_public_key": StripeService.stripe_public_api_key,
         "stripe_card_element_ui": StripeService.frontend_ui(),
     }
-    if request.method == "GET":
-        return render(request, "partials/settings/_edit_payment_method.html", context)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         request_data = request.POST.copy()
         try:
             success = StripeService.update_payment_method(
@@ -151,8 +148,7 @@ def update_payment_method_settings(request):
             )
         return redirect(reverse("timary:user_profile"))
 
-    else:
-        raise Http404()
+    return render(request, "partials/settings/_edit_payment_method.html", context)
 
 
 @login_required()
