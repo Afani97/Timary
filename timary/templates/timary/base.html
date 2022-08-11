@@ -13,19 +13,6 @@
         {% block css %}{% endblock %}
         {# Third Party JS #}
         <script src="https://unpkg.com/htmx.org@1.8.0"></script>
-        <script>
-            htmx.defineExtension('stripe', {
-                onEvent: function (name, event) {
-                    if (name === "htmx:afterOnLoad") {
-                        console.log(name);
-                        console.log(event);
-                        console.log("stripe");
-                    }
-
-                    return true;
-                }
-            });
-        </script>
         <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
 
         <script nonce="base" defer>
