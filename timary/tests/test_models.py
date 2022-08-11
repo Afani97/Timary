@@ -284,6 +284,7 @@ class TestUser(TestCase):
                 "can_download_audit": False,
                 "can_integrate_with_accounting_tools": False,
                 "current_plan": "Professional",
+                "accounting_integrations_connected": "",
                 "can_customize_invoice": False,
             },
         )

@@ -53,7 +53,7 @@ def quickbooks_disconnect(request):
     request.user.save()
     return render(
         request,
-        "partials/settings/_update_accounting.html",
+        "partials/settings/_edit_accounting.html",
         {"settings": request.user.settings},
     )
 
@@ -99,7 +99,7 @@ def freshbooks_disconnect(request):
     request.user.save()
     return render(
         request,
-        "partials/settings/_update_accounting.html",
+        "partials/settings/_edit_accounting.html",
         {"settings": request.user.settings},
     )
 
@@ -145,7 +145,7 @@ def zoho_disconnect(request):
     request.user.save()
     return render(
         request,
-        "partials/settings/_update_accounting.html",
+        "partials/settings/_edit_accounting.html",
         {"settings": request.user.settings},
     )
 
@@ -190,7 +190,7 @@ def xero_disconnect(request):
     request.user.save()
     return render(
         request,
-        "partials/settings/_update_accounting.html",
+        "partials/settings/_edit_accounting.html",
         {"settings": request.user.settings},
     )
 
@@ -235,6 +235,6 @@ def sage_disconnect(request):
     request.user.save()
     return render(
         request,
-        "partials/settings/_update_accounting.html",
+        "partials/settings/_edit_accounting.html",
         {"settings": request.user.settings},
     )

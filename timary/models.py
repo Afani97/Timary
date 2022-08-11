@@ -487,6 +487,7 @@ class User(AbstractUser, BaseModel):
     def settings(self):
         return {
             "can_integrate_with_accounting_tools": self.can_integrate_with_accounting_tools,
+            "accounting_integrations_connected": self.get_accounting_integrations_connected,
             "phone_number_availability": self.phone_number_availability,
             "quickbooks_connected": self.quickbooks_realm_id is not None,
             "freshbooks_connected": self.freshbooks_account_id is not None,

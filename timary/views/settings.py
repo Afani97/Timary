@@ -222,7 +222,7 @@ def update_accounting_integrations(request):
         "profile": request.user,
         "settings": request.user.settings,
     }
-    return render(request, "partials/settings/_update_accounting.html", context)
+    return render(request, "partials/settings/_edit_accounting.html", context)
 
 
 @login_required

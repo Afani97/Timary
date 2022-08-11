@@ -43,7 +43,7 @@ class ZohoService:
 
             response = auth_request.json()
 
-            if "access_token" not in response:
+            if "access_token" not in response or "refresh_token" not in response:
                 raise AccountingError(
                     service="Zoho",
                     user_id=request.user.id,
