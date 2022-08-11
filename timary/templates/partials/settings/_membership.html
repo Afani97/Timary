@@ -1,6 +1,6 @@
-<div class="wrapper flex justify-between items-center">
+<div class="wrapper grid grid-cols-3 items-center">
     <div class="text-left">Membership tier: </div>
-    <div class="text-left">{{ settings.current_plan }}</div>
+    <div class="text-center">{{ settings.current_plan }}</div>
     <a class="link text-right"
         hx-get="{% url 'timary:update_membership_settings' %}"
         hx-target="closest .wrapper"

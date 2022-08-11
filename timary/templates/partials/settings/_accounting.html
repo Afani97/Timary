@@ -1,6 +1,12 @@
-<div class="wrapper flex justify-between items-center">
+<div class="wrapper grid grid-cols-3 items-center">
     <div class="tooltip" data-tip="Connect an accounting service to sync your invoices">
-        <div class="text-left">Accounting:</div>
+        <div class="text-left">
+            {% if profile.get_accounting_integrations_connected|length > 0 %}
+                Syncing to:
+            {% else %}
+                Accounting sync not connected
+            {% endif %}
+        </div>
     </div>
     <div class="text-center"> {{ profile.get_accounting_integrations_connected }} </div>
     <a class="link text-right"
@@ -8,6 +14,10 @@
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
         _="on click add .loading to me">
-        Edit
+        {% if profile.get_accounting_integrations_connected|length == 0 %}
+            Add
+        {% else %}
+            Edit
+        {% endif %}
     </a>
 </div>
