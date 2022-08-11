@@ -89,6 +89,19 @@ class DailyHoursForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
+    # Don't require budget in create form
+    total_budget = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                "min": 1,
+                "max": 1_000_000,
+                "class": "input input-bordered text-lg w-full",
+                "placeholder": "10000",
+            }
+        ),
+    )
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
@@ -116,14 +129,6 @@ class InvoiceForm(forms.ModelForm):
                     "min": 1,
                     "max": 1000,
                     "class": "input input-bordered text-lg w-full",
-                }
-            ),
-            "total_budget": forms.NumberInput(
-                attrs={
-                    "min": 1,
-                    "max": 1_000_000,
-                    "class": "input input-bordered text-lg w-full",
-                    "placeholder": "10000",
                 }
             ),
             "invoice_interval": forms.Select(

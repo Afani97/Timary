@@ -11,12 +11,14 @@
 
     <div class="flex card-body -mt-5">
         {% for field in form.visible_fields %}
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ field.label_tag }}</span>
-                </label>
-                <div>{{ field }}</div>
-            </div>
+            {% if field.field.required %}
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ field.label_tag }}</span>
+                    </label>
+                    <div>{{ field }}</div>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
     <div class="card-actions flex justify-center">

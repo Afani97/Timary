@@ -167,7 +167,7 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <div class="wrapper flex justify-between items-center">
+            <div class="wrapper grid grid-cols-3 items-center">
                 <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
                     <div class="text-left">SMS availability:</div>
                 </div>
