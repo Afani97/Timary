@@ -18,6 +18,29 @@ class StripeService:
     stripe_public_api_key = settings.STRIPE_PUBLIC_API_KEY
 
     @classmethod
+    def frontend_ui(cls):
+        return {
+            "style": {
+                "base": {
+                    "iconColor": "#c4f0ff",
+                    "color": "#fff",
+                    "fontWeight": "500",
+                    "fontFamily": "Roboto, Open Sans, Segoe UI, sans-serif",
+                    "fontSize": "16px",
+                    "fontSmoothing": "antialiased",
+                    ":-webkit-autofill": {
+                        "color": "#fce883",
+                    },
+                },
+                "invalid": {
+                    "iconColor": "#ff5724",
+                    "color": "#ff5724",
+                },
+            },
+            "classes": {"base": "input input-bordered text-lg px-2 py-3"},
+        }
+
+    @classmethod
     def get_product_id(cls, user):
         from timary.models import User
 

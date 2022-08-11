@@ -1,12 +1,10 @@
 import datetime
 from tempfile import NamedTemporaryFile
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
-from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -125,33 +123,50 @@ def update_payment_method_settings(request):
     context = {
         "client_secret": StripeService.create_payment_intent(),
         "stripe_public_key": StripeService.stripe_public_api_key,
+        "stripe_card_element_ui": StripeService.frontend_ui(),
     }
-    if request.method == "GET":
-        return render(request, "partials/settings/_edit_payment_method.html", context)
+    stripe_errors = {
+        **context,
+        "stripe_errors": {"errors": "Error updating payment method, please try again."},
+    }
 
-    elif request.method == "POST":
-        request_data = request.POST.copy()
+    if request.method == "POST":
+        if "first_token" not in request.POST or "second_token" not in request.POST:
+            return render(
+                request, "partials/settings/_edit_payment_method.html", stripe_errors
+            )
         try:
             success = StripeService.update_payment_method(
                 request.user,
-                request_data.pop("first_token")[0],
-                request_data.pop("second_token")[0],
+                request.POST.get("first_token"),
+                request.POST.get("second_token"),
             )
         except InvalidRequestError:
-            messages.error(
-                request, "Error updating payment method, Stripe requires a debit card."
+            return render(
+                request,
+                "partials/settings/_edit_payment_method.html",
+                stripe_errors,
             )
-            return redirect(reverse("timary:user_profile"))
         if success:
-            messages.info(request, "Successfully updated debit card.")
-        else:
-            messages.error(
-                request, "Error updating payment method, Stripe requires a debit card."
+            response = render(
+                request,
+                "partials/settings/_payment_method.html",
+                {"settings": request.user.settings},
             )
-        return redirect(reverse("timary:user_profile"))
+            show_alert_message(
+                response,
+                "success",
+                "Successfully updated debit card.",
+            )
+            return response
+        else:
+            return render(
+                request,
+                "partials/settings/_edit_payment_method.html",
+                stripe_errors,
+            )
 
-    else:
-        raise Http404()
+    return render(request, "partials/settings/_edit_payment_method.html", context)
 
 
 @login_required()

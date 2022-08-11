@@ -1,5 +1,11 @@
-<form action="{% url 'timary:update_payment_method_settings' %}" method="post" class="col-span-3">
-    {% csrf_token %}
+<div hx-post="{% url 'timary:update_payment_method_settings' %}" hx-target="this" hx-swap="outerHTML" hx-trigger="stripe-tokens" hx-include="[name='first_token'],[name='second_token']"
+    class="col-span-3"
+    id="update-payment-element"
+>
+    {% if stripe_errors %}
+        {% include "partials/_form_errors.html" with form_errors=stripe_errors %}
+    {% endif %}
+
     <div class="form-control">
         <label class="label"><span class="label-text">Debit card</span> </label>
         <div id="card-element"></div>
@@ -7,58 +13,51 @@
             <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
                 bank account.</span>
         </label>
+        <div id="payment-message" class="hidden text-red-600"></div>
     </div>
 
     <div class="flex justify-center space-x-4">
-        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost" _="on click add .loading to me"> Cancel </a>
-        <button class="btn btn-primary" id="submit-form" type="submit" _="on click add .loading to me"> Update </button>
+        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost"  _="on click add .loading to me">
+            Cancel
+        </a>
+        <button class="btn btn-disabled update-btn" _="on click add .loading to me then call updateCard()">
+            Update
+        </button>
     </div>
-    <div class="flex justify-center invisible" id="loader">
-        <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-    </div>
-</form>
+</div>
 
 <script nonce="update-payment-method" defer>
-    const stripe = Stripe('{{ stripe_public_key }}');
+    var stripe = Stripe('{{ stripe_public_key }}');
 
-    let elements;
-    let cardElement;
+    var elements;
+    var cardElement;
 
     initialize();
-
-    let signupButton = document.querySelector("#submit-form");
-    signupButton.addEventListener("click", handleSubmit);
 
     // Fetches a payment intent and captures the client secret
     function initialize() {
         elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
-
-        cardElement = elements.create("card", {
-            style: {
-                base: {
-                    iconColor: '#c4f0ff',
-                    color: '#fff',
-                    fontWeight: '500',
-                    fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
-                    fontSize: '16px',
-                    fontSmoothing: 'antialiased',
-                    ':-webkit-autofill': {
-                        color: '#fce883',
-                    },
-                },
-                invalid: {
-                    iconColor: '#ff5724',
-                    color: '#ff5724',
-                },
-            },
-            classes: {
-                base: 'input input-bordered text-lg px-2 py-3'
-            }
-        });
+        cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
         cardElement.mount("#card-element");
+
+        let submitFormBtn = htmx.find(".update-btn");
+        cardElement.on('change', function(e) {
+            if (e.complete) {
+                htmx.removeClass(submitFormBtn, "btn-disabled");
+                htmx.addClass(submitFormBtn, "btn-primary")
+            } else {
+                htmx.addClass(submitFormBtn, "btn-disabled");
+                htmx.removeClass(submitFormBtn, "btn-primary")
+            }
+        })
+    }
+
+    function showMessage(messageText) {
+        htmx.removeClass(htmx.find(".update-btn"), "loading");
+        const messageContainer = document.querySelector("#payment-message");
+
+        messageContainer.classList.remove("hidden");
+        messageContainer.textContent = messageText;
     }
 
     function createHiddenInput(el, val) {
@@ -71,35 +70,26 @@
         return element;
     }
 
-    function handleSubmit(e) {
-        e.preventDefault();
-        document.getElementById("submit-form").classList.add("invisible");
-        document.getElementById("loader").classList.remove("invisible");
-
+    function updateCard() {
         stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
             let first_token = firstToken.token;
-            stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
-                let second_token = secondToken.token;
 
-                if (secondToken.token) {
+            if (!firstToken.error) {
+                stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
+                    let second_token = secondToken.token;
 
-                    let form = document.querySelector("form");
-                    form.appendChild(createHiddenInput('first_token', first_token.id));
-                    form.appendChild(createHiddenInput('second_token', second_token.id));
-                    form.submit()
-
-                    // Remove event listener
-                    signupButton.removeEventListener("click", handleSubmit);
-                } else {
-                    document.getElementById("submit-form").classList.remove("invisible");
-                    document.getElementById("loader").classList.add("invisible");
-                    if (secondToken.error.type === "card_error" || secondToken.error.type === "validation_error") {
-                        showMessage(secondToken.error.message);
+                    if (!secondToken.error) {
+                        let form = document.getElementById("update-payment-element")
+                        form.appendChild(createHiddenInput('first_token', first_token.id));
+                        form.appendChild(createHiddenInput('second_token', second_token.id));
+                        htmx.trigger("#update-payment-element", "stripe-tokens");
                     } else {
-                        showMessage("An unexpected error occurred.");
+                        showMessage(secondToken.error.message);
                     }
-                }
-            });
+                });
+            } else {
+                showMessage(firstToken.error.message);
+            }
         });
     }
 </script>

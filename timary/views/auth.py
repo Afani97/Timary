@@ -13,7 +13,7 @@ from timary.services.stripe_service import StripeService
 def register_user(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
-    form = RegisterForm(request.POST or None)
+    form = RegisterForm()
 
     if request.method == "POST":
         request_data = request.POST.copy()
@@ -79,6 +79,7 @@ Timary
         "form": form,
         "client_secret": StripeService.create_payment_intent(),
         "stripe_public_key": StripeService.stripe_public_api_key,
+        "stripe_card_element_ui": StripeService.frontend_ui(),
     }
     return render(request, "auth/register.html", context)
 
