@@ -13,6 +13,7 @@
             <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
                 bank account.</span>
         </label>
+        <div id="payment-message" class="hidden text-red-600"></div>
     </div>
 
     <div class="flex justify-center space-x-4">
@@ -51,6 +52,14 @@
         })
     }
 
+    function showMessage(messageText) {
+        htmx.removeClass(htmx.find(".update-btn"), "loading");
+        const messageContainer = document.querySelector("#payment-message");
+
+        messageContainer.classList.remove("hidden");
+        messageContainer.textContent = messageText;
+    }
+
     function createHiddenInput(el, val) {
         let element = document.createElement("input");
         element.className = el;
@@ -65,16 +74,22 @@
         stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
             let first_token = firstToken.token;
 
-            stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
-                let second_token = secondToken.token;
+            if (!firstToken.error) {
+                stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
+                    let second_token = secondToken.token;
 
-                if (!secondToken.error) {
-                    let form = document.getElementById("update-payment-element")
-                    form.appendChild(createHiddenInput('first_token', first_token.id));
-                    form.appendChild(createHiddenInput('second_token', second_token.id));
-                    htmx.trigger("#update-payment-element", "stripe-tokens");
-                }
-            });
+                    if (!secondToken.error) {
+                        let form = document.getElementById("update-payment-element")
+                        form.appendChild(createHiddenInput('first_token', first_token.id));
+                        form.appendChild(createHiddenInput('second_token', second_token.id));
+                        htmx.trigger("#update-payment-element", "stripe-tokens");
+                    } else {
+                        showMessage(secondToken.error.message);
+                    }
+                });
+            } else {
+                showMessage(firstToken.error.message);
+            }
         });
     }
 </script>

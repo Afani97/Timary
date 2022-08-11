@@ -13,7 +13,7 @@ from timary.services.stripe_service import StripeService
 def register_user(request):
     if request.user.is_authenticated:
         return redirect(reverse("timary:index"))
-    form = RegisterForm(request.POST or None)
+    form = RegisterForm()
 
     if request.method == "POST":
         request_data = request.POST.copy()

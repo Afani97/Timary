@@ -1,4 +1,5 @@
 {% extends 'timary/base.html' %}
+{% load filters %}
 
 {% block title %} Signup {% endblock %}
 
@@ -72,13 +73,22 @@
         <div class="max-w-xl mx-auto">
             <div class="card p-5 bg-neutral text-neutral-content">
                 <div class="card-body">
-                    {% if form.errors %}
-                        {% include "partials/_form_errors.html" with form_errors=form.errors %}
-                    {% endif %}
-
                     <form action="{% url 'timary:register' %}" method="post">
                         {% csrf_token %}
-                        {{ form.as_p }}
+
+                        {% for field in form %}
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">{{ field.label}}</span>
+                                </label>
+                                {{ field | addclass:"input input-bordered w-full text-xl"}}
+                                {% for error in field.errors %}
+                                    <div class="text-red-600">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
 
                         <div class="form-control">
                             <label class="label"><span class="label-text">Debit card</span> </label>
@@ -87,19 +97,20 @@
                                 <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
                                     bank account.</span>
                             </label>
+                            <div id="payment-message" class="hidden text-red-600"></div>
                         </div>
 
                         <div class="card-actions flex justify-center mt-8">
                             <button class="btn btn-disabled" type="submit" id="register-btn"> Continue </button>
                         </div>
+                        <div class="flex justify-center invisible" id="loader">
+                            <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
                     </form>
                 </div>
-            </div>
-            <div class="flex justify-center invisible" id="loader">
-                <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
             </div>
 
             <p class="flex justify-center mt-6">
@@ -129,57 +140,17 @@
             elements = stripe.elements({ clientSecret: '{{ client_secret }}' });
             cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
             cardElement.mount("#card-element");
+
+            let registerBtn = htmx.find("#register-btn");
             cardElement.on('change', function(e) {
                 if (e.complete) {
-                    let submitFormBtn = htmx.find("#register-btn");
-                    htmx.removeClass(submitFormBtn, "btn-disabled");
-                    htmx.addClass(submitFormBtn, "btn-primary")
+                    htmx.removeClass(registerBtn, "btn-disabled");
+                    htmx.addClass(registerBtn, "btn-primary")
+                } else {
+                    htmx.addClass(registerBtn, "btn-disabled");
+                    htmx.removeClass(registerBtn, "btn-primary")
                 }
             })
-        }
-
-        function createHiddenInput(el, val) {
-            let element = document.createElement("input");
-            element.className = el;
-            element.name = el;
-            element.value = val;
-            element.id = `id_${el}`;
-            element.hidden = true;
-            return element;
-        }
-
-        function handleSubmit(e) {
-            e.preventDefault();
-            document.getElementById("register-btn").classList.add("invisible");
-            document.getElementById("loader").classList.remove("invisible");
-
-            stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
-                let first_token = firstToken.token;
-                stripe.createToken(cardElement, {"currency": "usd"}).then(function(secondToken) {
-                    let second_token = secondToken.token;
-
-                    if (secondToken.token) {
-
-                        let form = document.querySelector("form");
-                        let chosenPlan = document.querySelector(".plan-chosen");
-                        form.appendChild(createHiddenInput("membership_tier", chosenPlan.id.toUpperCase()));
-                        form.appendChild(createHiddenInput('first_token', first_token.id));
-                        form.appendChild(createHiddenInput('second_token', second_token.id));
-                        form.submit()
-
-                        // Remove event listener
-                        signupButton.removeEventListener("click", handleSubmit);
-                    } else {
-                        document.getElementById("register-btn").classList.remove("invisible");
-                        document.getElementById("loader").classList.add("invisible");
-                        if (secondToken.error.type === "card_error" || secondToken.error.type === "validation_error") {
-                            showMessage(secondToken.error.message);
-                        } else {
-                            showMessage("An unexpected error occurred.");
-                        }
-                    }
-                });
-            });
         }
 
         function selectSubscriptionPlan(e) {
@@ -195,18 +166,52 @@
             plan.innerText = "Chosen";
         }
 
-        // ------- UI helpers -------
+        function createHiddenInput(el, val) {
+            let element = document.createElement("input");
+            element.className = el;
+            element.name = el;
+            element.value = val;
+            element.id = `id_${el}`;
+            element.hidden = true;
+            return element;
+        }
 
         function showMessage(messageText) {
+            document.getElementById("register-btn").classList.remove("invisible");
+            document.getElementById("loader").classList.add("invisible");
             const messageContainer = document.querySelector("#payment-message");
 
             messageContainer.classList.remove("hidden");
             messageContainer.textContent = messageText;
+        }
 
-            setTimeout(function () {
-                messageContainer.classList.add("hidden");
-                messageText.textContent = "";
-            }, 4000);
+        function handleSubmit(e) {
+            e.preventDefault();
+            document.getElementById("register-btn").classList.add("invisible");
+            document.getElementById("loader").classList.remove("invisible");
+
+            stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
+
+                if (!firstToken.error) {
+                    let first_token = firstToken.token;
+                    stripe.createToken(cardElement, {"currency": "usd"}).then(function (secondToken) {
+                        let second_token = secondToken.token;
+
+                        if (!secondToken.error) {
+                            let form = document.querySelector("form");
+                            let chosenPlan = document.querySelector(".plan-chosen");
+                            form.appendChild(createHiddenInput("membership_tier", chosenPlan.id.toUpperCase()));
+                            form.appendChild(createHiddenInput('first_token', first_token.id));
+                            form.appendChild(createHiddenInput('second_token', second_token.id));
+                            form.submit()
+                        } else {
+                            showMessage(secondToken.error.message);
+                        }
+                    });
+                } else {
+                    showMessage(firstToken.error.message);
+                }
+            });
         }
     </script>
 {% endblock %}
