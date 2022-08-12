@@ -61,9 +61,14 @@ class TestInvoices(BaseTest):
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-            <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
-            <p class="text-xl">next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
+            <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertInHTML(
+            f"""
+            <p class="text-xl">emailed daily to {inv_name} ({inv_email})</p>
+            <p class="text-xl">next date sent is {invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -92,15 +97,14 @@ class TestInvoices(BaseTest):
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
-                <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-                <p class="text-xl my-2">sent to {inv_name} ({inv_email})</p>
-                <div class="flex flex-col sm:flex-row justify-center my-2">
-                <ul class="steps">
+                <p class="text-xl my-2">emailed to {inv_name} ({inv_email})</p>
+                <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline">
+                <ul class="steps grow col-span-3">
                 <li class="step step-primary">current</li><li class="step"></li><li class="step"></li>
                 </ul>
                 <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
                     hx-confirm="Are you sure you want to complete this milestone?"
-                    hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary"
+                    hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary mt-5"
                     _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
                     Complete current milestone
                 </a>
@@ -115,7 +119,7 @@ class TestInvoices(BaseTest):
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertContains(
             response,
-            f'<h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
+            f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -189,7 +193,7 @@ class TestInvoices(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
-            f"""<ul class="list-disc ml-5">
+            f"""<ul class="list-none">
                 <li class="text-xl">{floatformat(hour.hours, 2)} hrs on {date(hour.date_tracked, "M jS")}</li>
            </ul>""",
             response.content.decode("utf-8"),
@@ -263,9 +267,14 @@ class TestInvoices(BaseTest):
         inv_email = self.invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-            <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
-            <p class="text-xl">next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
+            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertInHTML(
+            f"""
+            <p class="text-xl">emailed daily to {inv_name} ({inv_email})</p>
+            <p class="text-xl">next date sent is {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
             response.content.decode("utf-8"),
         )
@@ -290,10 +299,9 @@ class TestInvoices(BaseTest):
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
-            <p class="text-xl my-2">sent to {inv_name} ({inv_email})</p>
-            <div class="flex flex-col sm:flex-row justify-center my-2">
-            <ul class="steps">
+            <p class="text-xl my-2">emailed to {inv_name} ({inv_email})</p>
+            <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline">
+            <ul class="steps grow col-span-3">
             <li class="step step-primary"></li>
             <li class="step step-primary"></li>
             <li class="step step-primary">current</li>
@@ -302,7 +310,7 @@ class TestInvoices(BaseTest):
             </ul>
             <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
                 hx-confirm="Are you sure you want to complete this milestone?"
-                hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary"
+                hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary mt-5"
                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
                 Complete current milestone
             </a>
@@ -330,10 +338,7 @@ class TestInvoices(BaseTest):
         self.invoice.refresh_from_db()
         self.assertIsNone(self.invoice.next_date)
         self.assertInHTML(
-            f"""
-            <h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
-            <p class="text-xl">invoice is paused</p>
-            """,
+            """<p class="text-xl">invoice is paused</p>""",
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")

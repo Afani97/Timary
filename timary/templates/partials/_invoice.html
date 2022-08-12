@@ -1,68 +1,18 @@
-<li class="card shadow-lg bordered md:px-0" id="{{invoice.slug_title}}">
+<li class="card shadow-lg bordered" id="{{invoice.slug_title}}">
     <div class="card-body">
         <div class="flex justify-between">
-
-            <div class="flex flex-col md:flex-row justify-between w-full">
-                <div>
-                    <h2 class="card-title mb-2">{{ invoice.title }} - Rate: ${{ invoice.hourly_rate }}</h2>
-                    {% if invoice.invoice_type == 1 %}
-                        {% if invoice.next_date %}
-                            <p class="text-xl">sent {{ invoice.get_invoice_interval_display | lower }} to {{ invoice.email_recipient_name }} ({{invoice.email_recipient}})</p>
-                            <p class="text-xl">next date sent is: {{ invoice.next_date }}</p>
-                        {% else %}
-                            <p class="text-xl">invoice is paused</p>
-                        {% endif %}
-                    {% elif invoice.invoice_type == 2 %}
-                        <p class="text-xl my-2">sent to {{ invoice.email_recipient_name }} ({{invoice.email_recipient}})</p>
-                        <div class="flex flex-col sm:flex-row justify-center my-2">
-                            <ul class="steps">
-                                {# Fancy way to make a range in templates #}
-                                {% with ''|center:invoice.milestone_total_steps as range %}
-                                    {% for _ in range %}
-                                        <li class="step{% if forloop.counter <= invoice.milestone_step %} step-primary {% endif %}">
-                                            {% if forloop.counter == invoice.milestone_step %} current {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                {% endwith %}
-                            </ul>
-                            {% if invoice.milestone_step < invoice.milestone_total_steps %}
-                                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to complete this milestone?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-secondary"
-                                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
-                                    Complete current milestone
-                                </a>
-                            {% else %}
-                                <button class="btn btn-accent">Milestones all complete!</button>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-
-                    <div class="card-actions mt-4">
-                        <a class="btn btn-primary btn-sm md:btn-md" hx-get="{% url 'timary:edit_invoice' invoice.id %}" hx-target="closest li" hx-swap="outerHTML"
-                            _="on click add .loading to me">
-                            Edit
-                        </a>
-                    </div>
-                </div>
-
-
-                {% if invoice.budget_percentage > 0 %}
-                    <div class="hidden md:block">
-                        <p class="mb-2 text-center">Budget</p>
-                        <div
-                            class="radial-progress text-black bg-accent  border-4 border-accent"
-                            style="--value:{{ invoice.budget_percentage }}; --thickness: 4px;"
-                        >
-                            {{ invoice.budget_percentage|floatformat:-2 }}%
-                        </div>
-                    </div>
-                {% endif %}
-
-            </div>
-            <div class="dropdown dropdown-left rounded-box ml-10">
+            <h2 class="card-title">{{ invoice.title }} - Rate: ${{ invoice.hourly_rate }}</h2>
+            <div class="dropdown dropdown-left rounded-box">
                 <label tabindex="0" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </label>
                 <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-52">
+                    <li>
+                        <a class="btn btn-sm" hx-get="{% url 'timary:edit_invoice' invoice.id %}" hx-target="#{{ invoice.slug_title }}" hx-swap="outerHTML"
+                            _="on click add .loading to me">
+                            Edit
+                        </a>
+                    </li>
                     {% if invoice.user.can_generate_invoice and invoice.invoice_type == 1 %}
                         <li>
                             <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-sm"
@@ -91,6 +41,42 @@
                         </a>
                     </li>
                 </ul>
+            </div>
+        </div>
+        <div class="flex">
+            <div class="flex flex-col md:flex-row w-full">
+                <div>
+                    {% if invoice.invoice_type == 1 %}
+                        {% if invoice.next_date %}
+                            <p class="text-xl">emailed {{ invoice.get_invoice_interval_display|lower }} to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
+                            <p class="text-xl">next date sent is {{ invoice.next_date }}</p>
+                        {% else %}
+                            <p class="text-xl">invoice is paused</p>
+                        {% endif %}
+                    {% elif invoice.invoice_type == 2 %}
+                        <p class="text-xl my-2">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline">
+                            <ul class="steps grow col-span-3">
+                                {# Fancy way to make a range in templates #}
+                                {% with ''|center:invoice.milestone_total_steps as range %}
+                                    {% for _ in range %}
+                                        <li class="step{% if forloop.counter <= invoice.milestone_step %} step-primary {% endif %}">
+                                            {% if forloop.counter == invoice.milestone_step %} current {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                {% endwith %}
+                            </ul>
+                            {% if invoice.milestone_step < invoice.milestone_total_steps %}
+                                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to complete this milestone?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-secondary mt-5"
+                                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
+                                    Complete current milestone
+                                </a>
+                            {% else %}
+                                <button class="btn btn-accent">Milestones all complete!</button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
