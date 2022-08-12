@@ -246,9 +246,7 @@ class TestTwilioReplyWebhook(TestCase):
         with override_settings(DEBUG=True):
             response = twilio_view(twilio_reply(request))
 
-        self.assertEqual(
-            response.response, f"How many hours to log for: {invoice2.title}"
-        )
+        self.assertIn(f"How many hours to log for: {invoice2.title}", response.response)
         self.assertEqual(DailyHoursInput.objects.count(), 1)
 
         # SECOND INVOICE SMS SENT
@@ -352,3 +350,50 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
         self.assertEqual(DailyHoursInput.objects.count(), 1)
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_skip_invoice(self, message_list_mock, message_response_mock):
+        """Since we hide hours logged with '0' hours, this is a hack to 'skip'"""
+        user = UserFactory(phone_number="+17742613186")
+        invoice = InvoiceFactory(user=user)
+        invoice2 = InvoiceFactory(user=user)
+        self.data["Body"] = "S"
+
+        # FIRST INVOICE SMS SENT
+        message_list_mock.return_value = [
+            {},
+            Message(f"How many hours to log hours for: {invoice.title}"),
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn(f"How many hours to log for: {invoice2.title}", response.response)
+        self.assertEqual(invoice.get_hours_tracked().count(), 0)
+
+        # SECOND INVOICE SMS SENT
+        message_list_mock.return_value = [
+            {},
+            Message(f"How many hours to log for: {invoice2.title}"),
+        ]
+        self.data["Body"] = "2"
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertEqual(response.response, "All set for today. Keep it up!")
+        self.assertEqual(invoice2.get_hours_tracked().count(), 1)
+        self.assertEqual(
+            DailyHoursInput.objects.aggregate(total=Sum("hours"))["total"], 2
+        )

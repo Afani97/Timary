@@ -14,6 +14,7 @@ class HoursQuerySet(models.QuerySet):
                 date_tracked__month__gte=current_date.month,
                 date_tracked__year__gte=current_date.year,
             )
+            .exclude(hours=0)
             .select_related("invoice")
             .order_by("-date_tracked")
         )
@@ -30,6 +31,7 @@ class HoursQuerySet(models.QuerySet):
                 date_tracked__year__gte=last_month.year,
                 date_tracked__year__lte=current_date.year,
             )
+            .exclude(hours=0)
             .select_related("invoice")
             .order_by("-date_tracked")
         )
@@ -43,6 +45,7 @@ class HoursQuerySet(models.QuerySet):
                 date_tracked__month__gte=1,
                 date_tracked__year__gte=current_date.year,
             )
+            .exclude(hours=0)
             .select_related("invoice")
             .order_by("-date_tracked")
         )

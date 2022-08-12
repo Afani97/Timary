@@ -19,33 +19,44 @@ def twilio_reply(request):
     _, invoice_title = messages[1].body.split(":")
     invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
 
-    try:
-        hours = Decimal(twilio_request.body)
-    except InvalidOperation:
-        r = MessagingResponse()
-        r.message(
-            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}"
-        )
-        return r
+    skip = False
+    if twilio_request.body.lower() == "s":
+        skip = True
 
-    if hours > 0:
+    if not skip:
+        try:
+            hours = Decimal(twilio_request.body)
+        except InvalidOperation:
+            r = MessagingResponse()
+            r.message(
+                f"Wrong input, only numbers please. How many hours to log for: {invoice.title}"
+            )
+            return r
+
+        if hours > 0:
+            DailyHoursInput.objects.create(
+                hours=hours,
+                date_tracked=datetime.date.today(),
+                invoice=invoice,
+            )
+        else:
+            r = MessagingResponse()
+            r.message(
+                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}"
+            )
+            return r
+    else:
         DailyHoursInput.objects.create(
-            hours=hours,
+            hours=0,
             date_tracked=datetime.date.today(),
             invoice=invoice,
         )
-    else:
-        r = MessagingResponse()
-        r.message(
-            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}"
-        )
-        return r
 
     remaining_invoices = user.invoices_not_logged
     if len(remaining_invoices) > 0:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()
-        r.message(f"How many hours to log for: {invoice.title}")
+        r.message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip.")
         return r
     else:
         r = MessagingResponse()

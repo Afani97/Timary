@@ -183,9 +183,13 @@ class Invoice(BaseModel):
         return f"{slugify(self.title)}"
 
     def get_hours_tracked(self):
-        return self.hours_tracked.filter(
-            date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
-        ).order_by("date_tracked")
+        return (
+            self.hours_tracked.filter(
+                date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
+            )
+            .exclude(hours=0)
+            .order_by("date_tracked")
+        )
 
     @property
     def budget_percentage(self):
