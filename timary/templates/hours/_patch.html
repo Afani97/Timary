@@ -1,4 +1,4 @@
-<form class="card bg-neutral text-neutral-content -mx-4 md:mx-0"
+<form class="card bg-neutral text-neutral-content"
     hx-patch="{% url 'timary:patch_hours' hours_id=form.instance.id %}"
     hx-swap="outerHTML"
     hx-target="this"
@@ -14,15 +14,17 @@
         {% include "partials/_form_success.html" with message=success_msg %}
     {% endif %}
 
-    <div class="flex flex-row items-center space-x-2 px-3">
-        <div>{{ form.hours }}</div>
-        <div>{{ form.date_tracked }}</div>
-        <button class="btn btn-error btn-sm btn-circle" hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}" hx-swap="outerHTML" hx-target="closest form">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm submit-btn" type="submit">Update</button>
+    <div class="card-body">
+        <div class="flex flex-col space-y-2 md:space-y-0 md:flex-row md:space-x-2 w-full">
+            <div>{{ form.hours }}</div>
+            <div>{{ form.date_tracked }}</div>
+        </div>
+        <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
+            <button class="btn btn-error btn-sm" hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}" hx-swap="outerHTML" hx-target="closest form">
+                Delete
+            </button>
+            <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm submit-btn" type="submit">Update</button>
+        </div>
     </div>
 
 </form>

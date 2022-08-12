@@ -26,6 +26,10 @@ class DailyHoursForm(forms.ModelForm):
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
         self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
+        if self.initial and self.instance.invoice:
+            self.fields["date_tracked"].widget.attrs[
+                "min"
+            ] = self.instance.invoice.last_date
 
     class Meta:
         model = DailyHoursInput
