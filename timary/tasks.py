@@ -91,6 +91,7 @@ def send_invoice(invoice_id):
     )
     EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
     invoice.calculate_next_date()
+    invoice.increase_milestone_step()
 
 
 def send_invoice_preview(invoice_id):

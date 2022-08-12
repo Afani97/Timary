@@ -49,6 +49,7 @@ class TestInvoices(BaseTest):
             {
                 "title": "Some title",
                 "hourly_rate": 50,
+                "invoice_type": 1,
                 "invoice_interval": "D",
                 "email_recipient_name": "John Smith",
                 "email_recipient": "john@test.com",
@@ -60,10 +61,51 @@ class TestInvoices(BaseTest):
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+            <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
             <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
             <p class="text-xl">next date sent is: {invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice_milestone(self, customer_mock):
+        Invoice.objects.all().delete()
+        response = self.client.post(
+            reverse("timary:create_invoice"),
+            {
+                "title": "Some title",
+                "hourly_rate": 50,
+                "invoice_type": 2,
+                "milestone_total_steps": 3,
+                "email_recipient_name": "John Smith",
+                "email_recipient": "john@test.com",
+            },
+        )
+        invoice = Invoice.objects.first()
+        inv_name = invoice.email_recipient_name
+        inv_email = invoice.email_recipient
+        self.assertInHTML(
+            f"""
+                <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+                <p class="text-xl my-2">sent to {inv_name} ({inv_email})</p>
+                <div class="flex flex-col sm:flex-row justify-center my-2">
+                <ul class="steps">
+                <li class="step step-primary">current</li><li class="step"></li><li class="step"></li>
+                </ul>
+                <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
+                    hx-confirm="Are you sure you want to complete this milestone?"
+                    hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary"
+                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
+                    Complete current milestone
+                </a>
+                </div>
+                """,
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
@@ -73,7 +115,7 @@ class TestInvoices(BaseTest):
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertContains(
             response,
-            f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
+            f'<h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -114,6 +156,7 @@ class TestInvoices(BaseTest):
             {
                 "title": invoice.title,
                 "hourly_rate": 50,
+                "invoice_type": 1,
                 "invoice_interval": "D",
                 "email_recipient_name": "John Smith",
                 "email_recipient": "john@test.com",
@@ -203,7 +246,7 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(response.status_code, 302)
 
-    def test_update_daily_hours(self):
+    def test_update_invoice(self):
         url_params = {
             "title": "Some title",
             "hourly_rate": 100,
@@ -220,7 +263,7 @@ class TestInvoices(BaseTest):
         inv_email = self.invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
+            <h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
             <p class="text-xl">sent daily to {inv_name} ({inv_email})</p>
             <p class="text-xl">next date sent is: {self.invoice.next_date.strftime("%b. %-d, %Y")}</p>
             """,
@@ -229,7 +272,48 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_daily_hours_dont_update_next_date_if_none(self):
+    def test_update_invoice_milestone(self):
+        invoice = InvoiceFactory(invoice_type=2, user=self.user, milestone_step=3)
+        url_params = {
+            "title": "Some title",
+            "hourly_rate": 100,
+            "milestone_total_steps": 5,
+            "email_recipient_name": "John Smith",
+            "email_recipient": "john@test.com",
+        }
+        response = self.client.put(
+            reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
+            data=urlencode(url_params),  # HTML PUT FORM
+        )
+        invoice.refresh_from_db()
+        inv_name = invoice.email_recipient_name
+        inv_email = invoice.email_recipient
+        self.assertInHTML(
+            f"""
+            <h2 class="card-title mb-2">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+            <p class="text-xl my-2">sent to {inv_name} ({inv_email})</p>
+            <div class="flex flex-col sm:flex-row justify-center my-2">
+            <ul class="steps">
+            <li class="step step-primary"></li>
+            <li class="step step-primary"></li>
+            <li class="step step-primary">current</li>
+            <li class="step"></li>
+            <li class="step"></li>
+            </ul>
+            <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
+                hx-confirm="Are you sure you want to complete this milestone?"
+                hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-secondary"
+                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
+                Complete current milestone
+            </a>
+            </div>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_invoice_dont_update_next_date_if_none(self):
         url_params = {
             "title": "Some title",
             "hourly_rate": 100,
@@ -247,7 +331,7 @@ class TestInvoices(BaseTest):
         self.assertIsNone(self.invoice.next_date)
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
+            <h2 class="card-title mb-2">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
             <p class="text-xl">invoice is paused</p>
             """,
             response.content.decode("utf-8"),
@@ -508,6 +592,18 @@ class TestInvoices(BaseTest):
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {current_month}",
         )
         self.assertTemplateUsed(response, "partials/_invoice.html")
+
+    def test_generate_invoice_milestone(self):
+        invoice = InvoiceFactory(invoice_type=2, milestone_step=4, user=self.user)
+        DailyHoursFactory(invoice=invoice)
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.milestone_step, 5)
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(len(mail.outbox), 1)
 
     def test_get_hour_forms_for_invoice(self):
         """Only hours1 and hours2 show since its date_tracked

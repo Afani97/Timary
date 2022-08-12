@@ -101,10 +101,33 @@ class InvoiceForm(forms.ModelForm):
             }
         ),
     )
+    milestone_total_steps = forms.IntegerField(
+        widget=forms.NumberInput(
+            attrs={
+                "value": 3,
+                "min": 2,
+                "max": 12,
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
+        if not self.initial:
+            self.fields["invoice_interval"].required = False
+            self.fields["milestone_total_steps"].required = False
+            self.fields["milestone_total_steps"].widget.attrs[
+                "_"
+            ] = "on load add .hidden .invoice-type .invoice-type-2 to the closest .form-control"
+        if self.initial:
+            # Problems of dealing with dynamic selects + show/hide certain fields.
+            self.fields["invoice_type"].required = False
+            if self.instance.invoice_type == Invoice.InvoiceType.MILESTONE:
+                self.fields["invoice_interval"].required = False
+            if self.instance.invoice_type == Invoice.InvoiceType.INTERVAL:
+                self.fields["milestone_total_steps"].required = False
 
     class Meta:
         model = Invoice
@@ -112,7 +135,9 @@ class InvoiceForm(forms.ModelForm):
             "title",
             "hourly_rate",
             "total_budget",
+            "invoice_type",
             "invoice_interval",
+            "milestone_total_steps",
             "email_recipient_name",
             "email_recipient",
         ]
@@ -131,10 +156,19 @@ class InvoiceForm(forms.ModelForm):
                     "class": "input input-bordered text-lg w-full",
                 }
             ),
+            "invoice_type": forms.Select(
+                attrs={
+                    "label": "Invoice",
+                    "class": "select select-bordered text-lg w-full",
+                    "_": "on change set inv_type to `invoice-type-${my.value}` then "
+                    "add .hidden to .invoice-type then remove .hidden from .{inv_type}",
+                }
+            ),
             "invoice_interval": forms.Select(
                 attrs={
                     "label": "Invoice",
                     "class": "select select-bordered text-lg w-full",
+                    "_": "on load add .invoice-type .invoice-type-1 to the closest .form-control",
                 }
             ),
             "email_recipient_name": forms.TextInput(
@@ -150,6 +184,23 @@ class InvoiceForm(forms.ModelForm):
                 }
             ),
         }
+
+    def clean(self):
+        validated_data = super().clean()
+
+        invoice_type = validated_data.get("invoice_type")
+        invoice_interval = validated_data.get("invoice_interval")
+        milestone_total_steps = validated_data.get("milestone_total_steps")
+        if invoice_type == 1 and not invoice_interval:
+            raise ValidationError(
+                {"invoice_interval": ["Invoice interval is required"]}
+            )
+        if invoice_type == 2 and not milestone_total_steps:
+            raise ValidationError(
+                {"milestone_total_steps": ["Milestone total steps is required"]}
+            )
+
+        return validated_data
 
     def clean_email_recipient_name(self):
         email_recipient_name = self.cleaned_data.get("email_recipient_name")
@@ -169,6 +220,19 @@ class InvoiceForm(forms.ModelForm):
         if title[0].isdigit():
             raise ValidationError("Title cannot start with a number.")
         return title
+
+    def clean_milestone_total_steps(self):
+        total_steps = self.cleaned_data.get("milestone_total_steps")
+        if (
+            self.instance
+            and self.instance.invoice_type == Invoice.InvoiceType.MILESTONE
+            and self.instance.milestone_step
+        ):
+            if total_steps < self.instance.milestone_step:
+                raise ValidationError(
+                    "Cannot set milestone total steps to less than what is already completed"
+                )
+        return total_steps
 
 
 class PayInvoiceForm(forms.Form):

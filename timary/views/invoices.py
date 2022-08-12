@@ -222,19 +222,18 @@ def generate_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    if invoice.get_hours_tracked().count() != 0:
-        send_invoice(invoice.id)
-        invoice.refresh_from_db()
-
+    if (
+        invoice.invoice_type == Invoice.InvoiceType.MILESTONE
+        and invoice.milestone_step == invoice.milestone_total_steps
+    ):
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
-
         show_alert_message(
             response,
-            "success",
-            f"Invoice for {invoice.title} has been sent to {invoice.email_recipient_name}",
+            "info",
+            f"{invoice.title} has completed all the milestones",
         )
         return response
-    else:
+    if invoice.get_hours_tracked().count() == 0:
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         show_alert_message(
             response,
@@ -242,6 +241,19 @@ def generate_invoice(request, invoice_id):
             f"{invoice.title} does not have hours logged yet to invoice",
         )
         return response
+
+    # If invoice has hours to log and/or milestones, send invoice then
+    send_invoice(invoice.id)
+    invoice.refresh_from_db()
+
+    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+
+    show_alert_message(
+        response,
+        "success",
+        f"Invoice for {invoice.title} has been sent to {invoice.email_recipient_name}",
+    )
+    return response
 
 
 @login_required()

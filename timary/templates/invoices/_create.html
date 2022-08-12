@@ -10,16 +10,48 @@
     {% endif %}
 
     <div class="flex card-body -mt-5">
-        {% for field in form.visible_fields %}
-            {% if field.field.required %}
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ field.label_tag }}</span>
-                    </label>
-                    <div>{{ field }}</div>
-                </div>
-            {% endif %}
-        {% endfor %}
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.title.label_tag }}</span>
+            </label>
+            <div>{{ form.title }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.hourly_rate.label_tag }}</span>
+            </label>
+            <div>{{ form.hourly_rate }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.invoice_type.label_tag }}</span>
+            </label>
+            <div>{{ form.invoice_type }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
+            </label>
+            <div>{{ form.invoice_interval }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.milestone_total_steps.label_tag }}</span>
+            </label>
+            <div>{{ form.milestone_total_steps }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
+            </label>
+            <div>{{ form.email_recipient_name }}</div>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.email_recipient.label_tag }}</span>
+            </label>
+            <div>{{ form.email_recipient }}</div>
+        </div>
     </div>
     <div class="card-actions flex justify-center">
         {% if not show_close %}

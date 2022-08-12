@@ -39,6 +39,7 @@ class InvoiceFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     title = factory.Faker("name")
+    invoice_type = Invoice.InvoiceType.INTERVAL
     invoice_interval = factory.Iterator(
         [
             Invoice.Interval.DAILY,
@@ -49,6 +50,8 @@ class InvoiceFactory(DjangoModelFactory):
             Invoice.Interval.YEARLY,
         ]
     )
+    milestone_total_steps = factory.Faker("pyint", min_value=2, max_value=10)
+    milestone_step = factory.Faker("pyint", min_value=3, max_value=9)
     email_recipient = factory.Faker("email")
     email_recipient_name = factory.Faker("name")
     next_date = factory.LazyFunction(datetime.date.today)

@@ -93,6 +93,11 @@ class DailyHoursInput(BaseModel):
 
 
 class Invoice(BaseModel):
+    class InvoiceType(models.IntegerChoices):
+        INTERVAL = 1, "INTERVAL"
+        MILESTONE = 2, "MILESTONE"
+        # WEEKLY = 3, "WEEKLY"
+
     class Interval(models.TextChoices):
         DAILY = "D", "DAILY"
         WEEKLY = "W", "WEEKLY"
@@ -100,6 +105,10 @@ class Invoice(BaseModel):
         MONTHLY = "M", "MONTHLY"
         QUARTERLY = "Q", "QUARTERLY"
         YEARLY = "Y", "YEARLY"
+
+    invoice_type = models.IntegerField(
+        default=InvoiceType.INTERVAL, choices=InvoiceType.choices
+    )
 
     email_id = models.CharField(
         max_length=10, null=False, unique=True, default=create_new_ref_number
@@ -120,8 +129,14 @@ class Invoice(BaseModel):
     )
 
     invoice_interval = models.CharField(
-        max_length=1, choices=Interval.choices, default=Interval.MONTHLY
+        max_length=1,
+        choices=Interval.choices,
+        default=Interval.MONTHLY,
+        blank=True,
+        null=True,
     )
+    milestone_total_steps = models.IntegerField(null=True, blank=True)
+    milestone_step = models.IntegerField(default=1, null=True, blank=True)
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
     is_archived = models.BooleanField(default=False, null=True, blank=True)
@@ -242,6 +257,11 @@ class Invoice(BaseModel):
         if update_last:
             self.last_date = todays_date
         self.save()
+
+    def increase_milestone_step(self):
+        if self.invoice_type == Invoice.InvoiceType.MILESTONE:
+            self.milestone_step += 1
+            self.save()
 
     def get_hours_stats(self, date_range=None):
         query = Q(date_tracked__gte=self.last_date)

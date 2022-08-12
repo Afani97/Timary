@@ -135,7 +135,9 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
+                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -147,7 +149,9 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
+                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -158,7 +162,9 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
+                "invoice_type": 1,
                 "invoice_interval": "M",
+                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -171,7 +177,9 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 0,
+                "invoice_type": 1,
                 "invoice_interval": "M",
+                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -187,19 +195,43 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
         )
 
-        self.assertEqual(form.errors, {"invoice_interval": ["This field is required."]})
+        self.assertEqual(
+            form.errors, {"invoice_interval": ["Invoice interval is required"]}
+        )
 
     def test_invoice_error_incorrect_invoice_interval(self):
         form = InvoiceForm(
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "I",
+                "email_recipient_name": "John Smith",
+                "email_recipient": "user@test.com",
+            }
+        )
+        self.assertEqual(
+            form.errors,
+            {
+                "invoice_interval": [
+                    "Select a valid choice. I is not one of the available choices.",
+                    "Invoice interval is required",
+                ]
+            },
+        )
+
+    def test_invoice_error_missing_milestone_total_step(self):
+        form = InvoiceForm(
+            data={
+                "title": "Some title",
+                "hourly_rate": 100,
+                "invoice_type": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -207,9 +239,27 @@ class TestInvoice(TestCase):
 
         self.assertEqual(
             form.errors,
+            {"milestone_total_steps": ["Milestone total steps is required"]},
+        )
+
+    def test_invoice_error_milestone_total_step_less_than_current_step(self):
+        invoice = InvoiceFactory(invoice_type=2, milestone_step=5)
+        form = InvoiceForm(
+            instance=invoice,
+            data={
+                "title": "Some title",
+                "hourly_rate": 100,
+                "milestone_total_steps": 3,
+                "email_recipient_name": "John Smith",
+                "email_recipient": "user@test.com",
+            },
+        )
+
+        self.assertEqual(
+            form.errors,
             {
-                "invoice_interval": [
-                    "Select a valid choice. I is not one of the available choices."
+                "milestone_total_steps": [
+                    "Cannot set milestone total steps to less than what is already completed"
                 ]
             },
         )
@@ -219,6 +269,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient": "user@test.com",
             }
@@ -233,6 +284,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "12345",
                 "email_recipient": "user@test.com",
@@ -248,6 +300,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
             }
@@ -260,6 +313,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "Some title",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test",
@@ -278,6 +332,7 @@ class TestInvoice(TestCase):
             data={
                 "title": invoice.title,
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
@@ -293,6 +348,7 @@ class TestInvoice(TestCase):
             data={
                 "title": "1Password dev",
                 "hourly_rate": 100,
+                "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "User Test",
                 "email_recipient": "user@test.com",

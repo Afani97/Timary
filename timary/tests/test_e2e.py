@@ -59,6 +59,20 @@ class TestUI(BaseUITest):
             self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
 
     @tag("ui")
+    def test_create_first_invoice_milestone(self):
+        with self.start_test(UserFactory()) as page:
+            page.wait_for_selector("#intro-text", timeout=2000)
+            page.fill("#id_title", "Timary")
+            page.fill("#id_hourly_rate", "100")
+            page.locator(".hero select#id_invoice_type").select_option("2")
+            page.fill("#id_milestone_total_steps", "5")
+            page.fill("#id_email_recipient_name", "John Smith")
+            page.fill("#id_email_recipient", "john@smith.com")
+            page.click('button:has-text("Add new invoice")')
+            page.wait_for_selector("#dashboard-title", timeout=2000)
+            self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
+
+    @tag("ui")
     def test_log_first_hours(self):
         invoice = InvoiceFactory()
         with self.start_test(invoice.user) as page:
