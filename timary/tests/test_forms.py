@@ -79,7 +79,14 @@ class TestRegister(TestCase):
             }
         )
 
-        self.assertEqual(form.errors, {"email": ["Error creating account"]})
+        self.assertEqual(
+            form.errors,
+            {
+                "__all__": [
+                    "We're having trouble creating your account. Please try again"
+                ]
+            },
+        )
 
     def test_register_name_not_valid(self):
         form = RegisterForm(

@@ -442,11 +442,14 @@ class RegisterForm(forms.ModelForm):
             raise ValidationError("Only valid names allowed.")
         return full_name
 
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
+    def clean(self):
+        validate_data = super().clean()
+        email = validate_data.get("email")
         if User.objects.filter(username=email).count() != 0:
-            raise ValidationError("Error creating account")
-        return email
+            raise ValidationError(
+                "We're having trouble creating your account. Please try again"
+            )
+        return validate_data
 
     def save(self, commit=True):
         user = super().save(commit=False)

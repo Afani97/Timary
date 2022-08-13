@@ -73,6 +73,9 @@
         <div class="max-w-xl mx-auto">
             <div class="card p-5 bg-neutral text-neutral-content">
                 <div class="card-body">
+                    {% if form.errors %}
+                        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+                    {% endif %}
                     <form action="{% url 'timary:register' %}" method="post">
                         {% csrf_token %}
 
