@@ -19,6 +19,11 @@
         <div class="divider"></div>
     {% endif %}
 
+    {% if settings.can_invite_users %}
+        {% include "partials/settings/_referrals.html" %}
+        <div class="divider"></div>
+    {% endif %}
+
     {% if settings.can_download_audit %}
         <div class="flex justify-between">
             <div>Invoice audit log</div>

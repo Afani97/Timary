@@ -1,0 +1,9 @@
+<div class="wrapper flex justify-between">
+    <div>Referrals</div>
+    <div></div>
+    <a class="link"
+        hx-get="{% url 'timary:invite_new_user' %}"
+        hx-target="closest .wrapper"
+        hx-swap="outerHTML"
+        _="on click add .loading to me">Invite</a>
+</div>

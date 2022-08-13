@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -13,9 +14,11 @@ from stripe.error import InvalidRequestError
 from timary.forms import (
     InvoiceBrandingSettingsForm,
     MembershipTierSettingsForm,
+    ReferralInviteForm,
     SMSSettingsForm,
 )
 from timary.models import SentInvoice, User
+from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
 
@@ -32,6 +35,8 @@ def settings_partial(request, setting):
         template = "partials/settings/_payment_method.html"
     if setting == "accounting":
         template = "partials/settings/_accounting.html"
+    if setting == "referral":
+        template = "partials/settings/_referrals.html"
     return render(
         request,
         template,
@@ -295,3 +300,42 @@ def audit(request):
     )
     response["Content-Disposition"] = "attachment; filename=Timary-Audit-Activity.xlsx"
     return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def invite_new_user(request):
+    context = {
+        "profile": request.user,
+        "settings": request.user.settings,
+        "invite_form": ReferralInviteForm(),
+    }
+    if request.method == "POST":
+        form = ReferralInviteForm(request.POST)
+        if form.is_valid():
+            EmailService.send_plain(
+                "You've been invited to try Timary!",
+                f"""
+Hello!
+{request.user.first_name} has invited you to give Timary a try.
+
+They believe we might be a good fit for your needs.
+
+What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
+
+We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
+
+If you'd like to read more about us, visit https:www.usetimary.com/
+
+
+To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
+{reverse("timary:register")}?referrer_id={request.user.referred_id}
+
+
+                """,
+                form.cleaned_data.get("email"),
+            )
+            context["success"] = "Invite sent! Send another"
+        else:
+            context["error"] = "Unable to send invite, try again!"
+    return render(request, "partials/settings/_invite_referral.html", context)
