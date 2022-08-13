@@ -76,7 +76,7 @@
                     <form action="{% url 'timary:register' %}" method="post">
                         {% csrf_token %}
 
-                        {% for field in form %}
+                        {% for field in form.visible_fields %}
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">{{ field.label}}</span>
