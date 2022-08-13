@@ -17,6 +17,7 @@ def twilio_reply(request):
     messages = TwilioClient.get_user_messages()
 
     _, invoice_title = messages[1].body.split(":")
+    invoice_title, _ = invoice_title.split(".")
     invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
 
     skip = False
@@ -29,7 +30,7 @@ def twilio_reply(request):
         except InvalidOperation:
             r = MessagingResponse()
             r.message(
-                f"Wrong input, only numbers please. How many hours to log for: {invoice.title}"
+                f"Wrong input, only numbers please. How many hours to log for: {invoice.title}."
             )
             return r
 
@@ -42,7 +43,7 @@ def twilio_reply(request):
         else:
             r = MessagingResponse()
             r.message(
-                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}"
+                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}."
             )
             return r
     else:
@@ -56,7 +57,7 @@ def twilio_reply(request):
     if len(remaining_invoices) > 0:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()
-        r.message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip.")
+        r.message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
         return r
     else:
         r = MessagingResponse()

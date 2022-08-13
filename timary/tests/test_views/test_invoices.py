@@ -599,7 +599,9 @@ class TestInvoices(BaseTest):
         self.assertTemplateUsed(response, "partials/_invoice.html")
 
     def test_generate_invoice_milestone(self):
-        invoice = InvoiceFactory(invoice_type=2, milestone_step=4, user=self.user)
+        invoice = InvoiceFactory(
+            invoice_type=Invoice.InvoiceType.MILESTONE, milestone_step=4, user=self.user
+        )
         DailyHoursFactory(invoice=invoice)
         self.client.force_login(self.user)
         response = self.client.get(
