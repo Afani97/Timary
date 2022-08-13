@@ -22,7 +22,16 @@
             </label>
             <label class="input-group">
                 {{ invite_form.email }}
-                <span hx-post="{% url 'timary:invite_new_user' %}" hx-include="[name='email']" hx-target="closest .wrapper" hx-swap="outerHTML">Send</span>
+                <span
+                    hx-post="{% url 'timary:invite_new_user' %}"
+                    hx-include="[name='email']"
+                    hx-target="closest .wrapper"
+                    hx-swap="outerHTML"
+                    class="btn"
+                    _="on htmx:beforeRequest add .loading to me"
+                >
+                    Send
+                </span>
             </label>
         </div>
     </form>

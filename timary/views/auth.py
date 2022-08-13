@@ -23,6 +23,7 @@ def register_user(request):
         form = RegisterForm(request_data)
         first_token = request_data.pop("first_token")[0]
         second_token = request_data.pop("second_token")[0]
+        referrer_id = request.GET.get("referrer_id")
         if form.is_valid():
             user = form.save(commit=False)
             password = form.cleaned_data.get("password")
@@ -51,6 +52,12 @@ def register_user(request):
                 )
                 if authenticated_user:
                     login(request, authenticated_user)
+
+                    if referrer_id:
+                        user_referred_by = User.objects.get(referrer_id=referrer_id)
+                        if user_referred_by:
+                            user_referred_by.user_referred()
+
                     EmailService.send_plain(
                         "Welcome to Timary!",
                         """
@@ -81,6 +88,11 @@ Timary
         "stripe_public_key": StripeService.stripe_public_api_key,
         "stripe_card_element_ui": StripeService.frontend_ui(),
     }
+    if (
+        "referrer_id" in request.GET
+        and User.objects.filter(referrer_id=request.GET.get("referrer_id")).exists()
+    ):
+        context["referrer_id"] = request.GET.get("referrer_id")
     return render(request, "auth/register.html", context)
 
 
