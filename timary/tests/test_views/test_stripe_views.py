@@ -324,7 +324,9 @@ class TestStripeViews(BaseTest):
 
         self.client.force_login(self.user)
 
-        response = self.client.get(reverse("timary:onboard_success"))
+        response = self.client.get(
+            f"{reverse('timary:onboard_success')}?user_id={self.user.id}"
+        )
         self.user.refresh_from_db()
 
         self.assertRedirects(response, reverse("timary:manage_invoices"))
@@ -340,10 +342,27 @@ class TestStripeViews(BaseTest):
 
         self.client.force_login(self.user)
 
-        response = self.client.get(reverse("timary:onboard_success"))
+        response = self.client.get(
+            f"{reverse('timary:onboard_success')}?user_id={self.user.id}"
+        )
         self.user.refresh_from_db()
 
         self.assertRedirects(response, reverse("timary:manage_invoices"))
+        self.assertFalse(self.user.stripe_payouts_enabled)
+
+    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.get_connect_account")
+    def test_onboard_success_without_user_redirects_to_register(
+        self, stripe_connect_mock, stripe_subscription_mock
+    ):
+        stripe_subscription_mock.return_value = True
+        stripe_connect_mock.return_value = {"payouts_enabled": False}
+        response = self.client.get(reverse("timary:onboard_success"))
+        self.user.refresh_from_db()
+
+        self.assertRedirects(
+            response, reverse("timary:register"), target_status_code=302
+        )
         self.assertFalse(self.user.stripe_payouts_enabled)
 
     @patch("timary.services.stripe_service.StripeService.get_connect_account")

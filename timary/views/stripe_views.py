@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import stripe
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -108,12 +109,16 @@ def invoice_payment_success(request, sent_invoice_id):
 @require_http_methods(["GET"])
 @login_required()
 def onboard_success(request):
-    if request.user.membership_tier != User.MembershipTier.INVOICE_FEE:
-        StripeService.create_subscription(request.user)
+    if "user_id" not in request.GET:
+        return redirect(reverse("timary:register"))
+    user = User.objects.get(id=request.GET.get("user_id"))
+    if user.membership_tier != User.MembershipTier.INVOICE_FEE:
+        StripeService.create_subscription(user)
 
-    connect_account = StripeService.get_connect_account(request.user.stripe_connect_id)
-    request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    request.user.save()
+    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
+    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
+    user.save()
+    login(request, user)
     return redirect(reverse("timary:manage_invoices"))
 
 

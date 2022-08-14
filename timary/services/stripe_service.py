@@ -93,7 +93,7 @@ class StripeService:
         account_link = stripe.AccountLink.create(
             account=stripe_connect_id,
             refresh_url=f"{settings.SITE_URL}/reauth",
-            return_url=f"{settings.SITE_URL}/onboarding_success",
+            return_url=f"{settings.SITE_URL}/onboarding_success?user_id={user.id}",
             type="account_onboarding",
         )
         return stripe_connect_id, stripe_customer_id, account_link["url"]
