@@ -501,6 +501,11 @@ class User(AbstractUser, BaseModel):
     # Custom invoice branding
     invoice_branding = models.JSONField(blank=True, null=True, default=dict)
 
+    # Invite referral id
+    referrer_id = models.CharField(
+        max_length=10, null=False, unique=True, default=create_new_ref_number
+    )
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -524,6 +529,10 @@ class User(AbstractUser, BaseModel):
             ).title(),
             "can_customize_invoice": self.can_customize_invoice,
         }
+
+    @property
+    def get_invoices(self):
+        return self.invoices.filter(is_archived=False)
 
     @property
     def invoices_not_logged(self):
@@ -624,6 +633,26 @@ class User(AbstractUser, BaseModel):
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
+    def user_referred(self):
+        subscription = StripeService.get_subscription(self.stripe_subscription_id)
+        amount = 500  # $5
+        if subscription["discount"]:
+            # If a biz already has a discount applied to their account, max out the coupon to $10
+            if (
+                self.membership_tier == User.MembershipTier.BUSINESS
+                and subscription["discount"]["coupon"]["amount_off"] == amount
+            ):
+                amount = 1000
+                return StripeService.create_subscription_discount(
+                    self, amount, subscription["id"]
+                )
+
+        elif self.membership_tier in [
+            User.MembershipTier.PROFESSIONAL,
+            User.MembershipTier.BUSINESS,
+        ]:
+            return StripeService.create_subscription_discount(self, amount)
+
     def can_repeat_previous_hours_logged(self, hours):
         """
         :param hours:
@@ -654,10 +683,6 @@ class User(AbstractUser, BaseModel):
         elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
             mem_tier = "Business or Invoice Fee"
         return f"Upgrade your membership tier to {mem_tier} to create new invoices."
-
-    @property
-    def get_invoices(self):
-        return self.invoices.filter(is_archived=False)
 
     def invoice_branding_properties(self):
         properties = {

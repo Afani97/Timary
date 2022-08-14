@@ -528,3 +528,18 @@ class ContractForm(forms.Form):
 
     class Meta:
         fields = ["__all__"]
+
+
+class ReferralInviteForm(forms.Form):
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Enter email here",
+            }
+        ),
+    )
+
+    class Meta:
+        fields = ["email"]

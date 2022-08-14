@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
@@ -401,3 +402,61 @@ class TestUser(TestCase):
                 )
             )
             self.assertEqual(user.can_repeat_previous_hours_logged(qs), 0)
+
+    @patch("timary.services.stripe_service.StripeService.get_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
+    def test_user_referred_create_coupon(
+        self, create_subscription_mock, get_subscription_mock
+    ):
+        create_subscription_mock.return_value = "abc123"
+        get_subscription_mock.return_value = {
+            "discount": None,
+            "id": "123",
+        }
+        user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+        self.assertEqual(user.user_referred(), "abc123")
+
+    @patch("timary.services.stripe_service.StripeService.get_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
+    def test_user_referred_cannot_create_coupon(
+        self, create_subscription_mock, get_subscription_mock
+    ):
+        create_subscription_mock.return_value = "abc123"
+        get_subscription_mock.return_value = {
+            "discount": None,
+            "id": "123",
+        }
+        with self.subTest("User is start"):
+            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
+            self.assertEqual(user.user_referred(), None)
+        with self.subTest("User is start"):
+            user = UserFactory(membership_tier=User.MembershipTier.INVOICE_FEE)
+            self.assertEqual(user.user_referred(), None)
+
+    @patch("timary.services.stripe_service.StripeService.get_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
+    def test_user_referred_professional_has_discount(
+        self, create_subscription_mock, get_subscription_mock
+    ):
+        create_subscription_mock.return_value = {"id": "abc123"}
+        get_subscription_mock.return_value = {
+            "discount": {"coupon": {"amount_off": 500}},
+            "id": "123",
+        }
+        user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+        # Professional accounts don't get to discount again if already has one
+        self.assertEqual(user.user_referred(), None)
+
+    @patch("timary.services.stripe_service.StripeService.get_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
+    def test_user_referred_business_has_discount_and_allowed_another(
+        self, create_subscription_mock, get_subscription_mock
+    ):
+        create_subscription_mock.return_value = "abc123"
+        get_subscription_mock.return_value = {
+            "discount": {"coupon": {"amount_off": 500}},
+            "id": "123",
+        }
+        user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+        # Business accounts are allowed one more coupon, which is modified to $10
+        self.assertEqual(user.user_referred(), "abc123")

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -13,9 +14,11 @@ from stripe.error import InvalidRequestError
 from timary.forms import (
     InvoiceBrandingSettingsForm,
     MembershipTierSettingsForm,
+    ReferralInviteForm,
     SMSSettingsForm,
 )
 from timary.models import SentInvoice, User
+from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
 
@@ -32,6 +35,8 @@ def settings_partial(request, setting):
         template = "partials/settings/_payment_method.html"
     if setting == "accounting":
         template = "partials/settings/_accounting.html"
+    if setting == "referral":
+        template = "partials/settings/_referrals.html"
     return render(
         request,
         template,
@@ -76,10 +81,15 @@ def update_sms_settings(request):
 @login_required()
 @require_http_methods(["GET", "PUT"])
 def update_membership_settings(request):
+    subscription_cost, has_coupon = StripeService.get_amount_off_subscription(
+        request.user
+    )
     context = {
         "settings_form": MembershipTierSettingsForm(instance=request.user),
         "settings": request.user.settings,
         "current_plan": request.user.get_membership_tier_display().title(),
+        "current_subscription_cost": request.user.membership_tier - subscription_cost,
+        "has_subscription_coupon": has_coupon,
     }
     if request.method == "GET":
         return render(request, "partials/settings/_edit_membership.html", context)
@@ -295,3 +305,51 @@ def audit(request):
     )
     response["Content-Disposition"] = "attachment; filename=Timary-Audit-Activity.xlsx"
     return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def invite_new_user(request):
+    context = {
+        "profile": request.user,
+        "settings": request.user.settings,
+        "invite_form": ReferralInviteForm(),
+    }
+    if request.method == "POST":
+        form = ReferralInviteForm(request.POST)
+        if form.is_valid():
+            referrer_email_link = request.build_absolute_uri(
+                f"{reverse('timary:register')}?referrer_id={request.user.referrer_id}"
+            )
+            EmailService.send_plain(
+                "You've been invited to try Timary!",
+                f"""
+Hello!
+
+{request.user.first_name} has invited you to give Timary a try.
+
+They believe Timary might be a good fit for your needs.
+
+What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
+
+We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
+
+If you'd like to read more about us, visit: https://www.usetimary.com
+
+
+To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
+{referrer_email_link}
+
+
+I hope Timary is right for you,
+
+Aristotel F
+Timary LLC
+
+                """,
+                form.cleaned_data.get("email"),
+            )
+            context["success"] = "Invite sent! Send another"
+        else:
+            context["error"] = "Unable to send invite, try again!"
+    return render(request, "partials/settings/_invite_referral.html", context)

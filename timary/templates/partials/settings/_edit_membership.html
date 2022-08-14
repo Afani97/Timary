@@ -6,6 +6,12 @@
     class="col-span-3"
 >
     {% csrf_token %}
+    <div class="">
+        <div class="text-center">Current plan: <span class="font-bold">{{ settings.current_plan }}</span> - ${{ current_subscription_cost }}</div>
+        {% if has_subscription_coupon %}
+            <div class="text-error text-center">If you change your subscription, your discount is lost.</div>
+        {% endif %}
+    </div>
     <div class="flex justify-center space-x-5">
         <div class="shadow stats flex flex-col w-full md:flex-row mb-10 mx-5">
             <div class="stat flex flex-row md:flex-col justify-between">

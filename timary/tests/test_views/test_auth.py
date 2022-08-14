@@ -51,6 +51,31 @@ class TestAuthViews(TestCase):
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
+    @patch("timary.models.User.user_referred")
+    def test_signup_with_referred_id(
+        self, user_mock, stripe_create_mock, stripe_intent_mock
+    ):
+        user_mock.return_value = None
+        stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
+        stripe_intent_mock.return_value = "abc123"
+        response = self.client.post(
+            reverse("timary:register"),
+            {
+                "full_name": "Bruce Wayne",
+                "email": "bwayen@test.com",
+                "password": "Apple101!",
+                "membership_tier": "STARTER",
+                "first_token": "token_1",
+                "second_token": "token_2",
+                "referrer_id": "abc123",
+            },
+        )
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(response.url, self.STRIPE_REDIRECT)
+        self.assertTrue(user_mock.assert_called_once)
+
+    @patch("timary.services.stripe_service.StripeService.create_payment_intent")
+    @patch("timary.services.stripe_service.StripeService.create_new_account")
     def test_signup_error_invalid_email(self, stripe_create_mock, stripe_intent_mock):
         stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
         stripe_intent_mock.return_value = "abc123"

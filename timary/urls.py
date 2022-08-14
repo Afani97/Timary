@@ -69,6 +69,7 @@ urlpatterns += [
         name="update_invoice_branding",
     ),
     path("audit/", views.audit, name="audit"),
+    path("invite/", views.invite_new_user, name="invite_new_user"),
 ]
 
 

@@ -3,6 +3,8 @@ import time
 import stripe
 from django.conf import settings
 
+from timary.services.email_service import EmailService
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -236,6 +238,11 @@ class StripeService:
         return stripe.Account.retrieve(account_id)
 
     @classmethod
+    def get_subscription(cls, subscription_id):
+        stripe.api_key = cls.stripe_api_key
+        return stripe.Subscription.retrieve(subscription_id)
+
+    @classmethod
     def update_connect_account(cls, account_id):
         stripe.api_key = cls.stripe_api_key
         account_link = stripe.AccountLink.create(
@@ -254,3 +261,47 @@ class StripeService:
         ):
             sub = stripe.Subscription.delete(user.stripe_subscription_id)
             return sub is not None
+
+    @classmethod
+    def get_amount_off_subscription(cls, user):
+        subscription = StripeService.get_subscription(user.stripe_subscription_id)
+        if subscription["discount"]:
+            return int(subscription["discount"]["coupon"]["amount_off"] / 100), True
+        return 0, False
+
+    @classmethod
+    def create_subscription_discount(cls, user, amount, discount_to_delete=None):
+        stripe.api_key = cls.stripe_api_key
+        if discount_to_delete:
+            stripe.Subscription.delete_discount(discount_to_delete)
+        coupon = stripe.Coupon.create(
+            amount_off=amount, duration="forever", max_redemptions=1, currency="usd"
+        )
+
+        subscription = stripe.Subscription.modify(
+            user.stripe_subscription_id,
+            coupon=coupon["id"],
+        )
+
+        new_sub_cost = user.membership_tier - (amount / 100)
+
+        EmailService.send_plain(
+            "Good news! You're saving money!",
+            f"""
+Hey {user.first_name},
+
+Someone you referred Timary to has registered using your invite!
+
+So you know what that means, you're monthly subscription is now lowered to: ${new_sub_cost}
+
+If you don't want this to change, let us know and we can revert it if you'd like. (Why would you?)
+
+
+Best,
+Aristotel F
+Timary LLC
+                                """,
+            user.email,
+        )
+
+        return subscription["id"]
