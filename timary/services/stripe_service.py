@@ -3,6 +3,8 @@ import time
 import stripe
 from django.conf import settings
 
+from timary.services.email_service import EmailService
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -280,4 +282,26 @@ class StripeService:
             user.stripe_subscription_id,
             coupon=coupon["id"],
         )
+
+        new_sub_cost = user.membership_tier - (amount / 100)
+
+        EmailService.send_plain(
+            "Good news! You're saving money!",
+            f"""
+Hey {user.first_name},
+
+Someone you referred Timary to has registered using your invite!
+
+So you know what that means, you're monthly subscription is now lowered to: ${new_sub_cost}
+
+If you don't want this to change, let us know and we can revert it if you'd like. (Why would you?)
+
+
+Best,
+Aristotel F
+Timary LLC
+                                """,
+            user.email,
+        )
+
         return subscription["id"]
