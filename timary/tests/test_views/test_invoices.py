@@ -600,7 +600,10 @@ class TestInvoices(BaseTest):
 
     def test_generate_invoice_milestone(self):
         invoice = InvoiceFactory(
-            invoice_type=Invoice.InvoiceType.MILESTONE, milestone_step=4, user=self.user
+            invoice_type=Invoice.InvoiceType.MILESTONE,
+            milestone_step=3,
+            milestone_total_steps=6,
+            user=self.user,
         )
         DailyHoursFactory(invoice=invoice)
         self.client.force_login(self.user)
@@ -608,7 +611,7 @@ class TestInvoices(BaseTest):
             reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id}),
         )
         invoice.refresh_from_db()
-        self.assertEqual(invoice.milestone_step, 5)
+        self.assertEqual(invoice.milestone_step, 4)
         self.assertEqual(response.status_code, 200)
         self.assertEquals(len(mail.outbox), 1)
 
