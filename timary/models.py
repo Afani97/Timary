@@ -524,7 +524,6 @@ class User(AbstractUser, BaseModel):
             "xero_connected": self.xero_tenant_id is not None,
             "sage_connected": self.sage_account_id is not None,
             "can_download_audit": self.can_download_audit,
-            "can_invite_users": self.can_invite_users,
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")
             ).title(),
@@ -634,30 +633,25 @@ class User(AbstractUser, BaseModel):
             or self.membership_tier == User.MembershipTier.INVOICE_FEE
         )
 
-    @property
-    def can_invite_users(self):
-        return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
     def user_referred(self):
         subscription = StripeService.get_subscription(self.stripe_subscription_id)
         amount = 500  # $5
         if subscription["discount"]:
-            # A biz already has a discount applied to their account, max out the coupon to $10
+            # If a biz already has a discount applied to their account, max out the coupon to $10
             if (
                 self.membership_tier == User.MembershipTier.BUSINESS
                 and subscription["discount"]["coupon"]["amount_off"] == amount
             ):
                 amount = 1000
-                StripeService.create_subscription_discount(
+                return StripeService.create_subscription_discount(
                     self, amount, subscription["id"]
                 )
 
-        else:
-            StripeService.create_subscription_discount(self, amount)
+        elif self.membership_tier in [
+            User.MembershipTier.PROFESSIONAL,
+            User.MembershipTier.BUSINESS,
+        ]:
+            return StripeService.create_subscription_discount(self, amount)
 
     def can_repeat_previous_hours_logged(self, hours):
         """

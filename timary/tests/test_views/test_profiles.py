@@ -134,9 +134,13 @@ class TestUserProfile(BaseTest):
             response.content.decode("utf-8"),
         )
 
+    @patch("timary.services.stripe_service.StripeService.get_subscription")
     @patch("timary.services.stripe_service.StripeService.create_subscription")
-    def test_update_membership_tier_user_subscription(self, stripe_subscription_mock):
+    def test_update_membership_tier_user_subscription(
+        self, stripe_subscription_mock, stripe_get_sub_mock
+    ):
         stripe_subscription_mock.return_value = None
+        stripe_get_sub_mock.return_value = {"discount": None}
         self.assertEqual(self.user.membership_tier, 19)
         url_params = {
             "membership_tier": "BUSINESS",
@@ -253,7 +257,12 @@ class TestUserSettings(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertEqual(response.status_code, 200)
 
-    def test_get_edit_membership_tier_settings(self):
+    @patch(
+        "timary.services.stripe_service.StripeService.get_subscription",
+        return_value=None,
+    )
+    def test_get_edit_membership_tier_settings(self, stripe_mock):
+        stripe_mock.return_value = {"discount": None}
         response = self.client.get(reverse("timary:update_membership_settings"))
         self.assertEqual(
             response.templates[0].name, "partials/settings/_edit_membership.html"
@@ -261,10 +270,14 @@ class TestUserSettings(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     @patch(
+        "timary.services.stripe_service.StripeService.get_subscription",
+        return_value={"discount": None},
+    )
+    @patch(
         "timary.services.stripe_service.StripeService.create_subscription",
         return_value=None,
     )
-    def test_update_membership_tier_settings(self, stripe_mock):
+    def test_update_membership_tier_settings(self, stripe_mock, stripe_sub_mock):
         url_params = [("membership_tier", "BUSINESS")]
         response = self.client.put(
             reverse("timary:update_membership_settings"),

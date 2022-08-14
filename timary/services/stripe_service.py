@@ -261,6 +261,13 @@ class StripeService:
             return sub is not None
 
     @classmethod
+    def get_amount_off_subscription(cls, user):
+        subscription = StripeService.get_subscription(user.stripe_subscription_id)
+        if subscription["discount"]:
+            return int(subscription["discount"]["coupon"]["amount_off"] / 100), True
+        return 0, False
+
+    @classmethod
     def create_subscription_discount(cls, user, amount, discount_to_delete=None):
         stripe.api_key = cls.stripe_api_key
         if discount_to_delete:

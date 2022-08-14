@@ -81,10 +81,15 @@ def update_sms_settings(request):
 @login_required()
 @require_http_methods(["GET", "PUT"])
 def update_membership_settings(request):
+    subscription_cost, has_coupon = StripeService.get_amount_off_subscription(
+        request.user
+    )
     context = {
         "settings_form": MembershipTierSettingsForm(instance=request.user),
         "settings": request.user.settings,
         "current_plan": request.user.get_membership_tier_display().title(),
+        "current_subscription_cost": request.user.membership_tier - subscription_cost,
+        "has_subscription_coupon": has_coupon,
     }
     if request.method == "GET":
         return render(request, "partials/settings/_edit_membership.html", context)
