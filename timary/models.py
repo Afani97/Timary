@@ -503,7 +503,7 @@ class User(AbstractUser, BaseModel):
 
     # Invite referral id
     referrer_id = models.CharField(
-        max_length=10, null=False, unique=True, default=create_new_ref_number
+        max_length=10, unique=True, default=create_new_ref_number
     )
 
     def __str__(self):
