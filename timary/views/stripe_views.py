@@ -111,7 +111,9 @@ def invoice_payment_success(request, sent_invoice_id):
 def onboard_success(request):
     if "user_id" not in request.GET:
         return redirect(reverse("timary:register"))
-    user = User.objects.get(id=request.GET.get("user_id"))
+    user = User.objects.filter(id=request.GET.get("user_id")).first()
+    if not user:
+        return redirect(reverse("timary:register"))
     if user.membership_tier != User.MembershipTier.INVOICE_FEE:
         StripeService.create_subscription(user)
 

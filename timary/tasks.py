@@ -29,7 +29,10 @@ def gather_invoices():
         next_date__year=today.year,
     )
     invoices_sent_today = Invoice.objects.filter(
-        null_query & today_query & Q(is_archived=False)
+        null_query
+        & today_query
+        & Q(is_archived=False)
+        & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
     )
     for invoice in invoices_sent_today:
         _ = async_task(send_invoice, invoice.id)

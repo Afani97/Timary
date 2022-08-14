@@ -135,6 +135,19 @@ class TestGatherInvoices(TestCase):
             "Sent out 2 invoices",
         )
 
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_and_not_milestone_invoice(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        milestone_invoice = InvoiceFactory(invoice_type=2)
+        DailyHoursFactory(invoice=milestone_invoice)
+        DailyHoursFactory()
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 1 invoices",
+        )
+
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:

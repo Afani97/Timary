@@ -365,6 +365,26 @@ class TestStripeViews(BaseTest):
         )
         self.assertFalse(self.user.stripe_payouts_enabled)
 
+    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.get_connect_account")
+    def test_onboard_success_invalid_user_id(
+        self, stripe_connect_mock, stripe_subscription_mock
+    ):
+        stripe_subscription_mock.return_value = True
+        stripe_connect_mock.return_value = {"payouts_enabled": True}
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            f"{reverse('timary:onboard_success')}?user_id={uuid.uuid4()}"
+        )
+        self.user.refresh_from_db()
+
+        self.assertRedirects(
+            response, reverse("timary:register"), target_status_code=302
+        )
+        self.assertFalse(self.user.stripe_payouts_enabled)
+
     @patch("timary.services.stripe_service.StripeService.get_connect_account")
     def test_completed_connect_account_payouts_enabled(self, stripe_connect_mock):
         stripe_connect_mock.return_value = {"payouts_enabled": True}
