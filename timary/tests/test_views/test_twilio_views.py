@@ -315,7 +315,7 @@ class TestTwilioReplyWebhook(TestCase):
         message_response_mock.return_value = MessageResponse(response="")
 
         invalid_data = self.data.copy()
-        invalid_data["Body"] = "0"
+        invalid_data["Body"] = "-1"
 
         request = self.factory.post(
             reverse("timary:twilio_reply"),
