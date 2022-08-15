@@ -25,7 +25,7 @@ class TwilioClient:
         _ = TwilioClient.client().messages.create(
             to=invoice.user.formatted_phone_number,
             from_=settings.TWILIO_PHONE_NUMBER,
-            body=f"How many hours to log for: {invoice.title}. Reply 'S' to skip.",
+            body=f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
 
     @staticmethod

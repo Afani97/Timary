@@ -296,7 +296,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}.",
+            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -327,7 +327,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}.",
+            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -335,7 +335,7 @@ class TestTwilioReplyWebhook(TestCase):
         message_list_mock.return_value = [
             {},
             Message(
-                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}."
+                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
             ),
         ]
         updated_data = self.data.copy()
