@@ -216,14 +216,14 @@ def sage_redirect(request):
         messages.error(request, "Unable to connect to Sage.")
         return redirect(reverse("timary:user_profile"))
 
-    errors = []
     for invoice in request.user.get_invoices:
         if not invoice.sage_contact_id:
             try:
                 SageService.create_customer(invoice)
             except AccountingError as ae:
-                errors.append(ae)
-                continue
+                ae.log()
+                messages.error(request, "We had trouble syncing your data with Sage.")
+                return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
@@ -231,14 +231,11 @@ def sage_redirect(request):
             try:
                 SageService.create_invoice(sent_invoice)
             except AccountingError as ae:
-                errors.append(ae)
-                continue
-    print(errors)
-    if errors:
-        AccountingError.log_errors(request.user, errors)
-        messages.error(request, "We had trouble syncing your data with Sage.")
-    else:
-        messages.success(request, "Successfully connected Sage.")
+                ae.log()
+                messages.error(request, "We had trouble syncing your data with Sage.")
+                return redirect(reverse("timary:user_profile"))
+
+    messages.success(request, "Successfully connected Sage.")
     return redirect(reverse("timary:user_profile"))
 
 
