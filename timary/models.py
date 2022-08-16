@@ -16,6 +16,7 @@ from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from timary.custom_errors import AccountingError
 from timary.querysets import HoursQuerySet
 from timary.services.email_service import EmailService
 from timary.services.freshbook_service import FreshbookService
@@ -301,7 +302,10 @@ class Invoice(BaseModel):
             XeroService.create_customer(self)
 
         if self.user.sage_account_id:
-            SageService.create_customer(self)
+            try:
+                SageService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
 
 class SentInvoice(BaseModel):
