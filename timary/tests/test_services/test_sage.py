@@ -52,6 +52,19 @@ class SageMocks:
     @urlmatch(
         scheme="https",
         netloc="api.accounting.sage.com",
+        path="/v3.1/contacts",
+        method="POST",
+    )
+    def sage_error_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
         path="/v3.1/ledger_accounts",
         method="GET",
     )
@@ -106,6 +119,19 @@ class SageMocks:
     @urlmatch(
         scheme="https",
         netloc="api.accounting.sage.com",
+        path="/v3.1/sales_invoices",
+        method="POST",
+    )
+    def sage_error_invoice_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
         path="/v3.1/contact_payments",
         method="POST",
     )
@@ -113,6 +139,19 @@ class SageMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"id": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
+        path="/v3.1/contact_payments",
+        method="POST",
+    )
+    def sage_error_payment_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
         return r
 
 
@@ -152,6 +191,13 @@ class TestSageService(TestCase):
             invoice.refresh_from_db()
             self.assertEquals(invoice.sage_contact_id, "abc123")
 
+    def test_error_create_customer(self):
+        self.user.sage_account_id = "abc123"
+        invoice = InvoiceFactory(user=self.user)
+        with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_error_customer_mock):
+            with self.assertRaises(AccountingError):
+                SageService.create_customer(invoice)
+
     def test_create_invoice(self):
         self.user.sage_account_id = "abc123"
         invoice = InvoiceFactory(user=self.user, sage_contact_id="abc123")
@@ -167,3 +213,18 @@ class TestSageService(TestCase):
             SageService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.sage_invoice_id, "abc123")
+
+    def test_error_create_invoice(self):
+        self.user.sage_account_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, sage_contact_id="abc123")
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        with HTTMock(
+            SageMocks.sage_oauth_mock,
+            SageMocks.sage_invoice_ledger_mock,
+            SageMocks.sage_invoice_bank_account_mock,
+            SageMocks.sage_invoice_tax_rate_mock,
+            SageMocks.sage_error_invoice_mock,
+            SageMocks.sage_error_payment_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                SageService.create_invoice(sent_invoice)
