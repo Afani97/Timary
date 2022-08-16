@@ -221,7 +221,7 @@ def sage_redirect(request):
             try:
                 SageService.create_customer(invoice)
             except AccountingError as ae:
-                ae.log()
+                ae.log(initial_sync=True)
                 messages.error(request, "We had trouble syncing your data with Sage.")
                 return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
@@ -231,7 +231,7 @@ def sage_redirect(request):
             try:
                 SageService.create_invoice(sent_invoice)
             except AccountingError as ae:
-                ae.log()
+                ae.log(initial_sync=True)
                 messages.error(request, "We had trouble syncing your data with Sage.")
                 return redirect(reverse("timary:user_profile"))
 
