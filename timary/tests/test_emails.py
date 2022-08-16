@@ -234,6 +234,18 @@ class TestSendInvoice(TestCase):
         )
         self.assertEquals(SentInvoice.objects.count(), 0)
 
+    def test_dont_send_invoice_if_skipped_hours(self):
+        hours = DailyHoursFactory(hours=0)
+
+        send_invoice(hours.invoice.id)
+
+        hours_tracked, total_amount = hours.invoice.get_hours_stats()
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEquals(hours_tracked.count(), 0)
+        self.assertEquals(total_amount, 0)
+        self.assertEquals(SentInvoice.objects.count(), 0)
+
     def test_send_two_invoice_and_subjects(self):
         hours1 = DailyHoursFactory()
         hours2 = DailyHoursFactory()

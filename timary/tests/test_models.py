@@ -251,6 +251,32 @@ class TestSentInvoice(TestCase):
         self.assertIn(hours2, hours_tracked)
         self.assertEqual(total_cost, 150.0)
 
+    def test_get_hours_tracked_not_including_skipped(self):
+        three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = InvoiceFactory(hourly_rate=50, last_date=three_days_ago)
+        hours1 = DailyHoursFactory(hours=0, invoice=invoice, date_tracked=yesterday)
+        hours2 = DailyHoursFactory(hours=2, invoice=invoice)
+
+        invoice.refresh_from_db()
+
+        sent_invoice = SentInvoice.create(invoice=invoice)
+
+        hours1.sent_invoice_id = sent_invoice.id
+        hours1.save()
+        hours2.sent_invoice_id = sent_invoice.id
+        hours2.save()
+
+        # If invoice's hourly_rate changes, make sure the sent invoice calculates the correct
+        # hourly rate from total cost / sum(hours_tracked)
+        invoice.hourly_rate = 25
+        invoice.save()
+
+        hours_tracked, total_cost = sent_invoice.get_hours_tracked()
+        self.assertNotIn(hours1, hours_tracked)
+        self.assertIn(hours2, hours_tracked)
+        self.assertEqual(total_cost, 100.0)
+
 
 class TestUser(TestCase):
     def test_user(self):
