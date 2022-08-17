@@ -17,9 +17,29 @@ class AccountingError(Exception):
     def __str__(self):
         return f"AccountingError, {self.requests_response.reason}"
 
-    def log(self):
+    def log(self, initial_sync=False):
         from timary.models import User
 
+        user = User.objects.get(id=self.user_id)
+        if initial_sync:
+            # Remove the account ids if an error occurs after we get their integration tokens,
+            # that way it gives user another try to sync.
+            if self.service == "Quickbooks":
+                user.quickbooks_realm_id = None
+                user.quickbooks_refresh_token = None
+            elif self.service == "Freshbooks":
+                user.freshbooks_account_id = None
+                user.freshbooks_refresh_token = None
+            elif self.service == "Zoho":
+                user.zoho_organization_id = None
+                user.zoho_refresh_token = None
+            elif self.service == "Sage":
+                user.sage_account_id = None
+                user.sage_refresh_token = None
+            elif self.service == "Xero":
+                user.xero_tenant_id = None
+                user.xero_refresh_token = None
+            user.save()
         print(
             f"{self.service=}, "
             f"{self.user_id=}, "
@@ -29,7 +49,6 @@ class AccountingError(Exception):
             file=sys.stderr,
         )
 
-        user = User.objects.get(id=self.user_id)
         EmailService.send_plain(
             "Oops, we ran into an error at Timary",
             f"""

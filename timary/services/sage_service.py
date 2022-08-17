@@ -104,11 +104,7 @@ class SageService:
 
     @staticmethod
     def create_customer(invoice):
-        try:
-            sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
@@ -130,24 +126,17 @@ class SageService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         invoice.sage_contact_id = response["id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        try:
-            sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
-
+        sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -157,13 +146,11 @@ class SageService:
                 sage_auth_token, "ledger_accounts?items_per_page=200", "get"
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         ledger_account_id = list(
             filter(
                 None,
@@ -180,13 +167,11 @@ class SageService:
                 sage_auth_token, "bank_accounts", "get"
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         bank_account_id = response[0]["id"]
 
         # Get Tax Rate For User
@@ -197,13 +182,11 @@ class SageService:
                 "get",
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         no_tax_id = response[0]["id"]
 
         # Generate invoice
@@ -231,13 +214,11 @@ class SageService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         sent_invoice.sage_invoice_id = response["id"]
         sent_invoice.save()
 
@@ -267,10 +248,8 @@ class SageService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Sage",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return

@@ -52,6 +52,19 @@ class QuickbookMocks:
     @urlmatch(
         scheme="https",
         netloc="sandbox-quickbooks.api.intuit.com",
+        path="/v3/company/abc123/customer",
+        method="POST",
+    )
+    def quickbook_error_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="sandbox-quickbooks.api.intuit.com",
         path="/v3/company/abc123/invoice",
         method="POST",
     )
@@ -59,6 +72,19 @@ class QuickbookMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"Invoice": {"Id": "abc123"}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="sandbox-quickbooks.api.intuit.com",
+        path="/v3/company/abc123/invoice",
+        method="POST",
+    )
+    def quickbook_error_invoice_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -113,6 +139,16 @@ class TestQuickbooksService(TestCase):
             invoice.refresh_from_db()
             self.assertEquals(invoice.quickbooks_customer_ref_id, "abc123")
 
+    def test_error_create_customer(self):
+        self.user.quickbooks_realm_id = "abc123"
+        invoice = InvoiceFactory(user=self.user)
+        with HTTMock(
+            QuickbookMocks.quickbook_oauth_mock,
+            QuickbookMocks.quickbook_error_customer_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                QuickbookService.create_customer(invoice)
+
     def test_create_invoice(self):
         self.user.quickbooks_realm_id = "abc123"
         invoice = InvoiceFactory(user=self.user, quickbooks_customer_ref_id="abc123")
@@ -125,3 +161,15 @@ class TestQuickbooksService(TestCase):
             QuickbookService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.quickbooks_invoice_id, "abc123")
+
+    def test_error_create_invoice(self):
+        self.user.quickbooks_realm_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, quickbooks_customer_ref_id="abc123")
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        with HTTMock(
+            QuickbookMocks.quickbook_oauth_mock,
+            QuickbookMocks.quickbook_error_invoice_mock,
+            QuickbookMocks.quickbook_payment_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                QuickbookService.create_invoice(sent_invoice)

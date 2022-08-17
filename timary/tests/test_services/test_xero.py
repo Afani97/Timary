@@ -65,6 +65,19 @@ class XeroMocks:
     @urlmatch(
         scheme="https",
         netloc="api.xero.com",
+        path="/api.xro/2.0/Contacts",
+        method="POST",
+    )
+    def xero_error_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.xero.com",
         path="/api.xro/2.0/Invoices",
         method="POST",
     )
@@ -72,6 +85,19 @@ class XeroMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"Invoices": [{"InvoiceID": "abc123"}]}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.xero.com",
+        path="/api.xro/2.0/Invoices",
+        method="POST",
+    )
+    def xero_error_invoice_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -124,6 +150,13 @@ class TestXeroService(TestCase):
             invoice.refresh_from_db()
             self.assertEquals(invoice.xero_contact_id, "abc123")
 
+    def test_error_create_customer(self):
+        self.user.xero_tenant_id = "abc123"
+        invoice = InvoiceFactory(user=self.user)
+        with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_error_customer_mock):
+            with self.assertRaises(AccountingError):
+                XeroService.create_customer(invoice)
+
     def test_create_invoice(self):
         self.user.xero_tenant_id = "abc123"
         invoice = InvoiceFactory(user=self.user, xero_contact_id="abc123")
@@ -136,3 +169,15 @@ class TestXeroService(TestCase):
             XeroService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.xero_invoice_id, "abc123")
+
+    def test_error_create_invoice(self):
+        self.user.xero_tenant_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, xero_contact_id="abc123")
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        with HTTMock(
+            XeroMocks.xero_oauth_mock,
+            XeroMocks.xero_error_invoice_mock,
+            XeroMocks.xero_payment_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                XeroService.create_invoice(sent_invoice)

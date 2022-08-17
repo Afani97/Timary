@@ -16,6 +16,7 @@ from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from timary.custom_errors import AccountingError
 from timary.querysets import HoursQuerySet
 from timary.services.email_service import EmailService
 from timary.services.freshbook_service import FreshbookService
@@ -289,19 +290,34 @@ class Invoice(BaseModel):
         StripeService.create_customer_for_invoice(self)
 
         if self.user.quickbooks_realm_id:
-            QuickbookService.create_customer(self)
+            try:
+                QuickbookService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.freshbooks_account_id:
-            FreshbookService.create_customer(self)
+            try:
+                FreshbookService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.zoho_organization_id:
-            ZohoService.create_customer(self)
+            try:
+                ZohoService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.xero_tenant_id:
-            XeroService.create_customer(self)
+            try:
+                XeroService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.sage_account_id:
-            SageService.create_customer(self)
+            try:
+                SageService.create_customer(self)
+            except AccountingError as ae:
+                ae.log()
 
 
 class SentInvoice(BaseModel):
@@ -433,19 +449,34 @@ class SentInvoice(BaseModel):
         )
 
         if self.user.quickbooks_realm_id:
-            QuickbookService.create_invoice(self)
+            try:
+                QuickbookService.create_invoice(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.freshbooks_account_id:
-            FreshbookService.create_invoice(self)
+            try:
+                FreshbookService.create_invoice(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.zoho_organization_id:
-            ZohoService.create_invoice(self)
+            try:
+                ZohoService.create_invoice(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.xero_tenant_id:
-            XeroService.create_invoice(self)
+            try:
+                XeroService.create_invoice(self)
+            except AccountingError as ae:
+                ae.log()
 
         if self.user.sage_account_id:
-            SageService.create_invoice(self)
+            try:
+                SageService.create_invoice(self)
+            except AccountingError as ae:
+                ae.log()
 
 
 class User(AbstractUser, BaseModel):

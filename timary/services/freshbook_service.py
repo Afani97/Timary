@@ -135,11 +135,7 @@ class FreshbookService:
 
     @staticmethod
     def create_customer(invoice):
-        try:
-            freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
         data = {
             "client": {
                 "email": invoice.email_recipient,
@@ -155,25 +151,17 @@ class FreshbookService:
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Freshbooks",
                 user_id=invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         invoice.freshbooks_client_id = response["response"]["result"]["client"]["id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        try:
-            freshbooks_auth_token = FreshbookService.get_refreshed_tokens(
-                sent_invoice.user
-            )
-        except AccountingError as ae:
-            ae.log()
-            return
+        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(sent_invoice.user)
 
         today = datetime.date.today()
         today_formatted = today.strftime("%Y-%m-%d")
@@ -203,13 +191,11 @@ class FreshbookService:
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Freshbooks",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
 
         sent_invoice.freshbooks_invoice_id = response["response"]["result"]["invoice"][
             "id"
@@ -232,10 +218,8 @@ class FreshbookService:
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Freshbooks",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
