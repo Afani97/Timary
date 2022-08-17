@@ -118,16 +118,8 @@ class XeroService:
 
     @staticmethod
     def create_customer(invoice):
-        try:
-            xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
-        except AccountingError as ae:
-            accounting_error = AccountingError(
-                service="Xero",
-                user_id=invoice.user.id,
-                requests_response=ae.requests_response,
-            )
-            accounting_error.log()
-            return
+        xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+
         data = {
             "Name": invoice.email_recipient_name,
             "EmailAddress": invoice.email_recipient,
@@ -142,31 +134,23 @@ class XeroService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Xero",
                 user_id=invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         if "Contacts" not in response:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Xero",
                 user_id=invoice.user.id,
                 requests_response=response,
             )
-            accounting_error.log()
-            return
         invoice.xero_contact_id = response["Contacts"][0]["ContactID"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        try:
-            xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
 
         # Generate invoice
         today = datetime.date.today() + datetime.timedelta(days=1)
@@ -196,14 +180,17 @@ class XeroService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Xero",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
-
+        if "Invoices" not in response:
+            raise AccountingError(
+                service="Xero",
+                user_id=sent_invoice.user.id,
+                requests_response=response,
+            )
         sent_invoice.xero_invoice_id = response["Invoices"][0]["InvoiceID"]
         sent_invoice.save()
 
@@ -224,10 +211,8 @@ class XeroService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Xero",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return

@@ -201,7 +201,7 @@ def xero_redirect(request):
     try:
         access_token = XeroService.get_auth_tokens(request)
     except AccountingError as ae:
-        ae.log()
+        ae.log(initial_sync=True)
         messages.error(request, "Unable to connect to Xero.")
         return redirect(reverse("timary:user_profile"))
 
@@ -211,12 +211,22 @@ def xero_redirect(request):
 
     for invoice in request.user.get_invoices:
         if not invoice.xero_contact_id:
-            XeroService.create_customer(invoice)
+            try:
+                XeroService.create_customer(invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Xero.")
+                return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
         if not sent_invoice.xero_invoice_id:
-            XeroService.create_invoice(sent_invoice)
+            try:
+                XeroService.create_invoice(sent_invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Xero.")
+                return redirect(reverse("timary:user_profile"))
     messages.success(request, "Successfully connected Xero.")
     return redirect(reverse("timary:user_profile"))
 
