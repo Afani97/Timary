@@ -145,7 +145,7 @@ def zoho_redirect(request):
     try:
         access_token = ZohoService.get_auth_tokens(request)
     except AccountingError as ae:
-        ae.log()
+        ae.log(initial_sync=True)
         messages.error(request, "Unable to connect to Zoho.")
         return redirect(reverse("timary:user_profile"))
 
@@ -156,12 +156,22 @@ def zoho_redirect(request):
     ZohoService.get_organization_id(request.user, access_token)
     for invoice in request.user.get_invoices:
         if not invoice.zoho_contact_id:
-            ZohoService.create_customer(invoice)
+            try:
+                ZohoService.create_customer(invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Zoho.")
+                return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
         if not sent_invoice.zoho_invoice_id:
-            ZohoService.create_invoice(sent_invoice)
+            try:
+                ZohoService.create_invoice(sent_invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Zoho.")
+                return redirect(reverse("timary:user_profile"))
     messages.success(request, "Successfully connected Zoho.")
     return redirect(reverse("timary:user_profile"))
 

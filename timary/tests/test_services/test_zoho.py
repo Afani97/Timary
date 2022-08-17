@@ -52,6 +52,19 @@ class ZohoMocks:
     @urlmatch(
         scheme="https",
         netloc="invoice.zoho.com",
+        path="/api/v3/contacts",
+        method="POST",
+    )
+    def zoho_error_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b'{"contact": { }}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="invoice.zoho.com",
         path="/api/v3/items",
         method="POST",
     )
@@ -85,6 +98,19 @@ class ZohoMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"invoice": {"invoice_id": "abc123"}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="invoice.zoho.com",
+        path="/api/v3/invoices",
+        method="POST",
+    )
+    def zoho_error_invoice_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
         return r
 
     @staticmethod
@@ -137,6 +163,13 @@ class TestZohoService(TestCase):
             invoice.refresh_from_db()
             self.assertEquals(invoice.zoho_contact_id, "abc123")
 
+    def test_error_create_customer(self):
+        self.user.zoho_organization_id = "abc123"
+        invoice = InvoiceFactory(user=self.user)
+        with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_error_customer_mock):
+            with self.assertRaises(AccountingError):
+                ZohoService.create_customer(invoice)
+
     def test_create_invoice(self):
         self.user.zoho_organization_id = "abc123"
         invoice = InvoiceFactory(user=self.user, zoho_contact_id="abc123")
@@ -151,3 +184,17 @@ class TestZohoService(TestCase):
             ZohoService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.zoho_invoice_id, "abc123")
+
+    def test_error_create_invoice(self):
+        self.user.zoho_organization_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, zoho_contact_id="abc123")
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        with HTTMock(
+            ZohoMocks.zoho_oauth_mock,
+            ZohoMocks.zoho_invoice_items_mock,
+            ZohoMocks.zoho_invoice_items_active_mock,
+            ZohoMocks.zoho_error_invoice_mock,
+            ZohoMocks.zoho_payment_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                ZohoService.create_invoice(sent_invoice)

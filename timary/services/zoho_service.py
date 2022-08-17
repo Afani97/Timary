@@ -107,11 +107,7 @@ class ZohoService:
 
     @staticmethod
     def create_customer(invoice):
-        try:
-            zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
 
         recipient_name = invoice.email_recipient_name.split(" ")
         data = {
@@ -135,13 +131,17 @@ class ZohoService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Zoho",
                 user_id=invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
+        if "contact" not in response or "contact_id" not in response["contact"]:
+            raise AccountingError(
+                service="Zoho",
+                user_id=invoice.user.id,
+                requests_response=response,
+            )
         invoice.zoho_contact_id = response["contact"]["contact_id"]
         invoice.zoho_contact_persons_id = response["contact"]["contact_persons"][0][
             "contact_person_id"
@@ -150,11 +150,7 @@ class ZohoService:
 
     @staticmethod
     def create_invoice(sent_invoice):
-        try:
-            zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
 
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
@@ -173,13 +169,12 @@ class ZohoService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Zoho",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
+
         item_id = item_request["item"]["item_id"]
 
         # Mark line item as active
@@ -191,13 +186,11 @@ class ZohoService:
                 "post",
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Zoho",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
 
         # Generate invoice
         data = {
@@ -221,13 +214,17 @@ class ZohoService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Zoho",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
+        if "invoice" not in response or "invoice_id" not in response["invoice"]:
+            raise AccountingError(
+                service="Zoho",
+                user_id=sent_invoice.user.id,
+                requests_response=response,
+            )
         sent_invoice.zoho_invoice_id = response["invoice"]["invoice_id"]
         sent_invoice.save()
 
@@ -253,10 +250,8 @@ class ZohoService:
                 data=data,
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Zoho",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
