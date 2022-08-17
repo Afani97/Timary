@@ -224,7 +224,7 @@ def generate_invoice(request, invoice_id):
         raise Http404
     if (
         invoice.invoice_type == Invoice.InvoiceType.MILESTONE
-        and invoice.milestone_step == invoice.milestone_total_steps
+        and invoice.milestone_step > invoice.milestone_total_steps
     ):
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
         show_alert_message(
