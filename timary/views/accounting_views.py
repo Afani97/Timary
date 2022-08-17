@@ -85,7 +85,7 @@ def freshbooks_redirect(request):
     try:
         access_token = FreshbookService.get_auth_tokens(request)
     except AccountingError as ae:
-        ae.log()
+        ae.log(initial_sync=True)
         messages.error(request, "Unable to connect to Freshbooks.")
         return redirect(reverse("timary:user_profile"))
 
@@ -96,12 +96,26 @@ def freshbooks_redirect(request):
     FreshbookService.get_current_user(request.user, access_token)
     for invoice in request.user.get_invoices:
         if not invoice.freshbooks_client_id:
-            FreshbookService.create_customer(invoice)
+            try:
+                FreshbookService.create_customer(invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(
+                    request, "We had trouble syncing your data with Freshbooks."
+                )
+                return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
         if not sent_invoice.freshbooks_invoice_id:
-            FreshbookService.create_invoice(sent_invoice)
+            try:
+                FreshbookService.create_invoice(sent_invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(
+                    request, "We had trouble syncing your data with Freshbooks."
+                )
+                return redirect(reverse("timary:user_profile"))
     messages.success(request, "Successfully connected Freshbooks.")
     return redirect(reverse("timary:user_profile"))
 
