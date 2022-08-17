@@ -114,6 +114,7 @@ class TestUI(BaseUITest):
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#current-invoices", timeout=2000)
+            page.click(".card-body .dropdown")
             page.click('a:has-text("Edit")')
             page.wait_for_selector('button:has-text("Update invoice")', timeout=2000)
             page.fill("#id_title", "Timary 2")
