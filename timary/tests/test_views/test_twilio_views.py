@@ -254,11 +254,10 @@ class TestTwilioReplyWebhook(TestCase):
             {},
             Message(f"How many hours to log for: {invoice2.title}."),
         ]
-        updated_data = self.data.copy()
-        updated_data["Body"] = "2"
+        self.data["Body"] = "2"
         request = self.factory.post(
             reverse("timary:twilio_reply"),
-            data=updated_data,
+            data=self.data,
         )
 
         with override_settings(DEBUG=True):

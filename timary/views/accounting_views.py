@@ -26,7 +26,7 @@ def quickbooks_redirect(request):
     try:
         access_token = QuickbookService.get_auth_tokens(request)
     except AccountingError as ae:
-        ae.log()
+        ae.log(initial_sync=True)
         messages.error(request, "Unable to connect to Quickbooks.")
         return redirect(reverse("timary:user_profile"))
 
@@ -36,12 +36,26 @@ def quickbooks_redirect(request):
 
     for invoice in request.user.get_invoices:
         if not invoice.quickbooks_customer_ref_id:
-            QuickbookService.create_customer(invoice)
+            try:
+                QuickbookService.create_customer(invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(
+                    request, "We had trouble syncing your data with Quickbooks."
+                )
+                return redirect(reverse("timary:user_profile"))
     for sent_invoice in request.user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
         if not sent_invoice.quickbooks_invoice_id:
-            QuickbookService.create_invoice(sent_invoice)
+            try:
+                QuickbookService.create_invoice(sent_invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(
+                    request, "We had trouble syncing your data with Quickbooks."
+                )
+                return redirect(reverse("timary:user_profile"))
     messages.success(request, "Successfully connected Quickbooks.")
     return redirect(reverse("timary:user_profile"))
 
@@ -208,7 +222,7 @@ def sage_redirect(request):
     try:
         access_token = SageService.get_auth_tokens(request)
     except AccountingError as ae:
-        ae.log()
+        ae.log(initial_sync=True)
         messages.error(request, "Unable to connect to Sage.")
         return redirect(reverse("timary:user_profile"))
 

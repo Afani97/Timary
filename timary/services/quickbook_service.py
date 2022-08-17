@@ -107,11 +107,7 @@ class QuickbookService:
 
     @staticmethod
     def create_customer(invoice):
-        try:
-            quickbooks_auth_token = QuickbookService.get_refreshed_tokens(invoice.user)
-        except AccountingError as ae:
-            ae.log()
-            return
+        quickbooks_auth_token = QuickbookService.get_refreshed_tokens(invoice.user)
         endpoint = (
             f"v3/company/{invoice.user.quickbooks_realm_id}/customer?minorversion=63"
         )
@@ -125,25 +121,17 @@ class QuickbookService:
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Quickbooks",
                 user_id=invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         invoice.quickbooks_customer_ref_id = response["Customer"]["Id"]
         invoice.save()
 
     @staticmethod
     def create_invoice(sent_invoice):
-        try:
-            quickbooks_auth_token = QuickbookService.get_refreshed_tokens(
-                sent_invoice.user
-            )
-        except AccountingError as ae:
-            ae.log()
-            return
+        quickbooks_auth_token = QuickbookService.get_refreshed_tokens(sent_invoice.user)
 
         # Generate invoice
         endpoint = f"v3/company/{sent_invoice.user.quickbooks_realm_id}/invoice?minorversion=63"
@@ -164,13 +152,11 @@ class QuickbookService:
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Quickbooks",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
         sent_invoice.quickbooks_invoice_id = response["Invoice"]["Id"]
         sent_invoice.save()
 
@@ -196,10 +182,8 @@ class QuickbookService:
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:
-            accounting_error = AccountingError(
+            raise AccountingError(
                 service="Quickbooks",
                 user_id=sent_invoice.user.id,
                 requests_response=ae.requests_response,
             )
-            accounting_error.log()
-            return
