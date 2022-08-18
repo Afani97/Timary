@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
 from timary.models import SentInvoice
+from timary.services.accounting_service import AccountingService
 from timary.services.freshbook_service import FreshbookService
 from timary.services.quickbook_service import QuickbookService
 from timary.services.sage_service import SageService
@@ -290,6 +291,67 @@ def sage_redirect(request):
 @login_required
 @require_http_methods(["DELETE"])
 def sage_disconnect(request):
+    request.user.sage_account_id = None
+    request.user.save()
+    return render(
+        request,
+        "partials/settings/_edit_accounting.html",
+        {"settings": request.user.settings},
+    )
+
+
+# SAGE
+@login_required
+@require_http_methods(["GET"])
+def accounting_connect(request):
+    accounting_service = request.GET.get("service")
+    return redirect(
+        AccountingService(
+            {"user": request.user, "service": accounting_service}
+        ).get_connected_accounting_service()
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def accounting_redirect(request):
+    try:
+        access_token = SageService.get_auth_tokens(request)
+    except AccountingError as ae:
+        ae.log(initial_sync=True)
+        messages.error(request, "Unable to connect to Sage.")
+        return redirect(reverse("timary:user_profile"))
+
+    if not access_token:
+        messages.error(request, "Unable to connect to Sage.")
+        return redirect(reverse("timary:user_profile"))
+
+    for invoice in request.user.get_invoices:
+        if not invoice.sage_contact_id:
+            try:
+                SageService.create_customer(invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Sage.")
+                return redirect(reverse("timary:user_profile"))
+    for sent_invoice in request.user.sent_invoices.filter(
+        paid_status=SentInvoice.PaidStatus.PAID
+    ):
+        if not sent_invoice.sage_invoice_id:
+            try:
+                SageService.create_invoice(sent_invoice)
+            except AccountingError as ae:
+                ae.log(initial_sync=True)
+                messages.error(request, "We had trouble syncing your data with Sage.")
+                return redirect(reverse("timary:user_profile"))
+
+    messages.success(request, "Successfully connected Sage.")
+    return redirect(reverse("timary:user_profile"))
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def accounting_disconnect(request):
     request.user.sage_account_id = None
     request.user.save()
     return render(

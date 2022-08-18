@@ -87,7 +87,7 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:sage_connect' %}" class="btn">Connect Sage</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=SageService"  class="btn">Connect Sage</a>
                 </div>
             {% endif %}
         </div>

@@ -176,6 +176,13 @@ urlpatterns += [
         name="sage_disconnect",
     ),
     path("sage-redirect/", views.sage_redirect, name="sage_redirect"),
+    path("accounting-connect/", views.accounting_connect, name="accounting_connect"),
+    path(
+        "accounting-disconnect/",
+        views.accounting_disconnect,
+        name="accoutning_disconnect",
+    ),
+    path("accounting-redirect/", views.accounting_redirect, name="accounting_redirect"),
 ]
 
 
