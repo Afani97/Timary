@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -14,11 +15,13 @@ from timary.services.accounting_service import AccountingService
 @require_http_methods(["GET"])
 def accounting_connect(request):
     accounting_service = request.GET.get("service")
-    return redirect(
-        AccountingService(
-            {"user": request.user, "service": accounting_service}
-        ).get_auth_url()
-    )
+    auth_url = AccountingService(
+        {"user": request.user, "service": accounting_service}
+    ).get_auth_url()
+    if not auth_url:
+        logout(request)
+        return redirect(reverse("timary:register"))
+    return redirect(auth_url)
 
 
 @login_required

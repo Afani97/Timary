@@ -2,6 +2,8 @@ import importlib
 
 
 def class_for_name(class_name):
+    if class_name not in ["quickbooks", "freshbooks", "zoho", "xero", "sage"]:
+        return None
     # load the module, will raise ImportError if module cannot be loaded
     m = importlib.import_module(f"timary.services.{class_name}_service")
     # get the class, will raise AttributeError if class cannot be found
@@ -15,12 +17,14 @@ class AccountingService:
         if "user" in self.kwargs:
             user = self.kwargs.get("user")
             if user.accounting_org:
-                self.service_klass = class_for_name(
-                    self.kwargs.get("user").accounting_org
-                )
+                service_klass = class_for_name(self.kwargs.get("user").accounting_org)
+                if service_klass:
+                    self.service_klass = service_klass
 
     def get_auth_url(self):
         service_klass = class_for_name(self.kwargs.get("service"))
+        if not service_klass:
+            return None
         url, service = service_klass().get_auth_url()
         user = self.kwargs.get("user")
         user.accounting_org = service
