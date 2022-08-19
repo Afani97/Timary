@@ -130,11 +130,13 @@ class ZohoMocks:
 class TestZohoService(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.user = UserFactory(
+            accounting_org="zoho", accounting_refresh_token="abc123"
+        )
 
     def test_oauth(self):
         rf = RequestFactory()
-        get_request = rf.get("/zoho-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(ZohoMocks.zoho_oauth_mock):
@@ -143,7 +145,7 @@ class TestZohoService(TestCase):
 
     def test_oauth_error(self):
         rf = RequestFactory()
-        get_request = rf.get("/zoho-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(ZohoMocks.zoho_oauth_error_mock):
@@ -156,23 +158,23 @@ class TestZohoService(TestCase):
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
-        self.user.zoho_organization_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_customer_mock):
             ZohoService.create_customer(invoice)
             invoice.refresh_from_db()
-            self.assertEquals(invoice.zoho_contact_id, "abc123")
+            self.assertEquals(invoice.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
-        self.user.zoho_organization_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_error_customer_mock):
             with self.assertRaises(AccountingError):
                 ZohoService.create_customer(invoice)
 
     def test_create_invoice(self):
-        self.user.zoho_organization_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, zoho_contact_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             ZohoMocks.zoho_oauth_mock,
@@ -183,11 +185,11 @@ class TestZohoService(TestCase):
         ):
             ZohoService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.zoho_invoice_id, "abc123")
+            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
-        self.user.zoho_organization_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, zoho_contact_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             ZohoMocks.zoho_oauth_mock,

@@ -158,20 +158,22 @@ class SageMocks:
 class TestSageService(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.user = UserFactory(
+            accounting_org="sage", accounting_refresh_token="abc123"
+        )
 
     def test_oauth(self):
         rf = RequestFactory()
-        get_request = rf.get("/sage-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(SageMocks.sage_oauth_mock):
             _ = SageService.get_auth_tokens(get_request)
-            self.assertEquals(self.user.sage_account_id, "abc123")
+            self.assertEquals(self.user.accounting_org_id, "abc123")
 
     def test_oauth_error(self):
         rf = RequestFactory()
-        get_request = rf.get("/sage-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(SageMocks.sage_oauth_error_mock):
@@ -184,23 +186,23 @@ class TestSageService(TestCase):
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
-        self.user.sage_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_customer_mock):
             SageService.create_customer(invoice)
             invoice.refresh_from_db()
-            self.assertEquals(invoice.sage_contact_id, "abc123")
+            self.assertEquals(invoice.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
-        self.user.sage_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_error_customer_mock):
             with self.assertRaises(AccountingError):
                 SageService.create_customer(invoice)
 
     def test_create_invoice(self):
-        self.user.sage_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, sage_contact_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             SageMocks.sage_oauth_mock,
@@ -212,11 +214,11 @@ class TestSageService(TestCase):
         ):
             SageService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.sage_invoice_id, "abc123")
+            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
         self.user.sage_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, sage_contact_id="abc123")
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             SageMocks.sage_oauth_mock,

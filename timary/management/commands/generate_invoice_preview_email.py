@@ -32,11 +32,7 @@ class Command(BaseCommand):
             user=user,
             email_recipient="aristotelf@gmail.com",
             last_date=datetime.date.today() - datetime.timedelta(days=3),
-            quickbooks_customer_ref_id="58",
-            freshbooks_client_id="204228",
-            zoho_contact_id="3159267000000079014",
-            xero_contact_id="c0edb30d-dacf-4f3a-8362-a8c1a8327ba6",
-            sage_contact_id="f2ebbcbc57b043719da8000179a75d6c",
+            accounting_customer_id="58",
         )
         DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(

@@ -18,14 +18,10 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.custom_errors import AccountingError
 from timary.querysets import HoursQuerySet
+from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
-from timary.services.freshbook_service import FreshbookService
-from timary.services.quickbook_service import QuickbookService
-from timary.services.sage_service import SageService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.services.xero_service import XeroService
-from timary.services.zoho_service import ZohoService
 
 
 def create_new_ref_number():
@@ -143,21 +139,8 @@ class Invoice(BaseModel):
     is_archived = models.BooleanField(default=False, null=True, blank=True)
     total_budget = models.IntegerField(null=True, blank=True)
 
-    # Quickbooks
-    quickbooks_customer_ref_id = models.CharField(max_length=200, null=True, blank=True)
-
-    # Freshbooks
-    freshbooks_client_id = models.CharField(max_length=200, null=True, blank=True)
-
-    # Zoho
-    zoho_contact_id = models.CharField(max_length=200, null=True, blank=True)
-    zoho_contact_persons_id = models.CharField(max_length=200, null=True, blank=True)
-
-    # Xero
-    xero_contact_id = models.CharField(max_length=200, null=True, blank=True)
-
-    # Sage
-    sage_contact_id = models.CharField(max_length=200, null=True, blank=True)
+    # Accounting
+    accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return f"{self.title}"
@@ -289,33 +272,11 @@ class Invoice(BaseModel):
     def sync_customer(self):
         StripeService.create_customer_for_invoice(self)
 
-        if self.user.quickbooks_realm_id:
+        if self.user.accounting_org_id:
             try:
-                QuickbookService.create_customer(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.freshbooks_account_id:
-            try:
-                FreshbookService.create_customer(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.zoho_organization_id:
-            try:
-                ZohoService.create_customer(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.xero_tenant_id:
-            try:
-                XeroService.create_customer(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.sage_account_id:
-            try:
-                SageService.create_customer(self)
+                AccountingService(
+                    {"user": self.user, "invoice": self}
+                ).create_customer()
             except AccountingError as ae:
                 ae.log()
 
@@ -350,20 +311,8 @@ class SentInvoice(BaseModel):
     )
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
 
-    # Quickbooks
-    quickbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
-
-    # Freshbooks
-    freshbooks_invoice_id = models.CharField(max_length=200, blank=True, null=True)
-
-    # Zoho
-    zoho_invoice_id = models.CharField(max_length=200, blank=True, null=True)
-
-    # Xero
-    xero_invoice_id = models.CharField(max_length=200, blank=True, null=True)
-
-    # Sage
-    sage_invoice_id = models.CharField(max_length=200, blank=True, null=True)
+    # Accounting
+    accounting_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return (
@@ -448,33 +397,11 @@ class SentInvoice(BaseModel):
             self.invoice.email_recipient,
         )
 
-        if self.user.quickbooks_realm_id:
+        if self.user.accounting_org_id:
             try:
-                QuickbookService.create_invoice(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.freshbooks_account_id:
-            try:
-                FreshbookService.create_invoice(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.zoho_organization_id:
-            try:
-                ZohoService.create_invoice(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.xero_tenant_id:
-            try:
-                XeroService.create_invoice(self)
-            except AccountingError as ae:
-                ae.log()
-
-        if self.user.sage_account_id:
-            try:
-                SageService.create_invoice(self)
+                AccountingService(
+                    {"user": self.user, "sent_invoice": self}
+                ).create_invoice()
             except AccountingError as ae:
                 ae.log()
 
@@ -510,25 +437,10 @@ class User(AbstractUser, BaseModel):
         choices=WEEK_DAYS, null=True, blank=True
     )
 
-    # Quickbooks integration
-    quickbooks_realm_id = models.CharField(max_length=200, null=True, blank=True)
-    quickbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-    # Freshbooks integration
-    freshbooks_account_id = models.CharField(max_length=200, null=True, blank=True)
-    freshbooks_refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-    # Zoho integration
-    zoho_organization_id = models.CharField(max_length=200, null=True, blank=True)
-    zoho_refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-    # Xero integration
-    xero_tenant_id = models.CharField(max_length=200, null=True, blank=True)
-    xero_refresh_token = models.CharField(max_length=200, blank=True, null=True)
-
-    # Sage integration
-    sage_account_id = models.CharField(max_length=200, blank=True, null=True)
-    sage_refresh_token = models.CharField(max_length=200, blank=True, null=True)
+    # Accounting integration
+    accounting_org = models.CharField(max_length=200, blank=True, null=True)
+    accounting_org_id = models.CharField(max_length=200, null=True, blank=True)
+    accounting_refresh_token = models.CharField(max_length=200, blank=True, null=True)
 
     profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
 
@@ -552,11 +464,9 @@ class User(AbstractUser, BaseModel):
             "can_integrate_with_accounting_tools": self.can_integrate_with_accounting_tools,
             "accounting_integrations_connected": self.get_accounting_integrations_connected,
             "phone_number_availability": self.phone_number_availability,
-            "quickbooks_connected": self.quickbooks_realm_id is not None,
-            "freshbooks_connected": self.freshbooks_account_id is not None,
-            "zoho_connected": self.zoho_organization_id is not None,
-            "xero_connected": self.xero_tenant_id is not None,
-            "sage_connected": self.sage_account_id is not None,
+            "accounting_connected": self.accounting_org
+            if self.accounting_org_id
+            else "",
             "can_download_audit": self.can_download_audit,
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")
@@ -587,18 +497,9 @@ class User(AbstractUser, BaseModel):
 
     @property
     def get_accounting_integrations_connected(self):
-        accounts = []
-        if self.quickbooks_realm_id:
-            accounts.append("Quickbooks")
-        if self.freshbooks_account_id:
-            accounts.append("Freshbooks")
-        if self.zoho_organization_id:
-            accounts.append("Zoho")
-        if self.xero_tenant_id:
-            accounts.append("Xero")
-        if self.sage_account_id:
-            accounts.append("Sage")
-        return ", ".join(accounts)
+        if self.accounting_org_id:
+            return self.accounting_org
+        return ""
 
     @property
     def can_accept_payments(self):

@@ -1,10 +1,10 @@
 <div class="card bg-base-200 bordered" id="integrations-container">
     <div class="card-body">
         <div class="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0 items-center md:justify-center">
-            {% if settings.quickbooks_connected %}
+            {% if settings.accounting_connected == "Quickbooks" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Quickbooks</label>
-                    <a hx-delete="{% url 'timary:quickbooks_disconnect' %}"
+                    <a hx-delete="{% url 'timary:accounting_disconnect' %}"
                         hx-confirm="Are you sure you want to disconnect Quickbooks?"
                         hx-target="#integrations-container"
                         hx-swap="outerHTML"
@@ -15,15 +15,15 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:quickbooks_connect' %}" class="btn">Connect QuickBooks</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=quickbooks" class="btn">Connect QuickBooks</a>
                 </div>
 
             {% endif %}
 
-            {% if settings.freshbooks_connected %}
+            {% if settings.accounting_connected == "Freshbooks" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Freshbooks</label>
-                    <a hx-delete="{% url 'timary:freshbooks_disconnect' %}"
+                    <a hx-delete="{% url 'timary:accounting_disconnect' %}"
                         hx-confirm="Are you sure you want to disconnect Freshbooks?"
                         hx-target="#integrations-container"
                         hx-swap="outerHTML"
@@ -34,14 +34,14 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:freshbooks_connect' %}" class="btn">Connect FreshBooks</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=freshbooks" class="btn">Connect FreshBooks</a>
                 </div>
             {% endif %}
 
-            {% if settings.zoho_connected %}
+            {% if settings.accounting_connected == "Zoho" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Zoho</label>
-                    <a hx-delete="{% url 'timary:zoho_disconnect' %}"
+                    <a hx-delete="{% url 'timary:accounting_disconnect' %}"
                         hx-confirm="Are you sure you want to disconnect Zoho?"
                         hx-target="#integrations-container"
                         hx-swap="outerHTML"
@@ -51,14 +51,14 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:zoho_connect' %}" class="btn">Connect Zoho</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=zoho" class="btn">Connect Zoho</a>
                 </div>
             {% endif %}
 
-            {% if settings.xero_connected %}
+            {% if settings.accounting_connected == "Xero" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Xero</label>
-                    <a hx-delete="{% url 'timary:xero_disconnect' %}"
+                    <a hx-delete="{% url 'timary:accounting_disconnect' %}"
                         hx-confirm="Are you sure you want to disconnect Xero?"
                         hx-target="#integrations-container"
                         hx-swap="outerHTML"
@@ -69,14 +69,14 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:xero_connect' %}" class="btn">Connect Xero</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=xero" class="btn">Connect Xero</a>
                 </div>
             {% endif %}
 
-            {% if settings.sage_connected %}
+            {% if settings.accounting_connected == "Sage" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Sage</label>
-                    <a hx-delete="{% url 'timary:sage_disconnect' %}"
+                    <a hx-delete="{% url 'timary:accounting_disconnect' %}"
                         hx-confirm="Are you sure you want to disconnect Sage?"
                         hx-target="#integrations-container"
                         hx-swap="outerHTML"
@@ -87,7 +87,7 @@
                 </div>
             {% elif settings.accounting_integrations_connected|length_is:"0" %}
                 <div>
-                    <a href="{% url 'timary:sage_connect' %}" class="btn">Connect Sage</a>
+                    <a href="{% url 'timary:accounting_connect' %}?service=sage"  class="btn">Connect Sage</a>
                 </div>
             {% endif %}
         </div>

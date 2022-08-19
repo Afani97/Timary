@@ -12,7 +12,7 @@ from timary.custom_errors import AccountingError
 class ZohoService:
     @staticmethod
     def get_auth_url():
-        client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
+        client_redirect = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
         auth_url = (
             f"https://accounts.zoho.com/oauth/v2/auth?scope=ZohoInvoice.settings.CREATE,ZohoInvoice.settings.READ,"
             f"ZohoInvoice.invoices.CREATE,"
@@ -21,11 +21,11 @@ class ZohoService:
             f"&client_id={settings.ZOHO_CLIENT_ID}&state=testing&response_type=code&redirect_uri="
             f"{client_redirect}&access_type=offline"
         )
-        return auth_url
+        return auth_url, "zoho"
 
     @staticmethod
     def get_auth_tokens(request):
-        client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
+        client_redirect = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
         if "code" in request.GET:
             auth_code = request.GET.get("code")
 
@@ -36,8 +36,7 @@ class ZohoService:
             )
             if not auth_request.ok:
                 raise AccountingError(
-                    service="Zoho",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
 
@@ -45,28 +44,25 @@ class ZohoService:
 
             if "access_token" not in response or "refresh_token" not in response:
                 raise AccountingError(
-                    service="Zoho",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
 
-            request.user.zoho_refresh_token = response["refresh_token"]
+            request.user.accounting_refresh_token = response["refresh_token"]
             request.user.save()
             return response["access_token"]
         return None
 
     @staticmethod
     def get_refreshed_tokens(user):
-        client_redirect = f"{settings.SITE_URL}{reverse('timary:zoho_redirect')}"
+        client_redirect = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
         refresh_response = requests.post(
-            f"https://accounts.zoho.com/oauth/v2/token?refresh_token={user.zoho_refresh_token}"
+            f"https://accounts.zoho.com/oauth/v2/token?refresh_token={user.accounting_refresh_token}"
             f"&client_id={settings.ZOHO_CLIENT_ID}&client_secret={settings.ZOHO_SECRET_KEY}"
             f"&redirect_uri={client_redirect}&grant_type=refresh_token"
         )
         if not refresh_response.ok or "access_token" not in refresh_response.json():
-            raise AccountingError(
-                service="Zoho", user_id=user.id, requests_response=refresh_response
-            )
+            raise AccountingError(user=user, requests_response=refresh_response)
         response = refresh_response.json()
         return response["access_token"]
 
@@ -101,8 +97,9 @@ class ZohoService:
         zoho_org_request.raise_for_status()
         zoho_org_response = zoho_org_request.json()
         if zoho_org_response["message"] == "success":
-            zoho_org_id = zoho_org_response["organizations"][0]["organization_id"]
-            user.zoho_organization_id = zoho_org_id
+            user.accounting_org_id = zoho_org_response["organizations"][0][
+                "organization_id"
+            ]
             user.save()
 
     @staticmethod
@@ -125,27 +122,22 @@ class ZohoService:
         try:
             response = ZohoService.create_request(
                 zoho_auth_token,
-                invoice.user.zoho_organization_id,
+                invoice.user.accounting_org_id,
                 "contacts",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Zoho",
-                user_id=invoice.user.id,
+                user=invoice.user,
                 requests_response=ae.requests_response,
             )
         if "contact" not in response or "contact_id" not in response["contact"]:
             raise AccountingError(
-                service="Zoho",
-                user_id=invoice.user.id,
+                user=invoice.user,
                 requests_response=response,
             )
-        invoice.zoho_contact_id = response["contact"]["contact_id"]
-        invoice.zoho_contact_persons_id = response["contact"]["contact_persons"][0][
-            "contact_person_id"
-        ]
+        invoice.accounting_customer_id = response["contact"]["contact_id"]
         invoice.save()
 
     @staticmethod
@@ -163,15 +155,14 @@ class ZohoService:
         try:
             item_request = ZohoService.create_request(
                 zoho_auth_token,
-                sent_invoice.user.zoho_organization_id,
+                sent_invoice.user.accounting_org_id,
                 "items",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Zoho",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
 
@@ -181,20 +172,19 @@ class ZohoService:
         try:
             ZohoService.create_request(
                 zoho_auth_token,
-                sent_invoice.user.zoho_organization_id,
+                sent_invoice.user.accounting_org_id,
                 f"items/{item_id}/active",
                 "post",
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Zoho",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
 
         # Generate invoice
         data = {
-            "customer_id": sent_invoice.invoice.zoho_contact_id,
+            "customer_id": sent_invoice.invoice.accounting_customer_id,
             "date": today_formatted,
             "line_items": [
                 {
@@ -208,35 +198,33 @@ class ZohoService:
         try:
             response = ZohoService.create_request(
                 zoho_auth_token,
-                sent_invoice.user.zoho_organization_id,
+                sent_invoice.user.accounting_org_id,
                 "invoices",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Zoho",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
         if "invoice" not in response or "invoice_id" not in response["invoice"]:
             raise AccountingError(
-                service="Zoho",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=response,
             )
-        sent_invoice.zoho_invoice_id = response["invoice"]["invoice_id"]
+        sent_invoice.accounting_invoice_id = response["invoice"]["invoice_id"]
         sent_invoice.save()
 
         # Generate payment for invoice
         data = {
-            "customer_id": sent_invoice.invoice.zoho_contact_id,
+            "customer_id": sent_invoice.invoice.accounting_customer_id,
             "payment_mode": "creditcard",
             "amount": int(sent_invoice.total_price),
             "date": today_formatted,
             "invoices": [
                 {
-                    "invoice_id": sent_invoice.zoho_invoice_id,
+                    "invoice_id": sent_invoice.accounting_invoice_id,
                     "amount_applied": int(sent_invoice.total_price),
                 }
             ],
@@ -244,14 +232,13 @@ class ZohoService:
         try:
             ZohoService.create_request(
                 zoho_auth_token,
-                sent_invoice.user.zoho_organization_id,
+                sent_invoice.user.accounting_org_id,
                 "customerpayments",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Zoho",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )

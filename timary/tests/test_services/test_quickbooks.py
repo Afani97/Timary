@@ -4,7 +4,7 @@ from httmock import HTTMock, urlmatch
 from requests import Response
 
 from timary.custom_errors import AccountingError
-from timary.services.quickbook_service import QuickbookService
+from timary.services.quickbooks_service import QuickbooksService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -104,67 +104,69 @@ class QuickbookMocks:
 class TestQuickbooksService(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.user = UserFactory(
+            accounting_org="quickbooks", accounting_refresh_token="abc123"
+        )
 
     def test_oauth(self):
         rf = RequestFactory()
-        get_request = rf.get("/quickbook-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
-            auth_token = QuickbookService.get_auth_tokens(get_request)
+            auth_token = QuickbooksService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 
     def test_oauth_token_error(self):
         rf = RequestFactory()
-        get_request = rf.get("/quickbook-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(QuickbookMocks.quickbook_oauth_error_mock):
             with self.assertRaises(AccountingError):
-                _ = QuickbookService.get_auth_tokens(get_request)
+                _ = QuickbooksService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
-            refresh_token = QuickbookService.get_refreshed_tokens(self.user)
+            refresh_token = QuickbooksService.get_refreshed_tokens(self.user)
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
-        self.user.quickbooks_realm_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             QuickbookMocks.quickbook_oauth_mock, QuickbookMocks.quickbook_customer_mock
         ):
-            QuickbookService.create_customer(invoice)
+            QuickbooksService.create_customer(invoice)
             invoice.refresh_from_db()
-            self.assertEquals(invoice.quickbooks_customer_ref_id, "abc123")
+            self.assertEquals(invoice.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
-        self.user.quickbooks_realm_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             QuickbookMocks.quickbook_oauth_mock,
             QuickbookMocks.quickbook_error_customer_mock,
         ):
             with self.assertRaises(AccountingError):
-                QuickbookService.create_customer(invoice)
+                QuickbooksService.create_customer(invoice)
 
     def test_create_invoice(self):
-        self.user.quickbooks_realm_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, quickbooks_customer_ref_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             QuickbookMocks.quickbook_oauth_mock,
             QuickbookMocks.quickbook_invoice_mock,
             QuickbookMocks.quickbook_payment_mock,
         ):
-            QuickbookService.create_invoice(sent_invoice)
+            QuickbooksService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.quickbooks_invoice_id, "abc123")
+            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
-        self.user.quickbooks_realm_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, quickbooks_customer_ref_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             QuickbookMocks.quickbook_oauth_mock,
@@ -172,4 +174,4 @@ class TestQuickbooksService(TestCase):
             QuickbookMocks.quickbook_payment_mock,
         ):
             with self.assertRaises(AccountingError):
-                QuickbookService.create_invoice(sent_invoice)
+                QuickbooksService.create_invoice(sent_invoice)

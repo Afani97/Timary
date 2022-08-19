@@ -11,8 +11,8 @@ from django_q.tasks import async_task
 
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
-from timary.services.freshbook_service import FreshbookService
-from timary.services.quickbook_service import QuickbookService
+from timary.services.freshbooks_service import FreshbooksService
+from timary.services.quickbooks_service import QuickbooksService
 from timary.services.sage_service import SageService
 from timary.services.twilio_service import TwilioClient
 from timary.services.xero_service import XeroService
@@ -213,9 +213,9 @@ def refresh_accounting_integration_tokens():
     )
     for user in users:
         if user.quickbooks_realm_id:
-            QuickbookService.get_refreshed_tokens(user)
+            QuickbooksService.get_refreshed_tokens(user)
         if user.freshbooks_account_id:
-            FreshbookService.get_refreshed_tokens(user)
+            FreshbooksService.get_refreshed_tokens(user)
         if user.zoho_organization_id:
             ZohoService.get_refreshed_tokens(user)
         if user.xero_tenant_id:

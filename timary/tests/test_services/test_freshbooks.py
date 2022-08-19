@@ -4,7 +4,7 @@ from httmock import HTTMock, urlmatch
 from requests import Response
 
 from timary.custom_errors import AccountingError
-from timary.services.freshbook_service import FreshbookService
+from timary.services.freshbooks_service import FreshbooksService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -104,67 +104,69 @@ class FreshbookMocks:
 class TestFreshbooksService(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.user = UserFactory(
+            accounting_org="freshbooks", accounting_refresh_token="abc123"
+        )
 
     def test_oauth(self):
         rf = RequestFactory()
-        get_request = rf.get("/freshbooks-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
-            auth_token = FreshbookService.get_auth_tokens(get_request)
+            auth_token = FreshbooksService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 
     def test_oauth_error(self):
         rf = RequestFactory()
-        get_request = rf.get("/freshbooks-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(FreshbookMocks.freshbook_oauth_error_mock):
             with self.assertRaises(AccountingError):
-                _ = FreshbookService.get_auth_tokens(get_request)
+                _ = FreshbooksService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
-            refresh_token = FreshbookService.get_refreshed_tokens(self.user)
+            refresh_token = FreshbooksService.get_refreshed_tokens(self.user)
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
-        self.user.freshbooks_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock, FreshbookMocks.freshbook_customer_mock
         ):
-            FreshbookService.create_customer(invoice)
+            FreshbooksService.create_customer(invoice)
             invoice.refresh_from_db()
-            self.assertEquals(invoice.freshbooks_client_id, "abc123")
+            self.assertEquals(invoice.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
-        self.user.freshbooks_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
             FreshbookMocks.freshbook_error_customer_mock,
         ):
             with self.assertRaises(AccountingError):
-                FreshbookService.create_customer(invoice)
+                FreshbooksService.create_customer(invoice)
 
     def test_create_invoice(self):
-        self.user.freshbooks_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, freshbooks_client_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
             FreshbookMocks.freshbook_invoice_mock,
             FreshbookMocks.freshbook_payment_mock,
         ):
-            FreshbookService.create_invoice(sent_invoice)
+            FreshbooksService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.freshbooks_invoice_id, "abc123")
+            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
-        self.user.freshbooks_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, freshbooks_client_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
@@ -172,4 +174,4 @@ class TestFreshbooksService(TestCase):
             FreshbookMocks.freshbook_payment_mock,
         ):
             with self.assertRaises(AccountingError):
-                FreshbookService.create_invoice(sent_invoice)
+                FreshbooksService.create_invoice(sent_invoice)
