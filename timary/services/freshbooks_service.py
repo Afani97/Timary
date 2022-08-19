@@ -8,7 +8,7 @@ from django.urls import reverse
 from timary.custom_errors import AccountingError
 
 
-class FreshbookService:
+class FreshbooksService:
     @staticmethod
     def get_domain():
         ngrok_local_url = "https://c1e1-71-87-212-255.ngrok.io"
@@ -23,7 +23,7 @@ class FreshbookService:
     @staticmethod
     def get_auth_url():
         redirect_uri = (
-            f"{FreshbookService.get_domain()}{reverse('timary:accounting_redirect')}"
+            f"{FreshbooksService.get_domain()}{reverse('timary:accounting_redirect')}"
         )
 
         url = (
@@ -35,7 +35,7 @@ class FreshbookService:
     @staticmethod
     def get_auth_tokens(request):
         redirect_uri = (
-            f"{FreshbookService.get_domain()}{reverse('timary:accounting_redirect')}"
+            f"{FreshbooksService.get_domain()}{reverse('timary:accounting_redirect')}"
         )
         if "code" in request.GET:
             auth_code = request.GET.get("code")
@@ -71,7 +71,7 @@ class FreshbookService:
     @staticmethod
     def get_refreshed_tokens(user):
         redirect_uri = (
-            f"{FreshbookService.get_domain()}{reverse('timary:accounting_redirect')}?"
+            f"{FreshbooksService.get_domain()}{reverse('timary:accounting_redirect')}?"
         )
         auth_request = requests.post(
             "https://api.freshbooks.com/auth/oauth/token",
@@ -132,7 +132,7 @@ class FreshbookService:
 
     @staticmethod
     def create_customer(invoice):
-        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(invoice.user)
+        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(invoice.user)
         data = {
             "client": {
                 "email": invoice.email_recipient,
@@ -142,7 +142,7 @@ class FreshbookService:
         }
         endpoint = f"accounting/account/{invoice.user.accounting_org_id}/users/clients"
         try:
-            response = FreshbookService.create_request(
+            response = FreshbooksService.create_request(
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
@@ -155,7 +155,9 @@ class FreshbookService:
 
     @staticmethod
     def create_invoice(sent_invoice):
-        freshbooks_auth_token = FreshbookService.get_refreshed_tokens(sent_invoice.user)
+        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(
+            sent_invoice.user
+        )
 
         today = datetime.date.today()
         today_formatted = today.strftime("%Y-%m-%d")
@@ -181,7 +183,7 @@ class FreshbookService:
         }
         endpoint = f"accounting/account/{sent_invoice.user.accounting_org_id}/invoices/invoices"
         try:
-            response = FreshbookService.create_request(
+            response = FreshbooksService.create_request(
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
@@ -207,7 +209,7 @@ class FreshbookService:
         }
         endpoint = f"accounting/account/{sent_invoice.user.accounting_org_id}/payments/payments"
         try:
-            FreshbookService.create_request(
+            FreshbooksService.create_request(
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:

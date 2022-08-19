@@ -33,8 +33,8 @@ class AccountingService:
 
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
-        self.service_klass.create_customer(invoice)
+        self.service_klass().create_customer(invoice)
 
     def create_invoice(self):
         sent_invoice = self.kwargs.get("sent_invoice")
-        self.service_klass.create_invoice(sent_invoice)
+        self.service_klass().create_invoice(sent_invoice)

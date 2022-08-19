@@ -4,7 +4,7 @@ from httmock import HTTMock, urlmatch
 from requests import Response
 
 from timary.custom_errors import AccountingError
-from timary.services.quickbook_service import QuickbookService
+from timary.services.quickbooks_service import QuickbooksService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -114,7 +114,7 @@ class TestQuickbooksService(TestCase):
         get_request.user = self.user
 
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
-            auth_token = QuickbookService.get_auth_tokens(get_request)
+            auth_token = QuickbooksService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 
     def test_oauth_token_error(self):
@@ -124,11 +124,11 @@ class TestQuickbooksService(TestCase):
 
         with HTTMock(QuickbookMocks.quickbook_oauth_error_mock):
             with self.assertRaises(AccountingError):
-                _ = QuickbookService.get_auth_tokens(get_request)
+                _ = QuickbooksService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
-            refresh_token = QuickbookService.get_refreshed_tokens(self.user)
+            refresh_token = QuickbooksService.get_refreshed_tokens(self.user)
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
@@ -137,7 +137,7 @@ class TestQuickbooksService(TestCase):
         with HTTMock(
             QuickbookMocks.quickbook_oauth_mock, QuickbookMocks.quickbook_customer_mock
         ):
-            QuickbookService.create_customer(invoice)
+            QuickbooksService.create_customer(invoice)
             invoice.refresh_from_db()
             self.assertEquals(invoice.accounting_customer_id, "abc123")
 
@@ -149,7 +149,7 @@ class TestQuickbooksService(TestCase):
             QuickbookMocks.quickbook_error_customer_mock,
         ):
             with self.assertRaises(AccountingError):
-                QuickbookService.create_customer(invoice)
+                QuickbooksService.create_customer(invoice)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
@@ -160,7 +160,7 @@ class TestQuickbooksService(TestCase):
             QuickbookMocks.quickbook_invoice_mock,
             QuickbookMocks.quickbook_payment_mock,
         ):
-            QuickbookService.create_invoice(sent_invoice)
+            QuickbooksService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
@@ -174,4 +174,4 @@ class TestQuickbooksService(TestCase):
             QuickbookMocks.quickbook_payment_mock,
         ):
             with self.assertRaises(AccountingError):
-                QuickbookService.create_invoice(sent_invoice)
+                QuickbooksService.create_invoice(sent_invoice)

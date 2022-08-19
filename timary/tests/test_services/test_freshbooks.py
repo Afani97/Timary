@@ -4,7 +4,7 @@ from httmock import HTTMock, urlmatch
 from requests import Response
 
 from timary.custom_errors import AccountingError
-from timary.services.freshbook_service import FreshbookService
+from timary.services.freshbooks_service import FreshbooksService
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -114,7 +114,7 @@ class TestFreshbooksService(TestCase):
         get_request.user = self.user
 
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
-            auth_token = FreshbookService.get_auth_tokens(get_request)
+            auth_token = FreshbooksService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 
     def test_oauth_error(self):
@@ -124,11 +124,11 @@ class TestFreshbooksService(TestCase):
 
         with HTTMock(FreshbookMocks.freshbook_oauth_error_mock):
             with self.assertRaises(AccountingError):
-                _ = FreshbookService.get_auth_tokens(get_request)
+                _ = FreshbooksService.get_auth_tokens(get_request)
 
     def test_refresh_tokens(self):
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
-            refresh_token = FreshbookService.get_refreshed_tokens(self.user)
+            refresh_token = FreshbooksService.get_refreshed_tokens(self.user)
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
@@ -137,7 +137,7 @@ class TestFreshbooksService(TestCase):
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock, FreshbookMocks.freshbook_customer_mock
         ):
-            FreshbookService.create_customer(invoice)
+            FreshbooksService.create_customer(invoice)
             invoice.refresh_from_db()
             self.assertEquals(invoice.accounting_customer_id, "abc123")
 
@@ -149,7 +149,7 @@ class TestFreshbooksService(TestCase):
             FreshbookMocks.freshbook_error_customer_mock,
         ):
             with self.assertRaises(AccountingError):
-                FreshbookService.create_customer(invoice)
+                FreshbooksService.create_customer(invoice)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
@@ -160,7 +160,7 @@ class TestFreshbooksService(TestCase):
             FreshbookMocks.freshbook_invoice_mock,
             FreshbookMocks.freshbook_payment_mock,
         ):
-            FreshbookService.create_invoice(sent_invoice)
+            FreshbooksService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
             self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
@@ -174,4 +174,4 @@ class TestFreshbooksService(TestCase):
             FreshbookMocks.freshbook_payment_mock,
         ):
             with self.assertRaises(AccountingError):
-                FreshbookService.create_invoice(sent_invoice)
+                FreshbooksService.create_invoice(sent_invoice)

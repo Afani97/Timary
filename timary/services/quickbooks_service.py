@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 from timary.custom_errors import AccountingError
 
 
-class QuickbookService:
+class QuickbooksService:
     @staticmethod
     def get_auth_url():
         redirect_uri = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
@@ -104,7 +104,7 @@ class QuickbookService:
 
     @staticmethod
     def create_customer(invoice):
-        quickbooks_auth_token = QuickbookService.get_refreshed_tokens(invoice.user)
+        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
         endpoint = (
             f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
         )
@@ -114,7 +114,7 @@ class QuickbookService:
             "PrimaryEmailAddr": {"Address": invoice.email_recipient},
         }
         try:
-            response = QuickbookService.create_request(
+            response = QuickbooksService.create_request(
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:
@@ -127,7 +127,9 @@ class QuickbookService:
 
     @staticmethod
     def create_invoice(sent_invoice):
-        quickbooks_auth_token = QuickbookService.get_refreshed_tokens(sent_invoice.user)
+        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(
+            sent_invoice.user
+        )
 
         # Generate invoice
         endpoint = (
@@ -146,7 +148,7 @@ class QuickbookService:
             "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
         }
         try:
-            response = QuickbookService.create_request(
+            response = QuickbooksService.create_request(
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:
@@ -177,7 +179,7 @@ class QuickbookService:
             ],
         }
         try:
-            QuickbookService.create_request(
+            QuickbooksService.create_request(
                 quickbooks_auth_token, endpoint, "post", data=data
             )
         except AccountingError as ae:

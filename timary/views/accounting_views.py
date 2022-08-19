@@ -31,11 +31,11 @@ def accounting_redirect(request):
         ).get_auth_tokens()
     except AccountingError as ae:
         ae.log(initial_sync=True)
-        messages.error(request, f"Unable to connect to {user.accounting_org}.")
+        messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
         return redirect(reverse("timary:user_profile"))
 
     if not access_token:
-        messages.error(request, "Unable to connect to Sage.")
+        messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
         return redirect(reverse("timary:user_profile"))
 
     # Sync the current invoices
@@ -48,7 +48,7 @@ def accounting_redirect(request):
                 ae.log(initial_sync=True)
                 messages.error(
                     request,
-                    f"We had trouble syncing your data with {user.accounting_org}.",
+                    f"We had trouble syncing your data with {user.accounting_org.title()}.",
                 )
                 return redirect(reverse("timary:user_profile"))
 
@@ -66,11 +66,11 @@ def accounting_redirect(request):
                 ae.log(initial_sync=True)
                 messages.error(
                     request,
-                    f"We had trouble syncing your data with {user.accounting_org}.",
+                    f"We had trouble syncing your data with {user.accounting_org.title()}.",
                 )
                 return redirect(reverse("timary:user_profile"))
 
-    messages.success(request, "Successfully connected Sage.")
+    messages.success(request, f"Successfully connected {user.accounting_org.title()}.")
     return redirect(reverse("timary:user_profile"))
 
 
