@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
-from timary.models import SentInvoice, User
+from timary.models import User
 from timary.services.accounting_service import AccountingService
 
 
@@ -41,37 +41,29 @@ def accounting_redirect(request):
         messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
         return redirect(reverse("timary:user_profile"))
 
-    # Sync the current invoices
-    for invoice in user.get_invoices:
-        accounting_service = AccountingService({"user": user, "invoice": invoice})
-        if not invoice.accounting_customer_id:
-            try:
-                accounting_service.create_customer()
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request,
-                    f"We had trouble syncing your data with {user.accounting_org.title()}.",
-                )
-                return redirect(reverse("timary:user_profile"))
+    accounting_service = AccountingService({"user": user})
 
-    # Sync the current paid sent invoices
-    for sent_invoice in user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        accounting_service = AccountingService(
-            {"user": user, "sent_invoice": sent_invoice}
+    # Sync the current invoice customers first
+    try:
+        accounting_service.sync_customers()
+    except AccountingError as ae:
+        ae.log(initial_sync=True)
+        messages.error(
+            request,
+            f"We had trouble syncing your data with {user.accounting_org.title()}.",
         )
-        if not sent_invoice.accounting_invoice_id:
-            try:
-                accounting_service.create_invoice()
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request,
-                    f"We had trouble syncing your data with {user.accounting_org.title()}.",
-                )
-                return redirect(reverse("timary:user_profile"))
+        return redirect(reverse("timary:user_profile"))
+
+    # Then sync the current paid sent invoices
+    try:
+        accounting_service.sync_invoices()
+    except AccountingError as ae:
+        ae.log(initial_sync=True)
+        messages.error(
+            request,
+            f"We had trouble syncing your data with {user.accounting_org.title()}.",
+        )
+        return redirect(reverse("timary:user_profile"))
 
     messages.success(request, f"Successfully connected {user.accounting_org.title()}.")
     return redirect(reverse("timary:user_profile"))
