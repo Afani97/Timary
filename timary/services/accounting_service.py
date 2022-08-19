@@ -35,6 +35,10 @@ class AccountingService:
         request = self.kwargs.get("request")
         return self.service_klass().get_auth_tokens(request)
 
+    def refresh_tokens(self):
+        user = self.kwargs.get("user")
+        self.service_klass().refresh_tokens(user)
+
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
         self.service_klass().create_customer(invoice)
