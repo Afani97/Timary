@@ -141,46 +141,11 @@ urlpatterns += [
 
 # ACCOUNTING INTEGRATION URLS
 urlpatterns += [
-    path("quickbooks-connect/", views.quickbooks_connect, name="quickbooks_connect"),
-    path(
-        "quickbooks-disconnect/",
-        views.quickbooks_disconnect,
-        name="quickbooks_disconnect",
-    ),
-    path("quickbooks-redirect/", views.quickbooks_redirect, name="quickbooks_redirect"),
-    path("freshbooks-connect/", views.freshbooks_connect, name="freshbooks_connect"),
-    path(
-        "freshbooks-disconnect/",
-        views.freshbooks_disconnect,
-        name="freshbooks_disconnect",
-    ),
-    path("freshbooks-redirect/", views.freshbooks_redirect, name="freshbooks_redirect"),
-    path("zoho-connect/", views.zoho_connect, name="zoho_connect"),
-    path(
-        "zoho-disconnect/",
-        views.zoho_disconnect,
-        name="zoho_disconnect",
-    ),
-    path("zoho-redirect/", views.zoho_redirect, name="zoho_redirect"),
-    path("xero-connect/", views.xero_connect, name="xero_connect"),
-    path(
-        "xero-disconnect/",
-        views.xero_disconnect,
-        name="xero_disconnect",
-    ),
-    path("xero-redirect/", views.xero_redirect, name="xero_redirect"),
-    path("sage-connect/", views.sage_connect, name="sage_connect"),
-    path(
-        "sage-disconnect/",
-        views.sage_disconnect,
-        name="sage_disconnect",
-    ),
-    path("sage-redirect/", views.sage_redirect, name="sage_redirect"),
     path("accounting-connect/", views.accounting_connect, name="accounting_connect"),
     path(
         "accounting-disconnect/",
         views.accounting_disconnect,
-        name="accoutning_disconnect",
+        name="accounting_disconnect",
     ),
     path("accounting-redirect/", views.accounting_redirect, name="accounting_redirect"),
 ]

@@ -17,8 +17,7 @@ class Command(BaseCommand):
                 user=user,
                 email_recipient="aristotelf@gmail.com",
                 last_date=datetime.date.today() - datetime.timedelta(days=3),
-                quickbooks_customer_ref_id="58",
-                freshbooks_client_id="204228",
+                accounting_org_id="58",
             )
             for _ in range(0, 50):
                 random_int = random.randint(0, 3)

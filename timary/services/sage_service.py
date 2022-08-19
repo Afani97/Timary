@@ -11,12 +11,12 @@ from timary.custom_errors import AccountingError
 class SageService:
     @staticmethod
     def get_auth_url():
-        client_redirect = f"{settings.SITE_URL}{reverse('timary:sage_redirect')}"
+        client_redirect = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
         auth_url = (
             f"https://www.sageone.com/oauth2/auth/central?filter=apiv3.1&client_id={settings.SAGE_CLIENT_ID}"
             f"&response_type=code&redirect_uri={client_redirect}&scopes=full_access&country=us&local=en-US "
         )
-        return auth_url
+        return auth_url, "sage"
 
     @staticmethod
     def get_auth_tokens(request):
@@ -33,24 +33,22 @@ class SageService:
                     "client_id": settings.SAGE_CLIENT_ID,
                     "client_secret": settings.SAGE_SECRET_KEY,
                     "grant_type": "authorization_code",
-                    "redirect_uri": f"{settings.SITE_URL}{reverse('timary:sage_redirect')}",
+                    "redirect_uri": f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}",
                 },
             )
             if not auth_request.ok:
                 raise AccountingError(
-                    service="Sage",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
             response = auth_request.json()
             if "refresh_token" not in response:
                 raise AccountingError(
-                    service="Sage",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
-            request.user.sage_account_id = response["requested_by_id"]
-            request.user.sage_refresh_token = response["refresh_token"]
+            request.user.accounting_org_id = response["requested_by_id"]
+            request.user.accounting_refresh_token = response["refresh_token"]
             request.user.save()
             return response["refresh_token"]
         return None
@@ -66,15 +64,13 @@ class SageService:
                 "client_id": settings.SAGE_CLIENT_ID,
                 "client_secret": settings.SAGE_SECRET_KEY,
                 "grant_type": "refresh_token",
-                "refresh_token": user.sage_refresh_token,
+                "refresh_token": user.accounting_refresh_token,
             },
         )
         if not refresh_response.ok:
-            raise AccountingError(
-                service="Sage", user_id=user.id, requests_response=refresh_response
-            )
+            raise AccountingError(user=user, requests_response=refresh_response)
         response = refresh_response.json()
-        user.sage_refresh_token = response["refresh_token"]
+        user.accounting_refresh_token = response["refresh_token"]
         user.save()
         return response["access_token"]
 
@@ -127,11 +123,10 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=invoice.user.id,
+                user=invoice.user,
                 requests_response=ae.requests_response,
             )
-        invoice.sage_contact_id = response["id"]
+        invoice.accounting_customer_id = response["id"]
         invoice.save()
 
     @staticmethod
@@ -147,8 +142,7 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
         ledger_account_id = list(
@@ -168,8 +162,7 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
         bank_account_id = response[0]["id"]
@@ -183,8 +176,7 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
         no_tax_id = response[0]["id"]
@@ -192,7 +184,7 @@ class SageService:
         # Generate invoice
         data = {
             "sales_invoice": {
-                "contact_id": sent_invoice.invoice.sage_contact_id,
+                "contact_id": sent_invoice.invoice.accounting_customer_id,
                 "date": today_formatted,
                 "invoice_lines": [
                     {
@@ -215,11 +207,10 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
-        sent_invoice.sage_invoice_id = response["id"]
+        sent_invoice.accounting_invoice_id = response["id"]
         sent_invoice.save()
 
         # Generate payment for invoice
@@ -227,13 +218,13 @@ class SageService:
             "contact_payment": {
                 "transaction_type_id": "CUSTOMER_RECEIPT",
                 "payment_method_id": "CREDIT_DEBIT",
-                "contact_id": sent_invoice.invoice.sage_contact_id,
+                "contact_id": sent_invoice.invoice.accounting_customer_id,
                 "bank_account_id": bank_account_id,
                 "date": today_formatted,
                 "total_amount": str(float(sent_invoice.total_price)),
                 "allocated_artefacts": [
                     {
-                        "artefact_id": sent_invoice.sage_invoice_id,
+                        "artefact_id": sent_invoice.accounting_invoice_id,
                         "amount": str(float(sent_invoice.total_price)),
                     }
                 ],
@@ -249,7 +240,6 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Sage",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )

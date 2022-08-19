@@ -7,11 +7,10 @@ from timary.services.email_service import EmailService
 
 
 class AccountingError(Exception):
-    def __init__(
-        self, service="Accounting", user_id=None, requests_response: Response = None
-    ):
-        self.service = service
-        self.user_id = user_id
+    def __init__(self, user=None, requests_response: Response = None):
+        if user:
+            self.service = user.accounting_org
+            self.user_id = user.id
         self.requests_response = requests_response
 
     def __str__(self):
@@ -24,21 +23,9 @@ class AccountingError(Exception):
         if initial_sync:
             # Remove the account ids if an error occurs after we get their integration tokens,
             # that way it gives user another try to sync.
-            if self.service == "Quickbooks":
-                user.quickbooks_realm_id = None
-                user.quickbooks_refresh_token = None
-            elif self.service == "Freshbooks":
-                user.freshbooks_account_id = None
-                user.freshbooks_refresh_token = None
-            elif self.service == "Zoho":
-                user.zoho_organization_id = None
-                user.zoho_refresh_token = None
-            elif self.service == "Sage":
-                user.sage_account_id = None
-                user.sage_refresh_token = None
-            elif self.service == "Xero":
-                user.xero_tenant_id = None
-                user.xero_refresh_token = None
+            user.accounting_org = None
+            user.accounting_org_id = None
+            user.accounting_refresh_token = None
             user.save()
         print(
             f"{self.service=}, "

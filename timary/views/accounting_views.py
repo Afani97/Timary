@@ -7,300 +7,9 @@ from django.views.decorators.http import require_http_methods
 from timary.custom_errors import AccountingError
 from timary.models import SentInvoice
 from timary.services.accounting_service import AccountingService
-from timary.services.freshbook_service import FreshbookService
-from timary.services.quickbook_service import QuickbookService
-from timary.services.sage_service import SageService
-from timary.services.xero_service import XeroService
-from timary.services.zoho_service import ZohoService
 
 
-# QUICKBOOKS
-@login_required
-@require_http_methods(["GET"])
-def quickbooks_connect(request):
-    return redirect(QuickbookService.get_auth_url())
-
-
-@login_required
-@require_http_methods(["GET"])
-def quickbooks_redirect(request):
-    try:
-        access_token = QuickbookService.get_auth_tokens(request)
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Quickbooks.")
-        return redirect(reverse("timary:user_profile"))
-
-    if not access_token:
-        messages.error(request, "Unable to connect to Quickbooks.")
-        return redirect(reverse("timary:user_profile"))
-
-    for invoice in request.user.get_invoices:
-        if not invoice.quickbooks_customer_ref_id:
-            try:
-                QuickbookService.create_customer(invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request, "We had trouble syncing your data with Quickbooks."
-                )
-                return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        if not sent_invoice.quickbooks_invoice_id:
-            try:
-                QuickbookService.create_invoice(sent_invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request, "We had trouble syncing your data with Quickbooks."
-                )
-                return redirect(reverse("timary:user_profile"))
-    messages.success(request, "Successfully connected Quickbooks.")
-    return redirect(reverse("timary:user_profile"))
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def quickbooks_disconnect(request):
-    request.user.quickbooks_realm_id = None
-    request.user.save()
-    return render(
-        request,
-        "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
-    )
-
-
-# FRESHBOOKS
-@login_required
-@require_http_methods(["GET"])
-def freshbooks_connect(request):
-    return redirect(FreshbookService.get_auth_url())
-
-
-@login_required
-@require_http_methods(["GET"])
-def freshbooks_redirect(request):
-    try:
-        access_token = FreshbookService.get_auth_tokens(request)
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Freshbooks.")
-        return redirect(reverse("timary:user_profile"))
-
-    if not access_token:
-        messages.error(request, "Unable to connect to Freshbooks.")
-        return redirect(reverse("timary:user_profile"))
-
-    FreshbookService.get_current_user(request.user, access_token)
-    for invoice in request.user.get_invoices:
-        if not invoice.freshbooks_client_id:
-            try:
-                FreshbookService.create_customer(invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request, "We had trouble syncing your data with Freshbooks."
-                )
-                return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        if not sent_invoice.freshbooks_invoice_id:
-            try:
-                FreshbookService.create_invoice(sent_invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(
-                    request, "We had trouble syncing your data with Freshbooks."
-                )
-                return redirect(reverse("timary:user_profile"))
-    messages.success(request, "Successfully connected Freshbooks.")
-    return redirect(reverse("timary:user_profile"))
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def freshbooks_disconnect(request):
-    request.user.freshbooks_account_id = None
-    request.user.save()
-    return render(
-        request,
-        "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
-    )
-
-
-# ZOHO
-@login_required
-@require_http_methods(["GET"])
-def zoho_connect(request):
-    return redirect(ZohoService.get_auth_url())
-
-
-@login_required
-@require_http_methods(["GET"])
-def zoho_redirect(request):
-    try:
-        access_token = ZohoService.get_auth_tokens(request)
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Zoho.")
-        return redirect(reverse("timary:user_profile"))
-
-    if not access_token:
-        messages.error(request, "Unable to connect to Zoho")
-        return redirect(reverse("timary:user_profile"))
-
-    ZohoService.get_organization_id(request.user, access_token)
-    for invoice in request.user.get_invoices:
-        if not invoice.zoho_contact_id:
-            try:
-                ZohoService.create_customer(invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Zoho.")
-                return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        if not sent_invoice.zoho_invoice_id:
-            try:
-                ZohoService.create_invoice(sent_invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Zoho.")
-                return redirect(reverse("timary:user_profile"))
-    messages.success(request, "Successfully connected Zoho.")
-    return redirect(reverse("timary:user_profile"))
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def zoho_disconnect(request):
-    request.user.zoho_organization_id = None
-    request.user.save()
-    return render(
-        request,
-        "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
-    )
-
-
-# XERO
-@login_required
-@require_http_methods(["GET"])
-def xero_connect(request):
-    return redirect(XeroService.get_auth_url())
-
-
-@login_required
-@require_http_methods(["GET"])
-def xero_redirect(request):
-    try:
-        access_token = XeroService.get_auth_tokens(request)
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Xero.")
-        return redirect(reverse("timary:user_profile"))
-
-    if not access_token:
-        messages.error(request, "Unable to connect to Xero.")
-        return redirect(reverse("timary:user_profile"))
-
-    for invoice in request.user.get_invoices:
-        if not invoice.xero_contact_id:
-            try:
-                XeroService.create_customer(invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Xero.")
-                return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        if not sent_invoice.xero_invoice_id:
-            try:
-                XeroService.create_invoice(sent_invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Xero.")
-                return redirect(reverse("timary:user_profile"))
-    messages.success(request, "Successfully connected Xero.")
-    return redirect(reverse("timary:user_profile"))
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def xero_disconnect(request):
-    request.user.xero_tenant_id = None
-    request.user.save()
-    return render(
-        request,
-        "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
-    )
-
-
-# SAGE
-@login_required
-@require_http_methods(["GET"])
-def sage_connect(request):
-    return redirect(SageService.get_auth_url())
-
-
-@login_required
-@require_http_methods(["GET"])
-def sage_redirect(request):
-    try:
-        access_token = SageService.get_auth_tokens(request)
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Sage.")
-        return redirect(reverse("timary:user_profile"))
-
-    if not access_token:
-        messages.error(request, "Unable to connect to Sage.")
-        return redirect(reverse("timary:user_profile"))
-
-    for invoice in request.user.get_invoices:
-        if not invoice.sage_contact_id:
-            try:
-                SageService.create_customer(invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Sage.")
-                return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
-    ):
-        if not sent_invoice.sage_invoice_id:
-            try:
-                SageService.create_invoice(sent_invoice)
-            except AccountingError as ae:
-                ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Sage.")
-                return redirect(reverse("timary:user_profile"))
-
-    messages.success(request, "Successfully connected Sage.")
-    return redirect(reverse("timary:user_profile"))
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def sage_disconnect(request):
-    request.user.sage_account_id = None
-    request.user.save()
-    return render(
-        request,
-        "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
-    )
-
-
-# SAGE
+# Accounting
 @login_required
 @require_http_methods(["GET"])
 def accounting_connect(request):
@@ -308,41 +17,53 @@ def accounting_connect(request):
     return redirect(
         AccountingService(
             {"user": request.user, "service": accounting_service}
-        ).get_connected_accounting_service()
+        ).get_auth_url()
     )
 
 
 @login_required
 @require_http_methods(["GET"])
 def accounting_redirect(request):
+    user = request.user
     try:
-        access_token = SageService.get_auth_tokens(request)
+        access_token = AccountingService({"user": user}).get_auth_tokens()
     except AccountingError as ae:
         ae.log(initial_sync=True)
-        messages.error(request, "Unable to connect to Sage.")
+        messages.error(request, f"Unable to connect to {user.accounting_org}.")
         return redirect(reverse("timary:user_profile"))
 
     if not access_token:
         messages.error(request, "Unable to connect to Sage.")
         return redirect(reverse("timary:user_profile"))
 
-    for invoice in request.user.get_invoices:
-        if not invoice.sage_contact_id:
+    for invoice in user.get_invoices:
+        accounting_service = AccountingService({"user": user, "invoice": invoice})
+        if not invoice.accounting_customer_id:
             try:
-                SageService.create_customer(invoice)
+                accounting_service.create_customer()
             except AccountingError as ae:
                 ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Sage.")
+                messages.error(
+                    request,
+                    f"We had trouble syncing your data with {user.accounting_org}.",
+                )
                 return redirect(reverse("timary:user_profile"))
-    for sent_invoice in request.user.sent_invoices.filter(
+    for sent_invoice in user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
-        if not sent_invoice.sage_invoice_id:
+        accounting_service = AccountingService(
+            {"user": user, "sent_invoice": sent_invoice}
+        )
+        if not sent_invoice.accounting_invoice_id:
+
             try:
-                SageService.create_invoice(sent_invoice)
+                accounting_service.create_invoice()
             except AccountingError as ae:
                 ae.log(initial_sync=True)
-                messages.error(request, "We had trouble syncing your data with Sage.")
+                messages.error(
+                    request,
+                    f"We had trouble syncing your data with {user.accounting_org}.",
+                )
                 return redirect(reverse("timary:user_profile"))
 
     messages.success(request, "Successfully connected Sage.")
@@ -352,7 +73,9 @@ def accounting_redirect(request):
 @login_required
 @require_http_methods(["DELETE"])
 def accounting_disconnect(request):
-    request.user.sage_account_id = None
+    request.user.account_org = None
+    request.user.accounting_org_id = None
+    request.user.accounting_refresh_token = None
     request.user.save()
     return render(
         request,

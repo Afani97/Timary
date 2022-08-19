@@ -104,11 +104,13 @@ class FreshbookMocks:
 class TestFreshbooksService(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.user = UserFactory(
+            accounting_org="freshbooks", accounting_refresh_token="abc123"
+        )
 
     def test_oauth(self):
         rf = RequestFactory()
-        get_request = rf.get("/freshbooks-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(FreshbookMocks.freshbook_oauth_mock):
@@ -117,7 +119,7 @@ class TestFreshbooksService(TestCase):
 
     def test_oauth_error(self):
         rf = RequestFactory()
-        get_request = rf.get("/freshbooks-redirect?code=abc123&realmId=abc123")
+        get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
         with HTTMock(FreshbookMocks.freshbook_oauth_error_mock):
@@ -130,17 +132,17 @@ class TestFreshbooksService(TestCase):
             self.assertEquals(refresh_token, "abc123")
 
     def test_create_customer(self):
-        self.user.freshbooks_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock, FreshbookMocks.freshbook_customer_mock
         ):
             FreshbookService.create_customer(invoice)
             invoice.refresh_from_db()
-            self.assertEquals(invoice.freshbooks_client_id, "abc123")
+            self.assertEquals(invoice.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
-        self.user.freshbooks_account_id = "abc123"
+        self.user.accounting_org_id = "abc123"
         invoice = InvoiceFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
@@ -150,8 +152,8 @@ class TestFreshbooksService(TestCase):
                 FreshbookService.create_customer(invoice)
 
     def test_create_invoice(self):
-        self.user.freshbooks_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, freshbooks_client_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
@@ -160,11 +162,11 @@ class TestFreshbooksService(TestCase):
         ):
             FreshbookService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.freshbooks_invoice_id, "abc123")
+            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
-        self.user.freshbooks_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, freshbooks_client_id="abc123")
+        self.user.accounting_org_id = "abc123"
+        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,

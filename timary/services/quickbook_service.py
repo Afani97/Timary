@@ -11,15 +11,16 @@ from timary.custom_errors import AccountingError
 class QuickbookService:
     @staticmethod
     def get_auth_url():
-        redirect_uri = f"{settings.SITE_URL}{reverse('timary:quickbooks_redirect')}"
-        return (
+        redirect_uri = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
+        url = (
             f"https://appcenter.intuit.com/connect/oauth2?client_id={settings.QUICKBOOKS_CLIENT_ID}&response_type"
             f"=code&scope=com.intuit.quickbooks.accounting&redirect_uri={redirect_uri}&state=sandbox"
         )
+        return url, "quickbooks"
 
     @staticmethod
     def get_auth_tokens(request):
-        redirect_uri = f"{settings.SITE_URL}{reverse('timary:quickbooks_redirect')}"
+        redirect_uri = f"{settings.SITE_URL}{reverse('timary:accounting_redirect')}"
         if "code" in request.GET:
             auth_code = request.GET.get("code")
             realm_id = request.GET.get("realmId")
@@ -39,20 +40,18 @@ class QuickbookService:
             )
             if not auth_request.ok:
                 raise AccountingError(
-                    service="Quickbooks",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
             response = auth_request.json()
 
             if "access_token" not in response:
                 raise AccountingError(
-                    service="Quickbooks",
-                    user_id=request.user.id,
+                    user=request.user,
                     requests_response=auth_request,
                 )
-            request.user.quickbooks_refresh_token = response["refresh_token"]
-            request.user.quickbooks_realm_id = realm_id
+            request.user.accounting_refresh_token = response["refresh_token"]
+            request.user.accounting_org_id = realm_id
             request.user.save()
             return response["access_token"]
         return None
@@ -69,15 +68,13 @@ class QuickbookService:
             },
             data={
                 "grant_type": "refresh_token",
-                "refresh_token": user.quickbooks_refresh_token,
+                "refresh_token": user.accounting_refresh_token,
             },
         )
         if not auth_request.ok:
-            raise AccountingError(
-                service="Quickbooks", user_id=user.id, requests_response=auth_request
-            )
+            raise AccountingError(user=user, requests_response=auth_request)
         response = auth_request.json()
-        user.quickbooks_refresh_token = response["refresh_token"]
+        user.accounting_refresh_token = response["refresh_token"]
         user.save()
         return response["access_token"]
 
@@ -109,7 +106,7 @@ class QuickbookService:
     def create_customer(invoice):
         quickbooks_auth_token = QuickbookService.get_refreshed_tokens(invoice.user)
         endpoint = (
-            f"v3/company/{invoice.user.quickbooks_realm_id}/customer?minorversion=63"
+            f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
         )
         data = {
             "DisplayName": invoice.email_recipient_name,
@@ -122,11 +119,10 @@ class QuickbookService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Quickbooks",
-                user_id=invoice.user.id,
+                user=invoice.user,
                 requests_response=ae.requests_response,
             )
-        invoice.quickbooks_customer_ref_id = response["Customer"]["Id"]
+        invoice.accounting_customer_id = response["Customer"]["Id"]
         invoice.save()
 
     @staticmethod
@@ -134,7 +130,9 @@ class QuickbookService:
         quickbooks_auth_token = QuickbookService.get_refreshed_tokens(sent_invoice.user)
 
         # Generate invoice
-        endpoint = f"v3/company/{sent_invoice.user.quickbooks_realm_id}/invoice?minorversion=63"
+        endpoint = (
+            f"v3/company/{sent_invoice.user.accounting_org_id}/invoice?minorversion=63"
+        )
         data = {
             "Line": [
                 {
@@ -145,7 +143,7 @@ class QuickbookService:
                     },
                 }
             ],
-            "CustomerRef": {"value": sent_invoice.invoice.quickbooks_customer_ref_id},
+            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
         }
         try:
             response = QuickbookService.create_request(
@@ -153,24 +151,25 @@ class QuickbookService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Quickbooks",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
-        sent_invoice.quickbooks_invoice_id = response["Invoice"]["Id"]
+        sent_invoice.accounting_invoice_id = response["Invoice"]["Id"]
         sent_invoice.save()
 
         # Generate payment for invoice
-        endpoint = f"v3/company/{sent_invoice.user.quickbooks_realm_id}/payment?minorversion=63"
+        endpoint = (
+            f"v3/company/{sent_invoice.user.accounting_org_id}/payment?minorversion=63"
+        )
         data = {
             "TotalAmt": float(sent_invoice.total_price),
-            "CustomerRef": {"value": sent_invoice.invoice.quickbooks_customer_ref_id},
+            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
             "Line": [
                 {
                     "Amount": float(sent_invoice.total_price),
                     "LinkedTxn": [
                         {
-                            "TxnId": sent_invoice.quickbooks_invoice_id,
+                            "TxnId": sent_invoice.accounting_invoice_id,
                             "TxnType": "Invoice",
                         }
                     ],
@@ -183,7 +182,6 @@ class QuickbookService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                service="Quickbooks",
-                user_id=sent_invoice.user.id,
+                user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )

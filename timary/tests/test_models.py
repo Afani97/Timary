@@ -303,11 +303,7 @@ class TestUser(TestCase):
             user.settings,
             {
                 "phone_number_availability": ["Mon", "Tue"],
-                "quickbooks_connected": False,
-                "freshbooks_connected": False,
-                "xero_connected": False,
-                "zoho_connected": False,
-                "sage_connected": False,
+                "accounting_connected": "",
                 "can_download_audit": False,
                 "can_integrate_with_accounting_tools": False,
                 "current_plan": "Professional",
