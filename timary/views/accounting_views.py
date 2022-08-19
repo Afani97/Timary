@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
-from timary.models import SentInvoice
+from timary.models import SentInvoice, User
 from timary.services.accounting_service import AccountingService
 
 
@@ -24,9 +24,11 @@ def accounting_connect(request):
 @login_required
 @require_http_methods(["GET"])
 def accounting_redirect(request):
-    user = request.user
+    user: User = request.user
     try:
-        access_token = AccountingService({"user": user}).get_auth_tokens()
+        access_token = AccountingService(
+            {"user": user, "request": request}
+        ).get_auth_tokens()
     except AccountingError as ae:
         ae.log(initial_sync=True)
         messages.error(request, f"Unable to connect to {user.accounting_org}.")
@@ -36,6 +38,7 @@ def accounting_redirect(request):
         messages.error(request, "Unable to connect to Sage.")
         return redirect(reverse("timary:user_profile"))
 
+    # Sync the current invoices
     for invoice in user.get_invoices:
         accounting_service = AccountingService({"user": user, "invoice": invoice})
         if not invoice.accounting_customer_id:
@@ -48,6 +51,8 @@ def accounting_redirect(request):
                     f"We had trouble syncing your data with {user.accounting_org}.",
                 )
                 return redirect(reverse("timary:user_profile"))
+
+    # Sync the current paid sent invoices
     for sent_invoice in user.sent_invoices.filter(
         paid_status=SentInvoice.PaidStatus.PAID
     ):
@@ -55,7 +60,6 @@ def accounting_redirect(request):
             {"user": user, "sent_invoice": sent_invoice}
         )
         if not sent_invoice.accounting_invoice_id:
-
             try:
                 accounting_service.create_invoice()
             except AccountingError as ae:
@@ -73,12 +77,13 @@ def accounting_redirect(request):
 @login_required
 @require_http_methods(["DELETE"])
 def accounting_disconnect(request):
-    request.user.account_org = None
-    request.user.accounting_org_id = None
-    request.user.accounting_refresh_token = None
-    request.user.save()
+    user: User = request.user
+    user.account_org = None
+    user.accounting_org_id = None
+    user.accounting_refresh_token = None
+    user.save()
     return render(
         request,
         "partials/settings/_edit_accounting.html",
-        {"settings": request.user.settings},
+        {"settings": user.settings},
     )
