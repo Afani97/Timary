@@ -475,10 +475,6 @@ class User(AbstractUser, BaseModel):
         }
 
     @property
-    def connected_accounting(self):
-        return "Sage"
-
-    @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
 
