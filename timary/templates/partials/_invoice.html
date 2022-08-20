@@ -67,12 +67,14 @@
                                 {% endwith %}
                             </ul>
                             {% if invoice.milestone_step <= invoice.milestone_total_steps %}
-                                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to complete this milestone?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-secondary mt-5"
+                                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
+                                    hx-confirm="Are you sure you want to complete this milestone?"
+                                    hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-secondary mt-5"
                                     _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
                                     Complete current milestone
                                 </a>
                             {% else %}
-                                <button class="btn btn-accent">Milestones all complete!</button>
+                                <button class="btn btn-accent mt-5">Milestones all complete!</button>
                             {% endif %}
                         </div>
                     {% endif %}
