@@ -8,132 +8,133 @@
     </style>
 {% endblock %}
 {% block content %}
-    <div class="pb-0 w-full">
+    <div class="pb-0 w-full px-4">
 
-        <h1 class="text-2xl text-center my-4">Update your custom invoice</h1>
+        <h1 class="text-2xl text-center my-8">Update your custom invoice</h1>
 
         <div class="flex">
-            <div class="w-1/5">
-                <form hx-post="{% url 'timary:update_invoice_branding' %}" hx-swap="none">
-                    {% csrf_token %}
-                    <div class="form-control">
-                        <label class="label" for="due_date">
-                            <span class="label-text">Due date</span>
-                        </label>
-                        <select class="select select-bordered" name="due_date"
-                            _=" on load set my.value to {{ invoice_branding_config.due_date_selected }}
-                                on change put updateDueDate(my.value) into #next_week.innerHTML">
-                            <option value="1" selected>1 Week</option>
-                            <option value="2">2 Weeks</option>
-                            <option value="4">1 Month</option>
-                        </select>
-                    </div>
+            <div class="w-2/5">
+                <div class="w-3/4">
+                    <form hx-post="{% url 'timary:update_invoice_branding' %}" hx-swap="none">
+                        {% csrf_token %}
+                        <div class="form-control">
+                            <label class="label" for="due_date">
+                                <span class="label-text">Due date</span>
+                            </label>
+                            <select class="select select-bordered" name="due_date"
+                                _=" on load set my.value to {{ invoice_branding_config.due_date_selected }}
+                                    on change put updateDueDate(my.value) into #next_week.innerHTML">
+                                <option value="1" selected>1 Week</option>
+                                <option value="2">2 Weeks</option>
+                                <option value="4">1 Month</option>
+                            </select>
+                        </div>
 
-                    <div class="divider"></div>
-                    <div class="form-control">
-                        <label class="label" for="company_name">
-                            <span class="label-text">Business name</span>
-                        </label>
-                        <input
-                            name="company_name"
-                            class="input input-bordered w-full"
-                            placeholder="Company Inc"
-                            value="{{ invoice_branding_config.user_name }}"
-                            _="
-                                set element oldValue to #biz_display_name.innerHTML
-                                on keyup if my.value put my.value into #biz_display_name.innerHTML else put oldValue into #biz_display_name.innerHTML
-                            "/>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="form-control">
-                        <label class="label" for="company_name">
-                            <span class="label-text">Hide Timary branding</span>
-                        </label>
-                        <input
-                            type="checkbox"
-                            name="hide_timary"
-                            class="toggle"
-                            {% if invoice_branding_config.hide_timary %} checked {% endif %}
-                            _="
-                                on load if {{ invoice_branding_config.hide_timary|yesno:"true,false" }} add .hidden to .timary_branding else remove .hidden from .timary_branding end
-                                    on change toggle .hidden on .timary_branding"/>
-                    </div>
-                    {% if user.profile_pic %}
                         <div class="divider"></div>
                         <div class="form-control">
                             <label class="label" for="company_name">
-                                <span class="label-text">Show your face picture</span>
+                                <span class="label-text">Business name</span>
+                            </label>
+                            <input
+                                name="company_name"
+                                class="input input-bordered w-full"
+                                placeholder="Company Inc"
+                                value="{{ invoice_branding_config.user_name }}"
+                                _="
+                                    set element oldValue to #biz_display_name.innerHTML
+                                    on keyup if my.value put my.value into #biz_display_name.innerHTML else put oldValue into #biz_display_name.innerHTML
+                                "/>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="form-control">
+                            <label class="label" for="company_name">
+                                <span class="label-text">Hide Timary branding</span>
                             </label>
                             <input
                                 type="checkbox"
-                                name="show_profile_pic"
+                                name="hide_timary"
                                 class="toggle"
-                                {% if invoice_branding_config.show_profile_pic %} checked {% endif %}
+                                {% if invoice_branding_config.hide_timary %} checked {% endif %}
                                 _="
-                                    on load if {{ invoice_branding_config.show_profile_pic|yesno:"true,false" }} remove .hidden from .show_picture else add .hidden  to .show_picture end
-                                        on change toggle .hidden on .show_picture"/>
+                                    on load if {{ invoice_branding_config.hide_timary|yesno:"true,false" }} add .hidden to .timary_branding else remove .hidden from .timary_branding end
+                                        on change toggle .hidden on .timary_branding"/>
                         </div>
-                    {% endif %}
-                    <div class="divider"></div>
-                    <div class="form-control">
-                        <label class="label" for="linked_in">
-                            <span class="label-text">LinkedIn</span>
-                        </label>
-                        <input
-                            name="linked_in"
-                            class="input input-bordered w-full"
-                            placeholder=""
-                            value="{{ invoice_branding_config.linked_in }}"
-                            _="on load if {{ invoice_branding_config.linked_in|yesno:"true,false" }} remove .hidden from #linked_in else add .hidden to #linked_in end
-                                on keyup if my.value put my.value into #linked_in.href then remove .hidden from #linked_in else add .hidden to #linked_in"/>
-                        <label class="label">
-                            <span class="label-text-alt">Include https://www.</span>
-                        </label>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="form-control">
-                        <label class="label" for="twitter">
-                            <span class="label-text">Twitter</span>
-                        </label>
-                        <input
-                            name="twitter"
-                            class="input input-bordered w-full"
-                            placeholder=""
-                            value="{{ invoice_branding_config.twitter }}"
-                            _="on load if {{ invoice_branding_config.twitter|yesno:"true,false" }} remove .hidden from #twitter else add .hidden to #twitter end
-                                on keyup if my.value put my.value into #twitter.href then remove .hidden from #twitter else add .hidden to #twitter"/>
-                        <label class="label">
-                            <span class="label-text-alt">Include https://www.</span>
-                        </label>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="form-control">
-                        <label class="label" for="youtube">
-                            <span class="label-text">Youtube</span>
-                        </label>
-                        <input
-                            name="youtube"
-                            class="input input-bordered w-full"
-                            placeholder=""
-                            value="{{ invoice_branding_config.youtube }}"
-                            _="on load if {{ invoice_branding_config.youtube|yesno:"true,false" }} remove .hidden from #youtube else add .hidden to #youtube end
-                                on keyup if my.value put my.value into #youtube.href then remove .hidden from #youtube else add .hidden to #youtube"/>
-                        <label class="label">
-                            <span class="label-text-alt">Include https://www.</span>
-                        </label>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="flex justify-center">
-                        <button class="btn btn-primary" type="submit" id="submit_btn"
-                            _="on click add .loading to me"
-                        >Update</button>
-                    </div>
-                </form>
-
+                        {% if user.profile_pic %}
+                            <div class="divider"></div>
+                            <div class="form-control">
+                                <label class="label" for="company_name">
+                                    <span class="label-text">Show your face picture</span>
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    name="show_profile_pic"
+                                    class="toggle"
+                                    {% if invoice_branding_config.show_profile_pic %} checked {% endif %}
+                                    _="
+                                        on load if {{ invoice_branding_config.show_profile_pic|yesno:"true,false" }} remove .hidden from .show_picture else add .hidden  to .show_picture end
+                                            on change toggle .hidden on .show_picture"/>
+                            </div>
+                        {% endif %}
+                        <div class="divider"></div>
+                        <div class="form-control">
+                            <label class="label" for="linked_in">
+                                <span class="label-text">LinkedIn</span>
+                            </label>
+                            <input
+                                name="linked_in"
+                                class="input input-bordered w-full"
+                                placeholder=""
+                                value="{{ invoice_branding_config.linked_in }}"
+                                _="on load if {{ invoice_branding_config.linked_in|yesno:"true,false" }} remove .hidden from #linked_in else add .hidden to #linked_in end
+                                    on keyup if my.value put my.value into #linked_in.href then remove .hidden from #linked_in else add .hidden to #linked_in"/>
+                            <label class="label">
+                                <span class="label-text-alt">Include https://www.</span>
+                            </label>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="form-control">
+                            <label class="label" for="twitter">
+                                <span class="label-text">Twitter</span>
+                            </label>
+                            <input
+                                name="twitter"
+                                class="input input-bordered w-full"
+                                placeholder=""
+                                value="{{ invoice_branding_config.twitter }}"
+                                _="on load if {{ invoice_branding_config.twitter|yesno:"true,false" }} remove .hidden from #twitter else add .hidden to #twitter end
+                                    on keyup if my.value put my.value into #twitter.href then remove .hidden from #twitter else add .hidden to #twitter"/>
+                            <label class="label">
+                                <span class="label-text-alt">Include https://www.</span>
+                            </label>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="form-control">
+                            <label class="label" for="youtube">
+                                <span class="label-text">Youtube</span>
+                            </label>
+                            <input
+                                name="youtube"
+                                class="input input-bordered w-full"
+                                placeholder=""
+                                value="{{ invoice_branding_config.youtube }}"
+                                _="on load if {{ invoice_branding_config.youtube|yesno:"true,false" }} remove .hidden from #youtube else add .hidden to #youtube end
+                                    on keyup if my.value put my.value into #youtube.href then remove .hidden from #youtube else add .hidden to #youtube"/>
+                            <label class="label">
+                                <span class="label-text-alt">Include https://www.</span>
+                            </label>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="flex justify-center">
+                            <button class="btn btn-primary" type="submit" id="submit_btn"
+                                _="on click add .loading to me"
+                            >Update</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="divider divider-horizontal w-1/5"></div>
+            <div class="divider divider-horizontal py-5"></div>
             <div class="w-3/5">
-                <div class="py-8 text-center">
+                <div class="pb-8 text-center">
                     <a href="https://www.usetimary.com" class="text-xl font-bold no-underline timary_branding">
                         Timary
                     </a>

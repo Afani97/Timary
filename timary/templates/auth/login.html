@@ -1,4 +1,6 @@
 {% extends 'timary/base.html' %}
+{% load filters %}
+
 {% block title %} Login {% endblock %}
 
 {% block content %}
@@ -13,7 +15,14 @@
 
                 <form action="{% url 'timary:login' %}" method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
+                    {% for field in form.visible_fields %}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">{{ field.label}}</span>
+                            </label>
+                            {{ field | addclass:"input input-bordered w-full text-xl"}}
+                        </div>
+                    {% endfor %}
 
                     <div class="my-2">
                         <a href="{% url "password_reset" %}" class="link ">Forgot password?</a>
