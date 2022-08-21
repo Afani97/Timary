@@ -13,7 +13,7 @@
                         Disconnect?
                     </a>
                 </div>
-            {% elif settings.accounting_integrations_connected|length_is:"0" %}
+            {% elif not settings.accounting_connected %}
                 <div>
                     <a href="{% url 'timary:accounting_connect' %}?service=quickbooks" class="btn">Connect QuickBooks</a>
                 </div>
@@ -32,7 +32,7 @@
                         Disconnect?
                     </a>
                 </div>
-            {% elif settings.accounting_integrations_connected|length_is:"0" %}
+            {% elif not settings.accounting_connected %}
                 <div>
                     <a href="{% url 'timary:accounting_connect' %}?service=freshbooks" class="btn">Connect FreshBooks</a>
                 </div>
@@ -49,7 +49,7 @@
                         class="btn btn-outline">
                         Disconnect?</a>
                 </div>
-            {% elif settings.accounting_integrations_connected|length_is:"0" %}
+            {% elif not settings.accounting_connected %}
                 <div>
                     <a href="{% url 'timary:accounting_connect' %}?service=zoho" class="btn">Connect Zoho</a>
                 </div>
@@ -67,7 +67,7 @@
                         Disconnect?
                     </a>
                 </div>
-            {% elif settings.accounting_integrations_connected|length_is:"0" %}
+            {% elif not settings.accounting_connected %}
                 <div>
                     <a href="{% url 'timary:accounting_connect' %}?service=xero" class="btn">Connect Xero</a>
                 </div>
@@ -85,7 +85,7 @@
                         Disconnect?
                     </a>
                 </div>
-            {% elif settings.accounting_integrations_connected|length_is:"0" %}
+            {% elif not settings.accounting_connected %}
                 <div>
                     <a href="{% url 'timary:accounting_connect' %}?service=sage"  class="btn">Connect Sage</a>
                 </div>

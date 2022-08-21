@@ -462,11 +462,8 @@ class User(AbstractUser, BaseModel):
     def settings(self):
         return {
             "can_integrate_with_accounting_tools": self.can_integrate_with_accounting_tools,
-            "accounting_integrations_connected": self.get_accounting_integrations_connected,
+            "accounting_connected": self.get_accounting_connected,
             "phone_number_availability": self.phone_number_availability,
-            "accounting_connected": self.accounting_org
-            if self.accounting_org_id
-            else "",
             "can_download_audit": self.can_download_audit,
             "current_plan": " ".join(
                 self.get_membership_tier_display().split("_")
@@ -496,10 +493,9 @@ class User(AbstractUser, BaseModel):
         return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
 
     @property
-    def get_accounting_integrations_connected(self):
+    def get_accounting_connected(self):
         if self.accounting_org_id:
             return self.accounting_org
-        return ""
 
     @property
     def can_accept_payments(self):

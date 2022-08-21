@@ -303,11 +303,10 @@ class TestUser(TestCase):
             user.settings,
             {
                 "phone_number_availability": ["Mon", "Tue"],
-                "accounting_connected": "",
+                "accounting_connected": None,
                 "can_download_audit": False,
                 "can_integrate_with_accounting_tools": False,
                 "current_plan": "Professional",
-                "accounting_integrations_connected": "",
                 "can_customize_invoice": False,
             },
         )
