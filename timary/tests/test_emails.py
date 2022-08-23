@@ -191,7 +191,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
-            (h1.hours + h2.hours + h3.hours) * invoice.hourly_rate,
+            (h1.hours + h2.hours + h3.hours) * invoice.invoice_rate,
         )
 
     def test_sent_invoices_only_2_hours(self):
@@ -214,7 +214,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
-            (h2.hours + h3.hours) * invoice.hourly_rate,
+            (h2.hours + h3.hours) * invoice.invoice_rate,
         )
 
     def test_dont_send_invoice_if_no_tracked_hours(self):
@@ -263,7 +263,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 2)
 
     def test_invoice_context(self):
-        invoice = InvoiceFactory(hourly_rate=25)
+        invoice = InvoiceFactory(invoice_rate=25)
         # Save last date before it's updated in send_invoice method to test email contents below
         hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
         DailyHoursFactory(invoice=invoice, hours=2)
@@ -309,7 +309,7 @@ class TestSendInvoice(TestCase):
         user = UserFactory()
         invoice = InvoiceFactory(
             user=user,
-            hourly_rate=25,
+            invoice_rate=25,
             next_date=datetime.date.today() - datetime.timedelta(days=1),
         )
         # Save last date before it's updated in send_invoice method to test email contents below
@@ -459,7 +459,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
         with self.subTest("Testing hours line item"):
             msg = f"""
                 <div>{ floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
-                <div>${ floatformat(hour.hours * invoice.hourly_rate) }</div>
+                <div>${ floatformat(hour.hours * invoice.invoice_rate) }</div>
                 """
             self.assertInHTML(msg, html_message)
 

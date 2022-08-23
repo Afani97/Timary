@@ -58,6 +58,8 @@ def create_invoice(request):
     if invoice_form.is_valid():
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
+        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+            invoice.invoice_rate = invoice_form.cleaned_data.get("weekly_rate")
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()
@@ -151,6 +153,8 @@ def update_invoice(request, invoice_id):
     invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
         invoice = invoice_form.save()
+        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+            invoice.invoice_rate = invoice_form.cleaned_data.get("weekly_rate")
         if invoice.next_date:
             invoice.calculate_next_date(update_last=False)
         response = render(request, "partials/_invoice.html", {"invoice": invoice})

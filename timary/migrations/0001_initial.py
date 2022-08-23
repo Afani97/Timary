@@ -258,7 +258,7 @@ class Migration(migrations.Migration):
                     models.CharField(blank=True, max_length=2000, null=True),
                 ),
                 (
-                    "hourly_rate",
+                    "invoice_rate",
                     models.IntegerField(
                         default=50,
                         validators=[django.core.validators.MinValueValidator(1)],

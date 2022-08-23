@@ -46,6 +46,17 @@ def gather_invoices():
         _ = async_task(send_invoice_preview, invoice.id)
 
     invoices_sent = len(list(invoices_sent_today) + list(invoices_sent_tomorrow))
+
+    if today.weekday() == 0:
+        invoices_sent_only_on_mondays = Invoice.objects.filter(
+            null_query
+            & Q(is_archived=False)
+            & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
+        )
+        for invoice in invoices_sent_tomorrow:
+            _ = async_task(send_invoice, invoice.id)
+        invoices_sent += len(list(invoices_sent_only_on_mondays))
+
     EmailService.send_plain(
         f"Sent out {invoices_sent} invoices",
         f'{date.strftime(today, "%m/%-d/%Y")}, there were {invoices_sent} invoices sent out.',
@@ -58,7 +69,10 @@ def gather_invoices():
 def send_invoice(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
     hours_tracked, total_amount = invoice.get_hours_stats()
-    if hours_tracked.count() <= 0:
+    if (
+        invoice.invoice_type != Invoice.InvoiceType.WEEKLY
+        and hours_tracked.count() <= 0
+    ):
         # There is nothing to invoice, update next date for invoice email.
         invoice.calculate_next_date()
         return
@@ -71,6 +85,8 @@ def send_invoice(invoice_id):
     for hour in hours_tracked:
         hour.sent_invoice_id = sent_invoice.id
         hour.save()
+
+    # TODO: Update template to check for weekly rate and add special row for it
     msg_body = render_to_string(
         "email/sent_invoice_email.html",
         {
@@ -92,6 +108,7 @@ def send_invoice(invoice_id):
     EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
     invoice.calculate_next_date()
     invoice.increase_milestone_step()
+    invoice.increase_weekly_rate()
 
 
 def send_invoice_preview(invoice_id):
@@ -153,14 +170,14 @@ def send_weekly_updates():
         if hours:
             hours_tracked_this_week = hours.filter(
                 date_tracked__range=(week_start, today)
-            ).annotate(cost=invoice.hourly_rate * Sum("hours"))
+            ).annotate(cost=invoice.invoice_rate * Sum("hours"))
             if not hours:
                 continue
 
             total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
             total_cost_amount = 0
             if total_hours["total_hours"]:
-                total_cost_amount = total_hours["total_hours"] * invoice.hourly_rate
+                total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
             msg_body = render_to_string(
                 "email/weekly_update_email.html",
                 {

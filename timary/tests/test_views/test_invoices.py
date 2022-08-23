@@ -48,7 +48,7 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "hourly_rate": 50,
+                "invoice_rate": 50,
                 "invoice_type": 1,
                 "invoice_interval": "D",
                 "email_recipient_name": "John Smith",
@@ -61,7 +61,7 @@ class TestInvoices(BaseTest):
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{invoice.title} - Rate: ${invoice.hourly_rate}</h2>
+            <h2 class="card-title">{invoice.title} - Rate: ${invoice.invoice_rate}</h2>
             """,
             response.content.decode("utf-8"),
         )
@@ -85,7 +85,7 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "hourly_rate": 50,
+                "invoice_rate": 50,
                 "invoice_type": 2,
                 "milestone_total_steps": 3,
                 "email_recipient_name": "John Smith",
@@ -119,7 +119,7 @@ class TestInvoices(BaseTest):
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertContains(
             response,
-            f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>',
+            f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.invoice_rate}</h2>',
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -159,7 +159,7 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": invoice.title,
-                "hourly_rate": 50,
+                "invoice_rate": 50,
                 "invoice_type": 1,
                 "invoice_interval": "D",
                 "email_recipient_name": "John Smith",
@@ -253,7 +253,7 @@ class TestInvoices(BaseTest):
     def test_update_invoice(self):
         url_params = {
             "title": "Some title",
-            "hourly_rate": 100,
+            "invoice_rate": 100,
             "invoice_interval": "D",
             "email_recipient_name": "John Smith",
             "email_recipient": "john@test.com",
@@ -267,7 +267,7 @@ class TestInvoices(BaseTest):
         inv_email = self.invoice.email_recipient
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.hourly_rate}</h2>
+            <h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.invoice_rate}</h2>
             """,
             response.content.decode("utf-8"),
         )
@@ -285,7 +285,7 @@ class TestInvoices(BaseTest):
         invoice = InvoiceFactory(invoice_type=2, user=self.user, milestone_step=3)
         url_params = {
             "title": "Some title",
-            "hourly_rate": 100,
+            "invoice_rate": 100,
             "milestone_total_steps": 5,
             "email_recipient_name": "John Smith",
             "email_recipient": "john@test.com",
@@ -324,7 +324,7 @@ class TestInvoices(BaseTest):
     def test_update_invoice_dont_update_next_date_if_none(self):
         url_params = {
             "title": "Some title",
-            "hourly_rate": 100,
+            "invoice_rate": 100,
             "invoice_interval": "D",
             "email_recipient_name": "John Smith",
             "email_recipient": "john@test.com",
@@ -570,7 +570,7 @@ class TestInvoices(BaseTest):
                     lambda h: f"""
                     <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
                     <td style="--size:{round((h.hours / (max_hr + 100)), 2)};">
-                    <span class="tooltip"> { round(h.hours, 2) }h, ${round(h.hours) * invoice.hourly_rate}</span>
+                    <span class="tooltip"> { round(h.hours, 2) }h, ${round(h.hours) * invoice.invoice_rate}</span>
                     </td></tr>""",
                     hours,
                 )

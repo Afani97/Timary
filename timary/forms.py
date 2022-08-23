@@ -108,9 +108,18 @@ class InvoiceForm(forms.ModelForm):
     milestone_total_steps = forms.IntegerField(
         widget=forms.NumberInput(
             attrs={
-                "value": 3,
+                "placeholder": 3,
                 "min": 2,
                 "max": 12,
+                "class": "input input-bordered text-lg w-full",
+            }
+        ),
+    )
+    weekly_rate = forms.IntegerField(
+        widget=forms.NumberInput(
+            attrs={
+                "placeholder": 1200,
+                "min": 100,
                 "class": "input input-bordered text-lg w-full",
             }
         ),
@@ -119,29 +128,44 @@ class InvoiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
+        self.fields["invoice_rate"].label = "Hourly rate"
         if not self.initial:
             self.fields["invoice_interval"].required = False
             self.fields["milestone_total_steps"].required = False
+            self.fields["weekly_rate"].required = False
             self.fields["milestone_total_steps"].widget.attrs[
                 "_"
             ] = "on load add .hidden .invoice-type .invoice-type-2 to the closest .form-control"
+            self.fields["weekly_rate"].widget.attrs["_"] = (
+                "on load add .hidden .invoice-type .invoice-type-3 to the closest .form-control end "
+                "on intersection(intersecting) having threshold 1 "
+                "if intersecting add .hidden to #id_invoice_rate's parentNode's parentNode "
+                "else remove .hidden from #id_invoice_rate's parentNode's parentNode end "
+            )
         if self.initial:
             # Problems of dealing with dynamic selects + show/hide certain fields.
             self.fields["invoice_type"].required = False
             if self.instance.invoice_type == Invoice.InvoiceType.MILESTONE:
                 self.fields["invoice_interval"].required = False
+                self.fields["weekly_rate"].required = False
             if self.instance.invoice_type == Invoice.InvoiceType.INTERVAL:
+                self.fields["milestone_total_steps"].required = False
+                self.fields["weekly_rate"].required = False
+            if self.instance.invoice_type == Invoice.InvoiceType.WEEKLY:
+                self.fields["weekly_rate"].initial = self.instance.invoice_rate
+                self.fields["invoice_interval"].required = False
                 self.fields["milestone_total_steps"].required = False
 
     class Meta:
         model = Invoice
         fields = [
             "title",
-            "hourly_rate",
+            "invoice_rate",
             "total_budget",
             "invoice_type",
             "invoice_interval",
             "milestone_total_steps",
+            "weekly_rate",
             "email_recipient_name",
             "email_recipient",
         ]
@@ -152,13 +176,13 @@ class InvoiceForm(forms.ModelForm):
                     "class": "input input-bordered text-lg w-full",
                 }
             ),
-            "hourly_rate": forms.NumberInput(
+            "invoice_rate": forms.NumberInput(
                 attrs={
                     "value": 50,
                     "min": 1,
                     "max": 1000,
                     "class": "input input-bordered text-lg w-full",
-                }
+                },
             ),
             "invoice_type": forms.Select(
                 attrs={
@@ -195,6 +219,7 @@ class InvoiceForm(forms.ModelForm):
         invoice_type = validated_data.get("invoice_type")
         invoice_interval = validated_data.get("invoice_interval")
         milestone_total_steps = validated_data.get("milestone_total_steps")
+        weekly_rate = validated_data.get("weekly_rate")
         if invoice_type == 1 and not invoice_interval:
             raise ValidationError(
                 {"invoice_interval": ["Invoice interval is required"]}
@@ -203,6 +228,8 @@ class InvoiceForm(forms.ModelForm):
             raise ValidationError(
                 {"milestone_total_steps": ["Milestone total steps is required"]}
             )
+        if invoice_type == 3 and not weekly_rate:
+            raise ValidationError({"weekly_rate": ["Weekly rate is required"]})
 
         return validated_data
 

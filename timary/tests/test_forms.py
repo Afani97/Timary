@@ -141,7 +141,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "milestone_total_steps": 2,
@@ -155,7 +155,7 @@ class TestInvoice(TestCase):
     def test_invoice_error_missing_title(self):
         form = InvoiceForm(
             data={
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "milestone_total_steps": 2,
@@ -165,7 +165,7 @@ class TestInvoice(TestCase):
         )
         self.assertEqual(form.errors, {"title": ["This field is required."]})
 
-    def test_invoice_error_missing_hourly_rate(self):
+    def test_invoice_error_missing_invoice_rate(self):
         form = InvoiceForm(
             data={
                 "title": "Some title",
@@ -177,13 +177,13 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(form.errors, {"hourly_rate": ["This field is required."]})
+        self.assertEqual(form.errors, {"invoice_rate": ["This field is required."]})
 
-    def test_invoice_error_hourly_rate_min_value(self):
+    def test_invoice_error_invoice_rate_min_value(self):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 0,
+                "invoice_rate": 0,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "milestone_total_steps": 2,
@@ -194,14 +194,14 @@ class TestInvoice(TestCase):
 
         self.assertEqual(
             form.errors,
-            {"hourly_rate": ["Ensure this value is greater than or equal to 1."]},
+            {"invoice_rate": ["Ensure this value is greater than or equal to 1."]},
         )
 
     def test_invoice_error_missing_invoice_interval(self):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
@@ -216,7 +216,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "I",
                 "email_recipient_name": "John Smith",
@@ -237,7 +237,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
@@ -255,7 +255,7 @@ class TestInvoice(TestCase):
             instance=invoice,
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "milestone_total_steps": 3,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
@@ -275,7 +275,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient": "user@test.com",
@@ -290,7 +290,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "12345",
@@ -306,7 +306,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
@@ -319,7 +319,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "Some title",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
@@ -338,7 +338,7 @@ class TestInvoice(TestCase):
             user=user,
             data={
                 "title": invoice.title,
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "John Smith",
@@ -354,7 +354,7 @@ class TestInvoice(TestCase):
         form = InvoiceForm(
             data={
                 "title": "1Password dev",
-                "hourly_rate": 100,
+                "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
                 "email_recipient_name": "User Test",

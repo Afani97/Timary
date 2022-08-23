@@ -80,7 +80,7 @@ def questions(request):
 def get_dashboard_stats(hours_tracked):
     total_hours_sum = hours_tracked.aggregate(total_hours=Sum("hours"))["total_hours"]
     total_amount_sum = hours_tracked.annotate(
-        total_amount=F("hours") * F("invoice__hourly_rate")
+        total_amount=F("hours") * F("invoice__invoice_rate")
     ).aggregate(total=Sum("total_amount"))["total"]
 
     stats = {
