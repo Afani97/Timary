@@ -152,12 +152,12 @@ def update_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    put_params = QueryDict(request.body)
+    put_params = QueryDict(request.body).copy()
+    if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+        put_params.update({"invoice_rate": put_params["weekly_rate"]})
     invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
         invoice = invoice_form.save()
-        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-            invoice.invoice_rate = invoice_form.cleaned_data.get("weekly_rate")
         if invoice.next_date:
             invoice.calculate_next_date(update_last=False)
         response = render(request, "partials/_invoice.html", {"invoice": invoice})

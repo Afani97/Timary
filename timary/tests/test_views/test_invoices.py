@@ -353,6 +353,23 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
+    def test_update_weekly_invoice(self):
+        invoice = InvoiceFactory(invoice_type=3, user=self.user, invoice_rate=50)
+        url_params = {
+            "title": "Some title",
+            "weekly_rate": 100,
+            "email_recipient_name": "John Smith",
+            "email_recipient": "john@test.com",
+        }
+        response = self.client.put(
+            reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
+            data=urlencode(url_params),  # HTML PUT FORM
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(invoice.invoice_rate, 100)
+
     def test_update_invoice_dont_update_next_date_if_none(self):
         url_params = {
             "title": "Some title",
