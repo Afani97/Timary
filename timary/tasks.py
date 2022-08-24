@@ -226,7 +226,7 @@ def refresh_accounting_integration_tokens():
     users = User.objects.filter(
         Q(membership_tier=User.MembershipTier.BUSINESS)
         | Q(membership_tier=User.MembershipTier.INVOICE_FEE)
-    )
+    ).exclude(accounting_org_id__isnull=True)
     for user in users:
         try:
             AccountingService({"user": user}).refresh_tokens()
