@@ -54,12 +54,15 @@ def manage_invoices(request):
 @require_http_methods(["POST"])
 def create_invoice(request):
     user: User = request.user
-    invoice_form = InvoiceForm(request.POST or None, user=user)
+    request_data = request.POST.copy()
+    if int(request_data.get("invoice_type")) == Invoice.InvoiceType.WEEKLY:
+        request_data.update({"invoice_rate": request_data["weekly_rate"]})
+
+    invoice_form = InvoiceForm(request_data or None, user=user)
+
     if invoice_form.is_valid():
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
-        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-            invoice.invoice_rate = invoice_form.cleaned_data.get("weekly_rate")
         invoice.user = user
         invoice.calculate_next_date()
         invoice.save()

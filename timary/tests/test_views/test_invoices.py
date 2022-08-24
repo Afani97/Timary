@@ -4,12 +4,15 @@ from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.core import mail
-from django.template.defaultfilters import date, floatformat
+from django.template.defaultfilters import date
+from django.template.defaultfilters import date as template_date
+from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.timezone import localtime, now
 
 from timary.models import Invoice, SentInvoice
+from timary.templatetags.filters import nextmonday
 from timary.tests.factories import (
     DailyHoursFactory,
     InvoiceFactory,
@@ -110,6 +113,35 @@ class TestInvoices(BaseTest):
                 </a>
                 </div>
                 """,
+            response.content.decode("utf-8"),
+        )
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.status_code, 200)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_weekly_invoice(self, customer_mock):
+        Invoice.objects.all().delete()
+        response = self.client.post(
+            reverse("timary:create_invoice"),
+            {
+                "title": "Some title",
+                "invoice_type": 3,
+                "weekly_rate": 1200,
+                "email_recipient_name": "John Smith",
+                "email_recipient": "john@test.com",
+            },
+        )
+        invoice = Invoice.objects.first()
+        inv_name = invoice.email_recipient_name
+        inv_email = invoice.email_recipient
+        self.assertInHTML(
+            f"""
+            <p class="text-xl my-2">emailed to {inv_name} ({inv_email})</p>
+            <p class="text-xl">next invoice sent out: {template_date(nextmonday(""), "M. j, Y")}</p>
+            """,
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")

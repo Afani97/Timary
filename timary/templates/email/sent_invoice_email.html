@@ -51,12 +51,19 @@
             <div>Amount</div>
         </div>
         <div class="border-b border-gray-200 pb-2">
-            {% for hour in hours_tracked %}
+            {% if invoice.invoice_type != 3 %}
+                {% for hour in hours_tracked %}
+                    <div class="flex justify-between py-3 text-xl">
+                        <div>{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</div>
+                        <div>${{ hour.cost | floatformat }}</div>
+                    </div>
+                {% endfor %}
+            {% elif invoice.invoice_type == 3 %}
                 <div class="flex justify-between py-3 text-xl">
-                    <div>{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</div>
-                    <div>${{ hour.cost | floatformat }}</div>
+                    <div>Week of {{ todays_date | date:"M j, Y" }}</div>
+                    <div>${{ total_amount | floatformat }}</div>
                 </div>
-            {% endfor %}
+            {% endif %}
             <div class="flex justify-between py-3 text-xl">
                 <div>Stripe ACH Fee</div>
                 <div>$5</div>

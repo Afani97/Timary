@@ -80,7 +80,7 @@
                         </div>
                     {% elif invoice.invoice_type == 3 %}
                         <p class="text-xl my-2">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                        <p class="text-xl">Next invoice sent out on {{ ""|nextmonday }}</p>
+                        <p class="text-xl">next invoice sent out: {{ ""|nextmonday }}</p>
                     {% endif %}
                 </div>
             </div>

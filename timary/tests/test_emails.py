@@ -148,6 +148,28 @@ class TestGatherInvoices(TestCase):
             "Sent out 1 invoices",
         )
 
+    @patch("timary.tasks.date")
+    def test_gather_1_invoice_monday_for_weekly(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 8, 22)
+        InvoiceFactory(invoice_type=3)
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 1 invoices",
+        )
+
+    @patch("timary.tasks.date")
+    def test_gather_0_invoice_tuesday_for_weekly(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 8, 23)
+        InvoiceFactory(invoice_type=3)
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 0 invoices",
+        )
+
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:
@@ -420,6 +442,25 @@ class TestSendInvoice(TestCase):
         """
         html_message = TestSendInvoice.extract_html()
         self.assertInHTML(button_missing, html_message)
+
+    def test_weekly_invoice_context(self):
+        invoice = InvoiceFactory(
+            invoice_type=3,
+            invoice_rate=1200,
+        )
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        weekly_log_item = f"""
+        <div class="flex justify-between py-3 text-xl">
+            <div>Week of { template_date(sent_invoice.date_sent, "M j, Y") }</div>
+            <div>$1200</div>
+        </div>
+        """
+        html_message = TestSendInvoice.extract_html()
+        self.assertInHTML(weekly_log_item, html_message)
 
 
 class TestWeeklyInvoiceUpdates(TestCase):

@@ -17,7 +17,7 @@ from timary.services.twilio_service import TwilioClient
 
 
 def gather_invoices():
-    today = localtime(now()).date()
+    today = date.today()
     tomorrow = today + timedelta(days=1)
     null_query = Q(next_date__isnull=False)
     today_query = Q(
@@ -40,7 +40,10 @@ def gather_invoices():
         next_date__year=tomorrow.year,
     )
     invoices_sent_tomorrow = Invoice.objects.filter(
-        null_query & tomorrow_query & Q(is_archived=False)
+        null_query
+        & tomorrow_query
+        & Q(is_archived=False)
+        & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
     )
     for invoice in invoices_sent_tomorrow:
         _ = async_task(send_invoice_preview, invoice.id)
@@ -76,7 +79,7 @@ def send_invoice(invoice_id):
         # There is nothing to invoice, update next date for invoice email.
         invoice.calculate_next_date()
         return
-    today = localtime(now()).date()
+    today = date.today()
     current_month = date.strftime(today, "%m/%Y")
 
     msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
@@ -86,7 +89,6 @@ def send_invoice(invoice_id):
         hour.sent_invoice_id = sent_invoice.id
         hour.save()
 
-    # TODO: Update template to check for weekly rate and add special row for it
     msg_body = render_to_string(
         "email/sent_invoice_email.html",
         {

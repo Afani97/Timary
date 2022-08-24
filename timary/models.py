@@ -270,8 +270,13 @@ class Invoice(BaseModel):
         )
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
-        if total_hours["total_hours"]:
+        if (
+            total_hours["total_hours"]
+            and self.invoice_type != Invoice.InvoiceType.WEEKLY
+        ):
             total_cost_amount = total_hours["total_hours"] * self.invoice_rate
+        elif self.invoice_type == Invoice.InvoiceType.WEEKLY:
+            total_cost_amount = self.invoice_rate
 
         return hours_tracked, total_cost_amount
 
