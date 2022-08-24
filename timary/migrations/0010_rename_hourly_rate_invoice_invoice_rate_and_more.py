@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RenameField(
             model_name="invoice",
-            old_name="invoice_rate",
+            old_name="hourly_rate",
             new_name="invoice_rate",
         ),
         migrations.AlterField(
