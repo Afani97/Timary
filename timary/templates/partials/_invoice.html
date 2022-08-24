@@ -1,7 +1,8 @@
+{% load filters %}
 <li class="card shadow-lg bordered" id="{{invoice.slug_title}}">
     <div class="card-body">
         <div class="flex justify-between">
-            <h2 class="card-title">{{ invoice.title }} - Rate: ${{ invoice.hourly_rate }}</h2>
+            <h2 class="card-title">{{ invoice.title }} - Rate: ${{ invoice.invoice_rate }}</h2>
             <div class="dropdown dropdown-left rounded-box">
                 <label tabindex="0" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
@@ -77,6 +78,9 @@
                                 <button class="btn btn-accent mt-5">Milestones all complete!</button>
                             {% endif %}
                         </div>
+                    {% elif invoice.invoice_type == 3 %}
+                        <p class="text-xl my-2">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
+                        <p class="text-xl">next invoice sent out: {{ ""|nextmonday }}</p>
                     {% endif %}
                 </div>
             </div>

@@ -64,7 +64,7 @@ class TestInvoice(TestCase):
         invoice = Invoice.objects.create(
             title="Some title",
             user=user,
-            hourly_rate=100,
+            invoice_rate=100,
             email_recipient_name="User",
             email_recipient="user@test.com",
             invoice_interval="W",
@@ -75,7 +75,7 @@ class TestInvoice(TestCase):
         self.assertIsNotNone(invoice.email_id)
         self.assertEqual(invoice.title, "Some title")
         self.assertEqual(invoice.user, user)
-        self.assertEqual(invoice.hourly_rate, 100)
+        self.assertEqual(invoice.invoice_rate, 100)
         self.assertEqual(invoice.email_recipient_name, "User")
         self.assertEqual(invoice.email_recipient, "user@test.com")
         self.assertEqual(invoice.next_date, next_date)
@@ -88,7 +88,7 @@ class TestInvoice(TestCase):
             Invoice.objects.create(
                 title="Some title",
                 user=user,
-                hourly_rate=-10,
+                invoice_rate=-10,
                 email_recipient_name="User",
                 email_recipient="user@test.com",
             )
@@ -97,7 +97,7 @@ class TestInvoice(TestCase):
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
-                hourly_rate=-10,
+                invoice_rate=-10,
                 email_recipient_name="User",
                 email_recipient="user@test.com",
             )
@@ -108,7 +108,7 @@ class TestInvoice(TestCase):
             Invoice.objects.create(
                 title="Some title",
                 user=user,
-                hourly_rate=-10,
+                invoice_rate=-10,
                 email_recipient="user@test.com",
             )
 
@@ -118,7 +118,7 @@ class TestInvoice(TestCase):
             Invoice.objects.create(
                 title="Some title",
                 user=user,
-                hourly_rate=-10,
+                invoice_rate=-10,
                 email_recipient_name="User",
             )
 
@@ -152,7 +152,7 @@ class TestInvoice(TestCase):
     def test_get_hours_stats(self):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
         hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = DailyHoursFactory(invoice=invoice)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
@@ -160,13 +160,13 @@ class TestInvoice(TestCase):
         hours_tracked, total_hours = invoice.get_hours_stats()
         self.assertListEqual(list(hours_tracked), hours_list)
         self.assertEqual(
-            total_hours, (hours1.hours + hours2.hours) * invoice.hourly_rate
+            total_hours, (hours1.hours + hours2.hours) * invoice.invoice_rate
         )
 
     def test_get_hours_stats_with_date_range(self):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=yesterday)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=yesterday)
         DailyHoursFactory(invoice=invoice, date_tracked=two_days_ago)
         hours2 = DailyHoursFactory(invoice=invoice)
 
@@ -174,12 +174,12 @@ class TestInvoice(TestCase):
             (yesterday, datetime.date.today())
         )
         self.assertListEqual(list(hours_tracked), [hours2])
-        self.assertEqual(total_hours, hours2.hours * invoice.hourly_rate)
+        self.assertEqual(total_hours, hours2.hours * invoice.invoice_rate)
 
     def test_get_hours_logged(self):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
         hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = DailyHoursFactory(invoice=invoice)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
@@ -191,7 +191,7 @@ class TestInvoice(TestCase):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=two_days_ago)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
         hours1 = DailyHoursFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(invoice=invoice, date_tracked=three_days_ago)
@@ -202,7 +202,7 @@ class TestInvoice(TestCase):
 
     def test_get_hours_logged_mid_cycle(self):
         """invoice.get_hours_tracked should filter out already sent hours"""
-        invoice = InvoiceFactory(hourly_rate=50)
+        invoice = InvoiceFactory(invoice_rate=50)
         sent_invoice = SentInvoiceFactory(invoice=invoice)
         DailyHoursFactory(invoice=invoice, sent_invoice_id=sent_invoice.id)
         DailyHoursFactory(invoice=invoice)
@@ -215,7 +215,7 @@ class TestInvoice(TestCase):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
         invoice = InvoiceFactory(
-            hourly_rate=50, last_date=two_days_ago, total_budget=1000
+            invoice_rate=50, last_date=two_days_ago, total_budget=1000
         )
         DailyHoursFactory(hours=3, invoice=invoice, date_tracked=three_days_ago)
         DailyHoursFactory(hours=1, invoice=invoice, date_tracked=yesterday)
@@ -228,7 +228,7 @@ class TestSentInvoice(TestCase):
     def test_get_hours_tracked(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=three_days_ago)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=three_days_ago)
         hours1 = DailyHoursFactory(hours=1, invoice=invoice, date_tracked=yesterday)
         hours2 = DailyHoursFactory(hours=2, invoice=invoice)
 
@@ -241,9 +241,9 @@ class TestSentInvoice(TestCase):
         hours2.sent_invoice_id = sent_invoice.id
         hours2.save()
 
-        # If invoice's hourly_rate changes, make sure the sent invoice calculates the correct
+        # If invoice's invoice_rate changes, make sure the sent invoice calculates the correct
         # hourly rate from total cost / sum(hours_tracked)
-        invoice.hourly_rate = 25
+        invoice.invoice_rate = 25
         invoice.save()
 
         hours_tracked, total_cost = sent_invoice.get_hours_tracked()
@@ -254,7 +254,7 @@ class TestSentInvoice(TestCase):
     def test_get_hours_tracked_not_including_skipped(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(hourly_rate=50, last_date=three_days_ago)
+        invoice = InvoiceFactory(invoice_rate=50, last_date=three_days_ago)
         hours1 = DailyHoursFactory(hours=0, invoice=invoice, date_tracked=yesterday)
         hours2 = DailyHoursFactory(hours=2, invoice=invoice)
 
@@ -267,9 +267,9 @@ class TestSentInvoice(TestCase):
         hours2.sent_invoice_id = sent_invoice.id
         hours2.save()
 
-        # If invoice's hourly_rate changes, make sure the sent invoice calculates the correct
+        # If invoice's invoice_rate changes, make sure the sent invoice calculates the correct
         # hourly rate from total cost / sum(hours_tracked)
-        invoice.hourly_rate = 25
+        invoice.invoice_rate = 25
         invoice.save()
 
         hours_tracked, total_cost = sent_invoice.get_hours_tracked()

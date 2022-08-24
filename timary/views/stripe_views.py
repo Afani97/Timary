@@ -10,7 +10,6 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.timezone import localtime, now
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -176,7 +175,7 @@ def stripe_webhook(request):
             sent_invoice.save()
 
             hours_tracked, _ = sent_invoice.get_hours_tracked()
-            today = localtime(now()).date()
+            today = datetime.date.today()
 
             # Notify email recipient that payment failed
             msg_body = render_to_string(

@@ -12,7 +12,6 @@ from django.db.models import F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.template.loader import render_to_string
 from django.utils.text import slugify
-from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -93,7 +92,7 @@ class Invoice(BaseModel):
     class InvoiceType(models.IntegerChoices):
         INTERVAL = 1, "INTERVAL"
         MILESTONE = 2, "MILESTONE"
-        # WEEKLY = 3, "WEEKLY"
+        WEEKLY = 3, "WEEKLY"
 
     class Interval(models.TextChoices):
         DAILY = "D", "DAILY"
@@ -116,7 +115,7 @@ class Invoice(BaseModel):
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="invoices", null=True
     )
-    hourly_rate = models.IntegerField(
+    invoice_rate = models.IntegerField(
         default=50, null=False, blank=False, validators=[MinValueValidator(1)]
     )
     email_recipient_name = models.CharField(max_length=200, null=False, blank=False)
@@ -150,7 +149,7 @@ class Invoice(BaseModel):
             f"Invoice(title={self.title}, "
             f"email_id={self.email_id}, "
             f"user={self.user}, "
-            f"hourly_rate={self.hourly_rate}, "
+            f"invoice_rate={self.invoice_rate}, "
             f"email_recipient={self.email_recipient}, "
             f"invoice_interval={self.invoice_interval}, "
             f"next_date={self.next_date}, "
@@ -185,7 +184,7 @@ class Invoice(BaseModel):
         ).aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * self.hourly_rate
+            total_cost_amount = total_hours["total_hours"] * self.invoice_rate
 
         return (total_cost_amount / self.total_budget) * 100
 
@@ -221,7 +220,7 @@ class Invoice(BaseModel):
                 obj["size"] = round((hours / (max_hr + 100)), 2)
                 obj[
                     "data"
-                ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.hourly_rate)}"
+                ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.invoice_rate)}"
             data.append(obj)
         return sorted(data, key=lambda x: x["month"])
 
@@ -240,7 +239,7 @@ class Invoice(BaseModel):
             return relativedelta(years=1)
 
     def calculate_next_date(self, update_last: bool = True):
-        todays_date = localtime(now()).date()
+        todays_date = date.today()
         self.next_date = todays_date + self.get_next_date()
         if update_last:
             self.last_date = todays_date
@@ -259,13 +258,18 @@ class Invoice(BaseModel):
         hours_tracked = (
             self.hours_tracked.filter(query & Q(sent_invoice_id__isnull=True))
             .exclude(hours=0)
-            .annotate(cost=self.hourly_rate * Sum("hours"))
+            .annotate(cost=self.invoice_rate * Sum("hours"))
             .order_by("date_tracked")
         )
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
-        if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * self.hourly_rate
+        if (
+            total_hours["total_hours"]
+            and self.invoice_type != Invoice.InvoiceType.WEEKLY
+        ):
+            total_cost_amount = total_hours["total_hours"] * self.invoice_rate
+        elif self.invoice_type == Invoice.InvoiceType.WEEKLY:
+            total_cost_amount = self.invoice_rate
 
         return hours_tracked, total_cost_amount
 
@@ -359,9 +363,9 @@ class SentInvoice(BaseModel):
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            hourly_rate = round(self.total_price / total_hours["total_hours"], 1)
-            total_cost_amount = total_hours["total_hours"] * hourly_rate
-            hours_tracked = hours_tracked.annotate(cost=hourly_rate * F("hours"))
+            invoice_rate = round(self.total_price / total_hours["total_hours"], 1)
+            total_cost_amount = total_hours["total_hours"] * invoice_rate
+            hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("hours"))
 
         return hours_tracked, total_cost_amount
 

@@ -54,7 +54,12 @@ def manage_invoices(request):
 @require_http_methods(["POST"])
 def create_invoice(request):
     user: User = request.user
-    invoice_form = InvoiceForm(request.POST or None, user=user)
+    request_data = request.POST.copy()
+    if int(request_data.get("invoice_type")) == Invoice.InvoiceType.WEEKLY:
+        request_data.update({"invoice_rate": request_data["weekly_rate"]})
+
+    invoice_form = InvoiceForm(request_data or None, user=user)
+
     if invoice_form.is_valid():
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
@@ -147,7 +152,9 @@ def update_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    put_params = QueryDict(request.body)
+    put_params = QueryDict(request.body).copy()
+    if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+        put_params.update({"invoice_rate": put_params["weekly_rate"]})
     invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
         invoice = invoice_form.save()

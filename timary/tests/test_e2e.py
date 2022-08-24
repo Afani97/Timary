@@ -51,7 +51,7 @@ class TestUI(BaseUITest):
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_hourly_rate", "100")
+            page.fill("#id_invoice_rate", "100")
             page.fill("#id_email_recipient_name", "John Smith")
             page.fill("#id_email_recipient", "john@smith.com")
             page.click('button:has-text("Add new invoice")')
@@ -63,7 +63,7 @@ class TestUI(BaseUITest):
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_hourly_rate", "100")
+            page.fill("#id_invoice_rate", "100")
             page.locator(".hero select#id_invoice_type").select_option("2")
             page.fill("#id_milestone_total_steps", "5")
             page.fill("#id_email_recipient_name", "John Smith")
@@ -118,7 +118,7 @@ class TestUI(BaseUITest):
             page.click('a:has-text("Edit")')
             page.wait_for_selector('button:has-text("Update invoice")', timeout=2000)
             page.fill("#id_title", "Timary 2")
-            page.fill("#id_hourly_rate", "100")
+            page.fill("#id_invoice_rate", "100")
             page.fill("#id_email_recipient_name", "John Smith")
             page.fill("#id_email_recipient", "john@smith.com")
             page.click('button:has-text("Update invoice")')

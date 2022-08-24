@@ -17,12 +17,14 @@
                 </label>
                 <div>{{ form.title }}</div>
             </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.hourly_rate.label_tag }}</span>
-                </label>
-                <div>{{ form.hourly_rate }}</div>
-            </div>
+            {% if form.instance.invoice_type != 3 %}
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
+                    </label>
+                    <div>{{ form.invoice_rate }}</div>
+                </div>
+            {% endif %}
             {% if form.instance.invoice_type == 1 %}
                 <div class="form-control w-full">
                     <label class="label">
@@ -37,11 +39,18 @@
                     </label>
                     <div>{{ form.milestone_total_steps }}</div>
                 </div>
+            {% elif form.instance.invoice_type == 3 %}
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.weekly_rate.label_tag }}</span>
+                    </label>
+                    <div>{{ form.weekly_rate }}</div>
+                </div>
             {% endif %}
 
         </div>
 
-        <div class="flex flex-col space-y-1 md:flex-row md:space-x-3 md:space-y-0"">
+        <div class="flex flex-col space-y-1 md:flex-row md:space-x-3 md:space-y-0">
 
             <div class="form-control w-full">
                 <label class="label">
@@ -70,9 +79,9 @@
 
 
 
-        </div>
-        <div class="card-actions flex justify-center">
-            <a href="#" class="btn" id="close-invoice-modal" hx-get="{% url 'timary:get_single_invoice' invoice_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me">Cancel</a>
-            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Update invoice</button>
-        </div>
-    </form>
+    </div>
+    <div class="card-actions flex justify-center">
+        <a href="#" class="btn" id="close-invoice-modal" hx-get="{% url 'timary:get_single_invoice' invoice_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me">Cancel</a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Update invoice</button>
+    </div>
+</form>

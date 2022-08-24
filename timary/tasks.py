@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.template.loader import render_to_string
-from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
 
 from timary.custom_errors import AccountingError
@@ -17,7 +16,7 @@ from timary.services.twilio_service import TwilioClient
 
 
 def gather_invoices():
-    today = localtime(now()).date()
+    today = date.today()
     tomorrow = today + timedelta(days=1)
     null_query = Q(next_date__isnull=False)
     today_query = Q(
@@ -40,12 +39,26 @@ def gather_invoices():
         next_date__year=tomorrow.year,
     )
     invoices_sent_tomorrow = Invoice.objects.filter(
-        null_query & tomorrow_query & Q(is_archived=False)
+        null_query
+        & tomorrow_query
+        & Q(is_archived=False)
+        & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
     )
     for invoice in invoices_sent_tomorrow:
         _ = async_task(send_invoice_preview, invoice.id)
 
     invoices_sent = len(list(invoices_sent_today) + list(invoices_sent_tomorrow))
+
+    if today.weekday() == 0:
+        invoices_sent_only_on_mondays = Invoice.objects.filter(
+            null_query
+            & Q(is_archived=False)
+            & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
+        )
+        for invoice in invoices_sent_tomorrow:
+            _ = async_task(send_invoice, invoice.id)
+        invoices_sent += len(list(invoices_sent_only_on_mondays))
+
     EmailService.send_plain(
         f"Sent out {invoices_sent} invoices",
         f'{date.strftime(today, "%m/%-d/%Y")}, there were {invoices_sent} invoices sent out.',
@@ -58,11 +71,14 @@ def gather_invoices():
 def send_invoice(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
     hours_tracked, total_amount = invoice.get_hours_stats()
-    if hours_tracked.count() <= 0:
+    if (
+        invoice.invoice_type != Invoice.InvoiceType.WEEKLY
+        and hours_tracked.count() <= 0
+    ):
         # There is nothing to invoice, update next date for invoice email.
         invoice.calculate_next_date()
         return
-    today = localtime(now()).date()
+    today = date.today()
     current_month = date.strftime(today, "%m/%Y")
 
     msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
@@ -71,6 +87,7 @@ def send_invoice(invoice_id):
     for hour in hours_tracked:
         hour.sent_invoice_id = sent_invoice.id
         hour.save()
+
     msg_body = render_to_string(
         "email/sent_invoice_email.html",
         {
@@ -97,7 +114,7 @@ def send_invoice(invoice_id):
 def send_invoice_preview(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
     hours_tracked, total_amount = invoice.get_hours_stats()
-    today = localtime(now()).date()
+    today = date.today()
 
     msg_body = render_to_string(
         "email/sneak_peak_invoice_email.html",
@@ -147,20 +164,22 @@ def send_reminder_sms():
 def send_weekly_updates():
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
-    all_invoices = Invoice.objects.filter(is_archived=False)
+    all_invoices = Invoice.objects.filter(is_archived=False).exclude(
+        invoice_type=Invoice.InvoiceType.WEEKLY
+    )
     for invoice in all_invoices:
         hours = invoice.get_hours_tracked()
         if hours:
             hours_tracked_this_week = hours.filter(
                 date_tracked__range=(week_start, today)
-            ).annotate(cost=invoice.hourly_rate * Sum("hours"))
+            ).annotate(cost=invoice.invoice_rate * Sum("hours"))
             if not hours:
                 continue
 
             total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
             total_cost_amount = 0
             if total_hours["total_hours"]:
-                total_cost_amount = total_hours["total_hours"] * invoice.hourly_rate
+                total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
             msg_body = render_to_string(
                 "email/weekly_update_email.html",
                 {

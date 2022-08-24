@@ -8,7 +8,6 @@ from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
-from django.utils.timezone import localtime, now
 
 from timary.models import SentInvoice
 from timary.tasks import (
@@ -148,10 +147,32 @@ class TestGatherInvoices(TestCase):
             "Sent out 1 invoices",
         )
 
+    @patch("timary.tasks.date")
+    def test_gather_1_invoice_monday_for_weekly(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 8, 22)
+        InvoiceFactory(invoice_type=3)
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 1 invoices",
+        )
+
+    @patch("timary.tasks.date")
+    def test_gather_0_invoice_tuesday_for_weekly(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 8, 23)
+        InvoiceFactory(invoice_type=3)
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 0 invoices",
+        )
+
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:
-        self.todays_date = localtime(now()).date()
+        self.todays_date = date.today()
         self.current_month = date.strftime(self.todays_date, "%m/%Y")
 
     @classmethod
@@ -191,7 +212,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
-            (h1.hours + h2.hours + h3.hours) * invoice.hourly_rate,
+            (h1.hours + h2.hours + h3.hours) * invoice.invoice_rate,
         )
 
     def test_sent_invoices_only_2_hours(self):
@@ -214,7 +235,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
-            (h2.hours + h3.hours) * invoice.hourly_rate,
+            (h2.hours + h3.hours) * invoice.invoice_rate,
         )
 
     def test_dont_send_invoice_if_no_tracked_hours(self):
@@ -263,7 +284,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 2)
 
     def test_invoice_context(self):
-        invoice = InvoiceFactory(hourly_rate=25)
+        invoice = InvoiceFactory(invoice_rate=25)
         # Save last date before it's updated in send_invoice method to test email contents below
         hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
         DailyHoursFactory(invoice=invoice, hours=2)
@@ -275,9 +296,9 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
 
         with self.subTest("Testing header"):
-            next_weeks_date = (
-                localtime(now()).date() + datetime.timedelta(weeks=1)
-            ).strftime("%b. %-d, %Y")
+            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
+                "%b. %-d, %Y"
+            )
             msg = (
                 f'<span class="preheader">This is an invoice for '
                 f"{invoice.user.first_name}'s services. "
@@ -309,7 +330,7 @@ class TestSendInvoice(TestCase):
         user = UserFactory()
         invoice = InvoiceFactory(
             user=user,
-            hourly_rate=25,
+            invoice_rate=25,
             next_date=datetime.date.today() - datetime.timedelta(days=1),
         )
         # Save last date before it's updated in send_invoice method to test email contents below
@@ -327,9 +348,9 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
 
         with self.subTest("Testing header"):
-            next_weeks_date = (
-                localtime(now()).date() + datetime.timedelta(weeks=1)
-            ).strftime("%b. %-d, %Y")
+            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
+                "%b. %-d, %Y"
+            )
             msg = (
                 f'<span class="preheader">This is an invoice for '
                 f"{invoice.user.first_name}'s services. "
@@ -421,10 +442,29 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
         self.assertInHTML(button_missing, html_message)
 
+    def test_weekly_invoice_context(self):
+        invoice = InvoiceFactory(
+            invoice_type=3,
+            invoice_rate=1200,
+        )
+        DailyHoursFactory(invoice=invoice)
+        send_invoice(invoice.id)
+
+        sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+
+        weekly_log_item = f"""
+        <div class="flex justify-between py-3 text-xl">
+            <div>Week of { template_date(sent_invoice.date_sent, "M j, Y") }</div>
+            <div>$1200</div>
+        </div>
+        """
+        html_message = TestSendInvoice.extract_html()
+        self.assertInHTML(weekly_log_item, html_message)
+
 
 class TestWeeklyInvoiceUpdates(TestCase):
     def setUp(self) -> None:
-        self.todays_date = localtime(now()).date()
+        self.todays_date = date.today()
         self.current_month = date.strftime(self.todays_date, "%m/%Y")
 
     @classmethod
@@ -459,7 +499,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
         with self.subTest("Testing hours line item"):
             msg = f"""
                 <div>{ floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
-                <div>${ floatformat(hour.hours * invoice.hourly_rate) }</div>
+                <div>${ floatformat(hour.hours * invoice.invoice_rate) }</div>
                 """
             self.assertInHTML(msg, html_message)
 
