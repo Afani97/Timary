@@ -250,12 +250,6 @@ class Invoice(BaseModel):
             self.milestone_step += 1
             self.save()
 
-    def increase_weekly_rate(self):
-        # Interchange milestone + weekly rate
-        if self.invoice_type == Invoice.InvoiceType.WEEKLY:
-            self.milestone_step += 1
-            self.save()
-
     def get_hours_stats(self, date_range=None):
         query = Q(date_tracked__gte=self.last_date)
         if date_range:
