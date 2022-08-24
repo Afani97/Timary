@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.template.loader import render_to_string
-from django.utils.timezone import localtime, now
 from django_q.tasks import async_task
 
 from timary.custom_errors import AccountingError
@@ -116,7 +115,7 @@ def send_invoice(invoice_id):
 def send_invoice_preview(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
     hours_tracked, total_amount = invoice.get_hours_stats()
-    today = localtime(now()).date()
+    today = date.today()
 
     msg_body = render_to_string(
         "email/sneak_peak_invoice_email.html",
@@ -166,7 +165,9 @@ def send_reminder_sms():
 def send_weekly_updates():
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
-    all_invoices = Invoice.objects.filter(is_archived=False)
+    all_invoices = Invoice.objects.filter(is_archived=False).exclude(
+        invoice_type=Invoice.InvoiceType.WEEKLY
+    )
     for invoice in all_invoices:
         hours = invoice.get_hours_tracked()
         if hours:

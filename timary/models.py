@@ -12,7 +12,6 @@ from django.db.models import F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.template.loader import render_to_string
 from django.utils.text import slugify
-from django.utils.timezone import localtime, now
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -240,7 +239,7 @@ class Invoice(BaseModel):
             return relativedelta(years=1)
 
     def calculate_next_date(self, update_last: bool = True):
-        todays_date = localtime(now()).date()
+        todays_date = date.today()
         self.next_date = todays_date + self.get_next_date()
         if update_last:
             self.last_date = todays_date

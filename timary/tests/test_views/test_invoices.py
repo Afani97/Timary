@@ -9,7 +9,6 @@ from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
-from django.utils.timezone import localtime, now
 
 from timary.models import Invoice, SentInvoice
 from timary.templatetags.filters import nextmonday
@@ -632,7 +631,7 @@ class TestInvoices(BaseTest):
         self.assertInHTML(f"<tbody>{hours}</tbody>", response.content.decode("utf-8"))
 
     def test_generate_invoice(self):
-        todays_date = localtime(now()).date()
+        todays_date = datetime.date.today()
         current_month = datetime.date.strftime(todays_date, "%m/%Y")
         hours = DailyHoursFactory(invoice=self.invoice)
         self.client.force_login(self.user)

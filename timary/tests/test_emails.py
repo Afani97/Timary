@@ -8,7 +8,6 @@ from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
-from django.utils.timezone import localtime, now
 
 from timary.models import SentInvoice
 from timary.tasks import (
@@ -173,7 +172,7 @@ class TestGatherInvoices(TestCase):
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:
-        self.todays_date = localtime(now()).date()
+        self.todays_date = date.today()
         self.current_month = date.strftime(self.todays_date, "%m/%Y")
 
     @classmethod
@@ -297,9 +296,9 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
 
         with self.subTest("Testing header"):
-            next_weeks_date = (
-                localtime(now()).date() + datetime.timedelta(weeks=1)
-            ).strftime("%b. %-d, %Y")
+            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
+                "%b. %-d, %Y"
+            )
             msg = (
                 f'<span class="preheader">This is an invoice for '
                 f"{invoice.user.first_name}'s services. "
@@ -349,9 +348,9 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
 
         with self.subTest("Testing header"):
-            next_weeks_date = (
-                localtime(now()).date() + datetime.timedelta(weeks=1)
-            ).strftime("%b. %-d, %Y")
+            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
+                "%b. %-d, %Y"
+            )
             msg = (
                 f'<span class="preheader">This is an invoice for '
                 f"{invoice.user.first_name}'s services. "
@@ -465,7 +464,7 @@ class TestSendInvoice(TestCase):
 
 class TestWeeklyInvoiceUpdates(TestCase):
     def setUp(self) -> None:
-        self.todays_date = localtime(now()).date()
+        self.todays_date = date.today()
         self.current_month = date.strftime(self.todays_date, "%m/%Y")
 
     @classmethod
