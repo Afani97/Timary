@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from dateutil import relativedelta
 from django.db import models
@@ -25,7 +25,9 @@ class HourStats:
     def __init__(self, user):
         self.user = user
         self.current_month = datetime.today()
-        self.last_month = datetime.today() - relativedelta.relativedelta(months=1)
+        self.last_month = (
+            datetime.today() - relativedelta.relativedelta(months=1)
+        ).replace(day=1)
         self.first_month = datetime.today().replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
@@ -85,7 +87,10 @@ class HourStats:
         return self.get_stats()
 
     def get_last_month_stats(self):
-        date_range = (self.last_month, self.current_month.replace(day=1))
+        date_range = (
+            self.last_month,
+            (self.current_month.replace(day=1) - timedelta(days=1)),
+        )
         return self.get_stats(date_range)
 
     def get_this_year_stats(self):
