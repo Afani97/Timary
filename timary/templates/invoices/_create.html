@@ -1,4 +1,4 @@
-<form class="card bg-neutral text-neutral-content"
+<form class="card text-neutral-content"
     hx-post="{% url 'timary:create_invoice' %}"
     hx-swap="beforeend"
     hx-target="#invoices-list"
@@ -9,7 +9,7 @@
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
     {% endif %}
 
-    <div class="flex card-body -mt-5">
+    <div class="flex card-body -mt-5 -mx-5 md:mx-0">
         <div class="form-control w-full">
             <label class="label">
                 <span class="label-text">{{ form.title.label_tag }}</span>

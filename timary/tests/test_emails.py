@@ -294,18 +294,6 @@ class TestSendInvoice(TestCase):
         invoice.refresh_from_db()
 
         html_message = TestSendInvoice.extract_html()
-
-        with self.subTest("Testing header"):
-            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
-                "%b. %-d, %Y"
-            )
-            msg = (
-                f'<span class="preheader">This is an invoice for '
-                f"{invoice.user.first_name}'s services. "
-                f"Please submit payment by {next_weeks_date}</span>"
-            )
-            self.assertInHTML(msg, html_message)
-
         with self.subTest("Testing title"):
             msg = f"""
             <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
@@ -346,17 +334,6 @@ class TestSendInvoice(TestCase):
             "Pssst! Here is a sneak peek of the invoice going out tomorrow.", email
         )
         html_message = TestSendInvoice.extract_html()
-
-        with self.subTest("Testing header"):
-            next_weeks_date = (date.today() + datetime.timedelta(weeks=1)).strftime(
-                "%b. %-d, %Y"
-            )
-            msg = (
-                f'<span class="preheader">This is an invoice for '
-                f"{invoice.user.first_name}'s services. "
-                f"Please submit payment by {next_weeks_date}</span>"
-            )
-            self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing title"):
             msg = f"""

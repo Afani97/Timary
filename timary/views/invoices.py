@@ -299,6 +299,9 @@ def sent_invoices_list(request, invoice_id):
             {"sent_invoices": sent_invoices},
         )
     else:
-        return HttpResponse(
+        return_message = (
             "Looks like you haven't generated an invoice yet, log hours to do so."
         )
+        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+            return_message = "Looks like there haven't been any invoices sent yet."
+        return HttpResponse(return_message)
