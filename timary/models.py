@@ -214,6 +214,7 @@ class Invoice(BaseModel):
                 "size": 0,
                 "data": "0h",
             }
+            print(datum)
             if len(datum) > 0:
                 datum = datum[0]
                 hours = datum["h"]
@@ -221,6 +222,13 @@ class Invoice(BaseModel):
                 obj[
                     "data"
                 ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.invoice_rate)}"
+                if self.invoice_type == Invoice.InvoiceType.WEEKLY:
+                    sent_invoices = self.invoice_snapshots.filter(
+                        date_sent__range=(m, m + relativedelta(months=1))
+                    )
+                    obj[
+                        "data"
+                    ] = f"{round(datum['h'], 2)}h, ${(sent_invoices.count() * self.invoice_rate)}"
             data.append(obj)
         return sorted(data, key=lambda x: x["month"])
 
