@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
-from timary.models import Contract, DailyHoursInput
+from timary.models import Contract, DailyHoursInput, SentInvoice
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
@@ -91,11 +91,23 @@ def get_dashboard_stats(hours_tracked):
 
 
 def get_hours_tracked(user):
-    current_month = DailyHoursInput.all_hours.current_month(user)
+    current_date = datetime.date.today()
+    sent_invoices = SentInvoice.objects.filter(
+        user=user,
+        date_sent__month__gte=current_date.month,
+        date_sent__year__gte=current_date.year,
+    )
+    total_hours = 0
+    total_amount = 0
+    for sent_invoice in sent_invoices:
+        hours, amount = sent_invoice.get_hours_tracked()
+        total_hours += hours.aggregate(total_hours=Sum("hours"))["total_hours"]
+        total_amount += amount
+    # current_month = DailyHoursInput.all_hours.current_month(user)
     last_month = DailyHoursInput.all_hours.last_month(user)
     current_year = DailyHoursInput.all_hours.current_year(user)
     context = {
-        "current_month": get_dashboard_stats(current_month),
+        "current_month": {"total_hours": total_hours, "total_amount": total_amount},
         "last_month": get_dashboard_stats(last_month),
         "current_year": get_dashboard_stats(current_year),
     }

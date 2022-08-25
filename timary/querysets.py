@@ -11,6 +11,7 @@ class HoursQuerySet(models.QuerySet):
             self.filter(
                 invoice__user=user,
                 invoice__is_archived=False,
+                sent_invoice_id__isnull=True,
                 date_tracked__month__gte=current_date.month,
                 date_tracked__year__gte=current_date.year,
             )
