@@ -193,15 +193,25 @@ class Invoice(BaseModel):
         date_times = [
             (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
         ]
-        six_months_qs = list(
-            self.hours_tracked.filter(date_tracked__gte=date_times[5])
-            .annotate(month=TruncMonth("date_tracked"))
-            .distinct()
-            .values("month")
-            .order_by("month")
-            .annotate(h=Sum("hours"))
-            .values("month", "h")
-        )
+        if self.invoice_type == Invoice.InvoiceType.WEEKLY:
+            six_months_qs = (
+                self.invoice_snapshots.annotate(month=TruncMonth("date_sent"))
+                .distinct()
+                .values("month")
+                .order_by("month")
+                .annotate(h=Sum("total_price"))
+                .values("month", "h")
+            )
+        else:
+            six_months_qs = list(
+                self.hours_tracked.filter(date_tracked__gte=date_times[5])
+                .annotate(month=TruncMonth("date_tracked"))
+                .distinct()
+                .values("month")
+                .order_by("month")
+                .annotate(h=Sum("hours"))
+                .values("month", "h")
+            )
         max_hr = 0
         if six_months_qs:
             max_hr = int(max(hour["h"] for hour in six_months_qs))
@@ -218,9 +228,12 @@ class Invoice(BaseModel):
                 datum = datum[0]
                 hours = datum["h"]
                 obj["size"] = round((hours / (max_hr + 100)), 2)
-                obj[
-                    "data"
-                ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.invoice_rate)}"
+                if self.invoice_type == Invoice.InvoiceType.WEEKLY:
+                    obj["data"] = f"${round(hours, 2)}"
+                else:
+                    obj[
+                        "data"
+                    ] = f"{round(datum['h'],2)}h, ${(round(hours) * self.invoice_rate)}"
             data.append(obj)
         return sorted(data, key=lambda x: x["month"])
 

@@ -223,6 +223,59 @@ class TestInvoice(TestCase):
         # (6 hours * $50) / $1000
         self.assertEqual(invoice.budget_percentage, Decimal("30.0"))
 
+    def test_get_last_six_months(self):
+        invoice = InvoiceFactory()
+        DailyHoursFactory(invoice=invoice, hours=1)
+        DailyHoursFactory(
+            invoice=invoice,
+            hours=2,
+            date_tracked=datetime.date.today() - relativedelta(months=1),
+        )
+        DailyHoursFactory(
+            invoice=invoice,
+            hours=3,
+            date_tracked=datetime.date.today() - relativedelta(months=2),
+        )
+        DailyHoursFactory(
+            invoice=invoice,
+            hours=4,
+            date_tracked=datetime.date.today() - relativedelta(months=3),
+        )
+        last_six = invoice.get_last_six_months()
+        self.assertEqual(last_six[-1]["data"], "1.00h, $50")
+        self.assertEqual(last_six[-2]["data"], "2.00h, $100")
+        self.assertEqual(last_six[-3]["data"], "3.00h, $150")
+        self.assertEqual(last_six[-4]["data"], "4.00h, $200")
+
+    def test_get_last_six_months_including_weekly(self):
+        invoice = InvoiceFactory(invoice_type=3, invoice_rate=1000)
+        SentInvoiceFactory(invoice=invoice, total_price=1000)
+        SentInvoiceFactory(
+            invoice=invoice,
+            total_price=1000,
+            date_sent=datetime.date.today() - relativedelta(months=1),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            total_price=1000,
+            date_sent=datetime.date.today() - relativedelta(months=1),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            total_price=3000,
+            date_sent=datetime.date.today() - relativedelta(months=2),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            total_price=4000,
+            date_sent=datetime.date.today() - relativedelta(months=3),
+        )
+        last_six = invoice.get_last_six_months()
+        self.assertEqual(last_six[-1]["data"], "$1000")
+        self.assertEqual(last_six[-2]["data"], "$2000")
+        self.assertEqual(last_six[-3]["data"], "$3000")
+        self.assertEqual(last_six[-4]["data"], "$4000")
+
 
 class TestSentInvoice(TestCase):
     def test_get_hours_tracked(self):
