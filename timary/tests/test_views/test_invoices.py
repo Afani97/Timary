@@ -596,40 +596,6 @@ class TestInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
 
-    def test_total_invoice_last_six_months(self):
-        user = UserFactory(membership_tier=49)
-        self.client.force_login(user)
-
-        invoice = InvoiceFactory(user=user)
-        today = datetime.date.today()
-        hours = [DailyHoursFactory(invoice=invoice)]
-        for i in range(1, 6):
-            hours.append(
-                DailyHoursFactory(
-                    invoice=invoice, date_tracked=(today - relativedelta(months=i))
-                )
-            )
-        hours.sort(key=lambda h: h.date_tracked)
-        max_hr = int(max(hour.hours for hour in hours))
-
-        hours = "".join(
-            list(
-                map(
-                    lambda h: f"""
-                    <tr><th scope="row">{ h.date_tracked.strftime("%b") }</th>
-                    <td style="--size:{round((h.hours / (max_hr + 100)), 2)};">
-                    <span class="tooltip"> { round(h.hours, 2) }h, ${round(h.hours) * invoice.invoice_rate}</span>
-                    </td></tr>""",
-                    hours,
-                )
-            )
-        )
-        response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": invoice.id}),
-        )
-
-        self.assertInHTML(f"<tbody>{hours}</tbody>", response.content.decode("utf-8"))
-
     def test_generate_invoice(self):
         todays_date = datetime.date.today()
         current_month = datetime.date.strftime(todays_date, "%m/%Y")

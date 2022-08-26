@@ -225,27 +225,40 @@ class TestInvoice(TestCase):
 
     def test_get_last_six_months(self):
         invoice = InvoiceFactory()
-        DailyHoursFactory(invoice=invoice, hours=1)
-        DailyHoursFactory(
+        hours1 = DailyHoursFactory(invoice=invoice, hours=1)
+        sent_invoice_1 = SentInvoiceFactory(invoice=invoice, total_price=50)
+        hours1.sent_invoice_id = sent_invoice_1.id
+        hours2 = DailyHoursFactory(
             invoice=invoice,
             hours=2,
             date_tracked=datetime.date.today() - relativedelta(months=1),
         )
-        DailyHoursFactory(
+        sent_invoice_2 = SentInvoiceFactory(
+            invoice=invoice,
+            date_sent=datetime.date.today() - relativedelta(months=1),
+            total_price=50,
+        )
+        hours2.sent_invoice_id = sent_invoice_2.id
+
+        invoice.invoice_rate = 100
+        invoice.save()
+
+        hours3 = DailyHoursFactory(
             invoice=invoice,
             hours=3,
             date_tracked=datetime.date.today() - relativedelta(months=2),
         )
-        DailyHoursFactory(
+        sent_invoice_3 = SentInvoiceFactory(
             invoice=invoice,
-            hours=4,
-            date_tracked=datetime.date.today() - relativedelta(months=3),
+            date_sent=datetime.date.today() - relativedelta(months=2),
+            total_price=100,
         )
+        hours3.sent_invoice_id = sent_invoice_3.id
+
         last_six = invoice.get_last_six_months()
-        self.assertEqual(last_six[-1]["data"], "1.00h, $50")
-        self.assertEqual(last_six[-2]["data"], "2.00h, $100")
-        self.assertEqual(last_six[-3]["data"], "3.00h, $150")
-        self.assertEqual(last_six[-4]["data"], "4.00h, $200")
+        self.assertEqual(last_six[-1]["data"], "$50")
+        self.assertEqual(last_six[-2]["data"], "$50")
+        self.assertEqual(last_six[-3]["data"], "$100")
 
     def test_get_last_six_months_including_weekly(self):
         invoice = InvoiceFactory(invoice_type=3, invoice_rate=1000)
