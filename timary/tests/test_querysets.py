@@ -23,11 +23,19 @@ class TestHourStats(TestCase):
 
         DailyHoursFactory(invoice=invoice, sent_invoice_id=sent_invoice.id, hours=3)
 
+        weekly_invoice = InvoiceFactory(user=user, invoice_rate=1500, invoice_type=3)
+        sent_invoice = SentInvoiceFactory(
+            invoice=weekly_invoice, user=user, total_price=weekly_invoice.invoice_rate
+        )
+        DailyHoursFactory(
+            invoice=weekly_invoice, sent_invoice_id=sent_invoice.id, hours=2
+        )
+
         hour_stats = HourStats(user=user)
 
         current_month_stats = hour_stats.get_current_month_stats()
-        self.assertEqual(float(current_month_stats["total_hours"]), 5)
-        self.assertEqual(float(current_month_stats["total_amount"]), 400)
+        self.assertEqual(float(current_month_stats["total_hours"]), 7)
+        self.assertEqual(float(current_month_stats["total_amount"]), 1900)
 
     @patch("timary.querysets.datetime")
     def test_hour_stats_last_month(self, date_mock):

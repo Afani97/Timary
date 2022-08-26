@@ -69,11 +69,13 @@ class HourStats:
                 date_tracked__year__gte=self.current_month.year,
             )
         total_hours_sum = qs.aggregate(total_hours=Sum("hours"))["total_hours"]
-        total_amount_sum = qs.annotate(
-            total_amount=F("hours") * F("invoice__invoice_rate")
-        ).aggregate(total=Sum("total_amount"))["total"]
+        total_amount_sum_non_weekly_invoice = (
+            qs.filter(invoice__invoice_type__lt=3)
+            .annotate(total_amount=F("hours") * F("invoice__invoice_rate"))
+            .aggregate(total=Sum("total_amount"))["total"]
+        )
 
-        return total_hours_sum or 0, total_amount_sum or 0
+        return total_hours_sum or 0, total_amount_sum_non_weekly_invoice or 0
 
     def get_stats(self, date_range=None):
         sent_invoice_stats = self.get_sent_invoices_stats(date_range)
