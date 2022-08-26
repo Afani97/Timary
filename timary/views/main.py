@@ -2,7 +2,6 @@ import datetime
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -11,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
+from timary.querysets import HourStats
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
@@ -77,27 +77,12 @@ def questions(request):
     )
 
 
-def get_dashboard_stats(hours_tracked):
-    total_hours_sum = hours_tracked.aggregate(total_hours=Sum("hours"))["total_hours"]
-    total_amount_sum = hours_tracked.annotate(
-        total_amount=F("hours") * F("invoice__invoice_rate")
-    ).aggregate(total=Sum("total_amount"))["total"]
-
-    stats = {
-        "total_hours": total_hours_sum or 0,
-        "total_amount": total_amount_sum or 0,
-    }
-    return stats
-
-
 def get_hours_tracked(user):
-    current_month = DailyHoursInput.all_hours.current_month(user)
-    last_month = DailyHoursInput.all_hours.last_month(user)
-    current_year = DailyHoursInput.all_hours.current_year(user)
+    hour_stats = HourStats(user=user)
     context = {
-        "current_month": get_dashboard_stats(current_month),
-        "last_month": get_dashboard_stats(last_month),
-        "current_year": get_dashboard_stats(current_year),
+        "current_month": hour_stats.get_current_month_stats(),
+        "last_month": hour_stats.get_last_month_stats(),
+        "current_year": hour_stats.get_this_year_stats(),
     }
     return context
 
