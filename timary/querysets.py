@@ -33,7 +33,9 @@ class HourStats:
     def get_sent_invoices_stats(self, date_range=None):
         from timary.models import SentInvoice
 
-        sent_invoices = SentInvoice.objects.filter(user=self.user)
+        sent_invoices = SentInvoice.objects.filter(user=self.user).exclude(
+            paid_status=SentInvoice.PaidStatus.FAILED
+        )
         if date_range:
             sent_invoices = sent_invoices.filter(date_sent__range=date_range)
         else:
