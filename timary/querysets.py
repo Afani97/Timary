@@ -45,7 +45,8 @@ class HourStats:
         total_amount = 0
         for sent_invoice in sent_invoices:
             hours, total = sent_invoice.get_hours_tracked()
-            total_hours += hours.aggregate(total_hours=Sum("hours"))["total_hours"]
+            if hours:
+                total_hours += hours.aggregate(total_hours=Sum("hours"))["total_hours"]
             total_amount += total
 
         return total_hours, total_amount

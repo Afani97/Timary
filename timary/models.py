@@ -359,12 +359,12 @@ class SentInvoice(BaseModel):
             .exclude(hours=0)
             .order_by("date_tracked")
         )
+        if self.invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+            return hours_tracked, self.total_price
 
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            if self.invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-                return hours_tracked, self.total_price
             invoice_rate = round(self.total_price / total_hours["total_hours"], 1)
             total_cost_amount = total_hours["total_hours"] * invoice_rate
             hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("hours"))
