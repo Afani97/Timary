@@ -391,7 +391,9 @@ class TestStripeViews(BaseTest):
 
         self.client.force_login(self.user)
 
-        response = self.client.get(reverse("timary:complete_connect"))
+        response = self.client.get(
+            f'{reverse("timary:complete_connect")}?user_id={self.user.id}'
+        )
         self.user.refresh_from_db()
 
         self.assertRedirects(response, reverse("timary:user_profile"))
@@ -403,10 +405,14 @@ class TestStripeViews(BaseTest):
 
         self.client.force_login(self.user)
 
-        response = self.client.get(reverse("timary:complete_connect"))
+        response = self.client.get(
+            f'{reverse("timary:complete_connect")}?user_id={self.user.id}'
+        )
         self.user.refresh_from_db()
 
-        self.assertRedirects(response, reverse("timary:user_profile"))
+        self.assertRedirects(
+            response, reverse("timary:user_profile"), target_status_code=200
+        )
         self.assertFalse(self.user.stripe_payouts_enabled)
 
     @patch("stripe.Webhook.construct_event")

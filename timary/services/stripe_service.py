@@ -243,12 +243,12 @@ class StripeService:
         return stripe.Subscription.retrieve(subscription_id)
 
     @classmethod
-    def update_connect_account(cls, account_id):
+    def update_connect_account(cls, user_id, account_id):
         stripe.api_key = cls.stripe_api_key
         account_link = stripe.AccountLink.create(
             account=account_id,
             refresh_url=f"{settings.SITE_URL}/reauth",
-            return_url=f"{settings.SITE_URL}/complete_connect/",
+            return_url=f"{settings.SITE_URL}/complete_connect?user_id={user_id}",
             type="account_update",
         )
         return account_link["url"]

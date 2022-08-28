@@ -126,16 +126,24 @@ def onboard_success(request):
 @require_http_methods(["GET"])
 @login_required()
 def update_connect_account(request):
-    account_url = StripeService.update_connect_account(request.user.stripe_connect_id)
+    account_url = StripeService.update_connect_account(
+        request.user.id, request.user.stripe_connect_id
+    )
     return redirect(account_url)
 
 
 @require_http_methods(["GET"])
 @login_required()
 def completed_connect_account(request):
-    connect_account = StripeService.get_connect_account(request.user.stripe_connect_id)
-    request.user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    request.user.save()
+    if "user_id" not in request.GET:
+        return redirect(reverse("timary:register"))
+    user = User.objects.filter(id=request.GET.get("user_id")).first()
+    if not user:
+        return redirect(reverse("timary:register"))
+    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
+    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
+    user.save()
+    login(request, user)
     return redirect(reverse("timary:user_profile"))
 
 
