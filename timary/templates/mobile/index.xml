@@ -1,0 +1,100 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+      <style id="Body" backgroundColor="white" flex="1" paddingTop="24" />
+      <style id="Main" flex="1" marginBottom="40" />
+      <style
+        id="FormGroup"
+        flex="1"
+        marginLeft="24"
+        marginRight="24"
+        marginTop="24"
+      />
+      <style
+        id="Input"
+        flex="1"
+        fontSize="16"
+        fontWeight="normal"
+        paddingBottom="8"
+        paddingTop="8"
+      >
+        <modifier focused="true">
+          <style borderBottomColor="#4778FF" />
+        </modifier>
+      </style>
+      <style id="Input--Error" borderBottomColor="#FF4847" color="#FF4847">
+        <modifier focused="true">
+          <style borderBottomColor="#FF4847" />
+        </modifier>
+      </style>
+      <style
+        id="Label"
+        borderColor="#4E4D4D"
+        fontSize="16"
+        fontWeight="bold"
+        lineHeight="24"
+        marginBottom="8"
+      />
+      <style
+        id="Help"
+        borderColor="#FF4847"
+        fontSize="16"
+        fontWeight="normal"
+        lineHeight="24"
+        marginTop="16"
+      />
+      <style id="Help--Error" color="#FF4847" />
+      <style
+        id="Submit"
+        color="white"
+        backgroundColor="#5c20dd"
+        fontSize="16"
+        fontWeight="bold"
+        lineHeight="24"
+        textAlign="center"
+        width="100"
+        padding="10"
+        margin="10"
+        borderRadius="10"
+        borderWidth="1"
+        borderColor="#bdc4c4"
+        overflow="hidden"
+      />
+      <style id="Wrapper"
+        display="flex"
+        justifyContent="center"
+        flexDirection="row"
+        flexWrap="wrap"
+        width="100%"
+        backgroundColor="white"
+      />
+    </styles>
+    <body style="Body" safe-area="true">
+      <form id="myForm" scroll="true">
+        <view style="FormGroup">
+          <text style="Label">Label line</text>
+          <text-field
+            name="data"
+            placeholder="Placeholder"
+            placeholderTextColor="#8D9494"
+            style="Input"
+          />
+        </view>
+          <view style="Wrapper">
+                      <text
+          action="replace"
+          delay="500"
+          href="/case_studies/basic_form/submit.xml"
+          show-during-load="mySpinner"
+          style="Submit"
+          target="myForm"
+        >
+          Submit
+        </text>
+          </view>
+
+      </form>
+      <spinner id="mySpinner" hide="true" />
+    </body>
+  </screen>
+</doc>

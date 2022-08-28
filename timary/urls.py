@@ -184,4 +184,6 @@ urlpatterns += [
     ),
 ]
 
+urlpatterns += [path("mobile/index", views.mobile_index, name="mobile_index")]
+
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
