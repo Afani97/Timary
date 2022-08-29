@@ -55,7 +55,7 @@ def gather_invoices():
             & Q(is_archived=False)
             & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
         )
-        for invoice in invoices_sent_tomorrow:
+        for invoice in invoices_sent_only_on_mondays:
             _ = async_task(send_invoice, invoice.id)
         invoices_sent += len(list(invoices_sent_only_on_mondays))
 

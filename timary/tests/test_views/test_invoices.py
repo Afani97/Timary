@@ -133,13 +133,19 @@ class TestInvoices(BaseTest):
                 "email_recipient": "john@test.com",
             },
         )
+        # Hack for now until you find out how to mock nextmonday's datetime.today() + calcs.
+        next_monday_template_tag = nextmonday("")
+        if next_monday_template_tag != "today":
+            next_monday_template_tag = template_date(
+                next_monday_template_tag, "M. j, Y"
+            )
         invoice = Invoice.objects.first()
         inv_name = invoice.email_recipient_name
         inv_email = invoice.email_recipient
         self.assertInHTML(
             f"""
             <p class="text-xl my-2">emailed to {inv_name} ({inv_email})</p>
-            <p class="text-xl">next invoice sent out: {template_date(nextmonday(""), "M. j, Y")}</p>
+            <p class="text-xl">next invoice sent out: {next_monday_template_tag}</p>
             """,
             response.content.decode("utf-8"),
         )
