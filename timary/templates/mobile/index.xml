@@ -22,7 +22,7 @@
           <style borderBottomColor="#4778FF" />
         </modifier>
       </style>
-      <style id="Input--Error" borderBottomColor="#FF4847" color="#FF4847">
+      <style id="Input--Error" marginLeft="20" marginRight="20" borderBottomColor="#FF4847" color="#FF4847">
         <modifier focused="true">
           <style borderBottomColor="#FF4847" />
         </modifier>
@@ -72,25 +72,37 @@
     <body style="Body" safe-area="true">
       <form id="myForm" scroll="true">
         <view style="FormGroup">
-          <text style="Label">Label line</text>
+          <text style="Label">Email</text>
           <text-field
-            name="data"
-            placeholder="Placeholder"
+            name="username"
+            placeholder="test@test.com"
             placeholderTextColor="#8D9494"
+            keyboard-type="email-address"
             style="Input"
           />
         </view>
+        <view style="FormGroup">
+          <text style="Label">Password</text>
+          <text-field
+            name="password"
+            placeholder="*****"
+            placeholderTextColor="#8D9494"
+            style="Input"
+            secure-text="true"
+          />
+        </view>
           <view style="Wrapper">
-                      <text
-          action="replace"
-          delay="500"
-          href="/case_studies/basic_form/submit.xml"
-          show-during-load="mySpinner"
-          style="Submit"
-          target="myForm"
-        >
-          Submit
-        </text>
+              <text
+                  action="replace"
+                  delay="500"
+                  href="{% url 'timary:obtain_auth_token' %}"
+                  show-during-load="mySpinner"
+                  style="Submit"
+                  target="myForm"
+                  verb="post"
+                >
+                  Submit
+                </text>
           </view>
 
       </form>

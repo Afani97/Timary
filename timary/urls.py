@@ -184,6 +184,10 @@ urlpatterns += [
     ),
 ]
 
-urlpatterns += [path("mobile/index", views.mobile_index, name="mobile_index")]
+urlpatterns += [
+    path("mobile/index/", views.mobile_index, name="mobile_index"),
+    path("mobile/home/", views.mobile_home, name="mobile_home"),
+    path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),
+]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

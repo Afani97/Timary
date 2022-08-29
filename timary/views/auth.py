@@ -2,6 +2,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_xml.parsers import XMLParser
+from rest_framework_xml.renderers import XMLRenderer
 from stripe.error import InvalidRequestError
 
 from timary.forms import LoginForm, RegisterForm
@@ -120,3 +125,36 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect(reverse("timary:index"))
+
+
+class CustomAuthToken(ObtainAuthToken):
+    parser_classes = (
+        FormParser,
+        MultiPartParser,
+    )
+    renderer_classes = (XMLRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid():
+            user = serializer.validated_data["user"]
+            token, created = Token.objects.get_or_create(user=user)
+            return render(
+                request,
+                "mobile/login-form.xml",
+                context={"success": True},
+                content_type="application/xml",
+            )
+        else:
+            errors_list = []
+            for _, errors in serializer.errors.items():
+                for error in errors:
+                    errors_list.append(error)
+            return render(
+                request,
+                "mobile/login-form.xml",
+                context={"errors": errors_list},
+                content_type="application/xml",
+            )

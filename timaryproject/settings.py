@@ -58,6 +58,9 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_browser_reload",
     "storages",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_xml",
 ]
 
 MIDDLEWARE = [
@@ -321,6 +324,21 @@ SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
 
 # PLAYWRIGHT
 HEADLESS_UI = True
+
+
+# DRF
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication"
+    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework_xml.parsers.XMLParser",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework_xml.renderers.XMLRenderer",
+    ],
+}
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True

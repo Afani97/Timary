@@ -10,6 +10,8 @@ django-phonenumber-field
 django-q
 django-storages
 django-twilio
+djangorestframework
+djangorestframework-xml
 httmock
 openpyxl
 Pillow
