@@ -191,6 +191,8 @@ class MessageResponse:
 class TestTwilioReplyWebhook(TestCase):
     def setUp(self) -> None:
         self.factory = RequestFactory()
+        self.phone_number = "+17742613186"
+        self.user = UserFactory(phone_number=self.phone_number)
         self.data = {
             "MessageSid": "MSXXXX",
             "SmsSid": "SSXXXX",
@@ -204,7 +206,7 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_no_invoices_left_to_sms(self, message_list_mock, message_response_mock):
-        invoice = InvoiceFactory(user__phone_number="+17742613186")
+        invoice = InvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
             {},
@@ -227,9 +229,8 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_1_invoice_left_to_sms(self, message_list_mock, message_response_mock):
-        user = UserFactory(phone_number="+17742613186")
-        invoice = InvoiceFactory(user=user)
-        invoice2 = InvoiceFactory(user=user)
+        invoice = InvoiceFactory(user=self.user)
+        invoice2 = InvoiceFactory(user=self.user)
 
         # FIRST INVOICE SMS SENT
         message_list_mock.return_value = [
@@ -274,7 +275,7 @@ class TestTwilioReplyWebhook(TestCase):
     def test_invalid_response_type_in_body(
         self, message_list_mock, message_response_mock
     ):
-        invoice = InvoiceFactory(user__phone_number="+17742613186")
+        invoice = InvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
             {},
@@ -299,12 +300,55 @@ class TestTwilioReplyWebhook(TestCase):
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
+    @patch("timary.services.twilio_service.TwilioClient.log_hours")
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_twilio_get_messages_error_resends_message_to_log(
+        self, message_list_mock, message_response_mock, log_hours_mock
+    ):
+        log_hours_mock.return_value = None
+        invoice = InvoiceFactory(user=self.user)
+
+        message_list_mock.return_value = None
+        message_response_mock.return_value = MessageResponse(response="")
+
+        # FIRST INVOICE SENT, ERROR ON TWILIO SIDE
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        # WAS NOT ABLE TO GET RECENT MESSAGES, THEREFORE NOTHING TO LOG FOR
+        # RESEND LATEST MESSAGE
+        self.assertEqual(DailyHoursInput.objects.count(), 0)
+
+        # RESEND INVOICE SMS
+        message_list_mock.return_value = [
+            {},
+            Message(f"How many hours to log for: {invoice.title}."),
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn("All set for today. Keep it up!", response.response)
+        self.assertEqual(DailyHoursInput.objects.count(), 1)
+
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_body_has_to_be_greater_than_half_hour(
         self, message_list_mock, message_response_mock
     ):
-        invoice = InvoiceFactory(user__phone_number="+17742613186")
+        invoice = InvoiceFactory(user=self.user)
 
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
@@ -354,9 +398,8 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_skip_invoice(self, message_list_mock, message_response_mock):
         """Since we hide hours logged with '0' hours, this is a hack to 'skip'"""
-        user = UserFactory(phone_number="+17742613186")
-        invoice = InvoiceFactory(user=user)
-        invoice2 = InvoiceFactory(user=user)
+        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        invoice2 = InvoiceFactory(title="Invoice2", user=self.user)
         self.data["Body"] = "S"
 
         # FIRST INVOICE SMS SENT

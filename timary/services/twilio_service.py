@@ -30,4 +30,8 @@ class TwilioClient:
 
     @staticmethod
     def get_user_messages():
-        return TwilioClient.client().messages.list(limit=2, date_sent=datetime)
+        recent_messages = TwilioClient.client().messages.list(
+            limit=2, date_sent=datetime
+        )
+        if recent_messages and len(recent_messages) == 2:
+            return recent_messages[1]

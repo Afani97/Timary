@@ -494,7 +494,8 @@ class User(AbstractUser, BaseModel):
         remaining_invoices = (
             set(self.get_invoices.filter(next_date__isnull=False)) - invoices
         )
-        return remaining_invoices
+        if len(remaining_invoices) > 0:
+            return remaining_invoices
 
     @property
     def formatted_phone_number(self):

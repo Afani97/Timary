@@ -14,11 +14,17 @@ def twilio_reply(request):
     twilio_request = decompose(request)
     user = User.objects.get(phone_number=twilio_request.from_)
 
-    messages = TwilioClient.get_user_messages()
+    last_message = TwilioClient.get_user_messages()
+    if not last_message:
+        remaining_invoices = user.invoices_not_logged
+        TwilioClient.log_hours(remaining_invoices.pop())
+        return
 
-    _, invoice_title = messages[1].body.split(":")
+    _, invoice_title = last_message.body.split(":")
     invoice_title = invoice_title.split(".")[0]
+    print(invoice_title.strip())
     invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
+    print(invoice)
 
     skip = False
     if twilio_request.body.lower() == "s":
@@ -54,7 +60,7 @@ def twilio_reply(request):
         )
 
     remaining_invoices = user.invoices_not_logged
-    if len(remaining_invoices) > 0:
+    if remaining_invoices:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()
         r.message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
