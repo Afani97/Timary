@@ -33,30 +33,36 @@ class AccountingService:
 
     def get_auth_tokens(self):
         request = self.kwargs.get("request")
-        return self.service_klass().get_auth_tokens(request)
+        if self.service_klass:
+            self.service_klass().get_auth_tokens(request)
 
     def refresh_tokens(self):
         user = self.kwargs.get("user")
-        self.service_klass().refresh_tokens(user)
+        if self.service_klass:
+            self.service_klass().refresh_tokens(user)
 
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
-        self.service_klass().create_customer(invoice)
+        if self.service_klass:
+            self.service_klass().create_customer(invoice)
 
     def create_invoice(self):
         sent_invoice = self.kwargs.get("sent_invoice")
-        self.service_klass().create_invoice(sent_invoice)
+        if self.service_klass:
+            self.service_klass().create_invoice(sent_invoice)
 
     def sync_customers(self):
         user = self.kwargs.get("user")
-        for invoice in user.get_invoices:
-            self.service_klass().create_customer(invoice)
+        if self.service_klass:
+            for invoice in user.get_invoices:
+                self.service_klass().create_customer(invoice)
 
     def sync_invoices(self):
         from timary.models import SentInvoice
 
         user = self.kwargs.get("user")
-        for sent_invoice in user.sent_invoices.filter(
-            paid_status=SentInvoice.PaidStatus.PAID
-        ):
-            self.service_klass().create_invoice(sent_invoice)
+        if self.service_klass:
+            for sent_invoice in user.sent_invoices.filter(
+                paid_status=SentInvoice.PaidStatus.PAID
+            ):
+                self.service_klass().create_invoice(sent_invoice)
