@@ -53,6 +53,10 @@ def contract_builder(request):
     return render(request, "contract/builder.html", context)
 
 
+def stopwatch(request):
+    return render(request, "stopwatch.html", {})
+
+
 def terms_page(request):
     return render(request, "company/terms.html", {})
 

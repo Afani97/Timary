@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.22.0/dist/full.css" rel="stylesheet" type="text/css" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <meta name="theme-color" content="#2b2e36">
+        <title>Stopwatch by Timary</title>
+        {# Third Party JS #}
+        <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
+    </head>
+    <body class="flex flex-col justify-between">
+        <h1 class="text-3xl text-center my-5">Super Simple Stopwatch</h1>
+        <div class="flex justify-center mt-20" id="timer_container">
+            <div>
+                <span class="font-mono text-5xl md:text-8xl countdown flex justify-center">
+                    <span id="timer_hour">00</span>:
+                    <span id="timer_min">00</span>:
+                    <span id="timer_sec">00</span>
+                </span>
+                <div class="flex justify-center space-x-4 mt-10">
+                    <button id="start_timer" class="btn lg:btn-lg" _="on click call start()"
+                        _="on click call start()">Start</button>
+                    <button id="pause_timer" class="btn hidden lg:btn-lg"
+                        _="on click call pause()">Pause</button>
+                    <button id="resume_timer" class="btn hidden lg:btn-lg"
+                        _="on click call resume()">Resume</button>
+                    <button id="stop_timer" class="btn hidden lg:btn-lg"
+                        _="on click call stop()">Stop</button>
+                    <button id="reset_timer" class="btn hidden lg:btn-lg"
+                        _="on click call reset()">Reset</button>
+                </div>
+            </div>
+        </div>
+        <div class="absolute flex justify-center bottom-0 left-0 right-0 mb-5">
+            <a href="{% url 'timary:landing_page' %}" class="link text-center">Powered by Timary</a>
+        </div>
+
+        <script>
+
+            {% include "partials/timer_class.html" %}
+
+            let start_timer_btn = document.getElementById("start_timer");
+            let pause_timer_btn = document.getElementById("pause_timer");
+            let resume_timer_btn = document.getElementById("resume_timer");
+            let stop_timer_btn = document.getElementById("stop_timer");
+            let reset_timer_btn = document.getElementById("reset_timer");
+            let timer_hour_span = document.getElementById("timer_hour");
+            let timer_min_span = document.getElementById("timer_min");
+            let timer_sec_span = document.getElementById("timer_sec");
+            let hoursTimer = new timaryTimer();
+
+            function update_timer(hrs, mins, secs) {
+                timer_hour_span.style.cssText = `--value: ${hrs}`;
+                timer_min_span.style.cssText = `--value: ${mins}`;
+                timer_sec_span.style.cssText = `--value: ${secs}`;
+            }
+
+            function timer() {
+                setInterval(() => {
+                    const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
+                    let hrs = Math.floor(timeInSeconds / 3600);
+                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+                    let secs = timeInSeconds % 60;
+                    update_timer(hrs, mins, secs);
+                }, 100)
+            }
+
+            function start() {
+                hoursTimer.start();
+                timer();
+                hoursTimer.isPaused = false;
+                hoursTimer.isStopped = false;
+                timer_container.classList.remove("hidden");
+                start_timer_btn.classList.add("hidden");
+                pause_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+                reset_timer_btn.classList.remove("hidden");
+            }
+
+            function resume() {
+                hoursTimer.start();
+                timer();
+                hoursTimer.isPaused = false;
+                hoursTimer.isStopped = false;
+                resume_timer_btn.classList.add("hidden");
+                pause_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+            }
+
+            function pause() {
+                hoursTimer.stop();
+                hoursTimer.isPaused = true;
+                pause_timer_btn.classList.add("hidden");
+                resume_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+            }
+
+            function reset() {
+                hoursTimer.stop();
+                let reset = confirm("Are you sure you want to reset?");
+
+                if (reset) {
+                    update_timer(0, 0, 0);
+                    hoursTimer.reset();
+                    hoursTimer.isStopped = false;
+                    hoursTimer.isPaused = false;
+                    hoursTimer.start();
+                } else {
+                    if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
+                        hoursTimer.start();
+                    }
+                }
+            }
+
+            function stop() {
+                hoursTimer.stop();
+                hoursTimer.isStopped = true;
+                let stopped = confirm("Are you sure you want to stop?");
+
+                if (stopped) {
+                    hoursTimer.reset();
+                    update_timer(0, 0, 0);
+                    start_timer_btn.classList.remove("hidden");
+                    resume_timer_btn.classList.add("hidden");
+                    pause_timer_btn.classList.add("hidden");
+                    stop_timer_btn.classList.add("hidden");
+                    reset_timer_btn.classList.add("hidden")
+
+                } else {
+                    if (!hoursTimer.isPaused && hoursTimer.isStopped) {
+                        hoursTimer.start();
+                    }
+                }
+
+            }
+
+        </script>
+
+
+
+    </body>
+</html>

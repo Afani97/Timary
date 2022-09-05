@@ -22,9 +22,7 @@ def twilio_reply(request):
 
     _, invoice_title = last_message.body.split(":")
     invoice_title = invoice_title.split(".")[0]
-    print(invoice_title.strip())
     invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
-    print(invoice)
 
     skip = False
     if twilio_request.body.lower() == "s":

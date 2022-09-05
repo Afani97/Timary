@@ -50,7 +50,7 @@
                     {% if invoice.invoice_type == 1 %}
                         {% if invoice.next_date %}
                             <p class="text-xl">emailed {{ invoice.get_invoice_interval_display|lower }} to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                            <p class="text-xl">next date sent is {{ invoice.next_date }}</p>
+                            <p class="text-xl">next date sent is {{ invoice.next_date|date:"M. j, Y" }}</p>
                         {% else %}
                             <p class="text-xl">invoice is paused</p>
                         {% endif %}
