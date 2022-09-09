@@ -15,7 +15,7 @@ def twilio_reply(request):
     user = User.objects.get(phone_number=twilio_request.from_)
 
     last_message = TwilioClient.get_user_messages()
-    if not last_message:
+    if not last_message or ":" not in last_message.body:
         remaining_invoices = user.invoices_not_logged
         TwilioClient.log_hours(remaining_invoices.pop())
         return
