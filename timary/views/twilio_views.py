@@ -21,7 +21,7 @@ def twilio_reply(request):
             TwilioClient.log_hours(remaining_invoices.pop())
         else:
             TwilioClient.send_message(user, "All set for today. Keep it up!")
-        return
+        return MessagingResponse()
 
     _, invoice_title = last_message.body.split(":")
     invoice_title = invoice_title.split(".")[0]
