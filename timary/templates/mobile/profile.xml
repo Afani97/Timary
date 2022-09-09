@@ -36,15 +36,14 @@
       />
     </styles>
     <body style="Body" safe-area="true">
-    <text style="Label">Successfully Logged In</text>
+    <text style="Label">Your profile</text>
     <view style="Wrapper">
       <text
-          action="new"
-          href="{% url 'timary:mobile_profile' %}"
-          show-during-load="mySpinner"
+          action="close"
+          href="{% url 'timary:mobile_home' %}"
           style="Profile"
         >
-          Profile
+          Go back
         </text>
     </view>
     </body>

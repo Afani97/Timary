@@ -187,6 +187,7 @@ urlpatterns += [
 urlpatterns += [
     path("mobile/index/", views.mobile_index, name="mobile_index"),
     path("mobile/home/", views.mobile_home, name="mobile_home"),
+    path("mobile/profile/", views.mobile_profile, name="mobile_profile"),
     path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),
 ]
 

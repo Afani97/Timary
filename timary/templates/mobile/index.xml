@@ -70,42 +70,7 @@
       />
     </styles>
     <body style="Body" safe-area="true">
-      <form id="myForm" scroll="true">
-        <view style="FormGroup">
-          <text style="Label">Email</text>
-          <text-field
-            name="username"
-            placeholder="test@test.com"
-            placeholderTextColor="#8D9494"
-            keyboard-type="email-address"
-            style="Input"
-          />
-        </view>
-        <view style="FormGroup">
-          <text style="Label">Password</text>
-          <text-field
-            name="password"
-            placeholder="*****"
-            placeholderTextColor="#8D9494"
-            style="Input"
-            secure-text="true"
-          />
-        </view>
-          <view style="Wrapper">
-              <text
-                  action="replace"
-                  delay="500"
-                  href="{% url 'timary:obtain_auth_token' %}"
-                  show-during-load="mySpinner"
-                  style="Submit"
-                  target="myForm"
-                  verb="post"
-                >
-                  Submit
-                </text>
-          </view>
-
-      </form>
+      {% include "mobile/_login_form.xml" %}
       <spinner id="mySpinner" hide="true" />
     </body>
   </screen>

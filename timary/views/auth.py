@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework_xml.parsers import XMLParser
 from rest_framework_xml.renderers import XMLRenderer
 from stripe.error import InvalidRequestError
@@ -143,7 +143,7 @@ class CustomAuthToken(ObtainAuthToken):
             token, created = Token.objects.get_or_create(user=user)
             return render(
                 request,
-                "mobile/login-form.xml",
+                "mobile/_login_form.xml",
                 context={"success": True},
                 content_type="application/xml",
             )
@@ -154,7 +154,7 @@ class CustomAuthToken(ObtainAuthToken):
                     errors_list.append(error)
             return render(
                 request,
-                "mobile/login-form.xml",
+                "mobile/_login_form.xml",
                 context={"errors": errors_list},
                 content_type="application/xml",
             )
