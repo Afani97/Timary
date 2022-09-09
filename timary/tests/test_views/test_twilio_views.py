@@ -370,7 +370,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip",
+            f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -383,6 +383,57 @@ class TestTwilioReplyWebhook(TestCase):
         ]
         updated_data = self.data.copy()
         updated_data["Body"] = "0.6"
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=updated_data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertEqual(response.response, "All set for today. Keep it up!")
+        self.assertEqual(DailyHoursInput.objects.count(), 1)
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_body_has_to_be_less_than_24(
+        self, message_list_mock, message_response_mock
+    ):
+        invoice = InvoiceFactory(user=self.user)
+
+        # FIRST INVOICE SENT, NOT ENOUGH HOURS
+        message_list_mock.return_value = [
+            {},
+            Message(f"How many hours to log for: {invoice.title}."),
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        invalid_data = self.data.copy()
+        invalid_data["Body"] = "25"
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=invalid_data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertEqual(
+            response.response,
+            f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip",
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 0)
+
+        # SECOND INVOICE SENT, HOURS LOGGED MORE THAN 30 MINUTES
+        message_list_mock.return_value = [
+            {},
+            Message(
+                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
+            ),
+        ]
+        updated_data = self.data.copy()
+        updated_data["Body"] = "5"
         request = self.factory.post(
             reverse("timary:twilio_reply"),
             data=updated_data,

@@ -38,7 +38,7 @@ def twilio_reply(request):
             )
             return r
 
-        if hours > 0:
+        if 0 < hours <= 24:
             DailyHoursInput.objects.create(
                 hours=hours,
                 date_tracked=datetime.date.today(),
@@ -47,7 +47,7 @@ def twilio_reply(request):
         else:
             r = MessagingResponse()
             r.message(
-                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
+                f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip"
             )
             return r
     else:
