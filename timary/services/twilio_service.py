@@ -29,9 +29,20 @@ class TwilioClient:
         )
 
     @staticmethod
+    def send_message(user, message):
+        _ = TwilioClient.client().messages.create(
+            to=user.formatted_phone_number,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            body=message,
+        )
+
+    @staticmethod
     def get_user_messages():
         recent_messages = TwilioClient.client().messages.list(
             limit=2, date_sent=datetime
         )
         if recent_messages and len(recent_messages) == 2:
-            return recent_messages[1]
+            if hasattr(recent_messages[1], "body"):
+                if ":" in recent_messages[1].body:
+                    return recent_messages[1]
+        return None

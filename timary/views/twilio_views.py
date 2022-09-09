@@ -15,9 +15,12 @@ def twilio_reply(request):
     user = User.objects.get(phone_number=twilio_request.from_)
 
     last_message = TwilioClient.get_user_messages()
-    if not last_message or ":" not in last_message.body:
+    if not last_message:
         remaining_invoices = user.invoices_not_logged
-        TwilioClient.log_hours(remaining_invoices.pop())
+        if remaining_invoices:
+            TwilioClient.log_hours(remaining_invoices.pop())
+        else:
+            TwilioClient.send_message(user, "All set for today. Keep it up!")
         return
 
     _, invoice_title = last_message.body.split(":")

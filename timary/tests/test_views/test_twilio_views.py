@@ -300,13 +300,19 @@ class TestTwilioReplyWebhook(TestCase):
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
+    @patch("timary.services.twilio_service.TwilioClient.send_message")
     @patch("timary.services.twilio_service.TwilioClient.log_hours")
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_twilio_get_messages_error_resends_message_to_log(
-        self, message_list_mock, message_response_mock, log_hours_mock
+        self,
+        message_list_mock,
+        message_response_mock,
+        log_hours_mock,
+        send_message_mock,
     ):
         log_hours_mock.return_value = None
+        send_message_mock.return_value = None
         invoice = InvoiceFactory(user=self.user)
 
         message_list_mock.return_value = None
