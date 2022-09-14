@@ -37,6 +37,10 @@
             </text>
       </view>
     {% if success %}
-      <behavior trigger="load" href="{% url 'timary:mobile_home' %}" />
+    <behavior trigger="load" href="{% url 'timary:mobile_home' %}" />
+    <view xmlns:login="https://usetimary.com/hyperview-login">
+        <behavior trigger="load" action="login" login:token="{{ token }}" />
+    </view>
+
     {% endif %}
 </form>

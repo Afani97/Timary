@@ -144,7 +144,7 @@ class CustomAuthToken(ObtainAuthToken):
             return render(
                 request,
                 "mobile/_login_form.xml",
-                context={"success": True},
+                context={"success": True, "token": token},
                 content_type="application/xml",
             )
         else:
