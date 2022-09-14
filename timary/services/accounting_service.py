@@ -17,7 +17,7 @@ class AccountingService:
         if "user" in self.kwargs:
             user = self.kwargs.get("user")
             if user.accounting_org:
-                service_klass = class_for_name(self.kwargs.get("user").accounting_org)
+                service_klass = class_for_name(user.accounting_org)
                 if service_klass:
                     self.service_klass = service_klass
 
@@ -34,7 +34,7 @@ class AccountingService:
     def get_auth_tokens(self):
         request = self.kwargs.get("request")
         if self.service_klass:
-            self.service_klass().get_auth_tokens(request)
+            return self.service_klass().get_auth_tokens(request)
 
     def refresh_tokens(self):
         user = self.kwargs.get("user")

@@ -39,6 +39,8 @@ def accounting_redirect(request):
 
     if not access_token:
         messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
+        user.accounting_org = None
+        user.save()
         return redirect(reverse("timary:user_profile"))
 
     accounting_service = AccountingService({"user": user})
