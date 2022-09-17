@@ -1,0 +1,18 @@
+<header style="Header">
+    {% if show_back %}
+        <text action="back" href="#" style="Header__Back">Back</text>
+    {% endif %}
+    {% if show_close %}
+        <text action="close" href="#" style="Header__Back">Close</text>
+    {% endif %}
+
+
+    <text style="Header__Title">{{ header_title }}</text>
+
+
+    {# Show empty view to center title #}
+    {% if show_back or show_close %}
+        <text action="back" href="#" style="Header__Back"></text>
+    {% endif %}
+
+</header>

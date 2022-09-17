@@ -1,32 +1,11 @@
 <doc xmlns="https://hyperview.org/hyperview">
   <screen>
     <styles>
-        <style
-        id="Header"
-        alignItems="center"
-        backgroundColor="white"
-        borderBottomColor="#eee"
-        borderBottomWidth="1"
-        flexDirection="row"
-        paddingLeft="24"
-        paddingRight="24"
-        paddingBottom="16"
-      />
-      <style
-        id="Header__Back"
-        color="blue"
-        fontSize="16"
-        fontWeight="600"
-        paddingRight="16"
-      />
-      <style id="Header__Title" color="black" fontSize="24" fontWeight="600" />
-      <style id="Body" backgroundColor="white" flex="1" />
+        {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
+        <style id="Body" backgroundColor="white" flex="1" />
     </styles>
     <body style="Body" safe-area="true">
-        <header style="Header">
-            <text action="back" href="#" style="Header__Back">Back</text>
-            <text style="Header__Title">Set Value</text>
-        </header>
+        {% include 'mobile/header/_header.xml' with header_title="Profile" show_close=True %}
         <text>{{ profile.first_name }} {{ profile.last_name }}</text>
     </body>
   </screen>

@@ -1,0 +1,31 @@
+<style
+    id="Header"
+    alignItems="center"
+    {# Passed in due to differing headers with buttons #}
+    {# Could be 'center' or 'justify-between' #}
+    justifyContent='{{ jc }}'
+    backgroundColor="white"
+    borderBottomColor="#eee"
+    borderBottomWidth="1"
+    flexDirection="row"
+    paddingLeft="24"
+    paddingRight="24"
+    paddingBottom="12"
+/>
+<style
+    id="Header__Back"
+    color="blue"
+    fontSize="16"
+    fontWeight="600"
+    paddingRight="16"
+    paddingTop="12"
+    width="100"
+/>
+<style
+    id="Header__Title"
+    color="black"
+    fontSize="24"
+    fontWeight="600"
+    textAlign="center"
+    paddingTop="12"
+/>

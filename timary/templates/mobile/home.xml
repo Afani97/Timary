@@ -1,6 +1,7 @@
 <doc xmlns="https://hyperview.org/hyperview">
   <screen>
     <styles>
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
       <style id="Body" backgroundColor="white" flex="1" paddingTop="24" />
       <style
         id="Label"
@@ -36,10 +37,11 @@
       />
     </styles>
     <body style="Body" safe-area="true">
+        {% include 'mobile/header/_header.xml' with header_title="Hours" %}
     <text style="Label">Successfully Logged In</text>
     <view style="Wrapper">
       <text
-          action="push"
+          action="new"
           href="{% url 'timary:mobile_profile' %}"
           show-during-load="mySpinner"
           style="Profile"
