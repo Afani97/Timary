@@ -4,9 +4,7 @@
     {# Passed in due to differing headers with buttons #}
     {# Could be 'center' or 'justify-between' #}
     justifyContent='{{ jc }}'
-    backgroundColor="white"
-    borderBottomColor="#eee"
-    borderBottomWidth="1"
+    backgroundColor="#1b1d23"
     flexDirection="row"
     paddingLeft="24"
     paddingRight="24"
@@ -14,7 +12,7 @@
 />
 <style
     id="Header__Back"
-    color="blue"
+    color="white"
     fontSize="16"
     fontWeight="600"
     paddingRight="16"
@@ -23,7 +21,7 @@
 />
 <style
     id="Header__Title"
-    color="black"
+    color="white"
     fontSize="24"
     fontWeight="600"
     textAlign="center"

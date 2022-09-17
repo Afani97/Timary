@@ -1,20 +1,32 @@
+<style id="Body" backgroundColor="#2b303b" flex="1" />
+<style id="Wrapper"
+        display="flex"
+        justifyContent="center"
+        flexDirection="row"
+        flexWrap="wrap"
+        width="100%"
+/>
 <style
         id="FormGroup"
         flex="1"
-        marginLeft="24"
-        marginRight="24"
-        marginTop="24"
+        marginLeft="15"
+        marginRight="15"
+        marginTop="15"
       />
       <style
         id="Input"
         flex="1"
-        fontSize="16"
+        fontSize="24"
         fontWeight="normal"
-        paddingBottom="8"
-        paddingTop="8"
+        padding="12"
+        color="#9da1ad"
+        borderColor="black"
+        borderWidth="1"
+        borderRadius="10"
+        backgroundColor="#1b1d23"
       >
         <modifier focused="true">
-          <style borderBottomColor="#4778FF" />
+          <style borderColor="#5d15dd" />
         </modifier>
       </style>
       <style id="Input--Error" marginLeft="20" marginRight="20" borderBottomColor="#FF4847" color="#FF4847">
@@ -24,7 +36,7 @@
       </style>
       <style
         id="Label"
-        borderColor="#4E4D4D"
+        color="#9da1ad"
         fontSize="16"
         fontWeight="bold"
         lineHeight="24"
@@ -39,11 +51,4 @@
         marginTop="16"
       />
       <style id="Help--Error" color="#FF4847" />
-<style id="Wrapper"
-        display="flex"
-        justifyContent="center"
-        flexDirection="row"
-        flexWrap="wrap"
-        width="100%"
-        backgroundColor="white"
-      />
+        <style id="MarginTop20" marginTop="20" />

@@ -1,39 +1,23 @@
 <doc xmlns="https://hyperview.org/hyperview">
   <screen>
     <styles>
+        {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc="center" %}
-      <style id="Body" backgroundColor="white" flex="1" paddingTop="24" />
-      <style
-        id="Label"
-        borderColor="#4E4D4D"
-        fontSize="16"
-        fontWeight="bold"
-        lineHeight="24"
-        marginBottom="8"
-      />
-        <style id="Wrapper"
-        display="flex"
-        justifyContent="center"
-        flexDirection="row"
-        flexWrap="wrap"
-        width="100%"
-        backgroundColor="white"
-      />
         {% include 'mobile/_primary_button_styles.xml' with btn_id='Profile' %}
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Hours" %}
-    <text style="Label">Successfully Logged In</text>
-    <view style="Wrapper">
-      <text
-          action="push"
-          href="{% url 'timary:mobile_profile' %}"
-          show-during-load="mySpinner"
-          style="Profile"
-        >
-          Profile
-        </text>
-    </view>
+        <text style="Label">Successfully Logged In</text>
+        <view style="Wrapper">
+        <text
+            action="push"
+            href="{% url 'timary:mobile_profile' %}"
+            show-during-load="mySpinner"
+            style="Profile"
+            >
+            Profile
+            </text>
+        </view>
     </body>
   </screen>
 </doc>

@@ -1,8 +1,8 @@
 <doc xmlns="https://hyperview.org/hyperview">
   <screen id="ProfileScreen">
     <styles>
+        {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
-        <style id="Body" backgroundColor="white" flex="1" />
         {% include 'mobile/_primary_button_styles.xml' with btn_id='Edit-Profile' %}
     </styles>
     <body style="Body" safe-area="true">
