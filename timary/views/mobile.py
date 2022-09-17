@@ -23,4 +23,9 @@ def mobile_home(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def mobile_profile(request):
-    return render(request, "mobile/profile.xml", content_type="application/xml")
+    return render(
+        request,
+        "mobile/profile.xml",
+        {"profile": request.user},
+        content_type="application/xml",
+    )

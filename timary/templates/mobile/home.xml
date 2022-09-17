@@ -39,7 +39,7 @@
     <text style="Label">Successfully Logged In</text>
     <view style="Wrapper">
       <text
-          action="new"
+          action="push"
           href="{% url 'timary:mobile_profile' %}"
           show-during-load="mySpinner"
           style="Profile"
