@@ -1,0 +1,16 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+      <style id="Body" backgroundColor="white" flex="1" paddingTop="24" />
+      <style id="Main" flex="1" marginBottom="40" />
+        {% include 'mobile/header/_header_styles.xml' with js='space-between' %}
+        {% include 'mobile/edit-profile/edit_profile_styles.xml' %}
+        {% include 'mobile/_primary_button_styles.xml' with btn_id='Update' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_header.xml' with header_title="Edit Profile" show_close=True %}
+        {% include "mobile/edit-profile/edit_profile_form.xml" %}
+        <spinner id="mySpinner" hide="true" />
+    </body>
+  </screen>
+</doc>

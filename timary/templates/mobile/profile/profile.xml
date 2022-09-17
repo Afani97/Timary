@@ -1,0 +1,22 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="ProfileScreen">
+    <styles>
+        {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
+        <style id="Body" backgroundColor="white" flex="1" />
+        {% include 'mobile/_primary_button_styles.xml' with btn_id='Edit-Profile' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_header.xml' with header_title="Profile" show_back=True %}
+        {% include 'mobile/profile/_profile.xml' %}
+
+        {# Reload from the edit profile screen #}
+        <behavior
+                trigger="on-event"
+                event-name="reload"
+                action="replace"
+                target="Profile"
+                href="{% url 'timary:mobile_profile' %}?partial=true"
+        />
+    </body>
+  </screen>
+</doc>

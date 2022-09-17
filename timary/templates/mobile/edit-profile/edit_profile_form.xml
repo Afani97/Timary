@@ -1,0 +1,57 @@
+<form id="EditProfileForm" scroll="true" xmlns="https://hyperview.org/hyperview">
+    {% for field, errors in errors.items %}
+        {% for error in errors %}
+            <text style="Help--Error">{{ field }}: {{ error }}</text>
+        {% endfor %}
+    {% endfor %}
+
+    <view style="FormGroup">
+      <text style="Label">First Name</text>
+      <text-field
+        value="{{ profile.first_name }}"
+        name="first_name"
+        placeholder="Tom"
+        placeholderTextColor="#8D9494"
+        style="Input"
+      />
+    </view>
+    <view style="FormGroup">
+      <text style="Label">Last Name</text>
+      <text-field
+      value="{{ profile.last_name }}"
+        name="last_name"
+        placeholder="Brady"
+        placeholderTextColor="#8D9494"
+        keyboard-type="email-address"
+        style="Input"
+      />
+    </view>
+    <view style="FormGroup">
+      <text style="Label">Email</text>
+      <text-field
+            value="{{ profile.email }}"
+            name="email"
+            placeholder="*****"
+            placeholderTextColor="#8D9494"
+            style="Input"
+            keyboard-type="email-address"
+      />
+    </view>
+      <view style="Wrapper">
+          <text
+              action="replace"
+              delay="500"
+              href="{% url 'timary:mobile_edit_profile' %}"
+              show-during-load="mySpinner"
+              style="Update"
+              target="EditProfileForm"
+              verb="post"
+            >
+              Submit
+            </text>
+      </view>
+    {% if success %}
+    <behavior trigger="load" action="close" href="#" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload" />
+    {% endif %}
+</form>

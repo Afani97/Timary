@@ -1,0 +1,11 @@
+<view id="Profile" xmlns="https://hyperview.org/hyperview">
+    <text>{{ profile.first_name }} {{ profile.last_name }}</text>
+    <text
+      action="new"
+      href="{% url 'timary:mobile_edit_profile' %}"
+      show-during-load="mySpinner"
+      style="Edit-Profile"
+    >
+      Edit
+    </text>
+</view>

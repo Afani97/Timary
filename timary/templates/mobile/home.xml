@@ -19,29 +19,14 @@
         width="100%"
         backgroundColor="white"
       />
-        <style
-        id="Profile"
-        color="white"
-        backgroundColor="#5c20dd"
-        fontSize="16"
-        fontWeight="bold"
-        lineHeight="24"
-        textAlign="center"
-        width="100"
-        padding="10"
-        margin="10"
-        borderRadius="10"
-        borderWidth="1"
-        borderColor="#bdc4c4"
-        overflow="hidden"
-      />
+        {% include 'mobile/_primary_button_styles.xml' with btn_id='Profile' %}
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Hours" %}
     <text style="Label">Successfully Logged In</text>
     <view style="Wrapper">
       <text
-          action="new"
+          action="push"
           href="{% url 'timary:mobile_profile' %}"
           show-during-load="mySpinner"
           style="Profile"
