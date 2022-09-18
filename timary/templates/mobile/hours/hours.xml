@@ -6,14 +6,9 @@
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Hours" %}
-        <list
-            trigger="refresh"
-            href="{% url 'timary:mobile_hours' %}?partial=true"
-            action="replace-inner"
-          >
-                {% include 'mobile/hours/_hours.xml' %}
-        </list>
-        {# Reload from the edit profile screen #}
+        {% include 'mobile/hours/_hours.xml' %}
+
+        {# Reload hours screen #}
         <behavior
                 trigger="on-event"
                 event-name="reload"

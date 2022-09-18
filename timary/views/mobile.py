@@ -1,19 +1,19 @@
 from django.http import Http404
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
+    parser_classes,
     permission_classes,
     renderer_classes,
-    parser_classes,
 )
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_xml.renderers import XMLRenderer
 
-from timary.forms import UserForm, DailyHoursForm
+from timary.forms import DailyHoursForm, UserForm
 from timary.models import DailyHoursInput
 from timary.views import get_hours_tracked
 
@@ -53,6 +53,21 @@ def mobile_hours(request):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+def mobile_view_hours(request, hours_id):
+    hour = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user != hour.invoice.user:
+        raise Http404
+    return render(
+        request,
+        "mobile/hours/_hour.xml",
+        context={"hour": hour},
+        content_type="application/xml",
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def mobile_hour_stats(request):
     context = {}
     context.update(get_hours_tracked(request.user))
@@ -64,25 +79,42 @@ def mobile_hour_stats(request):
     )
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
 def mobile_edit_hours(request, hours_id):
-    hours = DailyHoursInput.all_hours.current_month(request.user)
-    show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
-
-    context = {
-        "new_hour_form": DailyHoursForm(user=request.user),
-        "hours": hours,
-        "show_repeat": show_repeat_option,
-    }
-    context.update(get_hours_tracked(request.user))
-    return render(
-        request,
-        "mobile/hours/hours.xml",
-        context=context,
-        content_type="application/xml",
-    )
+    hour = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user != hour.invoice.user:
+        raise Http404
+    if request.method == "POST":
+        hours = DailyHoursForm(request.data, instance=hour)
+        if hours.is_valid():
+            print("Hours valid")
+            hours.save()
+            return render(
+                request,
+                "mobile/edit-hours/edit_hours_form.xml",
+                {"hour": hour, "success": True},
+                content_type="application/xml",
+            )
+        else:
+            print("Hours invalid")
+            return render(
+                request,
+                "mobile/edit-hours/edit_hours_form.xml",
+                {"hour": hour, "errors": hours.errors},
+                content_type="application/xml",
+            )
+    else:
+        context = {"hour": hour, "user_invoices": request.user.get_invoices}
+        return render(
+            request,
+            "mobile/edit-hours/edit_hours.xml",
+            context=context,
+            content_type="application/xml",
+        )
 
 
 @api_view(["GET"])

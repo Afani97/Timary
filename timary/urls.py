@@ -186,7 +186,11 @@ urlpatterns += [
 
 urlpatterns += [
     path("mobile/index/", views.mobile_index, name="mobile_index"),
-    path("mobile/hours/", views.mobile_hours, name="mobile_hours"),
+    path(
+        "mobile/hours/<uuid:hours_id>/",
+        views.mobile_view_hours,
+        name="mobile_view_hours",
+    ),
     path(
         "mobile/hours/<uuid:hours_id>/edit/",
         views.mobile_edit_hours,
@@ -197,6 +201,7 @@ urlpatterns += [
         views.mobile_delete_hours,
         name="mobile_delete_hours",
     ),
+    path("mobile/hours/", views.mobile_hours, name="mobile_hours"),
     path("mobile/hours/stats", views.mobile_hour_stats, name="mobile_hour_stats"),
     path("mobile/profile/", views.mobile_profile, name="mobile_profile"),
     path("mobile/profile/edit/", views.mobile_edit_profile, name="mobile_edit_profile"),
