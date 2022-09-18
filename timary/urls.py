@@ -186,7 +186,17 @@ urlpatterns += [
 
 urlpatterns += [
     path("mobile/index/", views.mobile_index, name="mobile_index"),
-    path("mobile/home/", views.mobile_home, name="mobile_home"),
+    path("mobile/hours/", views.mobile_hours, name="mobile_hours"),
+    path(
+        "mobile/hours/<uuid:hours_id>/edit/",
+        views.mobile_edit_hours,
+        name="mobile_edit_hours",
+    ),
+    path(
+        "mobile/hours/<uuid:hours_id>/delete/",
+        views.mobile_delete_hours,
+        name="mobile_delete_hours",
+    ),
     path("mobile/profile/", views.mobile_profile, name="mobile_profile"),
     path("mobile/profile/edit/", views.mobile_edit_profile, name="mobile_edit_profile"),
     path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),

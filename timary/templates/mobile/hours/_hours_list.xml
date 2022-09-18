@@ -1,0 +1,5 @@
+<view>
+    {% for hour in hours %}
+        {% include 'mobile/hours/_hour.xml' with hour=hour %}
+    {% endfor %}
+</view>

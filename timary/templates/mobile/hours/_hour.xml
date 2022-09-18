@@ -1,0 +1,22 @@
+<view style="Border" id="hours-{{ hour.id }}">
+    <text style="H2">{{ hour.hours|floatformat:2 }} hrs for {{ hour.invoice.title }}</text>
+    <view style="BtnActions">
+        <text
+          action="new"
+          href="{% url 'timary:mobile_edit_hours' hours_id=hour.id %}"
+          show-during-load="mySpinner"
+          style="Primary"
+        >
+          Edit
+        </text>
+        <text
+          action="replace"
+          href="{% url 'timary:mobile_delete_hours' hours_id=hour.id %}"
+          show-during-load="mySpinner"
+          style="DangerBtn"
+          target="hours-{{ hour.id }}"
+        >
+          Delete
+        </text>
+    </view>
+</view>

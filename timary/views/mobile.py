@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.http import Http404
+from django.shortcuts import render, get_object_or_404
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import (
     api_view,
@@ -9,9 +10,12 @@ from rest_framework.decorators import (
 )
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_xml.renderers import XMLRenderer
 
-from timary.forms import UserForm
+from timary.forms import UserForm, DailyHoursForm
+from timary.models import DailyHoursInput
+from timary.views import get_hours_tracked
 
 
 def mobile_index(request):
@@ -21,8 +25,58 @@ def mobile_index(request):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def mobile_home(request):
-    return render(request, "mobile/home.xml", content_type="application/xml")
+def mobile_hours(request):
+    hours = DailyHoursInput.all_hours.current_month(request.user)
+    show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
+
+    context = {
+        "new_hour_form": DailyHoursForm(user=request.user),
+        "hours": hours,
+        "show_repeat": show_repeat_option,
+    }
+    context.update(get_hours_tracked(request.user))
+    return render(
+        request,
+        "mobile/hours/hours.xml",
+        context=context,
+        content_type="application/xml",
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mobile_edit_hours(request, hours_id):
+    hours = DailyHoursInput.all_hours.current_month(request.user)
+    show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
+
+    context = {
+        "new_hour_form": DailyHoursForm(user=request.user),
+        "hours": hours,
+        "show_repeat": show_repeat_option,
+    }
+    context.update(get_hours_tracked(request.user))
+    return render(
+        request,
+        "mobile/hours/hours.xml",
+        context=context,
+        content_type="application/xml",
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mobile_delete_hours(request, hours_id):
+    hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user != hours.invoice.user:
+        raise Http404
+    hours.delete()
+    return render(
+        request,
+        "mobile/empty.xml",
+        content_type="application/xml",
+    )
 
 
 @api_view(["GET"])

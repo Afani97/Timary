@@ -7,7 +7,7 @@
       <text style="Label">Email</text>
       <text-field
         name="username"
-        placeholder="test@test.com"
+        placeholder="tom@brady.com"
         placeholderTextColor="#8D9494"
         keyboard-type="email-address"
         style="Input"
@@ -37,7 +37,7 @@
             </text>
       </view>
     {% if success %}
-    <behavior trigger="load" href="{% url 'timary:mobile_home' %}" />
+    <behavior trigger="load" href="{% url 'timary:mobile_hours' %}" />
     <view xmlns:login="https://usetimary.com/hyperview-login">
         <behavior trigger="load" action="login" login:token="{{ token }}" />
     </view>

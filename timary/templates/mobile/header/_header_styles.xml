@@ -9,6 +9,7 @@
     paddingLeft="24"
     paddingRight="24"
     paddingBottom="12"
+    marginBottom="12"
 />
 <style
     id="Header__Back"
