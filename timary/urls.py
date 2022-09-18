@@ -197,6 +197,7 @@ urlpatterns += [
         views.mobile_delete_hours,
         name="mobile_delete_hours",
     ),
+    path("mobile/hours/stats", views.mobile_hour_stats, name="mobile_hour_stats"),
     path("mobile/profile/", views.mobile_profile, name="mobile_profile"),
     path("mobile/profile/edit/", views.mobile_edit_profile, name="mobile_edit_profile"),
     path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),

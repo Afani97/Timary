@@ -1,0 +1,5 @@
+<view style="Border" id="Stats" xmlns="https://hyperview.org/hyperview">
+    <text style="H3">Hours logged this month</text>
+    <text style="H1">{{ current_month.total_hours | floatformat:2 }}</text>
+    <text style="H3">estimated earnings: ${{ current_month.total_amount | floatformat:2 }}</text>
+</view>

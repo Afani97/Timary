@@ -35,9 +35,30 @@ def mobile_hours(request):
         "show_repeat": show_repeat_option,
     }
     context.update(get_hours_tracked(request.user))
+    if "partial" in request.query_params:
+        return render(
+            request,
+            "mobile/hours/_hours.xml",
+            context=context,
+            content_type="application/xml",
+        )
     return render(
         request,
         "mobile/hours/hours.xml",
+        context=context,
+        content_type="application/xml",
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mobile_hour_stats(request):
+    context = {}
+    context.update(get_hours_tracked(request.user))
+    return render(
+        request,
+        "mobile/hours/_stats.xml",
         context=context,
         content_type="application/xml",
     )

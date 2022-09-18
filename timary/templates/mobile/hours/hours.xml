@@ -6,22 +6,21 @@
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Hours" %}
-        <view scroll="true">
-            <text style="H1">Current total stats</text>
-            <view style="Border">
-                <text style="H3">Hours logged this month</text>
-                <text style="H1">{{ current_month.total_hours | floatformat:2 }}</text>
-                <text style="H3">estimated earnings: ${{ current_month.total_amount | floatformat:2 }}</text>
-            </view>
-
-            <view>
-                {% regroup hours by date_tracked as grouped_hours %}
-                {% for hours in grouped_hours %}
-                <text style="H1">{{ hours.grouper|date:"M. j, Y" }}</text>
-                {% include "mobile/hours/_hours_list.xml"  with hours=hours.list %}
-                {% endfor %}
-            </view>
-        </view>
+        <list
+            trigger="refresh"
+            href="{% url 'timary:mobile_hours' %}?partial=true"
+            action="replace-inner"
+          >
+                {% include 'mobile/hours/_hours.xml' %}
+        </list>
+        {# Reload from the edit profile screen #}
+        <behavior
+                trigger="on-event"
+                event-name="reload"
+                action="replace"
+                target="Stats"
+                href="{% url 'timary:mobile_hour_stats' %}"
+        />
     </body>
   </screen>
 </doc>
