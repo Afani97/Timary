@@ -28,3 +28,12 @@
     textAlign="center"
     paddingTop="12"
 />
+<style
+    id="Header__Create"
+    color="white"
+    fontSize="16"
+    fontWeight="600"
+    paddingLeft="16"
+    paddingTop="12"
+    width="100"
+/>

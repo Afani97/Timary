@@ -10,7 +10,6 @@ from rest_framework.decorators import (
 )
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework_xml.renderers import XMLRenderer
 
 from timary.forms import DailyHoursForm, UserForm
@@ -48,6 +47,39 @@ def mobile_hours(request):
         context=context,
         content_type="application/xml",
     )
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
+def mobile_new_hours(request):
+    if request.method == "POST":
+        hours = DailyHoursForm(request.data)
+        if hours.is_valid():
+            hours.save()
+            return render(
+                request,
+                "mobile/new-hours/new_hours_form.xml",
+                {"success": True},
+                content_type="application/xml",
+            )
+        else:
+            return render(
+                request,
+                "mobile/new-hours/new_hours_form.xml",
+                {"errors": hours.errors},
+                content_type="application/xml",
+            )
+    else:
+        context = {"user_invoices": request.user.get_invoices}
+        return render(
+            request,
+            "mobile/new-hours/new_hours.xml",
+            context=context,
+            content_type="application/xml",
+        )
 
 
 @api_view(["GET"])
@@ -91,7 +123,6 @@ def mobile_edit_hours(request, hours_id):
     if request.method == "POST":
         hours = DailyHoursForm(request.data, instance=hour)
         if hours.is_valid():
-            print("Hours valid")
             hours.save()
             return render(
                 request,
@@ -100,7 +131,6 @@ def mobile_edit_hours(request, hours_id):
                 content_type="application/xml",
             )
         else:
-            print("Hours invalid")
             return render(
                 request,
                 "mobile/edit-hours/edit_hours_form.xml",
