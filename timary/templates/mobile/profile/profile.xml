@@ -7,7 +7,10 @@
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Profile" show_back=True %}
-        {% include 'mobile/profile/_profile.xml' %}
+        <view style="Main">
+            {% include 'mobile/profile/_profile.xml' %}
+        </view>
+
 
         {# Reload from the edit profile screen #}
         <behavior

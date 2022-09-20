@@ -1,4 +1,5 @@
-<style id="Body" backgroundColor="#2b303b" flex="1" />
+<style id="Body" backgroundColor="#1b1d23" flex="1" />
+<style id="Main" backgroundColor="#2b303b" flex="1" paddingTop="12" />
 <style id="Wrapper"
     display="flex"
     justifyContent="center"
@@ -34,6 +35,23 @@
 >
     <modifier focused="true">
       <style borderBottomColor="#FF4847" />
+    </modifier>
+</style>
+<style
+    id="PickerModal"
+    backgroundColor="white"
+    color="white"
+/>
+<style
+    id="PickerModal__text"
+    color="#1b1d23"
+    fontSize="20"
+    fontWeight="600"
+    padding="24"
+    paddingBottom="0"
+>
+    <modifier pressed="true">
+      <style color="#1b1d23" />
     </modifier>
 </style>
 <style

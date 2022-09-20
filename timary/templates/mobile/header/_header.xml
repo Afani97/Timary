@@ -2,29 +2,19 @@
     {% if show_back %}
         <text action="back" href="#" style="Header__Back">Back</text>
     {% endif %}
-    {% if show_close %}
-        <text action="close" href="#" style="Header__Back">Close</text>
-    {% endif %}
-    {% if create_btn %}
-        <text action="back" href="#" style="Header__Back"></text>
-    {% endif %}
+
+    {% block left %}
+    {% endblock %}
 
 
     <text style="Header__Title">{{ header_title }}</text>
 
+    {% block right %}
+    {% endblock %}
+
     {# Show empty view to center title #}
     {% if show_back or show_close %}
         <text action="back" href="#" style="Header__Back"></text>
-    {% endif %}
-    {% if create_btn %}
-        <text
-          action="new"
-          href="{% url "timary:mobile_new_hours" %}"
-          show-during-load="mySpinner"
-          style="Header__Create"
-        >
-          New
-        </text>
     {% endif %}
 
 </header>

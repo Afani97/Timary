@@ -20,8 +20,8 @@
       <date-field
         name="date_tracked"
         field-text-style="Input"
-{#        modal-style="PickerModal"#}
-{#        modal-text-style="PickerModal__text"#}
+        modal-style="PickerModal"
+        modal-text-style="PickerModal__text"
         value="{{ hour.date_tracked|date:"Y-m-d" }}"
         label-format="MMM D, YYYY"
         placeholder="Select date"
@@ -36,6 +36,8 @@
           name="invoice"
           placeholder="Select Invoice"
           value="{{ hour.invoice.id }}"
+          modal-style="PickerModal"
+          modal-text-style="PickerModal__text"
       >
           {% for invoice in user_invoices %}
             <picker-item label="{{ invoice.title }}" value="{{ invoice.id }}" />

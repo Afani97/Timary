@@ -6,8 +6,6 @@
     justifyContent='{{ jc }}'
     backgroundColor="#1b1d23"
     flexDirection="row"
-    paddingLeft="24"
-    paddingRight="24"
     paddingBottom="12"
     marginBottom="12"
 />
@@ -16,8 +14,12 @@
     color="white"
     fontSize="16"
     fontWeight="600"
-    paddingRight="16"
+    paddingLeft="16"
     paddingTop="12"
+    width="100"
+/>
+<style
+    id="Header__Empty"
     width="100"
 />
 <style
@@ -31,9 +33,10 @@
 <style
     id="Header__Create"
     color="white"
+    textAlign="right"
     fontSize="16"
     fontWeight="600"
-    paddingLeft="16"
     paddingTop="12"
+    paddingRight="16"
     width="100"
 />

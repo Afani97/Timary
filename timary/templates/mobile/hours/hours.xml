@@ -5,8 +5,10 @@
         {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
     </styles>r
     <body style="Body" safe-area="true">
-        {% include 'mobile/header/_header.xml' with header_title="Hours" create_btn=True %}
-        {% include 'mobile/hours/_hours.xml' %}
+        {% include 'mobile/header/_new_header.xml' with header_title="Hours" url="timary:mobile_new_hours" %}
+        <view style="Main">
+            {% include 'mobile/hours/_hours.xml' %}
+        </view>
 
         {# Reload hours screen #}
         <behavior

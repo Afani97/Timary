@@ -5,8 +5,10 @@
         {% include 'mobile/_primary_button_styles.xml' with btn_id="Submit" %}
     </styles>
     <body style="Body" safe-area="true">
-      {% include "mobile/_login_form.xml" %}
-      <spinner id="mySpinner" hide="true" />
+        <view style="Main">
+            {% include "mobile/_login_form.xml" %}
+            <spinner id="mySpinner" hide="true" />
+        </view>
     </body>
   </screen>
 </doc>

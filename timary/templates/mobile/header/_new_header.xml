@@ -1,0 +1,17 @@
+{% extends 'mobile/header/_header.xml' %}
+
+{% block left %}
+    <text action="back" href="#" style="Header__Back"></text>
+{% endblock %}
+
+{% block right %}
+    <text
+      action="new"
+      {# Annoying hack to pass in dynamic url names #}
+      {% with new_url=url %} href="{% url new_url %}" {% endwith %}
+      show-during-load="mySpinner"
+      style="Header__Create"
+    >
+      New
+    </text>
+{% endblock %}

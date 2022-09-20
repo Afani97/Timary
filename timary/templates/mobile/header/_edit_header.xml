@@ -1,0 +1,9 @@
+{% extends 'mobile/header/_header.xml' %}
+
+{% block left %}
+    <text action="close" href="#" style="Header__Back">Close</text>
+{% endblock %}
+
+{% block right %}
+    <text action="back" href="#" style="Header__Empty"></text>
+{% endblock %}
