@@ -1,5 +1,26 @@
 <style id="Body" backgroundColor="#1b1d23" flex="1" />
 <style id="Main" backgroundColor="#2b303b" flex="1" paddingTop="12" />
+
+<style id="Footer"
+       flexDirection="row"
+       justifyContent="space-between"
+       marginHorizontal="12"
+/>
+<style id="Footer-Item"
+   color="white"
+   height="60"
+   paddingTop="40"
+   fontWeight="300"
+   textAlign="center"
+/>
+<style id="Footer-Active"
+   color="#0c94ed"
+   height="60"
+   paddingTop="40"
+   fontWeight="bold"
+   textAlign="center"
+/>
+
 <style id="Wrapper"
     display="flex"
     justifyContent="center"

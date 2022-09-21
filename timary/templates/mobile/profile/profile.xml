@@ -1,16 +1,15 @@
 <doc xmlns="https://hyperview.org/hyperview">
-  <screen id="ProfileScreen">
+  <screen>
     <styles>
         {% include 'mobile/base_styles.xml' %}
-        {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
-        {% include 'mobile/_primary_button_styles.xml' with btn_id='Edit-Profile' %}
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
     </styles>
     <body style="Body" safe-area="true">
-        {% include 'mobile/header/_header.xml' with header_title="Profile" show_back=True %}
+        {% include 'mobile/header/_header.xml' with header_title="Profile" %}
         <view style="Main">
             {% include 'mobile/profile/_profile.xml' %}
         </view>
-
+        {% include 'mobile/footer.xml' with active_tab=5 %}
 
         {# Reload from the edit profile screen #}
         <behavior

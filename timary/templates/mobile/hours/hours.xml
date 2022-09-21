@@ -1,5 +1,5 @@
 <doc xmlns="https://hyperview.org/hyperview">
-  <screen id="Hours">
+  <screen>
     <styles>
         {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
@@ -9,6 +9,7 @@
         <view style="Main">
             {% include 'mobile/hours/_hours.xml' %}
         </view>
+        {% include 'mobile/footer.xml' with active_tab=1 %}
 
         {# Reload hours screen #}
         <behavior

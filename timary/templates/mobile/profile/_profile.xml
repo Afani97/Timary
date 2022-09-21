@@ -4,7 +4,7 @@
       action="new"
       href="{% url 'timary:mobile_edit_profile' %}"
       show-during-load="Loading-Screen"
-      style="Edit-Profile"
+      style="Primary"
     >
       Edit
     </text>
