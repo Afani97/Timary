@@ -4,6 +4,50 @@
         {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
         {% include 'mobile/_primary_button_styles.xml' with btn_id='Update' %}
+        <style
+        id="InputCustom"
+        borderColor="#4E4D4D"
+        borderRadius="4"
+        borderWidth="2"
+        flex="1"
+        fontWeight="normal"
+        marginBottom="40"
+        paddingBottom="8"
+        paddingLeft="8"
+        paddingRight="8"
+        paddingTop="8"
+      >
+        <modifier pressed="true">
+          <style borderColor="#4778FF" />
+        </modifier>
+        <modifier focused="true">
+          <style borderColor="#4778FF" />
+        </modifier>
+      </style>
+      <style
+        id="InputCustom__Text"
+        color="purple"
+        fontSize="18"
+        fontWeight="600"
+      />
+      <style
+        id="PickerModalCustom"
+        backgroundColor="purple"
+        borderTopColor="#E1E1E1"
+        borderTopWidth="1"
+      />
+      <style
+        id="PickerModalCustom__text"
+        color="white"
+        fontSize="20"
+        fontWeight="600"
+        padding="24"
+        paddingBottom="0"
+      >
+        <modifier pressed="true">
+          <style color="yellow" />
+        </modifier>
+      </style>
     </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_edit_header.xml' with header_title="Edit Hours" %}

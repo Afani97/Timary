@@ -17,7 +17,7 @@
 <style
     id="Input"
     flex="1"
-    fontSize="24"
+    fontSize="18"
     fontWeight="normal"
     padding="12"
     color="#9da1ad"
@@ -25,6 +25,7 @@
     borderWidth="1"
     borderRadius="10"
     backgroundColor="#1b1d23"
+    overflow="hidden"
 >
     <modifier focused="true">
       <style borderColor="#5d15dd" />
@@ -38,21 +39,34 @@
     </modifier>
 </style>
 <style
-    id="PickerModal"
-    backgroundColor="white"
+    id="DatePickerModal"
+    backgroundColor="#1b1d23"
     color="white"
 />
 <style
+    id="DatePickerModal__text"
+    backgroundColor="#1b1d23"
+    color="white"
+    fontSize="20"
+    fontWeight="600"
+    padding="24"
+    paddingBottom="0"
+>
+</style>
+<style
+    id="PickerModal"
+    backgroundColor="white"
+    color="#1b1d23"
+/>
+<style
     id="PickerModal__text"
+    backgroundColor="white"
     color="#1b1d23"
     fontSize="20"
     fontWeight="600"
     padding="24"
     paddingBottom="0"
 >
-    <modifier pressed="true">
-      <style color="#1b1d23" />
-    </modifier>
 </style>
 <style
     id="Label"

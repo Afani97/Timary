@@ -1,0 +1,13 @@
+<screen id="Loading-Screen">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        <view style="Main">
+            <view style="Wrapper">
+                <spinner color="white"  />
+            </view>
+
+        </view>
+    </body>
+</screen>

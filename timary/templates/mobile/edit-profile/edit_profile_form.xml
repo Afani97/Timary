@@ -55,7 +55,7 @@
               action="replace"
               delay="500"
               href="{% url 'timary:mobile_edit_profile' %}"
-              show-during-load="mySpinner"
+              show-during-load="Loading-Screen"
               style="Update"
               target="EditProfileForm"
               verb="post"

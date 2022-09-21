@@ -1,5 +1,5 @@
 <doc xmlns="https://hyperview.org/hyperview">
-  <screen>
+  <screen id="Login">
     <styles>
       {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/_primary_button_styles.xml' with btn_id="Submit" %}
@@ -11,4 +11,5 @@
         </view>
     </body>
   </screen>
+    {% include 'mobile/loading_screen.xml' %}
 </doc>

@@ -9,7 +9,7 @@
       action="new"
       {# Annoying hack to pass in dynamic url names #}
       {% with new_url=url %} href="{% url new_url %}" {% endwith %}
-      show-during-load="mySpinner"
+      show-during-load="Loading-Screen"
       style="Header__Create"
     >
       New

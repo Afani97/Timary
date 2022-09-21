@@ -28,7 +28,7 @@
               action="replace"
               delay="500"
               href="{% url 'timary:obtain_auth_token' %}"
-              show-during-load="mySpinner"
+              show-during-load="Loading-Screen"
               style="Submit"
               target="myForm"
               verb="post"

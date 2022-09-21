@@ -3,7 +3,7 @@
     <text
       action="new"
       href="{% url 'timary:mobile_edit_profile' %}"
-      show-during-load="mySpinner"
+      show-during-load="Loading-Screen"
       style="Edit-Profile"
     >
       Edit

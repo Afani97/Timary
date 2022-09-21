@@ -4,7 +4,7 @@
         <text
           action="new"
           href="{% url 'timary:mobile_edit_hours' hours_id=hour.id %}"
-          show-during-load="mySpinner"
+          show-during-load="Loading-Screen"
           style="Primary"
         >
           Edit
@@ -12,7 +12,7 @@
         <text
           action="replace"
           href="{% url 'timary:mobile_delete_hours' hours_id=hour.id %}"
-          show-during-load="mySpinner"
+          show-during-load="Loading-Screen"
           style="DangerBtn"
           target="hours-{{ hour.id }}"
         >

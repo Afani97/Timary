@@ -1,9 +1,9 @@
 <doc xmlns="https://hyperview.org/hyperview">
-  <screen>
+  <screen id="Hours">
     <styles>
         {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
-    </styles>r
+    </styles>
     <body style="Body" safe-area="true">
         {% include 'mobile/header/_new_header.xml' with header_title="Hours" url="timary:mobile_new_hours" %}
         <view style="Main">
@@ -27,4 +27,5 @@
         />
     </body>
   </screen>
+  {% include 'mobile/loading_screen.xml' %}
 </doc>

@@ -22,4 +22,5 @@
         />
     </body>
   </screen>
+    {% include 'mobile/loading_screen.xml' %}
 </doc>
