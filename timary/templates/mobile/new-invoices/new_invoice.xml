@@ -3,7 +3,6 @@
     <styles>
         {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
-        {% include 'mobile/_primary_button_styles.xml' with btn_id='Create' %}
         <style id="Pills"
                flex="1"
                flexDirection="row"

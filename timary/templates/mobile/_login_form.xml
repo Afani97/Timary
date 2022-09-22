@@ -29,7 +29,7 @@
               delay="500"
               href="{% url 'timary:obtain_auth_token' %}"
               show-during-load="Loading-Screen"
-              style="Submit"
+              style="Primary"
               target="myForm"
               verb="post"
             >

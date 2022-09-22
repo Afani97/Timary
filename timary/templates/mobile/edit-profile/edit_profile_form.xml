@@ -56,7 +56,7 @@
               delay="500"
               href="{% url 'timary:mobile_edit_profile' %}"
               show-during-load="Loading-Screen"
-              style="Update"
+              style="Primary"
               target="EditProfileForm"
               verb="post"
             >

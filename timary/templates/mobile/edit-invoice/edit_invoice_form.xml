@@ -102,7 +102,7 @@
               delay="500"
               href="{% url 'timary:mobile_edit_invoice' invoice_id=invoice.id %}"
               show-during-load="Loading-Screen"
-              style="Update"
+              style="Primary"
               target="EditInvoiceForm"
               verb="post"
             >

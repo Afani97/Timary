@@ -120,7 +120,7 @@
               delay="500"
               href="{% url 'timary:mobile_new_invoices' %}"
               show-during-load="Loading-Screen"
-              style="Create"
+              style="Primary"
               target="NewInvoiceForm"
               verb="post"
             >

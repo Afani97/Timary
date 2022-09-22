@@ -51,7 +51,7 @@
               delay="500"
               href="{% url 'timary:mobile_new_hours' %}"
               show-during-load="Loading-Screen"
-              style="Create"
+              style="Primary"
               target="NewHoursForm"
               verb="post"
             >

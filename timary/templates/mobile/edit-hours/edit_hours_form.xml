@@ -51,7 +51,7 @@
               delay="500"
               href="{% url 'timary:mobile_edit_hours' hours_id=hour.id %}"
               show-during-load="Loading-Screen"
-              style="Update"
+              style="Primary"
               target="EditHoursForm"
               verb="post"
             >

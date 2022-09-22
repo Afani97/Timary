@@ -2,7 +2,6 @@
   <screen id="Login">
     <styles>
       {% include 'mobile/base_styles.xml' %}
-        {% include 'mobile/_primary_button_styles.xml' with btn_id="Submit" %}
     </styles>
     <body style="Body" safe-area="true">
         <view style="Main">
