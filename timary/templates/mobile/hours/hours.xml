@@ -4,7 +4,7 @@
         {% include 'mobile/base_styles.xml' %}
         {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
     </styles>
-    <body style="Body" safe-area="true">
+    <body style="Body" id="Body" safe-area="true">
         {% include 'mobile/header/_new_header.xml' with header_title="Hours" url="timary:mobile_new_hours" %}
         <view style="Main">
             {% include 'mobile/hours/_hours.xml' %}
@@ -21,7 +21,7 @@
         />
         <behavior
                 trigger="on-event"
-                event-name="reload-list"
+                event-name="reload-hours"
                 action="replace-inner"
                 target="Hours-List"
                 href="{% url 'timary:mobile_hours' %}?partial=true"

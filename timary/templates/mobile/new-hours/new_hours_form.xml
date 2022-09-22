@@ -62,6 +62,6 @@
 
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
-    <behavior trigger="load" action="dispatch-event" event-name="reload-list" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload-hours" />
     {% endif %}
 </form>

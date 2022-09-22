@@ -12,8 +12,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_xml.renderers import XMLRenderer
 
-from timary.forms import DailyHoursForm, UserForm
-from timary.models import DailyHoursInput
+from timary.forms import DailyHoursForm, UserForm, InvoiceForm
+from timary.models import DailyHoursInput, Invoice
 from timary.utils import render_xml
 from timary.views import get_hours_tracked
 
@@ -35,10 +35,10 @@ def mobile_hours(request):
         "show_repeat": show_repeat_option,
     }
     context.update(get_hours_tracked(request.user))
+    t = "hours/hours.xml"
     if "partial" in request.query_params:
-        return render_xml(request, "hours/_hours.xml", context)
-    else:
-        return render_xml(request, "hours/hours.xml", context)
+        t = "hours/_hours.xml"
+    return render_xml(request, t, context)
 
 
 @api_view(["GET", "POST"])
@@ -117,6 +117,55 @@ def mobile_delete_hours(request, hours_id):
         raise Http404
     hours.delete()
     return render_xml(request, "empty.xml")
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mobile_invoices(request):
+    invoices = request.user.get_invoices.order_by("title")
+    t = "invoices/invoices.xml"
+    if "partial" in request.query_params:
+        t = "invoices/_invoices.xml"
+    return render_xml(request, t, {"invoices": invoices})
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
+def mobile_new_invoices(request):
+    invoice_form = InvoiceForm(None)
+    if request.method == "POST":
+        request_data = request.POST.copy()
+        if int(request_data.get("invoice_type")) == Invoice.InvoiceType.WEEKLY:
+            request_data.update({"invoice_rate": request_data["weekly_rate"]})
+        else:
+            request_data.update({"invoice_rate": request_data["hourly_rate"]})
+        invoice_form = InvoiceForm(request_data)
+        if invoice_form.is_valid():
+            # Hide create button if unable to create more
+            prev_invoice_count = request.user.get_invoices.count()
+            invoice = invoice_form.save(commit=False)
+            invoice.user = request.user
+            invoice.calculate_next_date()
+            invoice.save()
+            invoice.sync_customer()
+            context = {"success": True}
+        else:
+            context = {"errors": invoice_form.errors}
+        return render_xml(
+            request,
+            "new-invoices/new_invoice_form.xml",
+            context,
+        )
+    else:
+        return render_xml(
+            request,
+            "new-invoices/new_invoice.xml",
+            {"invoice_form": invoice_form},
+        )
 
 
 @api_view(["GET"])
