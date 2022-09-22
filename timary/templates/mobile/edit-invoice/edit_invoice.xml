@@ -6,9 +6,9 @@
         {% include 'mobile/_primary_button_styles.xml' with btn_id='Update' %}
     </styles>
     <body style="Body" safe-area="true">
-        {% include 'mobile/header/_edit_header.xml' with header_title="Edit Hours" %}
+        {% include 'mobile/header/_edit_header.xml' with header_title="Edit Invoice" %}
         <view style="Main">
-            {% include "mobile/edit-hours/edit_hours_form.xml" %}
+            {% include "mobile/edit-invoice/edit_invoice_form.xml" %}
             <spinner id="mySpinner" hide="true" />
         </view>
     </body>

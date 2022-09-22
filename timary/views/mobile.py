@@ -12,7 +12,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_xml.renderers import XMLRenderer
 
-from timary.forms import DailyHoursForm, UserForm, InvoiceForm
+from timary.forms import DailyHoursForm, InvoiceForm, UserForm
 from timary.models import DailyHoursInput, Invoice
 from timary.utils import render_xml
 from timary.views import get_hours_tracked
@@ -130,6 +130,16 @@ def mobile_invoices(request):
     return render_xml(request, t, {"invoices": invoices})
 
 
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mobile_view_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    return render_xml(request, "invoices/_invoice.xml", {"invoice": invoice})
+
+
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -165,6 +175,38 @@ def mobile_new_invoices(request):
             request,
             "new-invoices/new_invoice.xml",
             {"invoice_form": invoice_form},
+        )
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
+def mobile_edit_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    if request.method == "POST":
+        request_data = request.POST.copy()
+        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+            request_data.update({"invoice_rate": request_data["weekly_rate"]})
+        invoice_form = InvoiceForm(request_data, instance=invoice, user=request.user)
+        if invoice_form.is_valid():
+            invoice = invoice_form.save()
+            if invoice.next_date:
+                invoice.calculate_next_date(update_last=False)
+            context = {"invoice": invoice, "success": True}
+        else:
+            context = {"invoice": invoice, "errors": invoice_form.errors}
+        return render_xml(
+            request,
+            "edit-invoice/edit_invoice_form.xml",
+            context,
+        )
+    else:
+        return render_xml(
+            request, "edit-invoice/edit_invoice.xml", {"invoice": invoice}
         )
 
 

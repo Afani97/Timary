@@ -17,6 +17,13 @@
                 target="Invoices-List"
                 href="{% url 'timary:mobile_invoices' %}?partial=true"
         />
+        <behavior
+                trigger="on-event"
+                event-name="reload-hours"
+                action="replace-inner"
+                target="Hours-List"
+                href="{% url 'timary:mobile_hours' %}?partial=true"
+        />
     </body>
   </screen>
   {% include 'mobile/loading_screen.xml' %}

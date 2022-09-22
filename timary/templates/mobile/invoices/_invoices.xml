@@ -5,7 +5,7 @@
       action="replace-inner">
     <view scroll="true" shows-scroll-indicator="false">
         {% for invoice in invoices %}
-        <text style="H1">{{ invoice.title}}</text>
+            {% include "mobile/invoices/_invoice.xml" with invoice=invoice %}
         {% endfor %}
     </view>
 </view>

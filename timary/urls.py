@@ -204,6 +204,16 @@ urlpatterns += [
     path("mobile/hours/", views.mobile_hours, name="mobile_hours"),
     path("mobile/hours/new/", views.mobile_new_hours, name="mobile_new_hours"),
     path("mobile/hours/stats/", views.mobile_hour_stats, name="mobile_hour_stats"),
+    path(
+        "mobile/invoices/<uuid:invoice_id>/",
+        views.mobile_view_invoice,
+        name="mobile_view_invoice",
+    ),
+    path(
+        "mobile/invoices/<uuid:invoice_id>/edit/",
+        views.mobile_edit_invoice,
+        name="mobile_edit_invoice",
+    ),
     path("mobile/invoices/", views.mobile_invoices, name="mobile_invoices"),
     path("mobile/invoices/new/", views.mobile_new_invoices, name="mobile_new_invoices"),
     path("mobile/profile/", views.mobile_profile, name="mobile_profile"),

@@ -1,0 +1,20 @@
+<view style="BottomBorder" id="invoice-{{ invoice.id }}" xmlns="https://hyperview.org/hyperview">
+    <text style="H1">{{ invoice.title}}</text>
+    <view style="BtnActions">
+        <text
+          action="new"
+          href="{% url 'timary:mobile_edit_invoice' invoice_id=invoice.id %}"
+          show-during-load="Loading-Screen"
+          style="Primary"
+        >
+          Edit
+        </text>
+    </view>
+    <behavior
+        trigger="on-event"
+        event-name="reload-invoice-{{ invoice.id }}"
+        action="replace"
+        target="invoice-{{ invoice.id }}"
+        href="{% url 'timary:mobile_view_invoice' invoice_id=invoice.id %}"
+    />
+</view>
