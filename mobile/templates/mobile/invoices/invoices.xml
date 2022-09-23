@@ -2,10 +2,10 @@
   <screen>
     <styles>
         {% include 'mobile/base_styles.xml' %}
-        {% include 'mobile/header/../header/_header_styles.xml' with jc="space-between" %}
+        {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
     </styles>
     <body style="Body" id="Body" safe-area="true">
-        {% include 'mobile/header/../header/_new_header.xml' with header_title="Invoices" url="mobile:new_invoices" %}
+        {% include 'mobile/header/_new_header.xml' with header_title="Invoices" url="mobile:new_invoices" %}
         <view style="Main">
             {% include 'mobile/invoices/_invoices.xml' %}
         </view>

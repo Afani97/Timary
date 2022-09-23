@@ -2,10 +2,10 @@
   <screen>
     <styles>
         {% include 'mobile/base_styles.xml' %}
-        {% include 'mobile/header/../header/_header_styles.xml' with jc="center" %}
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
     </styles>
     <body style="Body" id="Body" safe-area="true">
-        {% include 'mobile/header/../header/_header.xml' with header_title="Profile" %}
+        {% include 'mobile/header/_header.xml' with header_title="Profile" %}
         <view style="Main">
             {% include 'mobile/profile/_profile.xml' %}
         </view>
