@@ -1,0 +1,29 @@
+<view style="BottomBorder" id="hours-{{ hour.id }}" xmlns="https://hyperview.org/hyperview">
+    <text style="H2">{{ hour.hours|floatformat:2 }} hrs for {{ hour.invoice.title }}</text>
+    <view style="BtnActions">
+        <text
+          action="new"
+          href="{% url 'mobile:edit_hours' hours_id=hour.id %}"
+          show-during-load="Loading-Screen"
+          style="Primary"
+        >
+          Edit
+        </text>
+        <text
+          action="replace"
+          href="{% url 'mobile:delete_hours' hours_id=hour.id %}"
+          show-during-load="Loading-Screen"
+          style="DangerBtn"
+          target="hours-{{ hour.id }}"
+        >
+          Delete
+        </text>
+    </view>
+    <behavior
+            trigger="on-event"
+            event-name="reload-{{ hour.id }}"
+            action="replace"
+            target="hours-{{ hour.id }}"
+            href="{% url 'mobile:view_hours' hours_id=hour.id %}"
+    />
+</view>

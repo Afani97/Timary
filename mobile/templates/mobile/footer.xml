@@ -1,0 +1,35 @@
+<view style="Footer">
+    <text
+        action="reload"
+        target="Body"
+        href="{% url 'mobile:hours' %}"
+        style="Footer-{% if active_tab == 1 %}Active{% else %}Item{% endif %}"
+    >
+        Hours
+    </text>
+    <text
+        action="reload"
+        target="Body"
+        href="{% url 'mobile:invoices' %}"
+        style="Footer-{% if active_tab == 2 %}Active{% else %}Item{% endif %}"
+    >
+        Invoices
+    </text>
+    <text
+        style="Footer-{% if active_tab == 3 %}Active{% else %}Item{% endif %}"
+    >
+        Timer
+    </text>
+    <text
+        style="Footer-{% if active_tab == 4 %}Active{% else %}Item{% endif %}"
+    >
+        Sent Invoices
+    </text>
+    <text
+        action="reload"
+        href="{% url 'mobile:profile' %}"
+        style="Footer-{% if active_tab == 5 %}Active{% else %}Item{% endif %}"
+    >
+        Profile
+    </text>
+</view>

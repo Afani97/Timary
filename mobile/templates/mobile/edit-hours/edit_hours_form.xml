@@ -1,0 +1,70 @@
+<form id="EditHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+    {% for field, errors in errors.items %}
+        {% for error in errors %}
+            <text style="Help--Error">{{ field }}: {{ error }}</text>
+        {% endfor %}
+    {% endfor %}
+
+    <view style="FormGroup">
+      <text style="Label">Hours</text>
+      <text-field
+        value="{{ hour.hours }}"
+        name="hours"
+        placeholder="1"
+        style="Input"
+        placeholderTextColor="#5e6363"
+      />
+    </view>
+    <view style="FormGroup">
+      <text style="Label">Date Tracked</text>
+      <date-field
+        name="date_tracked"
+        field-text-style="Input"
+        modal-style="DatePickerModal"
+        modal-text-style="DatePickerModal__text"
+        value="{{ hour.date_tracked|date:"Y-m-d" }}"
+        label-format="MMM D, YYYY"
+        placeholder="Select date"
+        placeholderTextColor="#5e6363"
+        mode="spinner"
+      />
+    </view>
+    <view style="FormGroup">
+      <text style="Label">Invoice</text>
+      <picker-field
+          field-text-style="Input"
+          name="invoice"
+          placeholder="Select Invoice"
+          value="{{ hour.invoice.id }}"
+          modal-style="PickerModal"
+          modal-text-style="PickerModal__text"
+      >
+          {% for invoice in user_invoices %}
+            <picker-item label="{{ invoice.title }}" value="{{ invoice.id }}" />
+          {% endfor %}
+      </picker-field>
+    </view>
+    <view style="MarginTop20">
+      <view style="Wrapper">
+          <text
+              action="replace"
+              delay="500"
+              href="{% url 'mobile:edit_hours' hours_id=hour.id %}"
+              show-during-load="Loading-Screen"
+              style="Primary"
+              target="EditHoursForm"
+              verb="post"
+            >
+              Update
+            </text>
+      </view>
+    </view>
+
+    {% if success %}
+    <behavior trigger="load" action="close" href="#" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload-{{ hour.id }}" />
+    {% include 'mobile/_toast.xml' %}
+    {% endif %}
+
+</form>

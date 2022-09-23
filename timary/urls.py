@@ -184,41 +184,4 @@ urlpatterns += [
     ),
 ]
 
-urlpatterns += [
-    path("mobile/index/", views.mobile_index, name="mobile_index"),
-    path(
-        "mobile/hours/<uuid:hours_id>/",
-        views.mobile_view_hours,
-        name="mobile_view_hours",
-    ),
-    path(
-        "mobile/hours/<uuid:hours_id>/edit/",
-        views.mobile_edit_hours,
-        name="mobile_edit_hours",
-    ),
-    path(
-        "mobile/hours/<uuid:hours_id>/delete/",
-        views.mobile_delete_hours,
-        name="mobile_delete_hours",
-    ),
-    path("mobile/hours/", views.mobile_hours, name="mobile_hours"),
-    path("mobile/hours/new/", views.mobile_new_hours, name="mobile_new_hours"),
-    path("mobile/hours/stats/", views.mobile_hour_stats, name="mobile_hour_stats"),
-    path(
-        "mobile/invoices/<uuid:invoice_id>/",
-        views.mobile_view_invoice,
-        name="mobile_view_invoice",
-    ),
-    path(
-        "mobile/invoices/<uuid:invoice_id>/edit/",
-        views.mobile_edit_invoice,
-        name="mobile_edit_invoice",
-    ),
-    path("mobile/invoices/", views.mobile_invoices, name="mobile_invoices"),
-    path("mobile/invoices/new/", views.mobile_new_invoices, name="mobile_new_invoices"),
-    path("mobile/profile/", views.mobile_profile, name="mobile_profile"),
-    path("mobile/profile/edit/", views.mobile_edit_profile, name="mobile_edit_profile"),
-    path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),
-]
-
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

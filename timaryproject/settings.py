@@ -41,6 +41,7 @@ SITE_URL = config("SITE_URL", default="http://localhost:8000")
 INSTALLED_APPS = [
     # TIMARY
     "timary",
+    "mobile",
     # DJANGO
     "django.contrib.admin",
     "django.contrib.auth",

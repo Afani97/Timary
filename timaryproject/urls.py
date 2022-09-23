@@ -10,6 +10,7 @@ handler404 = views.bad_request
 
 urlpatterns = [
     path("", include("timary.urls")),
+    path("mobile/", include("mobile.urls")),
     path("admin/", admin.site.urls),
     # auth password reset
     path(

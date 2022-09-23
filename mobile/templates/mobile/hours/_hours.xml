@@ -1,0 +1,22 @@
+<view xmlns="https://hyperview.org/hyperview"
+      trigger="refresh"
+      href="{% url 'mobile:hours' %}?partial=true"
+      id="Hours-List"
+      action="replace-inner">
+    <view scroll="true" shows-scroll-indicator="false">
+        <text style="H1">Current total stats</text>
+        {% include 'mobile/hours/_stats.xml' with current_month=current_month %}
+
+        <view>
+            {% regroup hours by date_tracked as grouped_hours %}
+            {% for hours in grouped_hours %}
+            <text style="H1">{{ hours.grouper|date:"M. j, Y" }}</text>
+            <view style="List">
+                {% for hour in hours.list %}
+                    {% include 'mobile/hours/_hour.xml' with hour=hour %}
+                {% endfor %}
+            </view>
+            {% endfor %}
+        </view>
+    </view>
+</view>

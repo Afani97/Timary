@@ -1,0 +1,15 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/../header/_header_styles.xml' with jc='space-between' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/../header/_edit_header.xml' with header_title="Edit Hours" %}
+        <view style="Main">
+            {% include "mobile/edit-hours/edit_hours_form.xml" %}
+            <spinner id="mySpinner" hide="true" />
+        </view>
+    </body>
+  </screen>
+</doc>
