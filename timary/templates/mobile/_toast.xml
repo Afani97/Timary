@@ -1,0 +1,3 @@
+<view xmlns:toast="https://usetimary.com/hyperview/">
+    <behavior trigger="load" action="toast" toast:message="{{ toast_message }}" toast:type="{{ toast_type }}" />
+</view>

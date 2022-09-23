@@ -63,5 +63,7 @@
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-hours" />
+    {% include 'mobile/_toast.xml' %}
     {% endif %}
+
 </form>

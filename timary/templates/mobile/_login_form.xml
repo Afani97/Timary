@@ -38,7 +38,7 @@
       </view>
     {% if success %}
     <behavior trigger="load" href="{% url 'timary:mobile_hours' %}" />
-    <view xmlns:login="https://usetimary.com/hyperview-login">
+    <view xmlns:login="https://usetimary.com/hyperview/">
         <behavior trigger="load" action="login" login:token="{{ token }}" />
     </view>
 

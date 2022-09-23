@@ -81,7 +81,7 @@
         placeholder="10000"
         style="Input"
         placeholderTextColor="#5e6363"
-        value="{{ invoice.total_budget }}"
+        value="{{ invoice.total_budget|default_if_none:0 }}"
       />
      </view>
 
@@ -125,5 +125,7 @@
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-invoice-{{ invoice.id }}" />
+    {% include 'mobile/_toast.xml' %}
     {% endif %}
+
 </form>

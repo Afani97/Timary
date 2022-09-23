@@ -53,7 +53,13 @@ def mobile_new_hours(request):
         if hours.is_valid():
             hours.save()
             return render_xml(
-                request, "new-hours/new_hours_form.xml", {"success": True}
+                request,
+                "new-hours/new_hours_form.xml",
+                {
+                    "success": True,
+                    "toast_message": "New hours added!",
+                    "toast_type": "success",
+                },
             )
         else:
             return render_xml(
@@ -97,7 +103,12 @@ def mobile_edit_hours(request, hours_id):
         hours = DailyHoursForm(request.data, instance=hour)
         if hours.is_valid():
             hours.save()
-            context = {"hour": hour, "success": True}
+            context = {
+                "hour": hour,
+                "success": True,
+                "toast_message": "Hours updated!",
+                "toast_type": "success",
+            }
         else:
             context = {"hour": hour, "errors": hours.errors}
         return render_xml(request, "edit-hours/edit_hours_form.xml", context)
@@ -117,7 +128,9 @@ def mobile_delete_hours(request, hours_id):
     if request.user != hours.invoice.user:
         raise Http404
     hours.delete()
-    return render_xml(request, "empty.xml")
+    return render_xml(
+        request, "empty.xml", {"toast_message": "Hours deleted!", "toast_type": "info"}
+    )
 
 
 @api_view(["GET"])
@@ -170,7 +183,11 @@ def mobile_new_invoices(request):
             invoice.calculate_next_date()
             invoice.save()
             invoice.sync_customer()
-            context = {"success": True}
+            context = {
+                "success": True,
+                "toast_message": "New invoice added!",
+                "toast_type": "success",
+            }
         else:
             context = {"errors": invoice_form.errors}
         return render_xml(
@@ -204,9 +221,19 @@ def mobile_edit_invoice(request, invoice_id):
             invoice = invoice_form.save()
             if invoice.next_date:
                 invoice.calculate_next_date(update_last=False)
-            context = {"invoice": invoice, "success": True}
+            context = {
+                "invoice": invoice,
+                "success": True,
+                "toast_message": "Invoice updated!",
+                "toast_type": "success",
+            }
         else:
-            context = {"invoice": invoice, "errors": invoice_form.errors}
+            context = {
+                "invoice": invoice,
+                "errors": invoice_form.errors,
+                "toast_message": "Error updating this invoice",
+                "toast_type": "error",
+            }
         return render_xml(
             request,
             "edit-invoice/edit_invoice_form.xml",
@@ -238,7 +265,12 @@ def mobile_edit_profile(request):
         profile = UserForm(request.data, instance=request.user)
         if profile.is_valid():
             profile.save()
-            context = {"profile": request.user, "success": True}
+            context = {
+                "profile": request.user,
+                "success": True,
+                "toast_message": "Profile updated!",
+                "toast_type": "success",
+            }
         else:
             context = {"profile": request.user, "errors": profile.errors}
         return render_xml(request, "edit-profile/edit_profile_form.xml", context)
