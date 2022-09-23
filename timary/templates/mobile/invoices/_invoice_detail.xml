@@ -1,0 +1,14 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="Invoice Details" %}
+        <view style="Main">
+            <web-view html="{{invoice_detail_html|force_escape}}" />
+        </view>
+    </body>
+  </screen>
+</doc>

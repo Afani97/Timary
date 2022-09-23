@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.22.0/dist/full.css" rel="stylesheet" type="text/css" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <title>Hello from Timary!</title>
+        <link href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css" rel="stylesheet" type="text/css" />
+        <style>
+            .charts-css.column {
+                height: 200px;
+                max-width: 350px;
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body class="static my-10 overflow-hidden bg-base-100">
+        {# Main Content  #}
+        <main class="bg-base-100">
+            <div class="flex flex-col md:flex-row w-full">
+                {% if invoice.get_hours_tracked.count > 0 %}
+                    <div class="flex flex-grow flex-col items-center w-full">
+                        <p class="text-center mb-4">Hours logged this period</p>
+                        <div class="h-full">
+                            <ul class="list-none">
+                                {% for hour in invoice.get_hours_tracked %}
+                                    <li class="text-xl">{{ hour.hours|floatformat:2 }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
+                                {% endfor %}
+                            </ul>
+                        {# Handle this somehow from the webview #}
+{#                            <label#}
+{#                                for="edit-hours-modal"#}
+{#                                class="btn btn-outline btn-xs modal-button w-full my-5"#}
+{#                                hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"#}
+{#                                hx-target=".inner-modal"#}
+{#                                hx-swap="innerHTML"#}
+{#                                _="on click add .loading to me end#}
+{#                                    on htmx:afterRequest remove .loading from me end"#}
+{#                            >#}
+{#                                Edit hours#}
+{#                            </label>#}
+                        </div>
+                    </div>
+                    <div class="divider md:divider-horizontal"></div>
+                {% endif %}
+                {% if invoice.budget_percentage > 0 %}
+                    <div class="grid flex-grow grid-rows-1 w-full content-center">
+                        <p class="text-center mb-4">Budget</p>
+                        <div class="flex justify-center mb-5 sm:mb-12">
+                            <div
+                                class="radial-progress text-black bg-accent border-4 border-accent"
+                                style="--value:{{ invoice.budget_percentage }}; --thickness: 4px;"
+                            >
+                                {{ invoice.budget_percentage|floatformat:-2 }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider md:divider-horizontal"></div>
+                {% endif %}
+                <div class="w-full">
+                    <table class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">
+                        <caption> Hours logged last 6 months </caption>
+                        <tbody>
+                            {% for month in invoice.get_last_six_months %}
+                                <tr>
+                                    <th scope="row">
+                                        {{ month.display }}
+                                    </th>
+                                    <td style="--size:{{ month.size}};">
+                                        <span class="tooltip">{{ month.data }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

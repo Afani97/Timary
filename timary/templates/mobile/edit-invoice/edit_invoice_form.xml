@@ -74,6 +74,17 @@
     </view>
     {% endif %}
 
+    <view style="FormGroup">
+      <text style="Label">Budget</text>
+      <text-field
+        name="total_budget"
+        placeholder="10000"
+        style="Input"
+        placeholderTextColor="#5e6363"
+        value="{{ invoice.total_budget }}"
+      />
+     </view>
+
      <view style="FormGroup">
       <text style="Label">Email recipient name</text>
       <text-field

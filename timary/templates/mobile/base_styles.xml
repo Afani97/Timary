@@ -134,6 +134,15 @@
     marginBottom="8"
 />
 <style
+    id="P"
+    textAlign="center"
+    color="#9da1ad"
+    fontWeight="normal"
+    fontSize="20"
+    lineHeight="22"
+    marginBottom="8"
+/>
+<style
     id="Border"
     borderColor="black"
     borderWidth="1"
@@ -172,6 +181,22 @@
     borderRadius="10"
     borderWidth="1"
     borderColor="#5c20dd"
+    overflow="hidden"
+/>
+<style
+    id="Secondary"
+    color="black"
+    backgroundColor="#55AFA6"
+    fontSize="16"
+    fontWeight="bold"
+    lineHeight="20"
+    textAlign="center"
+    width="100"
+    padding="5"
+    margin="5"
+    borderRadius="10"
+    borderWidth="1"
+    borderColor="#55AFA6"
     overflow="hidden"
 />
 <style

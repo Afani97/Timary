@@ -1,5 +1,6 @@
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import (
     api_view,
@@ -137,7 +138,14 @@ def mobile_view_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    return render_xml(request, "invoices/_invoice.xml", {"invoice": invoice})
+    c = {"invoice": invoice}
+    t = "invoices/_invoice.xml"
+    if "detail_view" in request.query_params:
+        t = "invoices/_invoice_detail.xml"
+        c["invoice_detail_html"] = render_to_string(
+            "mobile/invoices/_invoice_detail.html", c
+        )
+    return render_xml(request, t, c)
 
 
 @api_view(["GET", "POST"])

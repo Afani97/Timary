@@ -1,11 +1,39 @@
+{% load filters %}
+
 <view style="BottomBorder" id="invoice-{{ invoice.id }}" xmlns="https://hyperview.org/hyperview">
-    <text style="H1">{{ invoice.title}}</text>
+    <text style="H1">{{ invoice.title }}</text>
+    {% if invoice.invoice_type == 1 %}
+        {% if invoice.next_date %}
+            <text style="P">emailed {{ invoice.get_invoice_interval_display|lower }} to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</text>
+            <text style="P">next date sent is {{ invoice.next_date }}</text>
+        {% else %}
+            <text style="P">invoice is paused</text>
+        {% endif %}
+    {% elif invoice.invoice_type == 2 %}
+        <text style="P">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</text>
+        {% if invoice.milestone_step <= invoice.milestone_total_steps %}
+            <text style="P">Steps {{ invoice.milestone_step }} out of {{ invoice.milestone_total_steps }} completed</text>
+        {% else %}
+            <button style="Primary">Milestones all complete!</button>
+        {% endif %}
+    {% elif invoice.invoice_type == 3 %}
+        <text style="P">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</text>
+        <text style="P">next invoice sent out: {{ ""|nextmonday }}</text>
+    {% endif %}
     <view style="BtnActions">
+        <text
+          action="new"
+          href="{% url 'timary:mobile_view_invoice' invoice_id=invoice.id %}?detail_view=true"
+          show-during-load="Loading-Screen"
+          style="Primary"
+        >
+          Details
+        </text>
         <text
           action="new"
           href="{% url 'timary:mobile_edit_invoice' invoice_id=invoice.id %}"
           show-during-load="Loading-Screen"
-          style="Primary"
+          style="Secondary"
         >
           Edit
         </text>
