@@ -23,7 +23,7 @@
     <view style="BtnActions">
         <text
           action="new"
-          href="{{ view_url }}?detail_view=true"
+          href="{% url 'mobile:view_invoice' invoice_id=invoice.id %}?detail_view=true"
           show-during-load="Loading-Screen"
           style="Primary"
         >
