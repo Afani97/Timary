@@ -5,30 +5,8 @@
         {% endfor %}
     {% endfor %}
 
-    <view style="FormGroup">
-      <text style="Label">Hours</text>
-      <text-field
-        name="hours"
-        value="1"
-        placeholder="1"
-        style="Input"
-        placeholderTextColor="#5e6363"
-      />
-    </view>
-    <view style="FormGroup">
-      <text style="Label">Date Tracked</text>
-      <date-field
-        name="date_tracked"
-        field-text-style="Input"
-        modal-style="DatePickerModal"
-        modal-text-style="DatePickerModal__text"
-        value="{% now "Y-m-d" %}"
-        label-format="MMM D, YYYY"
-        placeholder="Select date"
-        placeholderTextColor="#5e6363"
-        mode="spinner"
-      />
-    </view>
+    {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value="1" placeholder="1" %}
+    {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" %}
     <view style="FormGroup">
       <text style="Label">Invoice</text>
       <picker-field
@@ -44,21 +22,9 @@
           {% endfor %}
       </picker-field>
     </view>
-    <view style="MarginTop20">
-      <view style="Wrapper">
-          <text
-              action="replace"
-              delay="500"
-              href="{% url 'mobile:new_hours' %}"
-              show-during-load="Loading-Screen"
-              style="Primary"
-              target="NewHoursForm"
-              verb="post"
-            >
-              Create
-            </text>
-      </view>
-    </view>
+
+    {% url 'mobile:new_hours' as save_url %}
+    {% include 'mobile/inputs/submit_btn.xml' with title="Create" target="NewHoursForm" url=save_url %}
 
     {% if success %}
     <behavior trigger="load" action="close" href="#" />

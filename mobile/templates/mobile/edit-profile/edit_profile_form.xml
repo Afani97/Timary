@@ -5,65 +5,13 @@
         {% endfor %}
     {% endfor %}
 
-    <view style="FormGroup">
-      <text style="Label">First Name</text>
-      <text-field
-        value="{{ profile.first_name }}"
-        name="first_name"
-        placeholder="Tom"
-        style="Input"
-        placeholderTextColor="#5e6363"
-      />
-    </view>
-    <view style="FormGroup">
-      <text style="Label">Last Name</text>
-      <text-field
-      value="{{ profile.last_name }}"
-        name="last_name"
-        placeholder="Brady"
-        keyboard-type="email-address"
-        style="Input"
-        placeholderTextColor="#5e6363"
+    {% include 'mobile/inputs/text_field.xml' with label="First Name" name="first_name" value=profile.first_name placeholder="Tom" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Last Name" name="last_name" value=profile.last_name placeholder="Brady" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Email" name="email" value=profile.email placeholder="Tom" kb_type="email-address" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Phone Number" name="phone_number" value=profile.phone_number placeholder="+1 333-444-5555" kb_type="phone-pad" %}
 
-      />
-    </view>
-    <view style="FormGroup">
-      <text style="Label">Email</text>
-      <text-field
-            value="{{ profile.email }}"
-            name="email"
-            placeholder="*****"
-            style="Input"
-            keyboard-type="email-address"
-            placeholderTextColor="#5e6363"
-      />
-    </view>
-    <view style="FormGroup">
-      <text style="Label">Phone Number</text>
-      <text-field
-            value="{{ profile.phone_number }}"
-            name="phone_number"
-            placeholder="+1 333-444-5555"
-            style="Input"
-            keyboard-type="phone-pad"
-            placeholderTextColor="#5e6363"
-      />
-    </view>
-    <view style="MarginTop20">
-      <view style="Wrapper">
-          <text
-              action="replace"
-              delay="500"
-              href="{% url 'mobile:edit_profile' %}"
-              show-during-load="Loading-Screen"
-              style="Primary"
-              target="EditProfileForm"
-              verb="post"
-            >
-              Update
-            </text>
-      </view>
-    </view>
+    {% url 'mobile:edit_profile' as save_url %}
+    {% include 'mobile/inputs/submit_btn.xml' with title="Update" target="EditProfileForm" url=save_url %}
 
     {% if success %}
     <behavior trigger="load" action="close" href="#" />

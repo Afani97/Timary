@@ -1,0 +1,15 @@
+<view style="MarginTop20">
+  <view style="Wrapper">
+      <text
+          action="replace"
+          delay="500"
+          href="{{ url }}"
+          show-during-load="Loading-Screen"
+          style="Primary"
+          target="{{ target }}"
+          verb="post"
+        >
+          {{ title }}
+        </text>
+  </view>
+</view>

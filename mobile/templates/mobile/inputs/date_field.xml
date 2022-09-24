@@ -1,0 +1,14 @@
+<view style="FormGroup">
+  <text style="Label">{{ label }}</text>
+  <date-field
+    name="{{ name }}"
+    field-text-style="Input"
+    modal-style="DatePickerModal"
+    modal-text-style="DatePickerModal__text"
+    {% if value %} value="{{ value|date:"Y-m-d" }}" {% endif %}
+    label-format="MMM D, YYYY"
+    placeholder="Select date"
+    placeholderTextColor="#5e6363"
+    mode="spinner"
+  />
+</view>

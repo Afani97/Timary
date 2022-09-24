@@ -1,0 +1,15 @@
+<view
+    style="FormGroup"
+    {% if id %} id="{{ id }}" {% endif %}
+    {% if hide %} hide="true" {% endif %}
+>
+  <text style="Label">{{ label }}</text>
+  <text-field
+    {% if value %} value="{{ value }}"{% endif %}
+    name="{{ name }}"
+    placeholder="{{ placeholder }}"
+    style="Input"
+    placeholderTextColor="#5e6363"
+    {% if kb_type %} keyboard-type="{{ kb_type }}" {% endif %}
+  />
+</view>

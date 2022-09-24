@@ -5,16 +5,7 @@
         {% endfor %}
     {% endfor %}
 
-    <view style="FormGroup">
-      <text style="Label">Title</text>
-      <text-field
-        name="title"
-        placeholder="New Saas app.."
-        style="Input"
-        placeholderTextColor="#5e6363"
-        value="{{ invoice.title }}"
-      />
-    </view>
+    {% include 'mobile/inputs/text_field.xml' with label="Title" name="title" value=invoice.title placeholder="New Saas app..." %}
 
     {% if invoice.invoice_type == 1%}
     <view style="FormGroup" id="Invoice_Interval">
@@ -37,90 +28,22 @@
     </view>
     {% endif %}
     {% if invoice.invoice_type == 2 %}
-    <view style="FormGroup" id="Milestones">
-      <text style="Label">Milestone total steps</text>
-      <text-field
-        name="milestone_total_steps"
-        value="{{ invoice.milestone_total_steps }}"
-        placeholder="3"
-        style="Input"
-        placeholderTextColor="#5e6363"
-      />
-    </view>
+        {% include 'mobile/inputs/text_field.xml' with id="Milestones" label="Milestone total steps" name="milestone_total_steps" value=invoice.milestone_total_steps placeholder="3" %}
     {% endif %}
     {% if invoice.invoice_type == 1 or invoice.invoice_type == 2 %}
-    <view style="FormGroup" id="Hourly_Rate">
-      <text style="Label">Hourly Rate</text>
-      <text-field
-        name="invoice_rate"
-        placeholder="50"
-        style="Input"
-        placeholderTextColor="#5e6363"
-        value="{{ invoice.invoice_rate }}"
-      />
-    </view>
+        {% include 'mobile/inputs/text_field.xml' with id="Hourly_Rate" label="Hourly Rate" name="invoice_rate" value=invoice.invoice_rate placeholder="50" %}
     {% endif %}
 
     {% if invoice.invoice_type == 3 %}
-    <view style="FormGroup" id="Weekly_Rate">
-      <text style="Label">Weekly rate</text>
-      <text-field
-        name="weekly_rate"
-        value="{{ invoice.invoice_rate }}"
-        placeholder="1500"
-        style="Input"
-        placeholderTextColor="#5e6363"
-      />
-    </view>
+        {% include 'mobile/inputs/text_field.xml' with id="Weekly_Rate" label="Weekly Rate" name="weekly_rate" value=invoice.invoice_rate placeholder="1500" %}
     {% endif %}
 
-    <view style="FormGroup">
-      <text style="Label">Budget</text>
-      <text-field
-        name="total_budget"
-        placeholder="10000"
-        style="Input"
-        placeholderTextColor="#5e6363"
-        value="{{ invoice.total_budget|default_if_none:0 }}"
-      />
-     </view>
+    {% include 'mobile/inputs/text_field.xml' with label="Budget" name="total_budget" value=invoice.total_budget placeholder="1000" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Email recipient name" name="email_recipient_name" value=invoice.email_recipient_name placeholder="John Smith" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Email recipient" name="email_recipient" value=invoice.email_recipient placeholder="john@smith.com" %}
 
-     <view style="FormGroup">
-      <text style="Label">Email recipient name</text>
-      <text-field
-        name="email_recipient_name"
-        placeholder="John Smith"
-        style="Input"
-        placeholderTextColor="#5e6363"
-        value="{{ invoice.email_recipient_name }}"
-      />
-     </view>
-     <view style="FormGroup">
-      <text style="Label">Email recipient</text>
-      <text-field
-        name="email_recipient"
-        placeholder="john@smith.com"
-        style="Input"
-        placeholderTextColor="#5e6363"
-        value="{{ invoice.email_recipient }}"
-      />
-     </view>
-
-    <view style="MarginTop20">
-      <view style="Wrapper">
-          <text
-              action="replace"
-              delay="500"
-              href="{% url 'mobile:edit_invoice' invoice_id=invoice.id %}"
-              show-during-load="Loading-Screen"
-              style="Primary"
-              target="EditInvoiceForm"
-              verb="post"
-            >
-              Update
-            </text>
-      </view>
-    </view>
+    {% url 'mobile:edit_invoice' invoice_id=invoice.id as save_url %}
+    {% include 'mobile/inputs/submit_btn.xml' with title="Update" target="EditInvoiceForm" url=save_url %}
 
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
