@@ -6,6 +6,11 @@ app_name = "mobile"
 
 urlpatterns = [
     path("index/", views.index, name="index"),
+    path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),
+]
+
+# HOURS
+urlpatterns += [
     path(
         "hours/<uuid:hours_id>/",
         views.view_hours,
@@ -24,6 +29,10 @@ urlpatterns = [
     path("hours/", views.hours, name="hours"),
     path("hours/new/", views.new_hours, name="new_hours"),
     path("hours/stats/", views.hour_stats, name="hour_stats"),
+]
+
+# INVOICES
+urlpatterns += [
     path(
         "invoices/<uuid:invoice_id>/",
         views.view_invoice,
@@ -36,7 +45,27 @@ urlpatterns = [
     ),
     path("invoices/", views.invoices, name="invoices"),
     path("invoices/new/", views.new_invoices, name="new_invoices"),
+]
+
+
+# SENT INVOICES
+urlpatterns += [
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/",
+        views.view_sent_invoice,
+        name="view_sent_invoice",
+    ),
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/resend/",
+        views.resend_invoice,
+        name="resend_invoice",
+    ),
+    path("sent_invoices/", views.sent_invoices, name="sent_invoices"),
+]
+
+
+# PROFILE
+urlpatterns += [
     path("profile/", views.profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path("api-token-auth/", views.CustomAuthToken.as_view(), name="obtain_auth_token"),
 ]

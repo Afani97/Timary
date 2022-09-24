@@ -175,12 +175,28 @@
     fontWeight="bold"
     lineHeight="20"
     textAlign="center"
-    width="100"
+    width="150"
     padding="5"
     margin="5"
     borderRadius="10"
     borderWidth="1"
     borderColor="#5c20dd"
+    overflow="hidden"
+/>
+<style
+    id="PrimaryDisabled"
+    color="white"
+    backgroundColor="#3F424C"
+    fontSize="16"
+    fontWeight="bold"
+    lineHeight="20"
+    textAlign="center"
+    width="150"
+    padding="5"
+    margin="5"
+    borderRadius="10"
+    borderWidth="1"
+    borderColor="#3F424C"
     overflow="hidden"
 />
 <style
@@ -191,7 +207,7 @@
     fontWeight="bold"
     lineHeight="20"
     textAlign="center"
-    width="100"
+    width="150"
     padding="5"
     margin="5"
     borderRadius="10"
@@ -206,11 +222,24 @@
     fontWeight="bold"
     lineHeight="20"
     textAlign="center"
-    width="100"
+    width="150"
     padding="5"
     margin="5"
     borderRadius="10"
     borderWidth="2"
     borderColor="#b5605c"
     overflow="hidden"
+/>
+
+<style
+    id="Success"
+    color="#9fecb1"
+/>
+<style
+    id="Pending"
+    color="#f4de62"
+/>
+<style
+    id="Error"
+    color="#de9b9a"
 />

@@ -17,13 +17,6 @@
                 target="Invoices-List"
                 href="{% url 'mobile:invoices' %}?partial=true"
         />
-        <behavior
-                trigger="on-event"
-                event-name="reload-hours"
-                action="replace-inner"
-                target="Hours-List"
-                href="{% url 'mobile:hours' %}?partial=true"
-        />
     </body>
   </screen>
   {% include 'mobile/loading_screen.xml' %}

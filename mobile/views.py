@@ -17,8 +17,8 @@ from rest_framework_xml.renderers import XMLRenderer
 
 from mobile.utils import render_xml
 from timary.forms import DailyHoursForm, InvoiceForm, UserForm
-from timary.models import DailyHoursInput, Invoice
-from timary.views import get_hours_tracked
+from timary.models import DailyHoursInput, Invoice, SentInvoice
+from timary.views import get_hours_tracked, resend_invoice_email
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -172,11 +172,11 @@ def delete_hours(request, hours_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def invoices(request):
-    invoices = request.user.get_invoices.order_by("title")
+    invoices_list = request.user.get_invoices.order_by("title")
     t = "invoices/invoices.xml"
     if "partial" in request.query_params:
         t = "invoices/_invoices.xml"
-    return render_xml(request, t, {"invoices": invoices})
+    return render_xml(request, t, {"invoices": invoices_list})
 
 
 @api_view(["GET"])
@@ -278,6 +278,49 @@ def edit_invoice(request, invoice_id):
         return render_xml(
             request, "edit-invoice/edit_invoice.xml", {"invoice": invoice}
         )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def sent_invoices(request):
+    sent_invoices_list = request.user.sent_invoices.order_by("-date_sent")
+    t = "sent-invoices/sent_invoices.xml"
+    if "partial" in request.query_params:
+        t = "sent-invoices/_sent_invoices.xml"
+    return render_xml(request, t, {"sent_invoices": sent_invoices_list})
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def view_sent_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+    return render_xml(
+        request, "sent-invoices/_sent_invoice.xml", {"sent_invoice": sent_invoice}
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def resend_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+    _ = resend_invoice_email(request, sent_invoice_id)
+    return render_xml(
+        request,
+        "sent-invoices/_sent_invoice.xml",
+        {
+            "sent_invoice": sent_invoice,
+            "success": True,
+            "toast_message": "Invoice resent!",
+            "toast_type": "success",
+        },
+    )
 
 
 @api_view(["GET"])

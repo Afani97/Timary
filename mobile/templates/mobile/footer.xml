@@ -21,6 +21,9 @@
         Timer
     </text>
     <text
+        action="reload"
+        target="Body"
+        href="{% url 'mobile:sent_invoices' %}"
         style="Footer-{% if active_tab == 4 %}Active{% else %}Item{% endif %}"
     >
         Sent Invoices

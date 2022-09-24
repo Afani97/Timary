@@ -1,0 +1,45 @@
+<view style="BottomBorder" id="sent-invoice-{{ sent_invoice.id }}" xmlns="https://hyperview.org/hyperview">
+    <text style="H1">Invoice: {{ sent_invoice.invoice.title }}</text>
+    <text style="P">Status:
+        <text style="
+                {% if sent_invoice.paid_status == 2 %}
+                    Success
+                {% elif sent_invoice.paid_status == 3 %}
+                    Error
+                {% else %}
+                    Pending
+                {% endif %}
+                ">
+            {{ sent_invoice.get_paid_status_display|title }}
+        </text>
+    </text>
+    <text style="P">Amount earned: ${{ sent_invoice.total_price }}</text>
+    <text style="P">{{ sent_invoice.date_sent }}</text>
+    {% if sent_invoice.paid_status != 2 %}
+    <view style="BtnActions">
+        <text
+          {% if success %}
+              selectable="false"
+              style="PrimaryDisabled"
+          {% else %}
+              action="replace"
+              target="sent-invoice-{{ sent_invoice.id }}"
+              href="{% url 'mobile:resend_invoice' sent_invoice_id=sent_invoice.id %}"
+              style="Primary"
+          {% endif %}
+        >
+        {% if success %}
+            Invoice resent
+        {% else %}
+            Resend invoice
+        {% endif %}
+            <modifier pressed="true">
+                <style backgroundColor="#4918B1" borderColor="#4918B1" />
+            </modifier>
+        </text>
+    </view>
+    {% endif %}
+    {% if success %}
+        {% include 'mobile/_toast.xml' %}
+    {% endif %}
+</view>
