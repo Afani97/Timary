@@ -1,0 +1,12 @@
+{% load filters %}
+<view style="Wrapper">
+    {% for field, errors in errors %}
+        {% for error in errors %}
+            {% if 'required' in error %}
+                <text style="Help-Error">{{ field|englishify|title }} is required.</text>
+            {% else %}
+                <text style="Help-Error">{{ error }}</text>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</view>

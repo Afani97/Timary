@@ -11,6 +11,11 @@ def addclass(field, class_attr):
     return field.as_widget(attrs={"class": class_attr})
 
 
+@register.filter(name="englishify")
+def englishify(s: str):
+    return s.replace("_", " ")
+
+
 @register.filter(name="nextmonday")
 def nextmonday(field):
     weekday = 0

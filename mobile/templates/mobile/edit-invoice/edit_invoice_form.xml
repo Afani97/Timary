@@ -1,9 +1,5 @@
 <form id="EditInvoiceForm" scroll="True" xmlns="https://hyperview.org/hyperview">
-    {% for field, errors in errors.items %}
-        {% for error in errors %}
-            <text style="Help--Error">{{ field }}: {{ error }}</text>
-        {% endfor %}
-    {% endfor %}
+    {% include 'mobile/_errors.xml' with errors=errors.items %}
 
     {% include 'mobile/inputs/text_field.xml' with label="Title" name="title" value=invoice.title placeholder="New Saas app..." %}
 

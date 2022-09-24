@@ -98,14 +98,16 @@
     marginBottom="8"
 />
 <style
-    id="Help"
+    id="Help-Error"
+    color="#FF4847"
     borderColor="#FF4847"
-    fontSize="16"
+    fontSize="20"
     fontWeight="normal"
+    textAlign="center"
     lineHeight="24"
     marginTop="16"
+    marginHorizontal="10"
 />
-<style id="Help--Error" color="#FF4847" />
 <style id="MarginTop20" marginTop="20" />
 <style
     id="H1"

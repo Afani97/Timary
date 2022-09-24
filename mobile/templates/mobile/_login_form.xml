@@ -1,6 +1,6 @@
 <form id="myForm" scroll="true" xmlns="https://hyperview.org/hyperview">
     {% for error in errors %}
-    <text style="Help--Error">{{ error }}</text>
+    <text style="Help-Error">{{ error }}</text>
     {% endfor %}
 
     <view style="FormGroup">

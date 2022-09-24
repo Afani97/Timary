@@ -1,9 +1,6 @@
 <form id="EditHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
-    {% for field, errors in errors.items %}
-        {% for error in errors %}
-            <text style="Help--Error">{{ field }}: {{ error }}</text>
-        {% endfor %}
-    {% endfor %}
+    {% include 'mobile/_errors.xml' with errors=errors.items %}
+
     {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value=hour.hours placeholder="1" %}
     {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" value=hour.date_tracked %}
 

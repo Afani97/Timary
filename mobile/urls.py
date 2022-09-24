@@ -26,7 +26,7 @@ urlpatterns += [
         views.delete_hours,
         name="delete_hours",
     ),
-    path("hours/", views.hours, name="hours"),
+    path("hours/", views.get_hours, name="hours"),
     path("hours/new/", views.new_hours, name="new_hours"),
     path("hours/stats/", views.hour_stats, name="hour_stats"),
 ]
@@ -43,7 +43,7 @@ urlpatterns += [
         views.edit_invoice,
         name="edit_invoice",
     ),
-    path("invoices/", views.invoices, name="invoices"),
+    path("invoices/", views.get_invoices, name="invoices"),
     path("invoices/new/", views.new_invoices, name="new_invoices"),
 ]
 
@@ -60,12 +60,12 @@ urlpatterns += [
         views.resend_invoice,
         name="resend_invoice",
     ),
-    path("sent_invoices/", views.sent_invoices, name="sent_invoices"),
+    path("sent_invoices/", views.get_sent_invoices, name="sent_invoices"),
 ]
 
 
 # PROFILE
 urlpatterns += [
-    path("profile/", views.profile, name="profile"),
+    path("profile/", views.get_profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
 ]

@@ -61,13 +61,13 @@ def index(request):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def hours(request):
-    hours = DailyHoursInput.all_hours.current_month(request.user)
-    show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
+def get_hours(request):
+    hours_list = DailyHoursInput.all_hours.current_month(request.user)
+    show_repeat_option = request.user.can_repeat_previous_hours_logged(hours_list)
 
     context = {
         "new_hour_form": DailyHoursForm(user=request.user),
-        "hours": hours,
+        "hours": hours_list,
         "show_repeat": show_repeat_option,
     }
     context.update(get_hours_tracked(request.user))
@@ -84,9 +84,9 @@ def hours(request):
 @parser_classes([FormParser, MultiPartParser])
 def new_hours(request):
     if request.method == "POST":
-        hours = DailyHoursForm(request.data)
-        if hours.is_valid():
-            hours.save()
+        hours_form = DailyHoursForm(request.data)
+        if hours_form.is_valid():
+            hours_form.save()
             return render_xml(
                 request,
                 "new-hours/new_hours_form.xml",
@@ -98,7 +98,12 @@ def new_hours(request):
             )
         else:
             return render_xml(
-                request, "new-hours/new_hours_form.xml", {"errors": hours.errors}
+                request,
+                "new-hours/new_hours_form.xml",
+                {
+                    "errors": hours_form.errors,
+                    "user_invoices": request.user.get_invoices,
+                },
             )
     else:
         return render_xml(
@@ -135,9 +140,9 @@ def edit_hours(request, hours_id):
     if request.user != hour.invoice.user:
         raise Http404
     if request.method == "POST":
-        hours = DailyHoursForm(request.data, instance=hour)
-        if hours.is_valid():
-            hours.save()
+        hours_form = DailyHoursForm(request.data, instance=hour)
+        if hours_form.is_valid():
+            hours_form.save()
             context = {
                 "hour": hour,
                 "success": True,
@@ -145,7 +150,11 @@ def edit_hours(request, hours_id):
                 "toast_type": "success",
             }
         else:
-            context = {"hour": hour, "errors": hours.errors}
+            context = {
+                "hour": hour,
+                "errors": hours_form.errors,
+                "user_invoices": request.user.get_invoices,
+            }
         return render_xml(request, "edit-hours/edit_hours_form.xml", context)
     else:
         return render_xml(
@@ -159,10 +168,10 @@ def edit_hours(request, hours_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_hours(request, hours_id):
-    hours = get_object_or_404(DailyHoursInput, id=hours_id)
-    if request.user != hours.invoice.user:
+    hour = get_object_or_404(DailyHoursInput, id=hours_id)
+    if request.user != hour.invoice.user:
         raise Http404
-    hours.delete()
+    hour.delete()
     return render_xml(
         request, "empty.xml", {"toast_message": "Hours deleted!", "toast_type": "info"}
     )
@@ -171,7 +180,7 @@ def delete_hours(request, hours_id):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def invoices(request):
+def get_invoices(request):
     invoices_list = request.user.get_invoices.order_by("title")
     t = "invoices/invoices.xml"
     if "partial" in request.query_params:
@@ -283,7 +292,7 @@ def edit_invoice(request, invoice_id):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def sent_invoices(request):
+def get_sent_invoices(request):
     sent_invoices_list = request.user.sent_invoices.order_by("-date_sent")
     t = "sent-invoices/sent_invoices.xml"
     if "partial" in request.query_params:
@@ -326,7 +335,7 @@ def resend_invoice(request, sent_invoice_id):
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def profile(request):
+def get_profile(request):
     t = "profile/profile.xml"
     if "partial" in request.query_params:
         t = "profile/_profile.xml"
@@ -340,9 +349,9 @@ def profile(request):
 @parser_classes([FormParser, MultiPartParser])
 def edit_profile(request):
     if request.method == "POST":
-        profile = UserForm(request.data, instance=request.user)
-        if profile.is_valid():
-            profile.save()
+        profile_form = UserForm(request.data, instance=request.user)
+        if profile_form.is_valid():
+            profile_form.save()
             context = {
                 "profile": request.user,
                 "success": True,
@@ -350,7 +359,11 @@ def edit_profile(request):
                 "toast_type": "success",
             }
         else:
-            context = {"profile": request.user, "errors": profile.errors}
+            context = {
+                "profile": request.user,
+                "form": profile_form,
+                "errors": profile_form.errors,
+            }
         return render_xml(request, "edit-profile/edit_profile_form.xml", context)
     else:
         return render_xml(
