@@ -1,9 +1,25 @@
 {% extends 'mobile/header/_header.xml' %}
 
 {% block left %}
-    <text action="close" href="#" style="Header__Back">Close</text>
+    {% if not url %}
+        <text action="close" href="#" style="Header__Back">Close</text>
+    {% else %}
+        <text action="back" href="#" style="Header__Empty"></text>
+    {% endif %}
 {% endblock %}
 
 {% block right %}
-    <text action="back" href="#" style="Header__Empty"></text>
+    {% if url %}
+        <text
+          action="new"
+          {# Annoying hack to pass in dynamic url names #}
+          {% with edit_url=url %} href="{% url edit_url %}" {% endwith %}
+          show-during-load="Loading-Screen"
+          style="Header__Create"
+        >
+          Edit
+        </text>
+    {% else %}
+        <text action="back" href="#" style="Header__Empty"></text>
+    {% endif %}
 {% endblock %}

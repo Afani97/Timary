@@ -1,5 +1,5 @@
 <style id="Body" backgroundColor="#1b1d23" flex="1" />
-<style id="Main" backgroundColor="#2b303b" flex="1" paddingTop="12" />
+<style id="Main" backgroundColor="#2b303b" flex="1" paddingTop="12" width="100%" height="100%"/>
 
 <style id="Footer"
        flexDirection="row"
@@ -27,6 +27,14 @@
     flexDirection="row"
     flexWrap="wrap"
     width="100%"
+/>
+<style id="WrapperCol"
+    display="flex"
+    justifyContent="center"
+    alignItems="center"
+    flexDirection="column"
+    width="100%"
+    padding="20"
 />
 <style
     id="FormGroup"
@@ -156,7 +164,7 @@
     id="BottomBorder"
     borderBottomColor="black"
     borderBottomWidth="1"
-    margin="10"
+    marginHorizontal="10"
     padding="20"
 />
 <style

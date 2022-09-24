@@ -69,3 +69,10 @@ urlpatterns += [
     path("profile/", views.get_profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
 ]
+
+
+# APP INFO
+urlpatterns += [
+    path("terms/", views.get_terms_page, name="terms_page"),
+    path("privacy/", views.get_privacy_page, name="privacy_page"),
+]

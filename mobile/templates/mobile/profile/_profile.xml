@@ -1,11 +1,14 @@
 <view id="Profile" xmlns="https://hyperview.org/hyperview">
-    <text style="Label">{{ profile.first_name }} {{ profile.last_name }}</text>
-    <text
-      action="new"
-      href="{% url 'mobile:edit_profile' %}"
-      show-during-load="Loading-Screen"
-      style="Primary"
-    >
-      Edit
-    </text>
+    <view style="WrapperCol">
+        {% if profile.profile_pic %}
+            <image style="Image" source="{{ profile.profile_pic.url}}" />
+        {% endif %}
+        <view>
+            <text style="H1">{{ profile.first_name }} {{ profile.last_name }}</text>
+            <text style="P">{{ profile.email }} </text>
+            {% if profile.phone_number %}
+                <text style="P">{{ profile.phone_number}} </text>
+            {% endif %}
+        </view>
+    </view>
 </view>

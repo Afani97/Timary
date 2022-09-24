@@ -2,12 +2,64 @@
   <screen>
     <styles>
         {% include 'mobile/base_styles.xml' %}
-        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
+        {% include 'mobile/header/_header_styles.xml' with jc="space-between" %}
+        <style id="Image" height="100" width="100" borderRadius="50" marginBottom="20" />
+        <style
+        id="Description"
+        borderColor="red"
+        borderRadius="4"
+        borderWidth="2"
+        fontSize="16"
+        fontWeight="600"
+        marginHorizonal="24"
+        marginBottom="24"
+        padding="16"
+        backgroundColor="#2b303b"
+      />
+      <style
+        id="List__Header"
+        alignItems="center"
+        backgroundColor="#1b1d23"
+        flex="1"
+        flexDirection="row"
+        height="48"
+        paddingLeft="24"
+        paddingRight="24"
+      />
+      <style id="List__HeaderText" fontSize="18" fontWeight="bold" color="white" />
+      <style
+        id="Item"
+        alignItems="center"
+        borderBottomColor="#1b1d23"
+        borderBottomWidth="1"
+        flex="1"
+        flexDirection="row"
+        height="48"
+        justifyContent="space-between"
+        paddingLeft="24"
+        paddingRight="24"
+        backgroundColor="#2b303b"
+      />
+      <style id="Item__Label" fontSize="18" fontWeight="normal" color="white" />
+      <style id="Item__Chevron" fontSize="18" fontWeight="bold" color="white" />
     </styles>
     <body style="Body" id="Body" safe-area="true">
-        {% include 'mobile/header/_header.xml' with header_title="Profile" %}
+        {% include 'mobile/header/_edit_header.xml' with header_title="Profile" url="mobile:edit_profile" %}
         <view style="Main">
             {% include 'mobile/profile/_profile.xml' %}
+            <section-list>
+                <section>
+                  <section-title style="List__Header">
+                    <text style="List__HeaderText">App Info</text>
+                  </section-title>
+                  <item key="1" style="Item">
+                    <text style="P" action="new" href="{% url 'mobile:terms_page' %}">Terms &amp; Conditions</text>
+                  </item>
+                  <item key="2" style="Item">
+                    <text style="P" action="new" href="{% url 'mobile:privacy_page' %}">Privacy Policy</text>
+                  </item>
+                </section>
+            </section-list>
         </view>
         {% include 'mobile/footer.xml' with active_tab=5 %}
 

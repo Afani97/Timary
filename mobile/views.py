@@ -369,3 +369,13 @@ def edit_profile(request):
         return render_xml(
             request, "edit-profile/edit_profile.xml", {"profile": request.user}
         )
+
+
+@api_view(["GET"])
+def get_terms_page(request):
+    return render_xml(request, "app-info/terms.xml")
+
+
+@api_view(["GET"])
+def get_privacy_page(request):
+    return render_xml(request, "app-info/privacy.xml")
