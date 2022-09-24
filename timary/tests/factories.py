@@ -38,7 +38,7 @@ class InvoiceFactory(DjangoModelFactory):
         model = Invoice
 
     user = factory.SubFactory(UserFactory)
-    title = factory.Faker("name")
+    title = factory.Faker("first_name")
     invoice_type = Invoice.InvoiceType.INTERVAL
     invoice_interval = factory.Iterator(
         [

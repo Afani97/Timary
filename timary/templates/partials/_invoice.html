@@ -1,5 +1,5 @@
 {% load filters %}
-<li class="card shadow-lg bordered" id="{{invoice.slug_title}}">
+<li class="card card-bordered border-neutral" id="{{invoice.slug_title}}">
     <div class="card-body">
         <div class="flex justify-between">
             <h2 class="card-title">{{ invoice.title }} - {% if invoice.invoice_type == 3 %}Weekly {% endif %}Rate: ${{ invoice.invoice_rate }}</h2>
@@ -50,7 +50,7 @@
                     {% if invoice.invoice_type == 1 %}
                         {% if invoice.next_date %}
                             <p class="text-xl">emailed {{ invoice.get_invoice_interval_display|lower }} to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                            <p class="text-xl">next date sent is {{ invoice.next_date }}</p>
+                            <p class="text-xl">next date sent is {{ invoice.next_date|date:"M. j, Y" }}</p>
                         {% else %}
                             <p class="text-xl">invoice is paused</p>
                         {% endif %}

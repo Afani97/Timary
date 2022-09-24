@@ -148,7 +148,9 @@ class TestGatherInvoices(TestCase):
         )
 
     @patch("timary.tasks.date")
-    def test_gather_1_invoice_monday_for_weekly(self, today_mock):
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_monday_for_weekly(self, send_invoice_mock, today_mock):
+        send_invoice_mock.return_value = None
         today_mock.today.return_value = datetime.date(2022, 8, 22)
         InvoiceFactory(invoice_type=3)
         invoices_sent = gather_invoices()

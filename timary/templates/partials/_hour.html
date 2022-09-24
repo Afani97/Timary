@@ -1,4 +1,4 @@
-<li class="card shadow-lg bordered px-6 md:px-0" id="{{hour.slug_id}}">
+<li class="card card-bordered border-neutral px-6 md:px-0" id="{{hour.slug_id}}">
     <div class="card-body">
         <h2 class="card-title">{{ hour.hours|floatformat:2 }} hrs for {{ hour.invoice.title }}</h2>
         {% if not hour.sent_invoice_id %}

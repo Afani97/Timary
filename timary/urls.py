@@ -25,6 +25,7 @@ urlpatterns = [
     ),
     path("questions/", views.questions, name="questions"),
     path("contract/", views.contract_builder, name="contract_builder"),
+    path("stopwatch/", views.stopwatch, name="stopwatch"),
 ]
 
 

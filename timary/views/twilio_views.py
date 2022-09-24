@@ -14,9 +14,16 @@ def twilio_reply(request):
     twilio_request = decompose(request)
     user = User.objects.get(phone_number=twilio_request.from_)
 
-    messages = TwilioClient.get_user_messages()
+    last_message = TwilioClient.get_user_messages()
+    if not last_message:
+        remaining_invoices = user.invoices_not_logged
+        if remaining_invoices:
+            TwilioClient.log_hours(remaining_invoices.pop())
+        else:
+            TwilioClient.send_message(user, "All set for today. Keep it up!")
+        return MessagingResponse()
 
-    _, invoice_title = messages[1].body.split(":")
+    _, invoice_title = last_message.body.split(":")
     invoice_title = invoice_title.split(".")[0]
     invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
 
@@ -34,7 +41,7 @@ def twilio_reply(request):
             )
             return r
 
-        if hours > 0:
+        if 0 < hours <= 24:
             DailyHoursInput.objects.create(
                 hours=hours,
                 date_tracked=datetime.date.today(),
@@ -43,7 +50,7 @@ def twilio_reply(request):
         else:
             r = MessagingResponse()
             r.message(
-                f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
+                f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip"
             )
             return r
     else:
@@ -54,7 +61,7 @@ def twilio_reply(request):
         )
 
     remaining_invoices = user.invoices_not_logged
-    if len(remaining_invoices) > 0:
+    if remaining_invoices:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()
         r.message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")

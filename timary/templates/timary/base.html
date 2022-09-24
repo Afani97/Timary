@@ -10,6 +10,12 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <meta name="theme-color" content="#2b2e36">
         <title>Hello from Timary!</title>
+        <style>
+            /* Annoying hack to render the date input widget fully */
+            input[type="date"] {
+                -webkit-appearance: none
+            }
+        </style>
         {% block css %}{% endblock %}
         {# Third Party JS #}
         <script src="https://unpkg.com/htmx.org@1.8.0"></script>
@@ -37,7 +43,7 @@
         {% include "partials/_navbar.html" %}
 
         {# Main Content  #}
-        <main class="lg:w-5/6 mx-auto px-1 lg:px-10 pb-5">
+        <main class="lg:container mx-auto px-5 md:px-0">
             {% block content %}{% endblock %}
         </main>
 

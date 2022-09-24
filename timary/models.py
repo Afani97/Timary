@@ -336,10 +336,15 @@ class SentInvoice(BaseModel):
     @classmethod
     def create(cls, invoice):
         hours_tracked, total_cost = invoice.get_hours_stats()
-
+        first_date_tracked = (
+            hours_tracked.first().date_tracked if hours_tracked.first() else None
+        )
+        last_date_tracked = (
+            hours_tracked.last().date_tracked if hours_tracked.last() else None
+        )
         return SentInvoice.objects.create(
-            hours_start_date=hours_tracked.first().date_tracked,
-            hours_end_date=hours_tracked.last().date_tracked,
+            hours_start_date=first_date_tracked,
+            hours_end_date=last_date_tracked,
             date_sent=datetime.date.today(),
             invoice=invoice,
             user=invoice.user,
@@ -489,7 +494,8 @@ class User(AbstractUser, BaseModel):
         remaining_invoices = (
             set(self.get_invoices.filter(next_date__isnull=False)) - invoices
         )
-        return remaining_invoices
+        if len(remaining_invoices) > 0:
+            return remaining_invoices
 
     @property
     def formatted_phone_number(self):
