@@ -53,10 +53,16 @@
                     <text style="List__HeaderText">App Info</text>
                   </section-title>
                   <item key="1" style="Item">
-                    <text style="P" action="new" href="{% url 'mobile:terms_page' %}">Terms &amp; Conditions</text>
+                    <text xmlns:link="https://usetimary.com/hyperview/" style="P">
+                        Terms &amp; Conditions
+                        <behavior trigger="press" action="link" link:url="https://www.usetimary.com/terms/" />
+                    </text>
                   </item>
                   <item key="2" style="Item">
-                    <text style="P" action="new" href="{% url 'mobile:privacy_page' %}">Privacy Policy</text>
+                       <text xmlns:link="https://usetimary.com/hyperview/" style="P">
+                        Privacy Policy
+                        <behavior trigger="press" action="link" link:url="https://www.usetimary.com/privacy/" />
+                    </text>
                   </item>
                 </section>
             </section-list>
