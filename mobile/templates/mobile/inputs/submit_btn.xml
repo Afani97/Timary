@@ -1,10 +1,11 @@
 <view style="MarginTop20">
+  <spinner id="Spinner" hide="true" />
   <view style="Wrapper">
       <text
           action="replace"
           delay="500"
           href="{{ url }}"
-          show-during-load="Loading-Screen"
+          show-during-load="Spinner"
           style="Primary"
           target="{{ target }}"
           verb="post"

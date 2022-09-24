@@ -11,5 +11,6 @@
     style="Input"
     placeholderTextColor="#5e6363"
     {% if kb_type %} keyboard-type="{{ kb_type }}" {% endif %}
+    {% if secure %} secure-text="true" {% endif %}
   />
 </view>

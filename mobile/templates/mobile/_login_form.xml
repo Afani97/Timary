@@ -1,41 +1,14 @@
-<form id="myForm" scroll="true" xmlns="https://hyperview.org/hyperview">
+<form id="LoginForm" scroll="true" xmlns="https://hyperview.org/hyperview">
     {% for error in errors %}
     <text style="Help-Error">{{ error }}</text>
     {% endfor %}
 
-    <view style="FormGroup">
-      <text style="Label">Email</text>
-      <text-field
-        name="username"
-        placeholder="tom@brady.com"
-        placeholderTextColor="#8D9494"
-        keyboard-type="email-address"
-        style="Input"
-      />
-    </view>
-    <view style="FormGroup">
-      <text style="Label">Password</text>
-      <text-field
-        name="password"
-        placeholder="*****"
-        placeholderTextColor="#8D9494"
-        style="Input"
-        secure-text="true"
-      />
-    </view>
-      <view style="Wrapper">
-          <text
-              action="replace"
-              delay="500"
-              href="{% url 'mobile:obtain_auth_token' %}"
-              show-during-load="Loading-Screen"
-              style="Primary"
-              target="myForm"
-              verb="post"
-            >
-              Submit
-            </text>
-      </view>
+    {% include 'mobile/inputs/text_field.xml' with label="Email" name="username" placeholder="tom@brady.com" kb_type="email-address" %}
+    {% include 'mobile/inputs/text_field.xml' with label="Password" name="password" placeholder="*********" secure="true" %}
+
+    {% url 'mobile:obtain_auth_token' as login_url %}
+    {% include 'mobile/inputs/submit_btn.xml' with title="Login" target="LoginForm" url=login_url  %}
+
     {% if success %}
     <behavior trigger="load" href="{% url 'mobile:hours' %}" />
     <view xmlns:login="https://usetimary.com/hyperview/">

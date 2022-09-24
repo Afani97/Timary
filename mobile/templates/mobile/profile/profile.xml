@@ -50,6 +50,24 @@
             <section-list>
                 <section>
                   <section-title style="List__Header">
+                    <text style="List__HeaderText">Account</text>
+                  </section-title>
+                  <item key="1" style="Item">
+                    <text xmlns:link="https://usetimary.com/hyperview/" style="P">
+                        Reset Password
+                        <behavior trigger="press" action="link" link:url="https://www.usetimary.com/password_reset/" />
+                    </text>
+                  </item>
+                  <item key="2" style="Item">
+                    <text xmlns:logout="https://usetimary.com/hyperview/" style="P">
+                        Logout
+                        <behavior trigger="press" action="logout" />
+                        <behavior trigger="press" action="reload" href="{% url 'mobile:index' %}" />
+                    </text>
+                  </item>
+                </section>
+                <section>
+                  <section-title style="List__Header">
                     <text style="List__HeaderText">App Info</text>
                   </section-title>
                   <item key="1" style="Item">

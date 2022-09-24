@@ -42,14 +42,10 @@ class CustomAuthToken(ObtainAuthToken):
                 content_type="application/xml",
             )
         else:
-            errors_list = []
-            for _, errors in serializer.errors.items():
-                for error in errors:
-                    errors_list.append(error)
             return render(
                 request,
                 "mobile/_login_form.xml",
-                context={"errors": errors_list},
+                context={"errors": ["Unable to login with credentials"]},
                 content_type="application/xml",
             )
 

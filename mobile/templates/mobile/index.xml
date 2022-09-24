@@ -1,12 +1,18 @@
 <doc xmlns="https://hyperview.org/hyperview">
   <screen id="Login">
     <styles>
-      {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/base_styles.xml' %}
+        <style id="Heading" fontSize="40" fontWeight="bold" marginTop="20" textAlign="center" color="#9da1ad" />
+        <style id="Link" fontSize="15" marginBottom="20" textAlign="center" color="#9da1ad" fontWeight="bold" borderBottomWidth="2" borderBottomColor="white" borderStyle="solid" />
     </styles>
     <body style="Body" safe-area="true">
         <view style="Main">
+            <text style="Heading">Timary</text>
             {% include "mobile/_login_form.xml" %}
-            <spinner id="mySpinner" hide="true" />
+            <text xmlns:link="https://usetimary.com/hyperview/" style="Link">
+                Register for Timary
+                <behavior trigger="press" action="link" link:url="https://www.usetimary.com/register/" />
+            </text>
         </view>
     </body>
   </screen>
