@@ -1,7 +1,9 @@
 <form id="TimerForm" scroll="true" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
 
-    {% include 'mobile/inputs/text_field.xml' with id="hours" name="hours" label="Hours" hide="true" placeholder="1" %}
+    <view style="Flex" xmlns:stopwatchs="https://www.usetimary.com/hyperview/">
+        <stopwatchs:stopwatch />
+    </view>
 
     <view style="FormGroup">
       <text style="Label">Log to which invoice?</text>
