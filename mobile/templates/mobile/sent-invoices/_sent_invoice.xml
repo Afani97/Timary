@@ -16,12 +16,14 @@
     <text style="P">Amount earned: ${{ sent_invoice.total_price }}</text>
     <text style="P">{{ sent_invoice.date_sent }}</text>
     {% if sent_invoice.paid_status != 2 %}
+    <spinner id="MySpinner" hide="true" />
     <view style="BtnActions">
         <text
           {% if success %}
               selectable="false"
               style="PrimaryDisabled"
           {% else %}
+              show-during-load="MySpinner"
               action="replace"
               target="sent-invoice-{{ sent_invoice.id }}"
               href="{% url 'mobile:resend_invoice' sent_invoice_id=sent_invoice.id %}"
