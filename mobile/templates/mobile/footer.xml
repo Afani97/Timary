@@ -1,4 +1,4 @@
-<view style="Footer">
+<view style="Footer" id="TabFooter">
     <text
         action="reload"
         target="Body"
@@ -16,6 +16,9 @@
         Invoices
     </text>
     <text
+        action="reload"
+        target="Body"
+        href="{% url 'mobile:timer' %}"
         style="Footer-{% if active_tab == 3 %}Active{% else %}Item{% endif %}"
     >
         Timer

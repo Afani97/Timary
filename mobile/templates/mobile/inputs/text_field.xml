@@ -1,10 +1,10 @@
 <view
     style="FormGroup"
-    {% if id %} id="{{ id }}" {% endif %}
     {% if hide %} hide="true" {% endif %}
 >
   <text style="Label">{{ label }}</text>
   <text-field
+    {% if id %} id="{{ id }}" {% endif %}
     {% if value %} value="{{ value }}"{% endif %}
     name="{{ name }}"
     placeholder="{{ placeholder }}"

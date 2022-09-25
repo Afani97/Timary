@@ -1,0 +1,29 @@
+<form id="TimerForm" scroll="true" xmlns="https://hyperview.org/hyperview">
+    {% include 'mobile/_errors.xml' with errors=errors.items %}
+
+    {% include 'mobile/inputs/text_field.xml' with id="hours" name="hours" label="Hours" hide="true" placeholder="1" %}
+
+    <view style="FormGroup">
+      <text style="Label">Log to which invoice?</text>
+      <picker-field
+          field-text-style="Input"
+          name="invoice"
+          placeholder="Select Invoice"
+          value="{{ invoices.first.id }}"
+          modal-style="PickerModal"
+          modal-text-style="PickerModal__text"
+      >
+          {% for invoice in invoices %}
+            <picker-item label="{{ invoice.title }}" value="{{ invoice.id }}" />
+          {% endfor %}
+      </picker-field>
+    </view>
+
+    {% url 'mobile:timer' as save_url %}
+    {% include 'mobile/inputs/submit_btn.xml' with title="Save" target="TimerForm" url=save_url %}
+
+
+    {% if success %}
+    {% include 'mobile/_toast.xml' %}
+    {% endif %}
+</form>

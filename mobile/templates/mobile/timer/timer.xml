@@ -1,0 +1,31 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="Timer">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
+        <style id="Flex" flex="1" flexDirection="row" justifyContent="space-between" />
+    </styles>
+    <body style="Body" id="Body" safe-area="true">
+        {% include 'mobile/header/_header.xml' with header_title="Timer" %}
+        <view style="Main">
+            <view style="Flex">
+              <web-view
+                url="{{ site_url }}/stopwatch/"
+                activity-indicator-color="#5c20dd"
+                injected-java-script='document.getElementsByTagName("h1")[0].hidden = true; document.getElementsByClassName("link")[0].hidden = true; true;'
+              />
+            </view>
+            {% include 'mobile/timer/_timer.xml' %}
+            <behavior
+              action="set-value"
+              event-name="stop-timer"
+              trigger="on-event"
+              target="hours"
+              new-value="2"
+            />
+        </view>
+        {% include 'mobile/footer.xml' with active_tab=3 %}
+    </body>
+  </screen>
+  {% include 'mobile/loading_screen.xml' %}
+</doc>

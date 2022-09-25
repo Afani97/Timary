@@ -1,3 +1,5 @@
+import datetime
+
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
@@ -80,7 +82,7 @@ def get_hours(request):
 @parser_classes([FormParser, MultiPartParser])
 def new_hours(request):
     if request.method == "POST":
-        hours_form = DailyHoursForm(request.data)
+        hours_form = DailyHoursForm(request.data, user=request.user)
         if hours_form.is_valid():
             hours_form.save()
             return render_xml(
@@ -283,6 +285,38 @@ def edit_invoice(request, invoice_id):
         return render_xml(
             request, "edit-invoice/edit_invoice.xml", {"invoice": invoice}
         )
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
+def get_timer(request):
+    invoices = request.user.get_invoices.order_by("title")
+    c = {"invoices": invoices}
+    if request.method == "POST":
+        request_data = request.POST.copy()
+        request_data["date_tracked"] = datetime.datetime.today()
+        hours_form = DailyHoursForm(request_data, user=request.user)
+        if hours_form.is_valid():
+            hours_form.save()
+            c.update(
+                {
+                    "success": True,
+                    "toast_message": "New hours added!",
+                    "toast_type": "success",
+                }
+            )
+        else:
+            c.update(
+                {
+                    "errors": hours_form.errors,
+                }
+            )
+        return render_xml(request, "timer/_timer.xml", c)
+    else:
+        return render_xml(request, "timer/timer.xml", c)
 
 
 @api_view(["GET"])

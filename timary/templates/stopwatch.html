@@ -120,9 +120,11 @@
             function stop() {
                 hoursTimer.stop();
                 hoursTimer.isStopped = true;
+
                 let stopped = confirm("Are you sure you want to stop?");
 
                 if (stopped) {
+                    window.ReactNativeWebView.postMessage('hyperview:stop-timer');
                     hoursTimer.reset();
                     update_timer(0, 0, 0);
                     start_timer_btn.classList.remove("hidden");

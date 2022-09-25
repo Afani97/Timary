@@ -47,6 +47,11 @@ urlpatterns += [
     path("invoices/new/", views.new_invoices, name="new_invoices"),
 ]
 
+# TIMER
+urlpatterns += [
+    path("timer/", views.get_timer, name="timer"),
+]
+
 
 # SENT INVOICES
 urlpatterns += [
