@@ -90,7 +90,7 @@
         {# Reload from the edit profile screen #}
         <behavior
                 trigger="on-event"
-                event-name="reload"
+                event-name="reload-profile"
                 action="replace"
                 target="Profile"
                 href="{% url 'mobile:profile' %}?partial=true"

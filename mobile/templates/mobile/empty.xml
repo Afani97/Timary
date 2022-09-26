@@ -1,4 +1,4 @@
 <view xmlns="https://hyperview.org/hyperview">
-    <behavior trigger="load" action="dispatch-event" event-name="reload" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload-hours" />
     {% include "mobile/_toast.xml" %}
 </view>

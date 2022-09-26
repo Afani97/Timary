@@ -10,7 +10,7 @@
 
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
-    <behavior trigger="load" action="dispatch-event" event-name="reload" />
+    <behavior trigger="load" action="dispatch-event" event-name="reload-profile" />
     {% include 'mobile/_toast.xml' %}
     {% endif %}
 

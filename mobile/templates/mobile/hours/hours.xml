@@ -14,7 +14,7 @@
         {# Reload hours screen #}
         <behavior
                 trigger="on-event"
-                event-name="reload"
+                event-name="reload-stats"
                 action="replace"
                 target="Stats"
                 href="{% url 'mobile:hour_stats' %}"
