@@ -21,8 +21,10 @@
       </picker-field>
     </view>
 
-    {% url 'mobile:timer' as save_url %}
-    {% include 'mobile/inputs/submit_btn.xml' with title="Save" target="TimerForm" url=save_url %}
+    <view style="MarginTop20">
+        {% url 'mobile:timer' as save_url %}
+        {% include 'mobile/inputs/submit_btn.xml' with title="Save" target="TimerForm" url=save_url %}
+    </view>
 
 
     {% if success %}
