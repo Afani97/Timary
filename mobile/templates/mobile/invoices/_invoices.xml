@@ -3,7 +3,7 @@
       href="{% url 'mobile:invoices' %}?partial=true"
       id="Invoices-List"
       action="replace-inner">
-    <view scroll="true" shows-scroll-indicator="false">
+    <view style="List" scroll="true" shows-scroll-indicator="false">
         {% for invoice in invoices %}
             {% include "mobile/invoices/_invoice.xml" with invoice=invoice %}
         {% endfor %}

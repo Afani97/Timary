@@ -11,16 +11,15 @@ import HandleBack from './HandleBack';
 import Hyperview from 'hyperview';
 import moment from 'moment';
 import {MAIN_STACK_NAME, MODAL_STACK_NAME} from './constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import {Linking} from "react-native";
-import type {Element} from "hyperview/lib/types";
 import TimaryStopwatch from "./TimaryStopwatch";
+import * as SecureStore from 'expo-secure-store';
 
 
 const storeData = async (value) => {
     try {
-        await AsyncStorage.setItem("token", value)
+        await SecureStore.setItemAsync("token", value)
     } catch (e) {
         // saving error
     }
@@ -28,7 +27,7 @@ const storeData = async (value) => {
 
 const removeData = async (key) => {
     try {
-        await AsyncStorage.removeItem(key)
+        await SecureStore.deleteItemAsync(key)
     } catch(e) {
         // remove error
     }
@@ -38,7 +37,7 @@ const NAMESPACE_URI = 'https://usetimary.com/hyperview/';
 
 const loginBehavior =  {
     action: 'login',
-    callback: (element: Element) => {
+    callback: (element) => {
         const token = element.getAttributeNS(NAMESPACE_URI, 'token');
         if (token) {
             storeData(token)
@@ -48,7 +47,7 @@ const loginBehavior =  {
 
 const linkBehavior =  {
     action: 'link',
-    callback: (element: Element) => {
+    callback: (element) => {
         const url = element.getAttributeNS(NAMESPACE_URI, 'url');
         if (url) {
             Linking.openURL(url);
@@ -58,14 +57,14 @@ const linkBehavior =  {
 
 const logoutBehavior =  {
     action: 'logout',
-    callback: (element: Element) => {
+    callback: (element) => {
         removeData("token")
     }
 };
 
 const toastBehavior =  {
     action: 'toast',
-    callback: (element: Element) => {
+    callback: (element) => {
         const type = element.getAttributeNS(NAMESPACE_URI, 'type');
         const message = element.getAttributeNS(NAMESPACE_URI, 'message');
         if (type && message) {
@@ -154,7 +153,7 @@ export default class HyperviewScreen extends PureComponent {
 
     getAuthToken = async () => {
         try {
-            const value = await AsyncStorage.getItem("token")
+            const value = await SecureStore.getItemAsync("token")
 
             if (value !== null) {
                 return value

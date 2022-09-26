@@ -7,11 +7,11 @@
  */
 
 import HyperviewScreen from './HyperviewScreen';
-import {NavigationContainer, DarkTheme, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {ENTRY_POINT_URL, HOME_URL, MAIN_STACK_NAME, MODAL_STACK_NAME} from './constants';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from 'expo-secure-store';
 
 
 
@@ -22,7 +22,7 @@ export default () => {
     React.useEffect( () => {
         setTimeout(async () => {
             try {
-                const value = await AsyncStorage.getItem("token")
+                const value = await SecureStore.getItemAsync("token")
                 if (value !== null) {
                     setAuthToken(value)
                 }
