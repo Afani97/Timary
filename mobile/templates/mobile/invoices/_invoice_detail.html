@@ -71,6 +71,9 @@
                                         {{ month.display }}
                                     </th>
                                     <td style="--size:{{ month.size}};">
+                                        {% if month.data %}
+                                            <span>{{ month.data }}</span>
+                                        {% endif %}
                                         <span class="tooltip">{{ month.data }}</span>
                                     </td>
                                 </tr>

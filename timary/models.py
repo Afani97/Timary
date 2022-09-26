@@ -211,7 +211,7 @@ class Invoice(BaseModel):
                 "month": m,
                 "display": m.strftime("%b"),
                 "size": 0,
-                "data": "0h",
+                "data": None,
             }
             if len(datum) > 0:
                 datum = datum[0]
