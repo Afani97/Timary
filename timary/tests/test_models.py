@@ -387,33 +387,33 @@ class TestUser(TestCase):
         user = UserFactory()
         InvoiceFactory(user=user)
         InvoiceFactory(user=user)
-        self.assertEqual(len(user.invoices_not_logged), 2)
+        self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices(self):
         user = UserFactory()
         InvoiceFactory(user=user)
         InvoiceFactory()
-        self.assertEqual(len(user.invoices_not_logged), 1)
+        self.assertEqual(len(user.invoices_not_logged()), 1)
 
     def test_get_2_remaining_invoices(self):
         user = UserFactory()
         DailyHoursFactory(invoice__user=user)
         InvoiceFactory(user=user)
         InvoiceFactory(user=user)
-        self.assertEqual(len(user.invoices_not_logged), 2)
+        self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices_logged_yesterday(self):
         user = UserFactory()
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
         DailyHoursFactory(invoice__user=user, date_tracked=yesterday)
         InvoiceFactory(user=user)
-        self.assertEqual(len(user.invoices_not_logged), 2)
+        self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices_logged_today(self):
         user = UserFactory()
         DailyHoursFactory(invoice__user=user, date_tracked=datetime.date.today())
         InvoiceFactory(user=user)
-        self.assertEqual(len(user.invoices_not_logged), 1)
+        self.assertEqual(len(user.invoices_not_logged()), 1)
 
     def test_can_accept_payments(self):
         with self.subTest("Payouts enabled"):

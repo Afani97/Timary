@@ -153,7 +153,7 @@ def send_reminder_sms():
             continue
         if weekday not in user.settings.get("phone_number_availability"):
             continue
-        remaining_invoices = user.invoices_not_logged
+        remaining_invoices = user.invoices_not_logged()
         if remaining_invoices:
             invoice = remaining_invoices.pop()
             TwilioClient.log_hours(invoice)
