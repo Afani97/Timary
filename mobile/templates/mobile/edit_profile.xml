@@ -1,4 +1,14 @@
-<form id="EditProfileForm" scroll="true" xmlns="https://hyperview.org/hyperview">
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="Profile">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="Edit Profile" %}
+        <view style="Main">
+            {% block edit-profile %}
+                <form id="EditProfileForm" scroll="true" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
     {% include 'mobile/inputs/text_field.xml' with label="First Name" name="first_name" value=profile.first_name placeholder="Tom" %}
     {% include 'mobile/inputs/text_field.xml' with label="Last Name" name="last_name" value=profile.last_name placeholder="Brady" %}
@@ -15,3 +25,11 @@
     {% include 'mobile/_toast.xml' %}
 
 </form>
+
+            {% endblock %}
+        </view>
+
+    </body>
+  </screen>
+    {% include 'mobile/loading_screen.xml' %}
+</doc>

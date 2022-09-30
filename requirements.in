@@ -8,6 +8,7 @@ django-multiselectfield
 django-otp
 django-phonenumber-field
 django-q
+django-render-block
 django-storages
 django-twilio
 djangorestframework

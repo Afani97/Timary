@@ -7,7 +7,38 @@
     <body style="Body" id="Body" safe-area="true">
         {% include 'mobile/header/_new_header.xml' with header_title="Hours" url="mobile:new_hours" %}
         <view style="Main">
-            {% include 'mobile/hours/_hours.xml' %}
+            {% block hours %}
+                <view xmlns="https://hyperview.org/hyperview"
+      trigger="refresh"
+      href="{% url 'mobile:hours' %}?partial=true"
+      id="Hours-List"
+      action="replace-inner">
+    <view scroll="true" shows-scroll-indicator="false">
+        <text style="H1">Current total stats</text>
+        {% block hour-stats %}
+        <view style="Border" id="Stats" xmlns="https://hyperview.org/hyperview">
+            <text style="H3">Hours logged this month</text>
+            <text style="H1">{{ current_month.total_hours | floatformat:2 }}</text>
+            <text style="H3">estimated earnings: ${{ current_month.total_amount | floatformat:2 }}</text>
+        </view>
+
+            {% endblock %}
+
+        <view>
+            {% regroup hours by date_tracked as grouped_hours %}
+            {% for hours in grouped_hours %}
+            <text style="H1">{{ hours.grouper|date:"M. j, Y" }}</text>
+            <view style="List">
+                {% for hour in hours.list %}
+                    {% include 'mobile/hours/_hour.xml' with hour=hour %}
+                {% endfor %}
+            </view>
+            {% endfor %}
+        </view>
+    </view>
+</view>
+
+            {% endblock %}
         </view>
         {% include 'mobile/footer.xml' with active_tab=1 %}
 

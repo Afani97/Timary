@@ -1,4 +1,14 @@
-<form id="NewHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="New-Hours">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="New Hours" %}
+        <view style="Main">
+            {% block new-hours-form %}
+                <form id="NewHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
 
     {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value="1" placeholder="1" %}
@@ -29,3 +39,10 @@
     {% include 'mobile/_toast.xml' %}
 
 </form>
+
+            {% endblock %}
+        </view>
+    </body>
+  </screen>
+    {% include 'mobile/loading_screen.xml' %}
+</doc>

@@ -1,4 +1,15 @@
-<form id="TimerForm" scroll="true" xmlns="https://hyperview.org/hyperview">
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="Timer">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc="center" %}
+        <style id="Flex" flex="1" flexDirection="row" justifyContent="space-between" />
+    </styles>
+    <body style="Body" id="Body" safe-area="true">
+        {% include 'mobile/header/_header.xml' with header_title="Timer" %}
+        <view style="Main">
+            {% block timer-form %}
+                <form id="TimerForm" scroll="true" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
 
     <view style="Flex" xmlns:stopwatchs="https://www.usetimary.com/hyperview/">
@@ -31,3 +42,11 @@
     {% include 'mobile/_toast.xml' %}
     {% endif %}
 </form>
+
+            {% endblock %}
+        </view>
+        {% include 'mobile/footer.xml' with active_tab=3 %}
+    </body>
+  </screen>
+  {% include 'mobile/loading_screen.xml' %}
+</doc>

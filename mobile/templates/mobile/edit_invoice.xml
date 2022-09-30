@@ -1,4 +1,14 @@
-<form id="EditInvoiceForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="Edit Invoice" %}
+        <view style="Main">
+            {% block edit-invoice-form %}
+            <form id="EditInvoiceForm" scroll="True" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
 
     {% include 'mobile/inputs/text_field.xml' with label="Title" name="title" value=invoice.title placeholder="New Saas app..." %}
@@ -48,3 +58,8 @@
     {% include 'mobile/_toast.xml' %}
 
 </form>
+        {% endblock %}
+        </view>
+    </body>
+  </screen>
+</doc>

@@ -7,7 +7,20 @@
     <body style="Body" id="Body" safe-area="true">
         {% include 'mobile/header/_header.xml' with header_title="Sent Invoices" %}
         <view style="Main">
-            {% include 'mobile/sent-invoices/_sent_invoices.xml' %}
+            {% block sent-invoices %}
+            <view xmlns="https://hyperview.org/hyperview"
+                  trigger="refresh"
+                  href="{% url 'mobile:sent_invoices' %}?partial=true"
+                  id="Sent-Invoices-List"
+                  action="replace-inner">
+                <view scroll="true" style="List" shows-scroll-indicator="false">
+                    {% for sent_invoice in sent_invoices %}
+                        {% include "mobile/sent-invoices/_sent_invoice.xml" with sent_invoice=sent_invoice %}
+                    {% endfor %}
+                </view>
+            </view>
+
+        {% endblock %}
         </view>
         {% include 'mobile/footer.xml' with active_tab=4 %}
         <behavior

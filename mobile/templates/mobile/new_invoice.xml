@@ -1,4 +1,44 @@
-<form id="NewInvoiceForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen id="New-Invoice">
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc='space-between' %}
+        <style id="Pills"
+               flex="1"
+               flexDirection="row"
+               justifyContent="space-between"
+        />
+        <style id="Pill"
+            marginBottom="8"
+            marginRight="8"
+            paddingLeft="16"
+            paddingRight="16"
+            paddingTop="8"
+            paddingBottom="8"
+            borderRadius="12"
+            borderWidth="1"
+            borderColor="#bdc4c4"
+        >
+            <modifier selected="true">
+                <style backgroundColor="#5c20dd" />
+            </modifier>
+        </style>
+        <style
+        id="Pill__Label"
+        color="white"
+        fontSize="16"
+        lineHeight="18"
+      >
+        <modifier selected="true">
+          <style color="white" />
+        </modifier>
+      </style>
+    </styles>
+    <body style="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="New Invoice" %}
+        <view style="Main">
+            {% block new-invoice-form %}
+                <form id="NewInvoiceForm" scroll="True" xmlns="https://hyperview.org/hyperview">
     {% include 'mobile/_errors.xml' with errors=errors.items %}
 
     {% include 'mobile/inputs/text_field.xml' with label="Title" name="title" placeholder="New Saas app..." %}
@@ -68,3 +108,10 @@
     {% endif %}
     {% include 'mobile/_toast.xml' %}
 </form>
+
+            {% endblock %}
+        </view>
+    </body>
+  </screen>
+    {% include 'mobile/loading_screen.xml' %}
+</doc>

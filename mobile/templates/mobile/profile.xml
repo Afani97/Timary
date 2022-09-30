@@ -46,7 +46,23 @@
     <body style="Body" id="Body" safe-area="true">
         {% include 'mobile/header/_edit_header.xml' with header_title="Profile" url="mobile:edit_profile" %}
         <view style="Main">
-            {% include 'mobile/profile/_profile.xml' %}
+            {% block profile %}
+                <view id="Profile" xmlns="https://hyperview.org/hyperview">
+    <view style="WrapperCol">
+        {% if profile.profile_pic %}
+            <image style="Image" source="{{ profile.profile_pic.url}}" />
+        {% endif %}
+        <view>
+            <text style="H1">{{ profile.first_name }} {{ profile.last_name }}</text>
+            <text style="P">{{ profile.email }} </text>
+            {% if profile.phone_number %}
+                <text style="P">{{ profile.phone_number}} </text>
+            {% endif %}
+        </view>
+    </view>
+</view>
+
+            {% endblock %}
             <section-list>
                 <section>
                   <section-title style="List__Header">

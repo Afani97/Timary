@@ -17,7 +17,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_xml.renderers import XMLRenderer
 
-from mobile.utils import render_xml
+from mobile.utils import render_xml, render_xml_frag
 from timary.forms import DailyHoursForm, InvoiceForm, UserForm
 from timary.models import DailyHoursInput, Invoice, SentInvoice
 from timary.views import get_hours_tracked, resend_invoice_email
@@ -69,10 +69,10 @@ def get_hours(request):
         "show_repeat": show_repeat_option,
     }
     context.update(get_hours_tracked(request.user))
-    t = "hours/hours.xml"
     if "partial" in request.query_params:
-        t = "hours/_hours.xml"
-    return render_xml(request, t, context)
+        return render_xml_frag("hours/hours.xml", "hours", context)
+    else:
+        return render_xml(request, "hours/hours.xml", context)
 
 
 @api_view(["GET", "POST"])
@@ -101,11 +101,11 @@ def new_hours(request):
                     "toast_type": "error",
                 }
             )
-        return render_xml(request, "new-hours/new_hours_form.xml", context)
+        return render_xml_frag("new_hours.xml", "new-hours-form", context)
     else:
         return render_xml(
             request,
-            "new-hours/new_hours.xml",
+            "new_hours.xml",
             context,
         )
 
@@ -156,11 +156,11 @@ def edit_hours(request, hours_id):
                     "toast_type": "error",
                 }
             )
-        return render_xml(request, "edit-hours/edit_hours_form.xml", context)
+        return render_xml_frag("edit_hours.xml", "edit-hours-form", context)
     else:
         return render_xml(
             request,
-            "edit-hours/edit_hours.xml",
+            "edit_hours.xml",
             context,
         )
 
@@ -184,9 +184,11 @@ def delete_hours(request, hours_id):
 def get_invoices(request):
     invoices_list = request.user.get_invoices.order_by("title")
     t = "invoices/invoices.xml"
+    c = {"invoices": invoices_list}
     if "partial" in request.query_params:
-        t = "invoices/_invoices.xml"
-    return render_xml(request, t, {"invoices": invoices_list})
+        return render_xml_frag(t, "invoices", c)
+    else:
+        return render_xml(request, t, c)
 
 
 @api_view(["GET"])
@@ -239,15 +241,15 @@ def new_invoices(request):
                 "toast_message": "Error creating invoice",
                 "toast_type": "error",
             }
-        return render_xml(
-            request,
-            "new-invoices/new_invoice_form.xml",
+        return render_xml_frag(
+            "new_invoice.xml",
+            "new-invoice-form",
             context,
         )
     else:
         return render_xml(
             request,
-            "new-invoices/new_invoice.xml",
+            "new_invoice.xml",
             {"invoice_form": invoice_form},
         )
 
@@ -283,15 +285,13 @@ def edit_invoice(request, invoice_id):
                 "toast_message": "Error updating this invoice",
                 "toast_type": "error",
             }
-        return render_xml(
-            request,
-            "edit-invoice/edit_invoice_form.xml",
+        return render_xml_frag(
+            "edit_invoice.xml",
+            "edit-invoice-form",
             context,
         )
     else:
-        return render_xml(
-            request, "edit-invoice/edit_invoice.xml", {"invoice": invoice}
-        )
+        return render_xml(request, "edit_invoice.xml", {"invoice": invoice})
 
 
 @api_view(["GET", "POST"])
@@ -321,9 +321,9 @@ def get_timer(request):
                     "errors": hours_form.errors,
                 }
             )
-        return render_xml(request, "timer/_timer.xml", c)
+        return render_xml_frag("timer.xml", "timer-form", c)
     else:
-        return render_xml(request, "timer/timer.xml", c)
+        return render_xml(request, "timer.xml", c)
 
 
 @api_view(["GET"])
@@ -332,9 +332,11 @@ def get_timer(request):
 def get_sent_invoices(request):
     sent_invoices_list = request.user.sent_invoices.order_by("-date_sent")
     t = "sent-invoices/sent_invoices.xml"
+    c = {"sent_invoices": sent_invoices_list}
     if "partial" in request.query_params:
-        t = "sent-invoices/_sent_invoices.xml"
-    return render_xml(request, t, {"sent_invoices": sent_invoices_list})
+        return render_xml_frag(t, "sent-invoices", c)
+    else:
+        return render_xml(request, t, c)
 
 
 @api_view(["GET"])
@@ -373,10 +375,11 @@ def resend_invoice(request, sent_invoice_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_profile(request):
-    t = "profile/profile.xml"
+    c = {"profile": request.user}
     if "partial" in request.query_params:
-        t = "profile/_profile.xml"
-    return render_xml(request, t, {"profile": request.user})
+        return render_xml_frag("profile.xml", "profile", c)
+    else:
+        return render_xml(request, "profile.xml", c)
 
 
 @api_view(["GET", "POST"])
@@ -403,8 +406,6 @@ def edit_profile(request):
                 "toast_message": "Error updating profile",
                 "toast_type": "error",
             }
-        return render_xml(request, "edit-profile/edit_profile_form.xml", context)
+        return render_xml_frag("edit_profile.xml", "edit-profile", context)
     else:
-        return render_xml(
-            request, "edit-profile/edit_profile.xml", {"profile": request.user}
-        )
+        return render_xml(request, "edit_profile.xml", {"profile": request.user})
