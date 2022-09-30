@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import {Linking} from "react-native";
 import TimaryStopwatch from "./TimaryStopwatch";
 import * as SecureStore from 'expo-secure-store';
+import * as Haptics from "expo-haptics";
 
 
 const storeData = async (value) => {
@@ -40,6 +41,7 @@ const loginBehavior =  {
     callback: (element) => {
         const token = element.getAttributeNS(NAMESPACE_URI, 'token');
         if (token) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             storeData(token)
         }
     },
@@ -58,6 +60,7 @@ const linkBehavior =  {
 const logoutBehavior =  {
     action: 'logout',
     callback: (element) => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         removeData("token")
     }
 };
@@ -72,6 +75,15 @@ const toastBehavior =  {
                 type: type,
                 text1: message,
                 visibilityTime: 2000,
+                onShow: () => {
+                    let hapticFeedback = Haptics.NotificationFeedbackType.Warning;
+                    if (type === "success") {
+                        hapticFeedback = Haptics.NotificationFeedbackType.Success;
+                    } else if (type === "error") {
+                        hapticFeedback = Haptics.NotificationFeedbackType.Error;
+                    }
+                    Haptics.notificationAsync(hapticFeedback);
+                }
             });
         }
     },

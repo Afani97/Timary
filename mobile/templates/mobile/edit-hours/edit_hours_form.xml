@@ -27,7 +27,7 @@
     <behavior trigger="load" action="close" href="#" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-stats" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-{{ hour.id }}" />
-    {% include 'mobile/_toast.xml' %}
     {% endif %}
+    {% include 'mobile/_toast.xml' %}
 
 </form>

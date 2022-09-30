@@ -44,7 +44,7 @@
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-invoice-{{ invoice.id }}" />
-    {% include 'mobile/_toast.xml' %}
     {% endif %}
+    {% include 'mobile/_toast.xml' %}
 
 </form>

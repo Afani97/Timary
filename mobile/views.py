@@ -81,33 +81,32 @@ def get_hours(request):
 @renderer_classes([XMLRenderer])
 @parser_classes([FormParser, MultiPartParser])
 def new_hours(request):
+    context = {"user_invoices": request.user.get_invoices}
     if request.method == "POST":
         hours_form = DailyHoursForm(request.data, user=request.user)
         if hours_form.is_valid():
             hours_form.save()
-            return render_xml(
-                request,
-                "new-hours/new_hours_form.xml",
+            context.update(
                 {
                     "success": True,
                     "toast_message": "New hours added!",
                     "toast_type": "success",
-                },
+                }
             )
         else:
-            return render_xml(
-                request,
-                "new-hours/new_hours_form.xml",
+            context.update(
                 {
                     "errors": hours_form.errors,
-                    "user_invoices": request.user.get_invoices,
-                },
+                    "toast_message": "Error creating hours",
+                    "toast_type": "error",
+                }
             )
+        return render_xml(request, "new-hours/new_hours_form.xml", context)
     else:
         return render_xml(
             request,
             "new-hours/new_hours.xml",
-            {"user_invoices": request.user.get_invoices},
+            context,
         )
 
 
@@ -137,28 +136,32 @@ def edit_hours(request, hours_id):
     hour = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hour.invoice.user:
         raise Http404
+    context = {"hour": hour, "user_invoices": request.user.get_invoices}
     if request.method == "POST":
         hours_form = DailyHoursForm(request.data, instance=hour)
         if hours_form.is_valid():
             hours_form.save()
-            context = {
-                "hour": hour,
-                "success": True,
-                "toast_message": "Hours updated!",
-                "toast_type": "success",
-            }
+            context.update(
+                {
+                    "success": True,
+                    "toast_message": "Hours updated!",
+                    "toast_type": "success",
+                }
+            )
         else:
-            context = {
-                "hour": hour,
-                "errors": hours_form.errors,
-                "user_invoices": request.user.get_invoices,
-            }
+            context.update(
+                {
+                    "errors": hours_form.errors,
+                    "toast_message": "Error updating hours",
+                    "toast_type": "error",
+                }
+            )
         return render_xml(request, "edit-hours/edit_hours_form.xml", context)
     else:
         return render_xml(
             request,
             "edit-hours/edit_hours.xml",
-            {"hour": hour, "user_invoices": request.user.get_invoices},
+            context,
         )
 
 
@@ -231,7 +234,11 @@ def new_invoices(request):
                 "toast_type": "success",
             }
         else:
-            context = {"errors": invoice_form.errors}
+            context = {
+                "errors": invoice_form.errors,
+                "toast_message": "Error creating invoice",
+                "toast_type": "error",
+            }
         return render_xml(
             request,
             "new-invoices/new_invoice_form.xml",
@@ -393,6 +400,8 @@ def edit_profile(request):
                 "profile": request.user,
                 "form": profile_form,
                 "errors": profile_form.errors,
+                "toast_message": "Error updating profile",
+                "toast_type": "error",
             }
         return render_xml(request, "edit-profile/edit_profile_form.xml", context)
     else:

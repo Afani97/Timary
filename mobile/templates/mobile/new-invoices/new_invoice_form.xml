@@ -33,10 +33,6 @@
       </select-single>
     </view>
 
-    {% if invoice.invoice_type == 3 %}
-        {% include 'mobile/inputs/text_field.xml' with id="Weekly_Rate" label="Weekly Rate" name="weekly_rate" placeholder="1500" %}
-    {% endif %}
-
     <view style="FormGroup" id="Invoice_Interval">
       <text style="Label">Invoice Interval</text>
       <picker-field
@@ -57,7 +53,7 @@
     </view>
     {% include 'mobile/inputs/text_field.xml' with hide="true" id="Milestones" label="Milestone total steps" name="milestone_total_steps" placeholder="3" %}
     {% include 'mobile/inputs/text_field.xml' with id="Hourly_Rate" label="Hourly Rate" name="hourly_rate" placeholder="50" %}
-    {% include 'mobile/inputs/text_field.xml' with hide="true" id="Weekly_Rate" label="Weekly Rate" name="weekly_rate" value=invoice.invoice_rate placeholder="1500" %}
+    {% include 'mobile/inputs/text_field.xml' with hide="true" id="Weekly_Rate" label="Weekly Rate" name="weekly_rate" placeholder="1500" %}
     {% include 'mobile/inputs/text_field.xml' with label="Budget" name="total_budget" placeholder="1000" %}
     {% include 'mobile/inputs/text_field.xml' with label="Email recipient name" name="email_recipient_name" placeholder="John Smith" %}
     {% include 'mobile/inputs/text_field.xml' with label="Email recipient" name="email_recipient" placeholder="john@smith.com" %}
@@ -69,6 +65,6 @@
     {% if success %}
     <behavior trigger="load" action="close" href="#" />
     <behavior trigger="load" action="dispatch-event" event-name="reload-invoices" />
-    {% include 'mobile/_toast.xml' %}
     {% endif %}
+    {% include 'mobile/_toast.xml' %}
 </form>
