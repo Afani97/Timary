@@ -483,7 +483,6 @@ class User(AbstractUser, BaseModel):
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
 
-    @property
     def invoices_not_logged(self):
         invoices = set(
             self.get_invoices.filter(

@@ -14,9 +14,9 @@ def twilio_reply(request):
     twilio_request = decompose(request)
     user = User.objects.get(phone_number=twilio_request.from_)
 
-    last_message = TwilioClient.get_user_messages()
+    last_message = TwilioClient.get_user_messages(user.formatted_phone_number)
     if not last_message:
-        remaining_invoices = user.invoices_not_logged
+        remaining_invoices = user.invoices_not_logged()
         if remaining_invoices:
             TwilioClient.log_hours(remaining_invoices.pop())
         else:
@@ -60,7 +60,7 @@ def twilio_reply(request):
             invoice=invoice,
         )
 
-    remaining_invoices = user.invoices_not_logged
+    remaining_invoices = user.invoices_not_logged()
     if remaining_invoices:
         invoice = remaining_invoices.pop()
         r = MessagingResponse()

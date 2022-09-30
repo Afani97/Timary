@@ -198,7 +198,7 @@ class TestTwilioReplyWebhook(TestCase):
             "SmsSid": "SSXXXX",
             "AccountSid": "ACXXXX",
             "From": "+17742613186",
-            "To": "+14092153135",
+            "To": self.user.phone_number,
             "Body": "1",
             "NumMedia": "0",
         }
@@ -209,8 +209,7 @@ class TestTwilioReplyWebhook(TestCase):
         invoice = InvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -234,8 +233,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # FIRST INVOICE SMS SENT
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -252,8 +250,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # SECOND INVOICE SMS SENT
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice2.title}."),
+            Message(f"How many hours to log for: {invoice2.title}.")
         ]
         self.data["Body"] = "2"
         request = self.factory.post(
@@ -278,8 +275,7 @@ class TestTwilioReplyWebhook(TestCase):
         invoice = InvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -315,7 +311,7 @@ class TestTwilioReplyWebhook(TestCase):
         send_message_mock.return_value = None
         invoice = InvoiceFactory(user=self.user)
 
-        message_list_mock.return_value = None
+        message_list_mock.return_value = [None]
         message_response_mock.return_value = MessageResponse(response="")
 
         # FIRST INVOICE SENT, ERROR ON TWILIO SIDE
@@ -333,8 +329,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # RESEND INVOICE SMS
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -358,8 +353,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -382,10 +376,9 @@ class TestTwilioReplyWebhook(TestCase):
 
         # SECOND INVOICE SENT, HOURS LOGGED MORE THAN 30 MINUTES
         message_list_mock.return_value = [
-            {},
             Message(
                 f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
-            ),
+            )
         ]
         updated_data = self.data.copy()
         updated_data["Body"] = "0.6"
@@ -409,8 +402,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}."),
+            Message(f"How many hours to log for: {invoice.title}.")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -433,10 +425,9 @@ class TestTwilioReplyWebhook(TestCase):
 
         # SECOND INVOICE SENT, HOURS LOGGED MORE THAN 30 MINUTES
         message_list_mock.return_value = [
-            {},
             Message(
                 f"Hours have to be greater than 0. How many hours to log for: {invoice.title}. Reply 'S' to skip"
-            ),
+            )
         ]
         updated_data = self.data.copy()
         updated_data["Body"] = "5"
@@ -461,8 +452,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # FIRST INVOICE SMS SENT
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip"),
+            Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
         ]
         message_response_mock.return_value = MessageResponse(response="")
 
@@ -481,9 +471,9 @@ class TestTwilioReplyWebhook(TestCase):
 
         # SECOND INVOICE SMS SENT
         message_list_mock.return_value = [
-            {},
-            Message(f"How many hours to log for: {invoice2.title}."),
+            Message(f"How many hours to log for: {invoice2.title}.")
         ]
+
         self.data["Body"] = "2"
         request = self.factory.post(
             reverse("timary:twilio_reply"),

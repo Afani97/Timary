@@ -37,12 +37,13 @@ class TwilioClient:
         )
 
     @staticmethod
-    def get_user_messages():
+    def get_user_messages(user_number):
         recent_messages = TwilioClient.client().messages.list(
-            limit=2, date_sent=datetime
+            to=user_number, limit=1, date_sent=datetime
         )
-        if recent_messages and len(recent_messages) == 2:
-            if hasattr(recent_messages[1], "body"):
-                if ":" in recent_messages[1].body:
-                    return recent_messages[1]
+        if recent_messages and len(recent_messages) == 1:
+            recent_message = recent_messages[0]
+            if hasattr(recent_message, "body"):
+                if ":" in recent_message.body:
+                    return recent_message
         return None
