@@ -8,6 +8,7 @@
 
 import './src/gesture-handler';
 import React from 'react';
+import { LogBox } from 'react-native';
 import Navigator from './src/Navigator';
 import Toast, { SuccessToast, ErrorToast } from 'react-native-toast-message';
 
@@ -35,6 +36,8 @@ const toastConfig = {
         />
     ),
 };
+
+LogBox.ignoreAllLogs()
 
 export default function App() {
     return (

@@ -12,12 +12,14 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {ENTRY_POINT_URL, HOME_URL, MAIN_STACK_NAME, MODAL_STACK_NAME} from './constants';
 import * as SecureStore from 'expo-secure-store';
+import LoadingScreen from "./LoadingScreen";
 
 
 
 const Stack = createStackNavigator();
 
 export default () => {
+    const [loading, setLoading] = React.useState(true);
     const [authToken, setAuthToken] = React.useState(null)
     React.useEffect( () => {
         setTimeout(async () => {
@@ -26,13 +28,18 @@ export default () => {
                 if (value !== null) {
                     setAuthToken(value)
                 }
+                setLoading(false)
             } catch(e) {
                 // error reading value
                 console.log("error reading value")
+                setLoading(false)
             }
         }, 1000)
     }, [])
 
+    if (loading) {
+        return <LoadingScreen />
+    }
 
 
     return (
@@ -67,7 +74,5 @@ export default () => {
         </Stack.Group>
         </Stack.Navigator>
         </NavigationContainer>
-
-
     )
 }
