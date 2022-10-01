@@ -61,6 +61,24 @@
     </modifier>
 </style>
 <style
+    id="TextArea"
+    flex="1"
+    fontSize="18"
+    fontWeight="normal"
+    padding="12"
+    color="#9da1ad"
+    borderColor="black"
+    borderWidth="1"
+    borderRadius="10"
+    backgroundColor="#1b1d23"
+    overflow="hidden"
+    height="200"
+>
+    <modifier focused="true">
+      <style borderColor="#5d15dd" />
+    </modifier>
+</style>
+<style
     id="Input--Error" marginLeft="20" marginRight="20" borderBottomColor="#FF4847" color="#FF4847"
 >
     <modifier focused="true">

@@ -74,3 +74,6 @@ urlpatterns += [
     path("profile/", views.get_profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
 ]
+
+# OTHER
+urlpatterns += [path("questions/", views.ask_question, name="ask_question")]

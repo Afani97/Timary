@@ -48,20 +48,19 @@
         <view style="Main">
             {% block profile %}
                 <view id="Profile" xmlns="https://hyperview.org/hyperview">
-    <view style="WrapperCol">
-        {% if profile.profile_pic %}
-            <image style="Image" source="{{ profile.profile_pic.url}}" />
-        {% endif %}
-        <view>
-            <text style="H1">{{ profile.first_name }} {{ profile.last_name }}</text>
-            <text style="P">{{ profile.email }} </text>
-            {% if profile.phone_number %}
-                <text style="P">{{ profile.phone_number}} </text>
-            {% endif %}
-        </view>
-    </view>
-</view>
-
+                <view style="WrapperCol">
+                    {% if profile.profile_pic %}
+                        <image style="Image" source="{{ profile.profile_pic.url}}" />
+                    {% endif %}
+                    <view>
+                        <text style="H1">{{ profile.first_name }} {{ profile.last_name }}</text>
+                        <text style="P">{{ profile.email }} </text>
+                        {% if profile.phone_number %}
+                            <text style="P">{{ profile.phone_number}} </text>
+                        {% endif %}
+                    </view>
+                </view>
+            </view>
             {% endblock %}
             <section-list>
                 <section>
@@ -87,12 +86,17 @@
                     <text style="List__HeaderText">App Info</text>
                   </section-title>
                   <item key="1" style="Item">
+                    <text href="{% url 'mobile:ask_question' %}" action="new" style="P">
+                        Ask a question
+                    </text>
+                  </item>
+                  <item key="2" style="Item">
                     <text xmlns:link="https://usetimary.com/hyperview/" style="P">
                         Terms &amp; Conditions
                         <behavior trigger="press" action="link" link:url="https://www.usetimary.com/terms/" />
                     </text>
                   </item>
-                  <item key="2" style="Item">
+                  <item key="3" style="Item">
                        <text xmlns:link="https://usetimary.com/hyperview/" style="P">
                         Privacy Policy
                         <behavior trigger="press" action="link" link:url="https://www.usetimary.com/privacy/" />

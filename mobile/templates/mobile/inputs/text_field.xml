@@ -8,9 +8,10 @@
     {% if value %} value="{{ value }}"{% endif %}
     name="{{ name }}"
     placeholder="{{ placeholder }}"
-    style="Input"
+    {% if not multiline %}style="Input"{% else %} style="TextArea"{% endif %}
     placeholderTextColor="#5e6363"
     {% if kb_type %} keyboard-type="{{ kb_type }}" {% endif %}
     {% if secure %} secure-text="true" {% endif %}
+    {% if multiline %} multiline="true" {% endif %}
   />
 </view>

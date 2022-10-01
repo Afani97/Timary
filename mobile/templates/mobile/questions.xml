@@ -1,0 +1,28 @@
+<doc xmlns="https://hyperview.org/hyperview">
+  <screen>
+    <styles>
+        {% include 'mobile/base_styles.xml' %}
+        {% include 'mobile/header/_header_styles.xml' with jc="justify-center" %}
+    </styles>
+    <body style="Body" id="Body" safe-area="true">
+        {% include 'mobile/header/_edit_header.xml' with header_title="Ask a question" %}
+        <view style="Main">
+            {% block question-form %}
+            <form id="QuestionsForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+                {% include 'mobile/_errors.xml' with errors=errors.items %}
+                {% include 'mobile/inputs/text_field.xml' with label="Question" name="question" multiline=True %}
+
+                {% url 'mobile:ask_question' as send_url %}
+                {% include 'mobile/inputs/submit_btn.xml' with title="Send" target="QuestionsForm" url=send_url %}
+
+                {% if success %}
+                <behavior trigger="load" action="close" href="#" />
+                {% endif %}
+                {% include 'mobile/_toast.xml' %}
+
+            </form>
+            {% endblock %}
+        </view>
+  </screen>
+    {% include 'mobile/loading_screen.xml' %}
+</doc>

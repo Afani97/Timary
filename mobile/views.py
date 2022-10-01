@@ -18,8 +18,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_xml.renderers import XMLRenderer
 
 from mobile.utils import render_xml, render_xml_frag
-from timary.forms import DailyHoursForm, InvoiceForm, UserForm
+from timary.forms import DailyHoursForm, InvoiceForm, QuestionsForm, UserForm
 from timary.models import DailyHoursInput, Invoice, SentInvoice
+from timary.services.email_service import EmailService
 from timary.views import get_hours_tracked, resend_invoice_email
 
 
@@ -409,3 +410,41 @@ def edit_profile(request):
         return render_xml_frag("edit_profile.xml", "edit-profile", context)
     else:
         return render_xml(request, "edit_profile.xml", {"profile": request.user})
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@renderer_classes([XMLRenderer])
+@parser_classes([FormParser, MultiPartParser])
+def ask_question(request):
+    questions_form = QuestionsForm(request.data)
+    if request.method == "POST":
+        context = {}
+        if questions_form.is_valid():
+            context.update(
+                {
+                    "success": True,
+                    "toast_message": "Question sent!",
+                    "toast_type": "success",
+                }
+            )
+            EmailService.send_plain(
+                f"{request.user.first_name} ({request.user.email}) asked a question",
+                questions_form.cleaned_data.get("question", ""),
+                "ari@usetimary.com",
+            )
+        else:
+            context.update(
+                {
+                    "errors": questions_form.errors,
+                    "toast_message": "Error sending the question",
+                    "toast_type": "error",
+                }
+            )
+        return render_xml_frag("questions.xml", "question-form", context)
+    else:
+        return render_xml(
+            request,
+            "questions.xml",
+        )
