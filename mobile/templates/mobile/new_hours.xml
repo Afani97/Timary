@@ -9,37 +9,36 @@
         <view style="Main">
             {% block new-hours-form %}
                 <form id="NewHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
-    {% include 'mobile/_errors.xml' with errors=errors.items %}
+                    {% include 'mobile/_errors.xml' with errors=errors.items %}
 
-    {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value="1" placeholder="1" %}
-    {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" %}
-    <view style="FormGroup">
-      <text style="Label">Invoice</text>
-      <picker-field
-          field-text-style="Input"
-          name="invoice"
-          placeholder="Select Invoice"
-          value="{{ user_invoices.first.id }}"
-          modal-style="PickerModal"
-          modal-text-style="PickerModal__text"
-      >
-          {% for invoice in user_invoices %}
-            <picker-item label="{{ invoice.title }}" value="{{ invoice.id }}" />
-          {% endfor %}
-      </picker-field>
-    </view>
+                    {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value="1" placeholder="1" %}
+                    {% now 'Y-m-d' as current_date %}
+                    {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" value=current_date %}
+                    <view style="FormGroup">
+                      <text style="Label">Invoice</text>
+                      <picker-field
+                          field-text-style="Input"
+                          name="invoice"
+                          placeholder="Select Invoice"
+                          value="{{ user_invoices.first.id }}"
+                          modal-style="PickerModal"
+                          modal-text-style="PickerModal__text"
+                      >
+                          {% for invoice in user_invoices %}
+                            <picker-item label="{{ invoice.title }}" value="{{ invoice.id }}" />
+                          {% endfor %}
+                      </picker-field>
+                    </view>
 
-    {% url 'mobile:new_hours' as save_url %}
-    {% include 'mobile/inputs/submit_btn.xml' with title="Create" target="NewHoursForm" url=save_url %}
+                    {% url 'mobile:new_hours' as save_url %}
+                    {% include 'mobile/inputs/submit_btn.xml' with title="Create" target="NewHoursForm" url=save_url %}
 
-    {% if success %}
-    <behavior trigger="load" action="close" href="#" />
-    <behavior trigger="load" action="dispatch-event" event-name="reload-hours" />
-    {% endif %}
-    {% include 'mobile/_toast.xml' %}
-
-</form>
-
+                    {% if success %}
+                    <behavior trigger="load" action="close" href="#" />
+                    <behavior trigger="load" action="dispatch-event" event-name="reload-hours" />
+                    {% endif %}
+                    {% include 'mobile/_toast.xml' %}
+                </form>
             {% endblock %}
         </view>
     </body>

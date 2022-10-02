@@ -34,7 +34,7 @@ export default () => {
                 console.log("error reading value")
                 setLoading(false)
             }
-        }, 1000)
+        }, 0)
     }, [])
 
     if (loading) {

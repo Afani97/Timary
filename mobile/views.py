@@ -125,7 +125,9 @@ def view_hours(request, hours_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def hour_stats(request):
-    return render_xml(request, "hours/_stats.xml", get_hours_tracked(request.user))
+    return render_xml_frag(
+        "hours/hours.xml", "hour-stats", get_hours_tracked(request.user)
+    )
 
 
 @api_view(["GET", "POST"])

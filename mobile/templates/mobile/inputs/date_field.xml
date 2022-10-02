@@ -5,7 +5,7 @@
     field-text-style="Input"
     modal-style="DatePickerModal"
     modal-text-style="DatePickerModal__text"
-    {% if value %} value="{{ value|date:"Y-m-d" }}" {% endif %}
+    {% if value %} value="{{ value }}" {% endif %}
     label-format="MMM D, YYYY"
     placeholder="Select date"
     placeholderTextColor="#5e6363"

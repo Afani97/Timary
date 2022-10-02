@@ -87,13 +87,13 @@
 </style>
 <style
     id="DatePickerModal"
-    backgroundColor="#1b1d23"
-    color="white"
+    backgroundColor="gray"
+    color="#1b1d23"
 />
 <style
     id="DatePickerModal__text"
-    backgroundColor="#1b1d23"
-    color="white"
+    backgroundColor="gray"
+    color="#1b1d23"
     fontSize="20"
     fontWeight="600"
     padding="24"
@@ -102,12 +102,12 @@
 </style>
 <style
     id="PickerModal"
-    backgroundColor="white"
+    backgroundColor="lightgray"
     color="#1b1d23"
 />
 <style
     id="PickerModal__text"
-    backgroundColor="white"
+    backgroundColor="lightgray"
     color="#1b1d23"
     fontSize="20"
     fontWeight="600"

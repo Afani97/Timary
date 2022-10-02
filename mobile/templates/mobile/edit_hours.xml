@@ -8,11 +8,11 @@
         {% include 'mobile/header/_edit_header.xml' with header_title="Edit Hours" %}
         <view style="Main">
         {% block edit-hours-form %}
-                    <form id="EditHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
+            <form id="EditHoursForm" scroll="True" xmlns="https://hyperview.org/hyperview">
                 {% include 'mobile/_errors.xml' with errors=errors.items %}
 
                 {% include 'mobile/inputs/text_field.xml' with label="Hours" name="hours" value=hour.hours placeholder="1" %}
-                {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" value=hour.date_tracked %}
+                {% include 'mobile/inputs/date_field.xml' with label="Date Tracked" name="date_tracked" value=hour.date_tracked|date:'Y-m-d' %}
 
                 <view style="FormGroup">
                   <text style="Label">Invoice</text>
