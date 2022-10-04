@@ -13,7 +13,6 @@ from stripe.error import InvalidRequestError
 
 from timary.forms import (
     InvoiceBrandingSettingsForm,
-    MembershipTierSettingsForm,
     ReferralInviteForm,
     SMSSettingsForm,
 )
@@ -29,8 +28,6 @@ def settings_partial(request, setting):
     template = ""
     if setting == "sms":
         template = "partials/settings/_sms.html"
-    if setting == "membership":
-        template = "partials/settings/_membership.html"
     if setting == "payment_method":
         template = "partials/settings/_payment_method.html"
     if setting == "accounting":
@@ -74,60 +71,6 @@ def update_sms_settings(request):
             context["settings_form"] = user_settings_form
             return render(request, "partials/settings/_edit_sms.html", context)
 
-    else:
-        raise Http404()
-
-
-@login_required()
-@require_http_methods(["GET", "PUT"])
-def update_membership_settings(request):
-    context = {
-        "settings_form": MembershipTierSettingsForm(instance=request.user),
-        "settings": request.user.settings,
-        "current_plan": request.user.get_membership_tier_display().title(),
-    }
-    if request.user.membership_tier != User.MembershipTier.INVOICE_FEE:
-        subscription_cost, has_coupon = StripeService.get_amount_off_subscription(
-            request.user
-        )
-        context[
-            "current_subscription_cost"
-        ] = f"${request.user.membership_tier - subscription_cost}"
-        context["has_subscription_coupon"] = has_coupon
-    else:
-        context["current_subscription_cost"] = "1%"
-    if request.method == "GET":
-        return render(request, "partials/settings/_edit_membership.html", context)
-
-    elif request.method == "PUT":
-        put_params = dict(QueryDict(request.body))
-        user_settings_form = MembershipTierSettingsForm(
-            put_params, instance=request.user
-        )
-        current_membership_tier = request.user.membership_tier
-        put_params["membership_tier"] = str(
-            User.MembershipTier[put_params["membership_tier"][0]].value
-        )
-        if user_settings_form.is_valid():
-            user_settings_form.save()
-            if current_membership_tier and user_settings_form.cleaned_data.get(
-                "membership_tier"
-            ):
-                StripeService.create_subscription(request.user, delete_current=True)
-            response = render(
-                request,
-                "partials/settings/_membership.html",
-                {"settings": request.user.settings},
-            )
-            show_alert_message(
-                response,
-                "success",
-                "Settings updated",
-            )
-            return response
-        else:
-            context["settings_form"] = user_settings_form
-            return render(request, "partials/settings/_edit_membership.html", context)
     else:
         raise Http404()
 
@@ -204,7 +147,7 @@ def update_invoice_branding(request):
         )
         return render(request, "invoices/invoice_branding.html", context)
 
-    elif request.method == "POST" and request.user.can_customize_invoice:
+    elif request.method == "POST":
 
         if invoice_branding_form.is_valid():
             for k, v in invoice_branding_form.cleaned_data.items():

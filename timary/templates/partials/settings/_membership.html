@@ -1,9 +1,0 @@
-<div class="wrapper grid grid-cols-3 items-center">
-    <div class="text-left">Membership tier: </div>
-    <div class="text-center">{{ settings.current_plan }}</div>
-    <a class="link text-right"
-        hx-get="{% url 'timary:update_membership_settings' %}"
-        hx-target="closest .wrapper"
-        hx-swap="outerHTML"
-        _="on click add .loading to me">Update membership</a>
-</div>

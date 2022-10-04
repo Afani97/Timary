@@ -38,7 +38,6 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
-        "upgrade_msg": request.user.upgrade_invoice_message,
         "sent_invoices_owed": int(sent_invoices_owed),
         "sent_invoices_earned": int(sent_invoices_paid),
         "archived_invoices": request.user.invoices.filter(is_archived=True),
@@ -165,13 +164,6 @@ def update_invoice(request, invoice_id):
         return response
     else:
         return render(request, "invoices/_update.html", {"form": invoice_form})
-
-
-@login_required()
-@require_http_methods(["GET"])
-def create_invoice_partial(request):
-    context = {"upgrade_msg": request.user.upgrade_invoice_message}
-    return render(request, "partials/_new_invoice_btn.html", context)
 
 
 @login_required()

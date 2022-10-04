@@ -8,7 +8,6 @@ from django.test import tag
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
-from timary.models import User
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
@@ -128,8 +127,7 @@ class TestUI(BaseUITest):
     @tag("ui")
     def test_edit_hours_within_invoice(self):
         invoice = InvoiceFactory(
-            next_date=datetime.date.today() + datetime.timedelta(days=1),
-            user__membership_tier=User.MembershipTier.BUSINESS,
+            next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
         DailyHoursFactory(
             invoice=invoice,

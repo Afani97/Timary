@@ -10,7 +10,11 @@
         }
     </style>
 
-    {% include 'partials/_new_invoice_btn.html' %}
+    <div class="flex flex-col md:flex-row justify-between mt-10 mx-5">
+        <h1 class="text-3xl mb-8 text-center font-bold" id="current-invoices">Your current invoices</h1>
+        <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</a>
+    </div>
+
 
     <div>
         <div class="md:flex justify-center mb-4 hidden">

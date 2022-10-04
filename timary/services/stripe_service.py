@@ -44,14 +44,7 @@ class StripeService:
 
     @classmethod
     def get_product_id(cls, user):
-        from timary.models import User
-
-        if user.membership_tier == User.MembershipTier.STARTER:
-            return settings.STRIPE_STARTER_ID
-        if user.membership_tier == User.MembershipTier.PROFESSIONAL:
-            return settings.STRIPE_PROFESSIONAL_ID
-        if user.membership_tier == User.MembershipTier.BUSINESS:
-            return settings.STRIPE_BUSINESS_ID
+        return settings.STRIPR_SUBSCRIPTION_ID
 
     @classmethod
     def create_new_account(cls, request, user, first_token, second_token):
@@ -152,12 +145,8 @@ class StripeService:
 
     @classmethod
     def calculate_application_fee(cls, sent_invoice):
-        from timary.models import User
-
         # Add $5 ACH Debit Fee
         application_fee = 500
-        if sent_invoice.user.membership_tier == User.MembershipTier.INVOICE_FEE:
-            application_fee += int(sent_invoice.total_price)
         invoice_amount = (
             int(sent_invoice.total_price * 100) + 500
         )  # Add $5 ACH Debit Fee
@@ -210,18 +199,11 @@ class StripeService:
 
     @classmethod
     def create_subscription(cls, user, delete_current=None):
-        from timary.models import User
-
         stripe.api_key = cls.stripe_api_key
 
         if delete_current and user.stripe_subscription_id:
             if stripe.Subscription.retrieve(user.stripe_subscription_id):
                 stripe.Subscription.delete(user.stripe_subscription_id)
-
-        if user.membership_tier == User.MembershipTier.INVOICE_FEE:
-            user.stripe_subscription_id = None
-            user.save()
-            return
 
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
@@ -283,7 +265,8 @@ class StripeService:
             coupon=coupon["id"],
         )
 
-        new_sub_cost = user.membership_tier - (amount / 100)
+        # TODO: Move this to a settings constant
+        new_sub_cost = 29 - (amount / 100)
 
         EmailService.send_plain(
             "Good news! You're saving money!",

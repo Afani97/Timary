@@ -415,17 +415,6 @@ class SentInvoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
-    class MembershipTier(models.IntegerChoices):
-        STARTER = 5, "STARTER"
-        PROFESSIONAL = 19, "PROFESSIONAL"
-        BUSINESS = 49, "BUSINESS"
-        INVOICE_FEE = 1, "INVOICE_FEE"
-
-    membership_tier = models.PositiveSmallIntegerField(
-        default=MembershipTier.STARTER,
-        choices=MembershipTier.choices,
-        blank=True,
-    )
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
@@ -469,14 +458,8 @@ class User(AbstractUser, BaseModel):
     @property
     def settings(self):
         return {
-            "can_integrate_with_accounting_tools": self.can_integrate_with_accounting_tools,
             "accounting_connected": self.get_accounting_connected,
             "phone_number_availability": self.phone_number_availability,
-            "can_download_audit": self.can_download_audit,
-            "current_plan": " ".join(
-                self.get_membership_tier_display().split("_")
-            ).title(),
-            "can_customize_invoice": self.can_customize_invoice,
         }
 
     @property
@@ -507,89 +490,20 @@ class User(AbstractUser, BaseModel):
 
     @property
     def can_accept_payments(self):
-        return self.stripe_payouts_enabled and self.can_receive_texts
-
-    @property
-    def can_receive_texts(self):
-        return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
-    @property
-    def can_view_invoice_stats(self):
-        return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
-    @property
-    def can_integrate_with_accounting_tools(self):
-        return (
-            self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
-    @property
-    def can_create_invoices(self):
-        invoices_count = self.get_invoices.count()
-        if invoices_count == 0:
-            # Empty state
-            return False
-        if self.membership_tier == User.MembershipTier.STARTER:
-            return False
-        elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
-            return invoices_count <= 1
-        elif (
-            self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        ):
-            return True
-        else:
-            return False
-
-    @property
-    def can_download_audit(self):
-        return (
-            self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
-    @property
-    def can_customize_invoice(self):
-        return (
-            self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
-
-    @property
-    def can_generate_invoice(self):
-        return (
-            self.membership_tier == User.MembershipTier.PROFESSIONAL
-            or self.membership_tier == User.MembershipTier.BUSINESS
-            or self.membership_tier == User.MembershipTier.INVOICE_FEE
-        )
+        return self.stripe_payouts_enabled
 
     def user_referred(self):
         subscription = StripeService.get_subscription(self.stripe_subscription_id)
         amount = 500  # $5
         if subscription["discount"]:
             # If a biz already has a discount applied to their account, max out the coupon to $10
-            if (
-                self.membership_tier == User.MembershipTier.BUSINESS
-                and subscription["discount"]["coupon"]["amount_off"] == amount
-            ):
+            if subscription["discount"]["coupon"]["amount_off"] == amount:
                 amount = 1000
                 return StripeService.create_subscription_discount(
                     self, amount, subscription["id"]
                 )
 
-        elif self.membership_tier in [
-            User.MembershipTier.PROFESSIONAL,
-            User.MembershipTier.BUSINESS,
-        ]:
+        else:
             return StripeService.create_subscription_discount(self, amount)
 
     def can_repeat_previous_hours_logged(self, hours):
@@ -613,40 +527,16 @@ class User(AbstractUser, BaseModel):
             show_repeat = 1
         return show_repeat
 
-    @property
-    def upgrade_invoice_message(self):
-        mem_tier = ""
-        if self.membership_tier == User.MembershipTier.STARTER:
-            mem_tier = "Professional or Business or Invoice Fee"
-        elif self.membership_tier == User.MembershipTier.PROFESSIONAL:
-            mem_tier = "Business or Invoice Fee"
-        return f"Upgrade your membership tier to {mem_tier} to create new invoices."
-
     def invoice_branding_properties(self):
-        properties = {
-            "next_weeks_date": datetime.date.today() + datetime.timedelta(weeks=1),
-            "user_name": self.first_name,
+        return {
+            "due_date_selected": self.invoice_branding.get("due_date"),
+            "next_weeks_date": datetime.date.today()
+            + datetime.timedelta(weeks=int(self.invoice_branding.get("due_date") or 1)),
+            "user_name": self.invoice_branding.get("company_name") or self.first_name,
+            "hide_timary": self.invoice_branding.get("hide_timary") or False,
+            "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
+            "profile_pic": self.profile_pic,
+            "linked_in": self.invoice_branding.get("linked_in") or "",
+            "twitter": self.invoice_branding.get("twitter") or "",
+            "youtube": self.invoice_branding.get("youtube") or "",
         }
-
-        # Timary branding/defaults
-        if not self.can_customize_invoice:
-            return properties
-
-        properties.update(
-            {
-                "due_date_selected": self.invoice_branding.get("due_date"),
-                "next_weeks_date": datetime.date.today()
-                + datetime.timedelta(
-                    weeks=int(self.invoice_branding.get("due_date") or 1)
-                ),
-                "user_name": self.invoice_branding.get("company_name")
-                or self.first_name,
-                "hide_timary": self.invoice_branding.get("hide_timary") or False,
-                "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
-                "profile_pic": self.profile_pic,
-                "linked_in": self.invoice_branding.get("linked_in") or "",
-                "twitter": self.invoice_branding.get("twitter") or "",
-                "youtube": self.invoice_branding.get("youtube") or "",
-            }
-        )
-        return properties
