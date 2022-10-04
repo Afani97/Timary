@@ -77,7 +77,6 @@ class TestUserProfile(BaseTest):
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+17742613186",
-            "membership_tier": "19",
         }
         response = self.client.post(reverse("timary:update_user_profile"), data=data)
         self.user.refresh_from_db()
@@ -131,31 +130,6 @@ class TestUserProfile(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertInHTML(
             "<div class='text-center'>  Mon </div>",
-            response.content.decode("utf-8"),
-        )
-
-    @patch("timary.services.stripe_service.StripeService.get_subscription")
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
-    def test_update_membership_tier_user_subscription(
-        self, stripe_subscription_mock, stripe_get_sub_mock
-    ):
-        stripe_subscription_mock.return_value = None
-        stripe_get_sub_mock.return_value = {"discount": None}
-        self.assertEqual(self.user.membership_tier, 19)
-        url_params = {
-            "membership_tier": "BUSINESS",
-        }
-        response = self.client.put(
-            reverse("timary:update_membership_settings"),
-            data=urlencode(url_params),  # HTMX PUT FORM
-        )
-        self.user.refresh_from_db()
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.templates[0].name, "partials/settings/_membership.html"
-        )
-        self.assertInHTML(
-            "Business",
             response.content.decode("utf-8"),
         )
 
@@ -213,9 +187,9 @@ class TestUserSettings(BaseTest):
                 response.content.decode("utf-8"),
             )
 
-    def test_get_settings_partial_can_download_audit(self):
+    def test_get_settings_partial_download_audit(self):
         self.client.logout()
-        user = UserFactory(membership_tier=49)
+        user = UserFactory()
         self.client.force_login(user=user)
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
@@ -255,42 +229,6 @@ class TestUserSettings(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
-        self.assertEqual(response.status_code, 200)
-
-    @patch(
-        "timary.services.stripe_service.StripeService.get_subscription",
-        return_value=None,
-    )
-    def test_get_edit_membership_tier_settings(self, stripe_mock):
-        stripe_mock.return_value = {"discount": None}
-        response = self.client.get(reverse("timary:update_membership_settings"))
-        self.assertEqual(
-            response.templates[0].name, "partials/settings/_edit_membership.html"
-        )
-        self.assertEqual(response.status_code, 200)
-
-    @patch(
-        "timary.services.stripe_service.StripeService.get_subscription",
-        return_value={"discount": None},
-    )
-    @patch(
-        "timary.services.stripe_service.StripeService.create_subscription",
-        return_value=None,
-    )
-    def test_update_membership_tier_settings(self, stripe_mock, stripe_sub_mock):
-        url_params = [("membership_tier", "BUSINESS")]
-        response = self.client.put(
-            reverse("timary:update_membership_settings"),
-            data=urlencode(url_params),  # HTMX PUT FORM
-        )
-        self.user.refresh_from_db()
-        self.assertInHTML(
-            "Business",
-            response.content.decode("utf-8"),
-        )
-        self.assertEqual(
-            response.templates[0].name, "partials/settings/_membership.html"
-        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_profile_partial_redirect(self):

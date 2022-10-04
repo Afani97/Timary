@@ -9,13 +9,11 @@ from timary.forms import (
     InvoiceBrandingSettingsForm,
     InvoiceForm,
     LoginForm,
-    MembershipTierSettingsForm,
     PayInvoiceForm,
     RegisterForm,
     SMSSettingsForm,
     UserForm,
 )
-from timary.models import User
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
 
 
@@ -48,7 +46,6 @@ class TestRegister(TestCase):
                 "email": "user@test.com",
                 "full_name": "User User",
                 "password": "test",
-                "membership_tier": "19",
             }
         )
         self.assertTrue(form.is_valid())
@@ -57,15 +54,12 @@ class TestRegister(TestCase):
         user = form.save()
         self.assertEqual(user.email, "user@test.com")
         self.assertEqual(user.get_full_name(), "User User")
-        self.assertEqual(user.membership_tier, User.MembershipTier.PROFESSIONAL)
         self.assertEqual(
             user.phone_number_availability, ["Mon", "Tue", "Wed", "Thu", "Fri"]
         )
 
     def test_register_error_empty_email(self):
-        form = RegisterForm(
-            data={"full_name": "User User", "password": "test", "membership_tier": "19"}
-        )
+        form = RegisterForm(data={"full_name": "User User", "password": "test"})
         self.assertEqual(form.errors, {"email": ["This field is required."]})
 
     def test_register_email_already_registered(self):
@@ -75,7 +69,6 @@ class TestRegister(TestCase):
                 "email": user.email,
                 "full_name": "User User",
                 "password": "test",
-                "membership_tier": "19",
             }
         )
 
@@ -94,7 +87,6 @@ class TestRegister(TestCase):
                 "email": "user@test.com",
                 "full_name": "12345",
                 "password": "test",
-                "membership_tier": "19",
             }
         )
 
@@ -105,22 +97,10 @@ class TestRegister(TestCase):
             data={
                 "email": "user@test.com",
                 "full_name": "User",
-                "membership_tier": "19",
             }
         )
 
         self.assertEqual(form.errors, {"password": ["This field is required."]})
-
-    def test_register_error_empty_membership_tier(self):
-        form = RegisterForm(
-            data={
-                "email": "user@test.com",
-                "full_name": "User User",
-                "password": "test",
-            }
-        )
-
-        self.assertEqual(form.errors, {"membership_tier": ["This field is required."]})
 
     def test_register_empty_all_fields(self):
         form = RegisterForm(data={})
@@ -131,7 +111,6 @@ class TestRegister(TestCase):
                 "email": ["This field is required."],
                 "full_name": ["This field is required."],
                 "password": ["This field is required."],
-                "membership_tier": ["This field is required."],
             },
         )
 
@@ -618,18 +597,6 @@ class TestSettings(TestCase):
         form.save()
         user.refresh_from_db()
         self.assertEqual(user.phone_number_availability, ["Mon", "Tue"])
-
-    def test_update_membership_tier_settings_errors(self):
-        user = UserFactory()
-        form = MembershipTierSettingsForm(
-            instance=user,
-            data={"membership_tier": "5"},
-        )
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.errors, {})
-        form.save()
-        user.refresh_from_db()
-        self.assertEqual(user.membership_tier, 5)
 
     def test_valid_invoice_branding_options(self):
         form = InvoiceBrandingSettingsForm(

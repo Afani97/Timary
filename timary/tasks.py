@@ -128,7 +128,6 @@ def send_invoice_preview(invoice_id):
             "invoice": invoice,
             "hours_tracked": hours_tracked,
             "tomorrows_date": today + timedelta(days=1),
-            "can_view_invoice_stats": invoice.user.can_view_invoice_stats,
             "site_url": settings.SITE_URL,
             "invoice_branding": invoice.user.invoice_branding_properties(),
         },
@@ -149,8 +148,6 @@ def send_reminder_sms():
     invoices_sent_count = 0
     weekday = date.today().strftime("%a")
     for user in users:
-        if not user.can_receive_texts:
-            continue
         if weekday not in user.settings.get("phone_number_availability"):
             continue
         remaining_invoices = user.invoices_not_logged()
@@ -223,10 +220,7 @@ def backup_db_file():
 
 def refresh_accounting_integration_tokens():
     """Run this every first of the month"""
-    users = User.objects.filter(
-        Q(membership_tier=User.MembershipTier.BUSINESS)
-        | Q(membership_tier=User.MembershipTier.INVOICE_FEE)
-    ).exclude(accounting_org_id__isnull=True)
+    users = User.objects.exclude(accounting_org_id__isnull=True)
     for user in users:
         try:
             AccountingService({"user": user}).refresh_tokens()

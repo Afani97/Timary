@@ -113,13 +113,15 @@ def onboard_success(request):
     user = User.objects.filter(id=request.GET.get("user_id")).first()
     if not user:
         return redirect(reverse("timary:register"))
-    if user.membership_tier != User.MembershipTier.INVOICE_FEE:
-        StripeService.create_subscription(user)
+
+    StripeService.create_subscription(user)
 
     connect_account = StripeService.get_connect_account(user.stripe_connect_id)
     user.stripe_payouts_enabled = connect_account["payouts_enabled"]
     user.save()
+
     login(request, user)
+
     return redirect(reverse("timary:manage_invoices"))
 
 

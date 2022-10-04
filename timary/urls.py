@@ -45,11 +45,6 @@ urlpatterns += [
         name="update_sms_settings",
     ),
     path(
-        "profile/settings/membership/",
-        views.update_membership_settings,
-        name="update_membership_settings",
-    ),
-    path(
         "profile/settings/payment-method/",
         views.update_payment_method_settings,
         name="update_payment_method_settings",
@@ -130,7 +125,6 @@ urlpatterns += [
         views.sent_invoices_list,
         name="sent_invoices_list",
     ),
-    path("invoices/new_btn/", views.create_invoice_partial, name="create_invoice_btn"),
 ]
 
 # AUTH URLS

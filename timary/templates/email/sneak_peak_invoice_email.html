@@ -42,11 +42,9 @@
 {% endblock %}
 
 {% block footer %}
-    {% if can_view_invoice_stats %}
-        <div class="flex justify-center my-12">
-            <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:manage_invoices' %}">
-                Edit Hours
-            </a>
-        </div>
-    {% endif %}
+    <div class="flex justify-center my-12">
+        <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:manage_invoices' %}">
+            Edit Hours
+        </a>
+    </div>
 {% endblock %}

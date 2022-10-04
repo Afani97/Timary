@@ -2,7 +2,6 @@ import datetime
 
 from django.core.management.base import BaseCommand
 
-from timary.models import User
 from timary.tasks import send_invoice
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
@@ -10,21 +9,9 @@ from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactor
 class Command(BaseCommand):
     help = "Generate fake invoicing email"
 
-    def add_arguments(self, parser):
-        # Membership type
-        # FREE => 1, BASIC => 2, PREMIUM => 3, INVOICE_FEE => 4
-        parser.add_argument("-mt", nargs="?", type=str, default="1")
-
     def handle(self, *args, **options):
-        membership_tiers = {
-            "1": User.MembershipTier.STARTER,
-            "2": User.MembershipTier.PROFESSIONAL,
-            "3": User.MembershipTier.BUSINESS,
-            "4": User.MembershipTier.INVOICE_FEE,
-        }
         user = UserFactory(
             email="aristotelf@gmail.com",
-            membership_tier=membership_tiers[options["mt"]],
             stripe_payouts_enabled=True,
             phone_number=None,
         )

@@ -39,21 +39,7 @@ class TimaryAdminSite(OTPAdminSite):
     index_template = "admin/custom_index.html"
 
     def analytics(self, request):
-        users = {
-            "total": User.objects.count(),
-            "starter": User.objects.filter(
-                membership_tier=User.MembershipTier.STARTER
-            ).count(),
-            "professional": User.objects.filter(
-                membership_tier=User.MembershipTier.PROFESSIONAL
-            ).count(),
-            "business": User.objects.filter(
-                membership_tier=User.MembershipTier.BUSINESS
-            ).count(),
-            "invoice_fee": User.objects.filter(
-                membership_tier=User.MembershipTier.INVOICE_FEE
-            ).count(),
-        }
+        users = {"total": User.objects.count()}
         sent_invoices = {
             "total": SentInvoice.objects.count(),
             "pending": SentInvoice.objects.filter(
@@ -79,7 +65,6 @@ class TimaryAdminSite(OTPAdminSite):
             + (users["professional"] * 19)
             + (users["business"] * 49),
             "fees": SentInvoice.objects.filter(
-                user__membership_tier=User.MembershipTier.INVOICE_FEE,
                 date_sent__month__gte=current_date.month,
                 date_sent__year__gte=current_date.year,
             ).aggregate(total=Sum("total_price"))["total"]

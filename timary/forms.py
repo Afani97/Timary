@@ -399,12 +399,6 @@ class SMSSettingsForm(forms.ModelForm):
         fields = ["phone_number_availability"]
 
 
-class MembershipTierSettingsForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ["membership_tier"]
-
-
 def validate_due_date_integer(val):
     """Valid values are 1, 2, 4, corresponding to weeks"""
     if val not in [1, 2, 4]:
@@ -456,12 +450,6 @@ class RegisterForm(forms.ModelForm):
         ),
         required=True,
     )
-    membership_tier = forms.CharField(
-        widget=forms.HiddenInput(
-            attrs={"id": "hidden-membership", "name": "hidden-membership"}
-        ),
-        required=True,
-    )
 
     def clean_full_name(self):
         full_name = self.cleaned_data.get("full_name")
@@ -496,7 +484,6 @@ class RegisterForm(forms.ModelForm):
             "full_name",
             "email",
             "password",
-            "membership_tier",
         )
 
 

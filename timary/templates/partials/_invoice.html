@@ -14,7 +14,7 @@
                             Edit
                         </a>
                     </li>
-                    {% if invoice.user.can_generate_invoice and invoice.invoice_type == 1 %}
+                    {% if invoice.invoice_type == 1 %}
                         <li>
                             <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to generate an invoice now?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-sm"
                                 _="on htmx:beforeRequest add .loading to me">
@@ -86,15 +86,12 @@
             </div>
         </div>
 
-
-        {% if invoice.user.can_view_invoice_stats %}
-            <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-5">
-                <input type="checkbox" />
-                <div class="collapse-title text-xl font-medium">View more</div>
-                <div class="collapse-content" id="hours-logged">
-                    {% include "partials/_invoice_collapsed_content.html" %}
-                </div>
+        <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-5">
+            <input type="checkbox" />
+            <div class="collapse-title text-xl font-medium">View more</div>
+            <div class="collapse-content" id="hours-logged">
+                {% include "partials/_invoice_collapsed_content.html" %}
             </div>
-        {% endif %}
+        </div>
     </div>
 </li>
