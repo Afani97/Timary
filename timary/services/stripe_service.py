@@ -43,8 +43,8 @@ class StripeService:
         }
 
     @classmethod
-    def get_product_id(cls, user):
-        return settings.STRIPR_SUBSCRIPTION_ID
+    def get_price_id(cls):
+        return settings.STRIPE_PRICE_ID
 
     @classmethod
     def create_new_account(cls, request, user, first_token, second_token):
@@ -208,7 +208,7 @@ class StripeService:
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
             items=[
-                {"price": StripeService.get_product_id(user)},
+                {"price": StripeService.get_price_id()},
             ],
         )
         user.stripe_subscription_id = subscription["id"]
