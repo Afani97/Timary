@@ -24,11 +24,9 @@ class TestInvoices(BaseTest):
         super().setUp()
 
         self.user = UserFactory()
-        self.biz_user = UserFactory(membership_tier=49)
         self.client.force_login(self.user)
         self.invoice = InvoiceFactory(user=self.user)
         self.invoice_no_user = InvoiceFactory()
-        self.biz_invoice = InvoiceFactory(user=self.biz_user)
 
     @classmethod
     def extract_html(cls):
@@ -209,16 +207,13 @@ class TestInvoices(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_get_invoice_with_hours_logged(self):
-        self.client.force_login(self.biz_user)
-        hour = DailyHoursFactory(invoice=self.biz_invoice)
+        hour = DailyHoursFactory(invoice=self.invoice)
 
         rendered_template = self.setup_template(
-            "partials/_invoice.html", {"invoice": self.biz_invoice}
+            "partials/_invoice.html", {"invoice": self.invoice}
         )
         response = self.client.get(
-            reverse(
-                "timary:get_single_invoice", kwargs={"invoice_id": self.biz_invoice.id}
-            )
+            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
@@ -229,8 +224,7 @@ class TestInvoices(BaseTest):
         )
         self.client.force_login(self.user)
 
-    def test_starter_or_professional_cannot_view_invoice_stats(self):
-        self.client.force_login(self.user)
+    def test_view_invoice_stats(self):
         hour = DailyHoursFactory(invoice=self.invoice)
         response = self.client.get(
             reverse("timary:get_single_invoice", kwargs={"invoice_id": hour.invoice.id})
@@ -240,20 +234,6 @@ class TestInvoices(BaseTest):
                 "View hours logged this period",
                 response.content.decode("utf-8"),
             )
-
-    def test_biz_can_view_invoice_stats(self):
-        self.client.force_login(self.biz_user)
-        DailyHoursFactory(invoice=self.biz_invoice)
-        response = self.client.get(
-            reverse(
-                "timary:get_single_invoice", kwargs={"invoice_id": self.biz_invoice.id}
-            )
-        )
-        self.assertInHTML(
-            "View more",
-            response.content.decode("utf-8"),
-        )
-        self.client.force_login(self.user)
 
     def test_get_invoice_error(self):
         response = self.client.get(
@@ -521,43 +501,6 @@ class TestInvoices(BaseTest):
             ),
         )
         self.assertEqual(response.status_code, 302)
-
-    def test_create_invoice_btn_message_as_starter(self):
-        self.client.logout()
-        user = UserFactory(membership_tier=5)
-        self.client.force_login(user)
-
-        InvoiceFactory(user=user)
-
-        response = self.client.get(
-            reverse(
-                "timary:create_invoice_btn",
-            ),
-        )
-
-        self.assertIn(
-            "Upgrade your membership tier to Professional or Business or Invoice Fee to create new invoices.",
-            response.content.decode("utf-8"),
-        )
-
-    def test_create_invoice_btn_message_as_professional(self):
-        self.client.logout()
-        user = UserFactory()
-        self.client.force_login(user)
-
-        InvoiceFactory(user=user)
-        InvoiceFactory(user=user)
-
-        response = self.client.get(
-            reverse(
-                "timary:create_invoice_btn",
-            ),
-        )
-
-        self.assertIn(
-            "Upgrade your membership tier to Business or Invoice Fee to create new invoices.",
-            response.content.decode("utf-8"),
-        )
 
     def test_total_invoice_stats(self):
         self.client.logout()

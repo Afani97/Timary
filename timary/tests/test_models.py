@@ -360,21 +360,13 @@ class TestUser(TestCase):
         self.assertEqual(user.username, "test@test.com")
         self.assertEqual(user.email, "test@test.com")
         self.assertEqual(user.phone_number, "+17742613186")
-        self.assertEqual(user.membership_tier, User.MembershipTier.STARTER)
         self.assertListEqual(user.phone_number_availability, ["Mon", "Tue", "Wed"])
 
     def test_settings_dict(self):
         user = UserFactory(phone_number_availability=["Mon", "Tue"])
         self.assertEqual(
             user.settings,
-            {
-                "phone_number_availability": ["Mon", "Tue"],
-                "accounting_connected": None,
-                "can_download_audit": False,
-                "can_integrate_with_accounting_tools": False,
-                "current_plan": "Professional",
-                "can_customize_invoice": False,
-            },
+            {"phone_number_availability": ["Mon", "Tue"], "accounting_connected": None},
         )
 
     def test_get_active_invoices(self):
@@ -424,45 +416,6 @@ class TestUser(TestCase):
             user = UserFactory(stripe_payouts_enabled=False)
             self.assertFalse(user.can_accept_payments)
 
-    def test_can_receive_texts(self):
-        with self.subTest("Starter tier"):
-            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
-            self.assertFalse(user.can_receive_texts)
-
-        with self.subTest("Professional tier"):
-            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
-            self.assertTrue(user.can_receive_texts)
-
-        with self.subTest("Business tier"):
-            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
-            self.assertTrue(user.can_receive_texts)
-
-    def test_can_create_invoices(self):
-        with self.subTest("Zero invoices"):
-            user = UserFactory()
-            self.assertFalse(user.can_create_invoices)
-
-        with self.subTest("Starter tier, only one allowed"):
-            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
-            InvoiceFactory(user=user)
-            self.assertFalse(user.can_create_invoices)
-
-        with self.subTest("Professional tier, limit not reached"):
-            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
-            InvoiceFactory(user=user)
-            self.assertTrue(user.can_create_invoices)
-
-        with self.subTest("Business tier, limit reached"):
-            user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
-            InvoiceFactory(user=user)
-            InvoiceFactory(user=user)
-            self.assertFalse(user.can_create_invoices)
-
-        with self.subTest("Business tier, limit reached"):
-            user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
-            InvoiceFactory(user=user)
-            self.assertTrue(user.can_create_invoices)
-
     def test_can_repeat_logged_days(self):
         with self.subTest("No previous day with logged hours"):
             user = UserFactory()
@@ -471,7 +424,6 @@ class TestUser(TestCase):
             )
 
         with self.subTest("Show repeat button"):
-            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
             qs = QuerySet(
                 DailyHoursFactory(
                     invoice=InvoiceFactory(user=user),
@@ -481,7 +433,6 @@ class TestUser(TestCase):
             self.assertEqual(user.can_repeat_previous_hours_logged(qs), 1)
 
         with self.subTest("Don't show any message"):
-            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
             qs = QuerySet(
                 DailyHoursFactory(
                     invoice=InvoiceFactory(user=user),
@@ -500,43 +451,12 @@ class TestUser(TestCase):
             "discount": None,
             "id": "123",
         }
-        user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
+        user = UserFactory()
         self.assertEqual(user.user_referred(), "abc123")
 
     @patch("timary.services.stripe_service.StripeService.get_subscription")
     @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
-    def test_user_referred_cannot_create_coupon(
-        self, create_subscription_mock, get_subscription_mock
-    ):
-        create_subscription_mock.return_value = "abc123"
-        get_subscription_mock.return_value = {
-            "discount": None,
-            "id": "123",
-        }
-        with self.subTest("User is start"):
-            user = UserFactory(membership_tier=User.MembershipTier.STARTER)
-            self.assertEqual(user.user_referred(), None)
-        with self.subTest("User is start"):
-            user = UserFactory(membership_tier=User.MembershipTier.INVOICE_FEE)
-            self.assertEqual(user.user_referred(), None)
-
-    @patch("timary.services.stripe_service.StripeService.get_subscription")
-    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
-    def test_user_referred_professional_has_discount(
-        self, create_subscription_mock, get_subscription_mock
-    ):
-        create_subscription_mock.return_value = {"id": "abc123"}
-        get_subscription_mock.return_value = {
-            "discount": {"coupon": {"amount_off": 500}},
-            "id": "123",
-        }
-        user = UserFactory(membership_tier=User.MembershipTier.PROFESSIONAL)
-        # Professional accounts don't get to discount again if already has one
-        self.assertEqual(user.user_referred(), None)
-
-    @patch("timary.services.stripe_service.StripeService.get_subscription")
-    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
-    def test_user_referred_business_has_discount_and_allowed_another(
+    def test_user_referred_has_discount_and_allowed_another(
         self, create_subscription_mock, get_subscription_mock
     ):
         create_subscription_mock.return_value = "abc123"
@@ -544,6 +464,6 @@ class TestUser(TestCase):
             "discount": {"coupon": {"amount_off": 500}},
             "id": "123",
         }
-        user = UserFactory(membership_tier=User.MembershipTier.BUSINESS)
+        user = UserFactory()
         # Business accounts are allowed one more coupon, which is modified to $10
         self.assertEqual(user.user_referred(), "abc123")

@@ -54,6 +54,10 @@ def accounting_redirect(request):
             request,
             f"We had trouble syncing your data with {user.accounting_org.title()}.",
         )
+        messages.info(
+            request,
+            "We have noted this error and will reach out to resolve soon.",
+        )
         return redirect(reverse("timary:user_profile"))
 
     # Then sync the current paid sent invoices
@@ -64,6 +68,10 @@ def accounting_redirect(request):
         messages.error(
             request,
             f"We had trouble syncing your data with {user.accounting_org.title()}.",
+        )
+        messages.info(
+            request,
+            "We have noted this error and will reach out to resolve soon.",
         )
         return redirect(reverse("timary:user_profile"))
 
