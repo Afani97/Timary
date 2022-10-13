@@ -21,7 +21,7 @@
                                 <label class="label">
                                     <span class="label-text">{{ field.label}}</span>
                                 </label>
-                                {{ field | addclass:"input input-bordered w-full text-xl"}}
+                                {{ field | addclass:field.field.widget.attrs.class}}
                                 {% for error in field.errors %}
                                     <div class="text-red-600">
                                         <strong>{{ error|escape }}</strong>

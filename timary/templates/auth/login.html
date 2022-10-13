@@ -20,7 +20,7 @@
                             <label class="label">
                                 <span class="label-text">{{ field.label}}</span>
                             </label>
-                            {{ field | addclass:"input input-bordered w-full text-xl"}}
+                            {{ field | addclass:field.field.widget.attrs.class}}
                         </div>
                     {% endfor %}
 
