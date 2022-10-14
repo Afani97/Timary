@@ -21,7 +21,7 @@
                             <label class="label" for="due_date">
                                 <span class="label-text">Due date</span>
                             </label>
-                            <select class="select select-bordered" name="due_date"
+                            <select class="select select-bordered border-2" name="due_date"
                                 _=" on load set my.value to {{ invoice_branding_config.due_date_selected }}
                                     on change put updateDueDate(my.value) into #next_week.innerHTML">
                                 <option value="1" selected>1 Week</option>
@@ -37,7 +37,7 @@
                             </label>
                             <input
                                 name="company_name"
-                                class="input input-bordered w-full"
+                                class="input input-bordered border-2 w-full"
                                 placeholder="Company Inc"
                                 value="{{ invoice_branding_config.user_name }}"
                                 _="
@@ -82,7 +82,7 @@
                             </label>
                             <input
                                 name="linked_in"
-                                class="input input-bordered w-full"
+                                class="input input-bordered border-2 w-full"
                                 placeholder=""
                                 value="{{ invoice_branding_config.linked_in }}"
                                 _="on load if {{ invoice_branding_config.linked_in|yesno:"true,false" }} remove .hidden from #linked_in else add .hidden to #linked_in end
@@ -98,7 +98,7 @@
                             </label>
                             <input
                                 name="twitter"
-                                class="input input-bordered w-full"
+                                class="input input-bordered border-2 w-full"
                                 placeholder=""
                                 value="{{ invoice_branding_config.twitter }}"
                                 _="on load if {{ invoice_branding_config.twitter|yesno:"true,false" }} remove .hidden from #twitter else add .hidden to #twitter end
@@ -114,7 +114,7 @@
                             </label>
                             <input
                                 name="youtube"
-                                class="input input-bordered w-full"
+                                class="input input-bordered border-2 w-full"
                                 placeholder=""
                                 value="{{ invoice_branding_config.youtube }}"
                                 _="on load if {{ invoice_branding_config.youtube|yesno:"true,false" }} remove .hidden from #youtube else add .hidden to #youtube end

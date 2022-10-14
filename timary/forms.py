@@ -38,19 +38,19 @@ class DailyHoursForm(forms.ModelForm):
             "hours": forms.TextInput(
                 attrs={
                     "value": 1.0,
-                    "class": "input input-bordered text-lg hours-input w-full",
+                    "class": "input input-bordered border-2 text-lg hours-input w-full",
                     "_": "on input call filterHoursInput(me) end on blur call convertHoursInput(me) end",
                 },
             ),
             "date_tracked": DateInput(
                 attrs={
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
             "invoice": forms.Select(
                 attrs={
                     "label": "Invoice",
-                    "class": "select select-bordered w-full",
+                    "class": "select select-bordered border-2 w-full",
                 }
             ),
         }
@@ -100,7 +100,7 @@ class InvoiceForm(forms.ModelForm):
             attrs={
                 "min": 1,
                 "max": 1_000_000,
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
                 "placeholder": "10000",
             }
         ),
@@ -111,7 +111,7 @@ class InvoiceForm(forms.ModelForm):
                 "placeholder": 3,
                 "min": 2,
                 "max": 12,
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -120,7 +120,7 @@ class InvoiceForm(forms.ModelForm):
             attrs={
                 "placeholder": 1200,
                 "min": 100,
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -173,7 +173,7 @@ class InvoiceForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "New Saas App...",
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
             "invoice_rate": forms.NumberInput(
@@ -181,13 +181,13 @@ class InvoiceForm(forms.ModelForm):
                     "value": 50,
                     "min": 1,
                     "max": 1000,
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered border-2 text-lg w-full",
                 },
             ),
             "invoice_type": forms.Select(
                 attrs={
                     "label": "Invoice",
-                    "class": "select select-bordered text-lg w-full",
+                    "class": "select select-bordered border-2 text-lg w-full",
                     "_": "on change set inv_type to `invoice-type-${my.value}` then "
                     "add .hidden to .invoice-type then remove .hidden from .{inv_type}",
                 }
@@ -195,20 +195,20 @@ class InvoiceForm(forms.ModelForm):
             "invoice_interval": forms.Select(
                 attrs={
                     "label": "Invoice",
-                    "class": "select select-bordered text-lg w-full",
+                    "class": "select select-bordered border-2 text-lg w-full",
                     "_": "on load add .invoice-type .invoice-type-1 to the closest .form-control",
                 }
             ),
             "email_recipient_name": forms.TextInput(
                 attrs={
                     "placeholder": "John Smith",
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
             "email_recipient": forms.EmailInput(
                 attrs={
                     "placeholder": "john@company.com",
-                    "class": "input input-bordered text-lg w-full",
+                    "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
         }
@@ -273,7 +273,7 @@ class PayInvoiceForm(forms.Form):
             attrs={
                 "placeholder": "john@appleseed.com",
                 "classes": "col-span-2",
-                "class": "input input-bordered text-lg bg-neutral "
+                "class": "input input-bordered border-2 text-lg bg-neutral "
                 "focus:border-primary focus:ring-0 focus:ring-primary w-full",
             }
         ),
@@ -284,7 +284,7 @@ class PayInvoiceForm(forms.Form):
             attrs={
                 "placeholder": "John",
                 "classes": "col-span-2",
-                "class": "input input-bordered text-lg bg-neutral "
+                "class": "input input-bordered border-2 text-lg bg-neutral "
                 "focus:border-primary focus:ring-0 focus:ring-primary w-full",
             }
         ),
@@ -324,7 +324,7 @@ class UserForm(forms.ModelForm):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -333,7 +333,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -342,7 +342,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Appleseed",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -352,7 +352,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -425,7 +425,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered text-lg w-full mb-4",
+                "class": "input input-bordered border-2 text-lg w-full mb-4",
             }
         ),
     )
@@ -435,7 +435,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John Appleseed",
-                "class": "input input-bordered text-lg w-full mb-4",
+                "class": "input input-bordered border-2 text-lg w-full mb-4",
             }
         ),
     )
@@ -445,7 +445,7 @@ class RegisterForm(forms.ModelForm):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered text-lg w-full mb-4",
+                "class": "input input-bordered border-2 text-lg w-full mb-4",
             }
         ),
         required=True,
@@ -494,7 +494,7 @@ class LoginForm(forms.Form):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "johns@awesomeemail.com",
-                "class": "input input-bordered text-lg w-full mb-8",
+                "class": "input input-bordered border-2 text-lg w-full mb-4",
             }
         ),
     )
@@ -504,7 +504,7 @@ class LoginForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered text-lg w-full",
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
         required=True,
@@ -549,7 +549,7 @@ class ReferralInviteForm(forms.Form):
         required=True,
         widget=forms.EmailInput(
             attrs={
-                "class": "input input-bordered w-full",
+                "class": "input input-bordered border-2 w-full",
                 "placeholder": "Enter email here",
             }
         ),
