@@ -14,9 +14,9 @@
         {% include "partials/_form_success.html" with message=success_msg %}
     {% endif %}
 
-    <div class="card-body">
+    <div class="card-body -mx-5 sm:mx-0">
         <div class="flex flex-row space-x-2 w-full">
-            <div class="w-full">{{ form.hours }}</div>
+            <div class="w-30 sm:w-full">{{ form.hours }}</div>
             <div class="w-full">{{ form.date_tracked }}</div>
         </div>
         <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
