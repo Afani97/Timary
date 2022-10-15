@@ -2,11 +2,13 @@ import datetime
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, get_template
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from weasyprint import HTML
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
@@ -37,19 +39,27 @@ def contract_builder(request):
                     "today": datetime.datetime.today(),
                 },
             )
-            EmailService.send_html(
-                "Hey! Here is your contract by Timary. Good luck!",
-                msg_body,
-                [
-                    contract_form.cleaned_data.get("email"),
-                    contract_form.cleaned_data.get("client_email"),
-                ],
-            )
-            Contract.objects.create(
-                email=contract_form.cleaned_data.get("email"),
-                name=f'{contract_form.cleaned_data.get("first_name")} {contract_form.cleaned_data.get("last_name")}',
-            )
-            return HttpResponse("Sent! Check your email")
+            html = HTML(string=msg_body)
+            html.write_pdf(target="/tmp/mypdf.pdf")
+
+            fs = FileSystemStorage("/tmp")
+            with fs.open("mypdf.pdf") as pdf:
+                response = HttpResponse(pdf, content_type="application/pdf")
+                response["Content-Disposition"] = 'attachment; filename="mypdf.pdf"'
+                return response
+            # EmailService.send_html(
+            #     "Hey! Here is your contract by Timary. Good luck!",
+            #     msg_body,
+            #     [
+            #         contract_form.cleaned_data.get("email"),
+            #         contract_form.cleaned_data.get("client_email"),
+            #     ],
+            # )
+            # Contract.objects.create(
+            #     email=contract_form.cleaned_data.get("email"),
+            #     name=f'{contract_form.cleaned_data.get("first_name")} {contract_form.cleaned_data.get("last_name")}',
+            # )
+            # return HttpResponse("Sent! Check your email")
     return render(request, "contract/builder.html", context)
 
 

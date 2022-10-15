@@ -62,6 +62,8 @@ django-storages==1.13.1
     # via -r requirements.in
 django-twilio==0.14.0
     # via -r requirements.in
+django-wkhtmltopdf==3.4.0
+    # via -r requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
 factory-boy==3.2.1
@@ -133,6 +135,7 @@ sentry-sdk==1.9.5
 six==1.16.0
     # via
     #   blessed
+    #   django-wkhtmltopdf
     #   python-dateutil
 sqlparse==0.4.2
     # via django

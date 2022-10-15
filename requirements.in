@@ -10,6 +10,7 @@ django-phonenumber-field
 django-q
 django-storages
 django-twilio
+django-wkhtmltopdf
 httmock
 openpyxl
 Pillow
@@ -20,4 +21,5 @@ qrcode
 sentry-sdk
 stripe
 twilio
+weasyprint
 whitenoise
