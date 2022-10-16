@@ -522,12 +522,13 @@ class QuestionsForm(forms.Form):
 
 
 class ContractForm(forms.Form):
-    contractor_name = forms.CharField(required=False)
-    contractor_address = forms.CharField(required=False)
-    email = forms.CharField(required=False)
-    client_name = forms.CharField(required=False)
-    client_address = forms.CharField(required=False)
-    client_email = forms.CharField(required=False)
+    contractor_name = forms.CharField(label="Your Name")
+    contractor_address = forms.CharField(label="Your Address")
+    contractor_email = forms.CharField(label="Your Email")
+    contractor_signature = forms.CharField(label="Your Signature")
+    client_name = forms.CharField(label="Client Name")
+    client_address = forms.CharField(label="Client Address")
+    client_email = forms.CharField(label="Client Email")
     service_description = forms.CharField(required=False)
     project_budget = forms.CharField(required=False)
     start_date = forms.DateField(required=False)

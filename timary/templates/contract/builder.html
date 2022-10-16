@@ -16,6 +16,12 @@
             .signatures {
                 font-family: Allura, cursive;
             }
+            .fill-in-blank {
+                display: inline-block;
+                font-weight: bold;
+                min-width: 150px;
+                border-bottom: 0.5px solid black;
+            }
         </style>
         <style media="print">
             @page {
@@ -42,16 +48,15 @@
                             {{today|date:"M. j, Y"}}
                         </span>, (the “Effective Date”)
                         by and between
-                        <span class="font-bold w-48 underline">
-                            <span id="client_name"></span>
-                        </span> located at <span class="font-bold inline-block min-w-min underline">
+                        <span id="client_name" class="fill-in-blank"></span>
+                        located at <span class="fill-in-blank">
                             <span id="client_address"></span>
                         </span> (“Client”) and
-                        <span class="font-bold w-48 underline">
+                        <span class="fill-in-blank">
                             <span id="contractor_name"></span>
                         </span>
                         located at
-                        <span class="font-bold w-80 underline">
+                        <span class="fill-in-blank">
                             <span id="contractor_address"></span>
                         </span> (“Independent Contractor”).
                         Client and Independent Contractor may each be referred to in this Agreement as a “Party” and
@@ -61,14 +66,14 @@
                     <div class="mt-4">
                         <span class="font-bold">1. Services.</span> Independent Contractor shall provide the following
                         services to Client (the “Services”):
-                        <span class="font-bold w-80 mt-2 underline">
+                        <span class="fill-in-blank">
                             <span id="service_description"></span>
                         </span> In addition, Independent Contractor shall perform such other duties and tasks, or changes
                         to the Services, as may be agreed upon by the Parties.
                     </div>
                     <div class="mt-4">
                         <span class="font-bold">2. Compensation.</span> Inconsideration for Independent Contractor’s performance of the Services, Client shall pay the contractor Independent Contractor
-                        <span class="font-bold w-32 mt-2 underline">
+                        <span class="fill-in-blank">
                             $<span id="project_budget"></span>
                         </span>
                         in total of project's completion.
@@ -79,9 +84,9 @@
                     <div class="mt-4">
                         <span class="font-bold">4. Term and Termination.</span>
                         Independent Contractor’s engagement with Client under this Agreement shall commence on
-                        <span class="font-bold w-48 underline" id="project_start_date"></span>.
+                        <span class="fill-in-blank" id="project_start_date"></span>.
                         The Parties agree and acknowledge that this Agreement and Independent Contractor's engagement with Client under this Agreement shall terminate on
-                        <span class="font-bold w-48 underline" id="project_end_date"></span>.
+                        <span class="fill-in-blank" id="project_end_date"></span>.
                         At the time of termination, Independent Contractor agrees to return all Client property used in performance of the Services, including but not limited to computers, cell phones, keys, reports and other equipment and documents. Independent Contractor shall reimburse Client for any Client property lost or damaged in an amount equal to the market price of such property.
                     </div>
                     <div class="mt-4">
@@ -125,7 +130,7 @@
                     </div>
                     <div class="mt-4">
                         <span class="font-bold">12. Governing Law.</span>  The terms of this Agreement and the rights of the Parties hereto shall be governed exclusively by the laws of the State of
-                        <span class="font-bold w-48 underline" id="state_working"></span>, without regarding its conflicts of law provisions.
+                        <span class="fill-in-blank" id="state_working"></span>, without regarding its conflicts of law provisions.
                     </div>
                     <div class="mt-4">
                         <span class="font-bold">13. Disputes.</span> Any dispute arising from this Agreement shall be resolved through mediation. If the dispute cannot be resolved through mediation, then the dispute will be resolved through binding arbitration conducted in accordance with the rules of the American Arbitration Association.
@@ -160,35 +165,48 @@
 
                 </div>
 
-                <div class="flex justify-between mt-10 mx-4">
+                <div class="flex justify-between mt-10 space-x-5">
                     <div class="flex flex-col">
-                        <p class="inline-block w-64 underline"></p>
+                        <p class="inline-block w-64 border-b border-solid border-black"></p>
                         <p class="justify-center">Client signature</p>
                     </div>
                     <div class="flex flex-col">
-                        <p class="inline-block w-64 underline"></p>
+                        <p class="inline-block w-64 border-b border-solid border-black"></p>
                         <p class="justify-center">Client full name</p>
                     </div>
                 </div>
 
-                <div class="flex justify-between mt-10 mx-4">
+                <div class="flex justify-between mt-10 space-x-5">
                     <div class="flex flex-col">
-                        <p class="signatures inline-block w-64 underline text-3xl" id="contractor_signature"></p>
+                        <p class="signatures inline-block w-64 border-b border-solid border-black text-3xl" id="contractor_signature"></p>
                         <p class="justify-center">Independent contractor signature</p>
                     </div>
                     <div class="flex flex-col">
-                        <p class="inline-block w-64 underline text-2xl" id="contractor_name"></p>
+                        <p class="inline-block w-64 border-b border-solid border-black text-2xl" id="contractor_name_signature"></p>
                         <p class="justify-center">Independent contractor full name</p>
                     </div>
                 </div>
 
             </div>
             <div class="overflow-y-auto mt-5 mx-5" id="builder">
-
                 <h1 class="text-3xl font-bold tracking-wide mt-5 text-center">Start your new freelance contract here</h1>
-                <h2 class="text-xl font-bold tracking-wide mt-2 text-center">Free, no strings attached, just 4 easy steps.</h2>
-
+                <h2 class="text-xl font-bold tracking-wide mt-2 text-center">Free, no strings attached, just 3 easy steps.</h2>
                 <div class="divider"></div>
+
+                {% if contract_form.errors %}
+                    <ul class="user-msg error">
+                        {% for field in contract_form %}
+                            {% for error in field.errors %}
+                                <li class="text-red-400">
+                                    {% if field != '__all__' %}
+                                        <strong>{{ field.label }}:</strong>
+                                    {% endif %}
+                                    {{ error }}
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
 
                 <form action="{% url 'timary:contract_builder' %}" method="post">
                     {% csrf_token %}
@@ -205,12 +223,12 @@
                                     />
                                 </div>
                             </div>
-                             <div class="form-control w-full">
+                            <div class="form-control w-full">
                                 <label class="label">
                                     <span class="label-text">Your address</span>
                                 </label>
                                 <input name="contractor_address" type="text" placeholder="123 Main St, New York, NY" class="input input-bordered"
-                                    _="on keyup put `${my.value}` into #contractor_address.innerHTML"
+                                    _="on keyup put my.value into #contractor_address.innerHTML"
                                 />
                             </div>
                             <div class="form-control w-full">
@@ -226,7 +244,7 @@
                                     <span class="label-text">Your client's address</span>
                                 </label>
                                 <input name="client_address" type="text" placeholder="123 Main St, New York, NY" class="input input-bordered"
-                                    _="on keyup put `${my.value},` into #client_address.innerHTML"
+                                    _="on keyup put my.value into #client_address.innerHTML"
                                 />
                             </div>
                         </div>
@@ -296,10 +314,10 @@
                                 <label class="label">
                                     <span class="label-text">Your signature</span>
                                 </label>
-                                <input type="text" placeholder="John Appleseed" class="input input-bordered"
+                                <input type="text" name="contractor_signature" placeholder="John Appleseed" class="input input-bordered"
                                     _="on focus go to the top of #contractor_signature instantly then
                                         on keyup put my.value into #contractor_signature.innerHTML then
-                                        put my value into #contractor_name.innerHTML"
+                                        put my value into #contractor_name_signature.innerHTML"
                                 />
                             </div>
                             <div class="form-control w-full">
