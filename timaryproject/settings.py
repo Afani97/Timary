@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_browser_reload",
     "storages",
-    "wkhtmltopdf",
 ]
 
 MIDDLEWARE = [
@@ -323,8 +322,6 @@ SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
 # PLAYWRIGHT
 HEADLESS_UI = True
 
-# WKHTMLTOPDF
-WKHTMLTOPDF_CMD = "/usr/local/bin/wkhtmltopdf"
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
