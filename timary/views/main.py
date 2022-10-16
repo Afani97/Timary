@@ -2,11 +2,13 @@ import datetime
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from weasyprint import HTML
 
 from timary.forms import ContractForm, DailyHoursForm, QuestionsForm
 from timary.models import Contract, DailyHoursInput
@@ -37,6 +39,13 @@ def contract_builder(request):
                     "today": datetime.datetime.today(),
                 },
             )
+            html = HTML(string=msg_body)
+            html.write_pdf(target="/tmp/mypdf.pdf")
+
+            fs = FileSystemStorage("/tmp")
+            with fs.open("mypdf.pdf") as pdf:
+                response = HttpResponse(pdf, content_type="application/pdf")
+                response["Content-Disposition"] = 'attachment; filename="contract.pdf"'
             EmailService.send_html(
                 "Hey! Here is your contract by Timary. Good luck!",
                 msg_body,
@@ -49,7 +58,9 @@ def contract_builder(request):
                 email=contract_form.cleaned_data.get("email"),
                 name=f'{contract_form.cleaned_data.get("first_name")} {contract_form.cleaned_data.get("last_name")}',
             )
-            return HttpResponse("Sent! Check your email")
+            return response
+        else:
+            context["contract_form"] = contract_form
     return render(request, "contract/builder.html", context)
 
 

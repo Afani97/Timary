@@ -322,6 +322,7 @@ SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
 # PLAYWRIGHT
 HEADLESS_UI = True
 
+
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):
     DEBUG = True
     Q_CLUSTER["sync"] = True

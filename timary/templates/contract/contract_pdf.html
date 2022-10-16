@@ -2,61 +2,114 @@
 <html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta name="x-apple-disable-message-reformatting" />
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
         <title>Contract Builder by Timary</title>
         <style>
-            @import url("https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap");
             @import url("https://fonts.googleapis.com/css2?family=Allura&display=swap");
-            #contract {
-                font-family: "Playfair Display", serif;
+
+            @page {
+                size: letter portrait;
+                margin: 2cm;
+            }
+            h1 {
+                font-size: 35px;
+                text-align: center;
+                padding-bottom: 10px;
+                border-bottom: 1px solid lightgray;
+                font-weight: lighter;
+            }
+            h2 {
+                font-size: 18px;
+                text-align: center;
+            }
+            div {
+                font-size: 14px;
+                line-height: 1.2rem;
+            }
+            .underline {
+                display: inline-block;
+                font-weight: bold;
+                min-width: 150px;
+                border-bottom: 0.5px solid black;
+            }
+            .mt-4 {
+                margin-top: 16px;
+            }
+            .mt-10 {
+                margin-top: 40px;
+            }
+            .ml-10 {
+                margin-left: 40px;
+            }
+            .mx-4 {
+                margin-left: 16px;
+                margin-right: 16px;
+            }
+            .mb-2 {
+                margin-bottom: 8px;
+            }
+            .font-bold {
+                font-weight: 700;
+            }
+            .text-black {
+                color: black;
+            }
+            .w-32 {
+                width: 128px;
+            }
+            .w-48 {
+                width: 198px;
+            }
+            .w-80 {
+                width: 320px;
+            }
+            .signature-container {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .signature-container > div {
+                width: 33%;
             }
             .signatures {
                 font-family: Allura, cursive;
-                font-weight: 400;
+                font-size: 25px;
+                display: inline-block;
             }
-        </style>
-        <style media="print">
-            @page {
-                size: auto;   /* auto is the initial value */
-                margin: 25px 25px 50px;  /* this affects the margin in the printer settings */
+            .text-lg {
+                font-size: 20px;
+            }
+            .text-md {
+                font-size: 14px;
             }
         </style>
     </head>
     <body>
-        <div class="bg-white md:overflow-y-scroll md:h-screen text-black p-4" id="contract">
+        <div class="text-black">
 
             <div class="contract-legalize">
-                <h1 class="text-4xl font-bold tracking-wider text-center mb-4 py-4 border-b-2 border-black border-solid">
-                    Freelance Contract
-                </h1>
+                <h1> Freelance Contract </h1>
 
                 <div class="mt-4">
                     This Freelance Contract (this  "Agreement") is made as of this
-                    <span class="font-bold inline-block w-32 border-solid border-black border-b-2 pb-1">
+                    <span class="font-bold w-32 underline">
                         {{today|date:"M. j, Y"}}
                     </span>, (the “Effective Date”)
                     by and between
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1">
-                        {{ form.client_first_name }} {{ form.client_last_name }}
-                    </p> located at
-                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2 pb-1">
-                        {{ form.client_street_address}}, {{ form.client_city }}, {{ form.client_state }}
-                    </p>(“Client”)
+                    <span class="font-bold w-48 underline">
+                        {{ form.client_name }}
+                    </span> located at
+                    <span class="font-bold w-80 underline">
+                        {{ form.client_address}}
+                    </span>(“Client”)
                     and
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1">
-                        {{ form.first_name }} {{ form.last_name }}
-                    </p>
+                    <span class="font-bold w-48 underline">
+                        {{ form.contractor_name }}
+                    </span>
                     located at
-                    <p class="font-bold inline-block w-80 border-solid border-black border-b-2 pb-1">
-                        {{ form.street_address }}, {{ form.city }}, {{ form.state }}
-                    </p> (“Independent Contractor”).
+                    <span class="font-bold w-80 underline">
+                        {{ form.contractor_address }}
+                    </span> (“Independent Contractor”).
                     Client and Independent Contractor may each be referred to in this Agreement as a “Party” and
                     collectively as the “Parties.”
 
@@ -64,16 +117,16 @@
                 <div class="mt-4">
                     <span class="font-bold">1. Services.</span> Independent Contractor shall provide the following
                     services to Client (the “Services”):
-                    <p class="font-bold inline-block w-80 mt-2 border-solid border-b-2 border-black pb-1">
+                    <span class="font-bold w-80 underline">
                         {{ form.service_description }}
-                    </p> In addition, Independent Contractor shall perform such other duties and tasks, or changes
+                    </span> In addition, Independent Contractor shall perform such other duties and tasks, or changes
                     to the Services, as may be agreed upon by the Parties.
                 </div>
                 <div class="mt-4">
                     <span class="font-bold">2. Compensation.</span> Inconsideration for Independent Contractor’s performance of the Services, Client shall pay the contractor Independent Contractor
-                    <p class="font-bold inline-block w-32 mt-2 border-solid border-b-2 border-black pb-1">
+                    <span class="font-bold w-32 underline">
                         ${{ form.project_budget }}
-                    </p>
+                    </span>
                     in total of project's completion.
                 </div>
                 <div class="mt-4">
@@ -82,13 +135,13 @@
                 <div class="mt-4">
                     <span class="font-bold">4. Term and Termination.</span>
                     Independent Contractor’s engagement with Client under this Agreement shall commence on
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="project_start_date">
+                    <span class="font-bold w-48 underline" id="project_start_date">
                         {{form.start_date|date:"M. j, Y"}}
-                    </p>.
+                    </span>.
                     The Parties agree and acknowledge that this Agreement and Independent Contractor's engagement with Client under this Agreement shall terminate on
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="project_end_date">
+                    <span class="font-bold w-48 underline" id="project_end_date">
                         {{form.end_date|date:"M. j, Y"}}
-                    </p>.
+                    </span>.
                     At the time of termination, Independent Contractor agrees to return all Client property used in performance of the Services, including but not limited to computers, cell phones, keys, reports and other equipment and documents. Independent Contractor shall reimburse Client for any Client property lost or damaged in an amount equal to the market price of such property.
                 </div>
                 <div class="mt-4">
@@ -122,7 +175,7 @@
                     <span class="font-bold">8. Insurance.</span>  For the term of this Agreement, Independent Contractor shall obtain and maintain a policy of insurance, with appropriate and adequate coverage and limits, to cover any claims for bodily injury, property damage or other losses which might arise out of any negligent act or omission committed by Independent Contractor or Independent Contractor’s employees or agents, if any, in connection with the performance of the Services under this Agreement.
                 </div>
                 <div class="mt-4">
-                    <span class="mt-4">9. Mutual Representations and Warranties.</span> Both Client and Independent Contractor represent and warrant that each Party has full power, authority and right to execute and deliver this Agreement, has full power and authority to perform its obligations under this Agreement, and has taken all necessary action to authorize the execution and delivery of this Agreement.  No other consents are necessary to enter into or perform this Agreement.
+                    <span class="font-bold">9. Mutual Representations and Warranties.</span> Both Client and Independent Contractor represent and warrant that each Party has full power, authority and right to execute and deliver this Agreement, has full power and authority to perform its obligations under this Agreement, and has taken all necessary action to authorize the execution and delivery of this Agreement.  No other consents are necessary to enter into or perform this Agreement.
                 </div>
                 <div class="mt-4">
                     <span class="font-bold">10. Independent Contractor Representation and Warranties.</span> Independent Contractor represents and warrants that it has all the necessary licenses, permits and registrations, if any, required to perform the Services under this Agreement in accordance with applicable federal, state and local laws, rules and regulations and that it will perform the Services according to the Client’s guidelines and specifications and with the standard of care prevailing in the industry.
@@ -132,9 +185,9 @@
                 </div>
                 <div class="mt-4">
                     <span class="font-bold">12. Governing Law.</span>  The terms of this Agreement and the rights of the Parties hereto shall be governed exclusively by the laws of the State of
-                    <p class="font-bold inline-block w-48 border-solid border-black border-b-2 pb-1" id="state_working">
+                    <span class="font-bold w-48 underline" id="state_working">
                         {{ form.state_work }}
-                    </p>, without regarding its conflicts of law provisions.
+                    </span>, without regarding its conflicts of law provisions.
                 </div>
                 <div class="mt-4">
                     <span class="font-bold">13. Disputes.</span> Any dispute arising from this Agreement shall be resolved through mediation. If the dispute cannot be resolved through mediation, then the dispute will be resolved through binding arbitration conducted in accordance with the rules of the American Arbitration Association.
@@ -169,29 +222,32 @@
 
             </div>
 
-            <div class="flex justify-between mt-10 mx-4">
-                <div class="flex flex-col">
-                    <p class="inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
-                    <p class="justify-center">Client signature</p>
+            <div class="signature-container mt-10 mx-4">
+                {# Trick to match labels #}
+                <div>
+                    <div class="signatures underline mb-2"></div>
+                    <div class="text-md">Client signature</div>
                 </div>
-                <div class="flex flex-col">
-                    <p class="inline-block w-64 border-solid border-black border-b-2 pb-1"></p>
-                    <p class="justify-center">Client full name</p>
+                <div></div>
+                <div>
+                    <div class="text-lg underline mb-2"></div>
+                    <div class="text-md">Client full name</div>
                 </div>
             </div>
 
-            <div class="flex justify-between mt-10 mx-4">
-                <div class="flex flex-col">
-                    <p class="signatures inline-block w-64 border-solid border-black border-b-2 text-3xl" id="contractor_signature">
-                        {{ form.first_name }} {{ form.last_name }}
-                    </p>
-                    <p class="justify-center">Independent contractor signature</p>
+            <div class="signature-container mt-10 mx-4">
+                <div>
+                    <div class="signatures underline mb-2">
+                        {{ form.contractor_signature }}
+                    </div>
+                    <div class="text-md">Independent contractor signature</div>
                 </div>
-                <div class="flex flex-col">
-                    <p class="inline-block w-64 border-solid border-black border-b-2 pb-1 text-2xl" id="contractor_name">
-                        {{ form.first_name }} {{ form.last_name }}
-                    </p>
-                    <p class="justify-center">Independent contractor full name</p>
+                <div></div>
+                <div>
+                    <div class="text-lg underline mb-2">
+                        {{ form.contractor_signature }}
+                    </div>
+                    <div class="text-md">Independent contractor full name</div>
                 </div>
             </div>
 
