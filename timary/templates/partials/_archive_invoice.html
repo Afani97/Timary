@@ -1,7 +1,22 @@
 <li class="card shadow-lg bordered mb-2">
     <div class="card-body">
         <div>
-            <p class="card-title">{{ archive_invoice.title }}</p>
+            <div class="flex justify-between">
+                <p class="card-title">{{ archive_invoice.title }}</p>
+                <div class="dropdown dropdown-left rounded-box">
+                    <label tabindex="0" class="btn btn-ghost btn-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                    </label>
+                    <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-52">
+                        <li>
+                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=archive_invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                View sent invoices
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             <p class="text-xl">Interval: {{ archive_invoice.get_invoice_interval_display | lower }}</p>
             <p class="text-xl">Recipient {{ archive_invoice.email_recipient_name }} ({{ archive_invoice.email_recipient }})</p>
         </div>

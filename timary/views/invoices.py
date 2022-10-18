@@ -296,4 +296,6 @@ def sent_invoices_list(request, invoice_id):
         )
         if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
             return_message = "Looks like there haven't been any invoices sent yet."
+        if invoice.is_archived:
+            return_message = "There weren't any invoices sent."
         return HttpResponse(return_message)
