@@ -23,4 +23,5 @@ qrcode
 sentry-sdk
 stripe
 twilio
+weasyprint
 whitenoise

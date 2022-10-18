@@ -34,7 +34,9 @@ def accounting_redirect(request):
         ).get_auth_tokens()
     except AccountingError as ae:
         ae.log(initial_sync=True)
-        messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
+        messages.error(
+            request, f"We had trouble connecting to {user.accounting_org.title()}."
+        )
         return redirect(reverse("timary:user_profile"))
 
     if not access_token:
@@ -52,7 +54,7 @@ def accounting_redirect(request):
         ae.log(initial_sync=True)
         messages.error(
             request,
-            f"We had trouble syncing your data with {user.accounting_org.title()}.",
+            f"We had trouble syncing your customers with {user.accounting_org.title()}.",
         )
         messages.info(
             request,
@@ -67,7 +69,7 @@ def accounting_redirect(request):
         ae.log(initial_sync=True)
         messages.error(
             request,
-            f"We had trouble syncing your data with {user.accounting_org.title()}.",
+            f"We had trouble syncing your paid invoices with {user.accounting_org.title()}.",
         )
         messages.info(
             request,

@@ -8,7 +8,7 @@
         <h1 class="text-3xl mb-4 text-center">Signup</h1>
 
         <div class="max-w-xl mx-auto">
-            <div class="card p-5 bg-neutral text-neutral-content">
+            <div class="card md:p-5 bg-neutral text-neutral-content">
                 <div class="card-body">
                     {% if form.errors %}
                         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -21,7 +21,7 @@
                                 <label class="label">
                                     <span class="label-text">{{ field.label}}</span>
                                 </label>
-                                {{ field | addclass:"input input-bordered w-full text-xl"}}
+                                {{ field | addclass:field.field.widget.attrs.class}}
                                 {% for error in field.errors %}
                                     <div class="text-red-600">
                                         <strong>{{ error|escape }}</strong>
