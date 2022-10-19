@@ -1,4 +1,5 @@
 import datetime
+import functools
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
@@ -57,9 +58,31 @@ def index(request):
     return render_xml(request, "index.xml")
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+def get_only(func):
+    @functools.wraps(func)
+    @api_view(["GET"])
+    @authentication_classes([TokenAuthentication])
+    @permission_classes([IsAuthenticated])
+    def _(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return _
+
+
+def get_and_post(func):
+    @functools.wraps(func)
+    @api_view(["GET", "POST"])
+    @authentication_classes([TokenAuthentication])
+    @permission_classes([IsAuthenticated])
+    @renderer_classes([XMLRenderer])
+    @parser_classes([FormParser, MultiPartParser])
+    def _(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return _
+
+
+@get_only
 def get_hours(request):
     hours_list = DailyHoursInput.all_hours.current_month(request.user)
     show_repeat_option = request.user.can_repeat_previous_hours_logged(hours_list)
@@ -76,11 +99,7 @@ def get_hours(request):
         return render_xml(request, "hours/hours.xml", context)
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def new_hours(request):
     context = {"user_invoices": request.user.get_invoices}
     if request.method == "POST":
@@ -111,9 +130,7 @@ def new_hours(request):
         )
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def view_hours(request, hours_id):
     hour = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hour.invoice.user:
@@ -121,20 +138,14 @@ def view_hours(request, hours_id):
     return render_xml(request, "hours/_hour.xml", {"hour": hour})
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def hour_stats(request):
     return render_xml_frag(
         "hours/hours.xml", "hour-stats", get_hours_tracked(request.user)
     )
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def edit_hours(request, hours_id):
     hour = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hour.invoice.user:
@@ -168,9 +179,7 @@ def edit_hours(request, hours_id):
         )
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def delete_hours(request, hours_id):
     hour = get_object_or_404(DailyHoursInput, id=hours_id)
     if request.user != hour.invoice.user:
@@ -181,9 +190,7 @@ def delete_hours(request, hours_id):
     )
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def get_invoices(request):
     invoices_list = request.user.get_invoices.order_by("title")
     t = "invoices/invoices.xml"
@@ -194,9 +201,7 @@ def get_invoices(request):
         return render_xml(request, t, c)
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def view_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
@@ -211,11 +216,7 @@ def view_invoice(request, invoice_id):
     return render_xml(request, t, c)
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def new_invoices(request):
     invoice_form = InvoiceForm(None)
     if request.method == "POST":
@@ -226,8 +227,6 @@ def new_invoices(request):
             request_data.update({"invoice_rate": request_data["hourly_rate"]})
         invoice_form = InvoiceForm(request_data)
         if invoice_form.is_valid():
-            # Hide create button if unable to create more
-            # prev_invoice_count = request.user.get_invoices.count()
             invoice = invoice_form.save(commit=False)
             invoice.user = request.user
             invoice.calculate_next_date()
@@ -257,11 +256,7 @@ def new_invoices(request):
         )
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
@@ -297,11 +292,7 @@ def edit_invoice(request, invoice_id):
         return render_xml(request, "edit_invoice.xml", {"invoice": invoice})
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def get_timer(request):
     invoices = request.user.get_invoices.order_by("title")
     c = {"invoices": invoices}
@@ -329,9 +320,7 @@ def get_timer(request):
         return render_xml(request, "timer.xml", c)
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def get_sent_invoices(request):
     sent_invoices_list = request.user.sent_invoices.order_by("-date_sent")
     t = "sent-invoices/sent_invoices.xml"
@@ -342,9 +331,7 @@ def get_sent_invoices(request):
         return render_xml(request, t, c)
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def view_sent_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if request.user != sent_invoice.user:
@@ -354,9 +341,7 @@ def view_sent_invoice(request, sent_invoice_id):
     )
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def resend_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if request.user != sent_invoice.user:
@@ -374,9 +359,7 @@ def resend_invoice(request, sent_invoice_id):
     )
 
 
-@api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@get_only
 def get_profile(request):
     c = {"profile": request.user}
     if "partial" in request.query_params:
@@ -385,11 +368,7 @@ def get_profile(request):
         return render_xml(request, "profile.xml", c)
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def edit_profile(request):
     if request.method == "POST":
         profile_form = UserForm(request.data, instance=request.user)
@@ -414,11 +393,7 @@ def edit_profile(request):
         return render_xml(request, "edit_profile.xml", {"profile": request.user})
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@renderer_classes([XMLRenderer])
-@parser_classes([FormParser, MultiPartParser])
+@get_and_post
 def ask_question(request):
     questions_form = QuestionsForm(request.data)
     if request.method == "POST":
