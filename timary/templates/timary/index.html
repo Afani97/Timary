@@ -10,10 +10,10 @@
                 <span id="timer_sec">00</span>
             </span>
             <div class="btn-group">
-                <button id="pause_timer" class="btn btn-active hidden">Pause</button>
-                <button id="resume_timer" class="btn btn-active hidden">Resume</button>
-                <button id="stop_timer" class="btn hidden">Stop</button>
-                <button id="reset_timer" class="btn hidden">Reset</button>
+                <button id="pause_timer" class="btn btn-active hidden" _="on click call pause()">Pause</button>
+                <button id="resume_timer" class="btn btn-active hidden" _="on click call resume()">Resume</button>
+                <button id="stop_timer" class="btn hidden" _="on click call stop()">Stop</button>
+                <button id="reset_timer" class="btn hidden" _="on click call reset()">Reset</button>
             </div>
         </div>
     </div>
@@ -70,12 +70,6 @@
         var timer_sec_span = document.getElementById("timer_sec");
         var hoursTimer = new timaryTimer();
 
-        start_timer_btn.addEventListener("click", start);
-        pause_timer_btn.addEventListener("click", pause);
-        stop_timer_btn.addEventListener("click", stop);
-        resume_timer_btn.addEventListener("click", resume);
-        reset_timer_btn.addEventListener("click", reset);
-
         function update_timer(hrs, mins, secs) {
             timer_hour_span.style.cssText = `--value: ${hrs}`;
             timer_min_span.style.cssText = `--value: ${mins}`;
@@ -129,8 +123,7 @@
             if (reset) {
                 update_timer(0, 0, 0);
                 hoursTimer.reset();
-                hoursTimer.isStopped = false;
-                hoursTimer.isPaused = false;
+                resume()
             } else {
                 if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
                     hoursTimer.start();
