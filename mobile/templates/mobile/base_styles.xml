@@ -5,21 +5,24 @@
        flexDirection="row"
        justifyContent="space-between"
        marginHorizontal="12"
+       marginBottom="0"
 />
 <style id="Footer-Item"
    color="white"
-   height="60"
-   paddingTop="40"
+   height="30"
+   paddingTop="10"
    fontWeight="300"
    textAlign="center"
 />
 <style id="Footer-Active"
    color="#0c94ed"
-   height="60"
-   paddingTop="40"
+   height="30"
+   paddingTop="10"
    fontWeight="bold"
    textAlign="center"
 />
+<style id="FooterImage" height="30" width="30" marginBottom="0" paddingBottom="0"/>
+<style id="FooterWrapper" alignItems="center" marginTop="10" marginBottom="0" paddingBottom="0" />
 
 <style id="Wrapper"
     display="flex"
