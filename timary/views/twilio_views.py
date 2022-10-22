@@ -24,8 +24,16 @@ def twilio_reply(request):
         return MessagingResponse()
 
     _, invoice_title = last_message.body.split(":")
-    invoice_title = invoice_title.split(".")[0]
-    invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
+    invoice_title = invoice_title.split(".")[0].strip()
+    invoices = user.get_invoices.filter(title__exact=invoice_title)
+    invoice = None
+    if invoices.count() == 1:
+        invoice = invoices.first()
+
+    if not invoice:
+        r = MessagingResponse()
+        r.message(f"Unable to track hours for {invoice_title}.")
+        return r
 
     skip = False
     if twilio_request.body.lower() == "s":

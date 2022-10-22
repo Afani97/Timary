@@ -434,3 +434,29 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertEqual(
             DailyHoursInput.objects.aggregate(total=Sum("hours"))["total"], 2
         )
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_invoice_not_found(self, message_list_mock, message_response_mock):
+        """Return an error message if invoice isn't found in twilio body."""
+        self.data["Body"] = "1"
+        fake_invoice_title = "Invoice Not Found"
+        message_list_mock.return_value = [
+            Message(
+                f"How many hours to log for: {fake_invoice_title}. Reply 'S' to skip"
+            )
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn(
+            f"Unable to track hours for {fake_invoice_title}.", response.response
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 0)
