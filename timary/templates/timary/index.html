@@ -3,7 +3,7 @@
 {% block content %}
     <h1 class="hidden md:block md:text-3xl text-center mt-10 font-bold" id="dashboard-title">Dashboard</h1>
     <div class="flex justify-center my-10 hidden" id="timer_container">
-        <div>
+        <div hx-get="{% url 'timary:update_timer' %}" id="update-timer" hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body" hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused()}' hx-swap="none">
             <span class="font-mono text-2xl countdown flex justify-center my-5">
                 <span id="timer_hour">00</span>:
                 <span id="timer_min">00</span>:
@@ -70,19 +70,53 @@
         var timer_sec_span = document.getElementById("timer_sec");
         var hoursTimer = new timaryTimer();
 
-        function update_timer(hrs, mins, secs) {
+        function update_timer(totalTime) {
+            const timeInSeconds = Math.round(totalTime / 1000);
+            let hrs = Math.floor(timeInSeconds / 3600);
+            let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+            let secs = timeInSeconds % 60;
             timer_hour_span.style.cssText = `--value: ${hrs}`;
             timer_min_span.style.cssText = `--value: ${mins}`;
             timer_sec_span.style.cssText = `--value: ${secs}`;
         }
 
+        function timerRunning() {
+            return !hoursTimer.isPaused && !hoursTimer.isStopped;
+        }
+        function timerIsPaused() {
+            return hoursTimer.isPaused;
+        }
+
+        function getTimerVal() {
+            return hoursTimer.getTime()
+        }
+
+        // Resume/pause timer if page is refreshed, etc.
+        let activeTimerMS = "{{ active_timer_ms|safe }}";
+        let timerPaused = "{{ timer_paused|safe }}";
+
+        let timerResumed = false;
+        if (activeTimerMS) {
+            timer_container.classList.remove("hidden");
+            hoursTimer.overallTime =  parseInt(activeTimerMS)
+            if (timerPaused === "false") {
+                start_timer_btn.classList.add("hidden");
+                resume();
+            } else if (timerPaused === "true") {
+                hoursTimer.overallTime =  parseInt(activeTimerMS)
+                update_timer(hoursTimer.overallTime);
+                hoursTimer.isPaused = true;
+                hoursTimer.isStopped = true;
+                pause_timer_btn.classList.add("hidden");
+                resume_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+                reset_timer_btn.classList.remove("hidden");
+            }
+        }
+
         function timer() {
             setInterval(() => {
-                const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
-                let hrs = Math.floor(timeInSeconds / 3600);
-                let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
-                let secs = timeInSeconds % 60;
-                update_timer(hrs, mins, secs);
+                update_timer(hoursTimer.getTime());
             }, 100)
         }
 
@@ -106,14 +140,19 @@
             resume_timer_btn.classList.add("hidden");
             pause_timer_btn.classList.remove("hidden");
             stop_timer_btn.classList.remove("hidden");
+            reset_timer_btn.classList.remove("hidden");
         }
 
         function pause() {
             hoursTimer.stop();
+            timer();
             hoursTimer.isPaused = true;
+            hoursTimer.isStopped = true;
             pause_timer_btn.classList.add("hidden");
             resume_timer_btn.classList.remove("hidden");
             stop_timer_btn.classList.remove("hidden");
+            reset_timer_btn.classList.remove("hidden");
+            htmx.trigger("#update-timer", "pause_timer")
         }
 
         function reset() {
@@ -121,8 +160,9 @@
             let reset = confirm("Are you sure you want to reset?");
 
             if (reset) {
-                update_timer(0, 0, 0);
+                update_timer(0);
                 hoursTimer.reset();
+                htmx.trigger("#update-timer", "reset_timer")
                 resume()
             } else {
                 if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
@@ -149,13 +189,15 @@
                 hours_input.value = timeToDecimal(hrs, mins);
 
                 hoursTimer.reset();
-                update_timer(0, 0, 0);
+                hoursTimer.isPaused = true;
+                hoursTimer.isStopped = true;
+                update_timer(0);
                 timer_container.classList.add("hidden");
                 start_timer_btn.classList.remove("hidden");
                 resume_timer_btn.classList.add("hidden");
                 pause_timer_btn.classList.add("hidden");
                 stop_timer_btn.classList.add("hidden");
-
+                htmx.trigger("#update-timer", "reset_timer")
             } else {
                 if (!hoursTimer.isPaused && hoursTimer.isStopped) {
                     hoursTimer.start();
