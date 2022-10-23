@@ -145,8 +145,4 @@ def update_timer(request):
     timer_paused = request.GET.get("timerPaused", None)
     request.user.timer_is_active = f"{timer_val},{timer_paused}"
     request.user.save()
-    response = HttpResponse("Ok")
-    print(timer_paused)
-    if timer_paused == "true":
-        response["HX-Trigger"] = "timer_paused"
-    return response
+    return HttpResponse("Ok")
