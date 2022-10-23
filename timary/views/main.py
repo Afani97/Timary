@@ -116,13 +116,15 @@ def index(request):
         "hours": hours,
         "show_repeat": show_repeat_option,
     }
+    timer_paused = None
     if request.user.timer_is_active:
         active_timer_ms, timer_paused = request.user.timer_is_active.split(",")
-        print(active_timer_ms, timer_paused)
         context["active_timer_ms"] = active_timer_ms
-        context["timer_paused"] = timer_paused
     context.update(get_hours_tracked(user))
-    return render(request, "timary/index.html", context=context)
+    response = render(request, "timary/index.html", context=context)
+    if timer_paused:
+        response["hX-Trigger"] = "timer_paused"
+    return response
 
 
 @login_required()
