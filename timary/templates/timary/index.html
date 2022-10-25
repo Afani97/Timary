@@ -116,6 +116,9 @@
                 stop_timer_btn.classList.remove("hidden");
                 reset_timer_btn.classList.remove("hidden");
             }
+        } else {
+            hoursTimer.isPaused = true;
+            hoursTimer.isStopped = true;
         }
 
         function timer() {
