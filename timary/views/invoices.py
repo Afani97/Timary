@@ -13,7 +13,7 @@ from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import show_alert_message
+from timary.utils import show_active_timer, show_alert_message
 
 
 @login_required()
@@ -42,6 +42,7 @@ def manage_invoices(request):
         "sent_invoices_earned": int(sent_invoices_paid),
         "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
+    context.update(show_active_timer(request.user))
     return render(
         request,
         "invoices/manage_invoices.html",
