@@ -128,7 +128,7 @@
                 stop_timer_btn.classList.add("hidden");
                 htmx.trigger("#update-timer", "reset_timer")
             } else {
-                if (!hoursTimer.isPaused && hoursTimer.isStopped) {
+                if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
                     hoursTimer.start();
                 }
             }

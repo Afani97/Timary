@@ -1,4 +1,4 @@
-<div class="navbar mb-2 px-6 md:px-12 shadow-lg bg-neutral text-neutral-content" hx-boost="true">
+<div class="navbar mb-2 px-6 md:px-12 shadow-lg bg-neutral text-neutral-content">
     <div class="flex-1 px-2 mx-2">
         <a class="text-lg font-bold" href="{% url 'timary:landing_page' %}">
             Timary
@@ -131,24 +131,17 @@
         <script nonce="manage-hours">
             {% include "partials/timer_class.html" %}
 
-            var timer_container;
-            var timer_hour_span;
-            var timer_min_span;
-            var timer_sec_span;
-            var hoursTimer;
-            var timerResumed = false;
+            var timer_container = document.getElementById("timer_container");
+            var timer_hour_span = document.getElementById("timer_hour");
+            var timer_min_span = document.getElementById("timer_min");
+            var timer_sec_span = document.getElementById("timer_sec");
+            var hoursTimer = new timaryTimer();
 
-            htmx.on("load", () => {
-                timer_container = document.getElementById("timer_container");
-                timer_hour_span = document.getElementById("timer_hour");
-                timer_min_span = document.getElementById("timer_min");
-                timer_sec_span = document.getElementById("timer_sec");
-                hoursTimer = new timaryTimer();
-
+            document.addEventListener("DOMContentLoaded", () => {
                 // Resume/pause timer if page is refreshed, etc.
                 let activeTimerMS = "{{ active_timer_ms|safe }}";
                 let timerPaused = "{{ timer_paused|safe }}";
-                let isMainView = "{{ is_main_view|safe }}"
+                let isMainView = "{{ is_main_view|safe }}";
 
                 // Complicated logic here, hope to simplify someday
                 // 1. If timer is active:
@@ -158,7 +151,7 @@
                 // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
                 if (activeTimerMS) {
                     timer_container.classList.remove("hidden");
-                    hoursTimer.overallTime =  parseInt(activeTimerMS)
+                    hoursTimer.overallTime =  parseInt(activeTimerMS);
                     update_timer(hoursTimer.overallTime);
 
                     if (timerPaused === "false") {

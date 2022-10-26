@@ -8,7 +8,10 @@
         <div class="stat-desc">estimated earnings: ${{ current_month.total_amount | floatformat:2 }}</div>
         <div class="stat-actions flex flex-col px-10 lg:px-0 lg:space-x-2 space-y-3 lg:space-y-0 lg:flex-row">
             <a href="#hours-modal" id="log_hours_btn" class="btn btn-sm lg:btn-md btn-primary">Log hours</a>
-            <button id="start_timer" class="btn btn-sm lg:btn-md" _="on click call start()">Start timer</button>
+            <button
+                id="start_timer"
+                class="btn btn-sm lg:btn-md"
+                _="on load if {{ active_timer_ms|yesno:"true,false" }} add .hidden to me end on click call start() ">Start timer</button>
         </div>
     </div>
     <div class="stat hidden md:block">

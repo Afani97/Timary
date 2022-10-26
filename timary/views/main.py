@@ -128,6 +128,7 @@ def index(request):
 def dashboard_stats(request):
     context = get_hours_tracked(request.user)
     context["new_hour_form"] = DailyHoursForm(user=request.user)
+    context.update(show_active_timer(request.user))
     response = render(
         request,
         "partials/_dashboard_stats.html",
