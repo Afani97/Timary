@@ -413,6 +413,7 @@ class InvoiceBrandingSettingsForm(forms.Form):
     company_name = forms.CharField(max_length=50, required=False)
     hide_timary = forms.BooleanField(required=False)
     show_profile_pic = forms.BooleanField(required=False)
+    personal_website = forms.CharField(required=False)
     linked_in = forms.CharField(required=False)
     twitter = forms.CharField(required=False)
     youtube = forms.CharField(required=False)
