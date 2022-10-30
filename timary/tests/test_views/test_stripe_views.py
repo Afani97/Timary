@@ -316,24 +316,6 @@ class TestStripeViews(BaseTest):
 
     @patch("timary.services.stripe_service.StripeService.create_subscription")
     @patch("timary.services.stripe_service.StripeService.get_connect_account")
-    def test_onboard_success_with_payouts_enabled(
-        self, stripe_connect_mock, stripe_subscription_mock
-    ):
-        stripe_subscription_mock.return_value = True
-        stripe_connect_mock.return_value = {"payouts_enabled": True}
-
-        self.client.force_login(self.user)
-
-        response = self.client.get(
-            f"{reverse('timary:onboard_success')}?user_id={self.user.id}"
-        )
-        self.user.refresh_from_db()
-
-        self.assertRedirects(response, reverse("timary:manage_invoices"))
-        self.assertTrue(self.user.stripe_payouts_enabled)
-
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
-    @patch("timary.services.stripe_service.StripeService.get_connect_account")
     def test_onboard_success_with_payouts_not_enabled(
         self, stripe_connect_mock, stripe_subscription_mock
     ):
@@ -382,36 +364,6 @@ class TestStripeViews(BaseTest):
 
         self.assertRedirects(
             response, reverse("timary:register"), target_status_code=302
-        )
-        self.assertFalse(self.user.stripe_payouts_enabled)
-
-    @patch("timary.services.stripe_service.StripeService.get_connect_account")
-    def test_completed_connect_account_payouts_enabled(self, stripe_connect_mock):
-        stripe_connect_mock.return_value = {"payouts_enabled": True}
-
-        self.client.force_login(self.user)
-
-        response = self.client.get(
-            f'{reverse("timary:complete_connect")}?user_id={self.user.id}'
-        )
-        self.user.refresh_from_db()
-
-        self.assertRedirects(response, reverse("timary:user_profile"))
-        self.assertTrue(self.user.stripe_payouts_enabled)
-
-    @patch("timary.services.stripe_service.StripeService.get_connect_account")
-    def test_completed_connect_account_payouts_not_enabled(self, stripe_connect_mock):
-        stripe_connect_mock.return_value = {"payouts_enabled": False}
-
-        self.client.force_login(self.user)
-
-        response = self.client.get(
-            f'{reverse("timary:complete_connect")}?user_id={self.user.id}'
-        )
-        self.user.refresh_from_db()
-
-        self.assertRedirects(
-            response, reverse("timary:user_profile"), target_status_code=200
         )
         self.assertFalse(self.user.stripe_payouts_enabled)
 

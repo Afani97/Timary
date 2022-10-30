@@ -116,10 +116,6 @@ def onboard_success(request):
 
     StripeService.create_subscription(user)
 
-    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
-    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    user.save()
-
     login(request, user)
 
     return redirect(reverse("timary:manage_invoices"))
@@ -142,9 +138,6 @@ def completed_connect_account(request):
     user = User.objects.filter(id=request.GET.get("user_id")).first()
     if not user:
         return redirect(reverse("timary:register"))
-    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
-    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    user.save()
     login(request, user)
     return redirect(reverse("timary:user_profile"))
 
@@ -241,7 +234,15 @@ def stripe_webhook(request):
         else:
             # Other stripe webhook event
             pass
-
+    elif event["type"] == "account.updated":
+        user_account_id = event["data"]["object"]["id"]
+        user = User.objects.filter(stripe_connect_id=user_account_id)
+        if user.exists():
+            user = user.first()
+            account_connect_requirements_reason = event["data"]["object"][
+                "requirements"
+            ]["disabled_reason"]
+            user.update_payouts_enabled(account_connect_requirements_reason)
     # ... handle other event types
     else:
         print("Unhandled event type {}".format(event["type"]))

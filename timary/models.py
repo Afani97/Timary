@@ -415,10 +415,19 @@ class SentInvoice(BaseModel):
 
 
 class User(AbstractUser, BaseModel):
+    class StripeConnectDisabledReasons(models.IntegerChoices):
+        NONE = 1, "NONE"
+        PENDING = 2, "PENDING"
+        MORE_INFO = 3, "MORE_INFO"
+
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_subscription_id = models.CharField(max_length=200, null=True, blank=True)
+    stripe_connect_reason = models.IntegerField(
+        default=StripeConnectDisabledReasons.MORE_INFO,
+        choices=StripeConnectDisabledReasons.choices,
+    )
 
     WEEK_DAYS = (
         ("Mon", "Mon"),
@@ -544,3 +553,15 @@ class User(AbstractUser, BaseModel):
             "twitter": self.invoice_branding.get("twitter") or "",
             "youtube": self.invoice_branding.get("youtube") or "",
         }
+
+    def update_payouts_enabled(self, reason):
+        if not reason:
+            self.stripe_payouts_enabled = True
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.NONE
+        elif reason in ["requirements.pending_verification", "under_review"]:
+            self.stripe_payouts_enabled = False
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.PENDING
+        elif reason in ["requirements.past_due", "rejected.other", "other"]:
+            self.stripe_payouts_enabled = False
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.MORE_INFO
+        self.save()
