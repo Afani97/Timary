@@ -60,16 +60,17 @@ class TimaryAdminSite(OTPAdminSite):
             "contracts_total": Contract.objects.count(),
         }
         current_date = datetime.datetime.today()
+        sent_invoice_fees = SentInvoice.objects.filter(
+            date_sent__month__gte=current_date.month,
+            date_sent__year__gte=current_date.year,
+        ).aggregate(total=Sum("total_price"))
         money_stats = {
-            "recurring": (users["starter"] * 5)
-            + (users["professional"] * 19)
-            + (users["business"] * 49),
-            "fees": SentInvoice.objects.filter(
-                date_sent__month__gte=current_date.month,
-                date_sent__year__gte=current_date.year,
-            ).aggregate(total=Sum("total_price"))["total"]
-            * 0.01,
+            "recurring": int(users["total"]) * 29,
         }
+        if sent_invoice_fees["total"] is not None:
+            money_stats["fees"] = sent_invoice_fees["total"] * 0.01
+        else:
+            money_stats["fees"] = 0
         money_stats["mrr_goal"] = (
             money_stats["recurring"] + money_stats["fees"]
         ) / 10_000
