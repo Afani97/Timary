@@ -54,7 +54,7 @@ class AccountingService:
     def sync_customers(self):
         user = self.kwargs.get("user")
         if self.service_klass:
-            for invoice in user.get_invoices:
+            for invoice in user.get_all_invoices():
                 self.service_klass().create_customer(invoice)
 
     def sync_invoices(self):

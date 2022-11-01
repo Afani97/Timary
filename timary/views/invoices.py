@@ -310,7 +310,12 @@ def sync_invoice(request, invoice_id):
         raise Http404
 
     customer_synced = invoice.sync_customer()
-    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    if invoice.is_archived:
+        response = render(
+            request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
+        )
+    else:
+        response = render(request, "partials/_invoice.html", {"invoice": invoice})
 
     if customer_synced:
         show_alert_message(

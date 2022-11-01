@@ -154,6 +154,7 @@ urlpatterns += [
         name="accounting_disconnect",
     ),
     path("accounting-redirect/", views.accounting_redirect, name="accounting_redirect"),
+    path("accounting-sync/", views.accounting_sync, name="accounting_sync"),
 ]
 
 

@@ -420,6 +420,7 @@ class SentInvoice(BaseModel):
         return (
             self.paid_status == SentInvoice.PaidStatus.PAID
             and self.accounting_invoice_id is not None
+            and self.invoice.accounting_customer_id is not None
         )
 
     @property
@@ -428,6 +429,7 @@ class SentInvoice(BaseModel):
             self.user.accounting_org_id is not None
             and self.paid_status == SentInvoice.PaidStatus.PAID
             and self.accounting_invoice_id is None
+            and self.invoice.accounting_customer_id is not None
         )
 
     def sync_invoice(self):
@@ -511,6 +513,9 @@ class User(AbstractUser, BaseModel):
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
+
+    def get_all_invoices(self):
+        return self.invoices.all()
 
     def invoices_not_logged(self):
         invoices = set(

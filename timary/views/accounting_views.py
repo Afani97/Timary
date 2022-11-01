@@ -47,41 +47,9 @@ def accounting_redirect(request):
         user.save()
         return redirect(reverse("timary:user_profile"))
 
-    accounting_service = AccountingService({"user": user})
-
     if request.user.accounting_org == "zoho":
         # Zoho needs an extra api call to get the org id
         ZohoService.get_organization_id(request.user, access_token)
-
-    # Sync the current invoice customers first
-    try:
-        accounting_service.sync_customers()
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(
-            request,
-            f"We had trouble syncing your customers with {user.accounting_org.title()}.",
-        )
-        messages.info(
-            request,
-            "We have noted this error and will reach out to resolve soon.",
-        )
-        return redirect(reverse("timary:user_profile"))
-
-    # Then sync the current paid sent invoices
-    try:
-        accounting_service.sync_invoices()
-    except AccountingError as ae:
-        ae.log(initial_sync=True)
-        messages.error(
-            request,
-            f"We had trouble syncing your paid invoices with {user.accounting_org.title()}.",
-        )
-        messages.info(
-            request,
-            "We have noted this error and will reach out to resolve soon.",
-        )
-        return redirect(reverse("timary:user_profile"))
 
     messages.success(request, f"Successfully connected {user.accounting_org.title()}.")
     return redirect(reverse("timary:user_profile"))
@@ -100,3 +68,38 @@ def accounting_disconnect(request):
         "partials/settings/_edit_accounting.html",
         {"settings": user.settings},
     )
+
+
+@login_required()
+@require_http_methods(["GET"])
+def accounting_sync(request):
+    accounting_service = AccountingService({"user": request.user})
+    # Sync the current invoice customers first
+    try:
+        accounting_service.sync_customers()
+    except AccountingError as ae:
+        ae.log()
+        messages.error(
+            request,
+            f"We had trouble syncing your customers with {request.user.accounting_org.title()}.",
+        )
+        messages.info(
+            request,
+            "We have noted this error and will reach out to resolve soon.",
+        )
+        return redirect(reverse("timary:user_profile"))
+
+    # Then sync the current paid sent invoices
+    try:
+        accounting_service.sync_invoices()
+    except AccountingError as ae:
+        ae.log()
+        messages.error(
+            request,
+            f"We had trouble syncing your paid invoices with {request.user.accounting_org.title()}.",
+        )
+        messages.info(
+            request,
+            "We have noted this error and will reach out to resolve soon.",
+        )
+        return redirect(reverse("timary:user_profile"))

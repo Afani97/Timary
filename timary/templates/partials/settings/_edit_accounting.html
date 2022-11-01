@@ -92,6 +92,10 @@
             {% endif %}
         </div>
         <div class="card-actions flex justify-center mt-10">
+            {% if settings.accounting_connected %}
+                <a href="{% url 'timary:accounting_sync' %}" class="btn btn-sm btn-accent" _="on htmx:beforeRequest add .loading to me">Sync All Data</a>
+            {% endif %}
+
             <a hx-get="{% url 'timary:settings_partial' setting='accounting'%}" hx-target="#integrations-container" hx-swap="outerHTML" class="btn btn-sm btn-ghost" _="on click add .loading to me">Close</a>
         </div>
     </div>
