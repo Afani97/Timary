@@ -11,7 +11,7 @@ from timary.custom_errors import AccountingError
 class FreshbooksService:
     @staticmethod
     def get_domain():
-        ngrok_local_url = "https://c1e1-71-87-212-255.ngrok.io"
+        ngrok_local_url = "https://570c-71-87-212-255.ngrok.io"
 
         domain = (
             settings.SITE_URL
@@ -64,6 +64,14 @@ class FreshbooksService:
                     requests_response=auth_request,
                 )
             request.user.accounting_refresh_token = response["refresh_token"]
+            try:
+                FreshbooksService.get_current_user(
+                    request.user, response["access_token"]
+                )
+            except AccountingError as ae:
+                raise AccountingError(
+                    user=request.user, requests_response=ae.requests_response
+                )
             request.user.save()
             return response["access_token"]
         return None
@@ -103,7 +111,8 @@ class FreshbooksService:
                 "Content-Type": "application/json",
             },
         )
-        freshbooks_user_request.raise_for_status()
+        if not freshbooks_user_request.ok:
+            raise AccountingError(requests_response=freshbooks_user_request)
         freshbooks_user_response = freshbooks_user_request.json()
         freshbooks_user_id = freshbooks_user_response["response"][
             "business_memberships"

@@ -49,6 +49,13 @@ class ZohoService:
                 )
 
             request.user.accounting_refresh_token = response["refresh_token"]
+            try:
+                ZohoService.get_organization_id(request.user, response["access_token"])
+            except AccountingError as ae:
+                raise AccountingError(
+                    user=request.user,
+                    requests_response=ae.requests_response,
+                )
             request.user.save()
             return response["access_token"]
         return None
@@ -94,7 +101,8 @@ class ZohoService:
             "https://invoice.zoho.com/api/v3/organizations",
             headers={"Authorization": f"Zoho-oauthtoken {access_token}"},
         )
-        zoho_org_request.raise_for_status()
+        if not zoho_org_request.ok:
+            raise AccountingError(requests_response=zoho_org_request)
         zoho_org_response = zoho_org_request.json()
         if zoho_org_response["message"] == "success":
             user.accounting_org_id = zoho_org_response["organizations"][0][
