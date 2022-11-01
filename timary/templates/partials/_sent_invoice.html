@@ -1,8 +1,8 @@
 <li class="card shadow-lg bordered mb-2">
     <div class="card-body grid grid-cols-3 gap-4">
         <div class="col-span-2">
-            <p  class="card-title">Status:
-                <span class="
+            <div class="card-title">Status:
+                <span class="pr-1
                     {% if sent_invoice.paid_status == 2 %}
                         text-green-300
                     {% elif sent_invoice.paid_status == 3 %}
@@ -13,11 +13,17 @@
                 ">
                     {{ sent_invoice.get_paid_status_display|title }}
                 </span>
-            </p>
+                {% if sent_invoice.is_synced %}
+                    <div class="tooltip" data-tip="Synced with your accounting service.">
+                        {% include 'partials/_check_svg.html' %}
+                    </div>
+                {% endif %}
+            </div>
             <p>Amount earned: ${{ sent_invoice.total_price }}</p>
             <p>{{ sent_invoice.date_sent }}</p>
         </div>
         <div class="col-span-1">
+            {# RESEND INVOICE BUTTON #}
             {% if sent_invoice.paid_status == 1 or sent_invoice.paid_status == 3 %}
                 <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
                     hx-target="closest li"
@@ -31,6 +37,18 @@
                     {% else %}
                         Resend invoice
                     {% endif %}
+                </a>
+            {% endif %}
+
+            {# SYNC INVOICE BUTTON #}
+            {% if sent_invoice.can_be_synced %}
+                <a hx-get="{% url 'timary:sync_sent_invoice' sent_invoice_id=sent_invoice.id %}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    class="btn btn-accent btn-outline"
+                    _="on htmx:beforeRequest add .loading to me"
+                >
+                    Sync Invoice
                 </a>
             {% endif %}
         </div>

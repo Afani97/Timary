@@ -1,7 +1,7 @@
 <div class="card bg-base-200 bordered" id="integrations-container">
     <div class="card-body">
         <div class="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0 items-center md:justify-center">
-            {% if settings.accounting_connected == "Quickbooks" %}
+            {% if settings.accounting_connected == "quickbooks" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Quickbooks</label>
                     <a hx-delete="{% url 'timary:accounting_disconnect' %}"
@@ -20,7 +20,7 @@
 
             {% endif %}
 
-            {% if settings.accounting_connected == "Freshbooks" %}
+            {% if settings.accounting_connected == "freshbooks" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Freshbooks</label>
                     <a hx-delete="{% url 'timary:accounting_disconnect' %}"
@@ -38,7 +38,7 @@
                 </div>
             {% endif %}
 
-            {% if settings.accounting_connected == "Zoho" %}
+            {% if settings.accounting_connected == "zoho" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Zoho</label>
                     <a hx-delete="{% url 'timary:accounting_disconnect' %}"
@@ -55,7 +55,7 @@
                 </div>
             {% endif %}
 
-            {% if settings.accounting_connected == "Xero" %}
+            {% if settings.accounting_connected == "xero" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Xero</label>
                     <a hx-delete="{% url 'timary:accounting_disconnect' %}"
@@ -73,7 +73,7 @@
                 </div>
             {% endif %}
 
-            {% if settings.accounting_connected == "Sage" %}
+            {% if settings.accounting_connected == "sage" %}
                 <div class="flex flex-col justify-center space-y-2">
                     <label class="label">Account connected: Sage</label>
                     <a hx-delete="{% url 'timary:accounting_disconnect' %}"

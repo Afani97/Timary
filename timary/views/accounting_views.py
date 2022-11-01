@@ -9,8 +9,10 @@ from timary.custom_errors import AccountingError
 from timary.models import User
 from timary.services.accounting_service import AccountingService
 
-
 # Accounting
+from timary.services.zoho_service import ZohoService
+
+
 @login_required
 @require_http_methods(["GET"])
 def accounting_connect(request):
@@ -46,6 +48,10 @@ def accounting_redirect(request):
         return redirect(reverse("timary:user_profile"))
 
     accounting_service = AccountingService({"user": user})
+
+    if request.user.accounting_org == "zoho":
+        # Zoho needs an extra api call to get the org id
+        ZohoService.get_organization_id(request.user, access_token)
 
     # Sync the current invoice customers first
     try:

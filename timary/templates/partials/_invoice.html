@@ -2,7 +2,14 @@
 <li class="card card-bordered border-neutral" id="{{invoice.slug_title}}">
     <div class="card-body">
         <div class="flex justify-between">
-            <h2 class="card-title">{{ invoice.title }} - {% if invoice.invoice_type == 3 %}Weekly {% endif %}Rate: ${{ invoice.invoice_rate }}</h2>
+            <h2 class="card-title">
+                {{ invoice.title }} - {% if invoice.invoice_type == 3 %}Weekly {% endif %}Rate: ${{ invoice.invoice_rate }}
+                {% if invoice.user.accounting_org_id and invoice.accounting_customer_id %}
+                    <div class="tooltip" data-tip="Synced with your accounting service.">
+                        {% include 'partials/_check_svg.html' %}
+                    </div>
+                {% endif %}
+            </h2>
             <div class="dropdown dropdown-left rounded-box">
                 <label tabindex="0" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
@@ -32,6 +39,14 @@
                             <a hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on click add .loading to me">
                                 {% if invoice.next_date is not None %} Pause {% else %} Unpause {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if invoice.user.accounting_org_id and not invoice.accounting_customer_id %}
+                        <li>
+                            <a hx-get="{% url 'timary:sync_invoice' invoice_id=invoice.id %}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
+                                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
+                                Sync with {{ invoice.user.accounting_org }}
                             </a>
                         </li>
                     {% endif %}

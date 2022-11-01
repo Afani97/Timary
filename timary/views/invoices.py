@@ -300,3 +300,55 @@ def sent_invoices_list(request, invoice_id):
         if invoice.is_archived:
             return_message = "There weren't any invoices sent."
         return HttpResponse(return_message)
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+
+    customer_synced = invoice.sync_customer()
+    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+
+    if customer_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{invoice.title} is now synced with {invoice.user.accounting_org}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"We had trouble syncing {invoice.title}, please try it again",
+        )
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_sent_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+
+    customer_synced = sent_invoice.sync_invoice()
+    response = render(
+        request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
+    )
+
+    if customer_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{sent_invoice.invoice.title} is now synced with {sent_invoice.invoice.user.accounting_org}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            "We had trouble syncing this sent invoice, please try it again",
+        )
+    return response

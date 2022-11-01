@@ -126,6 +126,16 @@ urlpatterns += [
         views.sent_invoices_list,
         name="sent_invoices_list",
     ),
+    path(
+        "invoices/<uuid:invoice_id>/sync/",
+        views.sync_invoice,
+        name="sync_invoice",
+    ),
+    path(
+        "invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
+        views.sync_sent_invoice,
+        name="sync_sent_invoice",
+    ),
 ]
 
 # AUTH URLS

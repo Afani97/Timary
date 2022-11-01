@@ -144,9 +144,9 @@ class TestInvoices(BaseTest):
 
     def test_manage_invoices(self):
         response = self.client.get(reverse("timary:manage_invoices"))
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.invoice_rate}</h2>',
+            response.content.decode(),
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
