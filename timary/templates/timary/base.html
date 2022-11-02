@@ -19,7 +19,7 @@
         {% block css %}{% endblock %}
         {# Third Party JS #}
         <script src="https://unpkg.com/htmx.org@1.8.0"></script>
-        <script src="https://unpkg.com/hyperscript.org@0.9.5"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
 
         <script nonce="base" defer>
             htmx.on("showMessage", (e) => {
@@ -30,16 +30,20 @@
                 alertMessage.id = `alert-${Math.trunc(Math.random() * 100 + 1)}`
                 alertMessage.classList.add('toast', 'toast-top', 'toast-center', 'w-80', 'z-50');
                 alertMessage.innerHTML = `
-                <div class="alert ${alertType}">
+                <div class="alert ${alertType} flex justify-between">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>${message}</span>
                     </div>
+                    <div onclick="document.getElementById('${alertMessage.id}').remove()">
+                        <svg xmlns="http://www.w3.org/2000/svg" id="dismiss-${alertMessage.id}" class="stroke-current flex-shrink-0 h-6 w-6 hidden" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </div>`
                 document.getElementById("alert-messages").appendChild(alertMessage);
-                console.log(persist)
                 if (!persist) {
                     htmx.remove(htmx.find(`#${alertMessage.id}`), 2500);
+                } else {
+                    htmx.removeClass(htmx.find(`#dismiss-${alertMessage.id}`), "hidden")
                 }
             });
         </script>
