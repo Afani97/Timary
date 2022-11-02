@@ -32,14 +32,19 @@ def accounting_redirect(request):
             {"user": user, "request": request}
         ).get_auth_tokens()
     except AccountingError as ae:
-        ae.log(initial_sync=True)
+        error_reason = ae.log(initial_sync=True)
         messages.error(
             request, f"We had trouble connecting to {user.accounting_org.title()}."
         )
+        if error_reason:
+            messages.error(request, error_reason)
         return redirect(reverse("timary:user_profile"))
 
     if not access_token:
-        messages.error(request, f"Unable to connect to {user.accounting_org.title()}.")
+        messages.error(
+            request,
+            f"Unable to connect to {user.accounting_org.title()}. Please try again.",
+        )
         user.accounting_org = None
         user.save()
         return redirect(reverse("timary:user_profile"))

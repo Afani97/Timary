@@ -14,6 +14,7 @@ def class_for_name(class_name):
 class AccountingService:
     def __init__(self, kwargs):
         self.kwargs = kwargs
+        self.service_klass = None
         if "user" in self.kwargs:
             user = self.kwargs.get("user")
             if user.accounting_org:

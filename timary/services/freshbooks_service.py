@@ -11,7 +11,7 @@ from timary.custom_errors import AccountingError
 class FreshbooksService:
     @staticmethod
     def get_domain():
-        ngrok_local_url = "https://570c-71-87-212-255.ngrok.io"
+        ngrok_local_url = "https://626e-71-87-212-255.ngrok.io"
 
         domain = (
             settings.SITE_URL

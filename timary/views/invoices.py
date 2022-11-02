@@ -309,7 +309,7 @@ def sync_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
 
-    customer_synced = invoice.sync_customer()
+    customer_synced, error_raised = invoice.sync_customer()
     if invoice.is_archived:
         response = render(
             request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
@@ -327,7 +327,8 @@ def sync_invoice(request, invoice_id):
         show_alert_message(
             response,
             "error",
-            f"We had trouble syncing {invoice.title}, please try it again",
+            f"We had trouble syncing {invoice.title}. {error_raised}",
+            persist=True,
         )
     return response
 
@@ -339,21 +340,21 @@ def sync_sent_invoice(request, sent_invoice_id):
     if request.user != sent_invoice.user:
         raise Http404
 
-    customer_synced = sent_invoice.sync_invoice()
+    invoice_synced, error_raised = sent_invoice.sync_invoice()
     response = render(
         request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
     )
 
-    if customer_synced:
+    if invoice_synced:
         show_alert_message(
             response,
             "success",
-            f"{sent_invoice.invoice.title} is now synced with {sent_invoice.invoice.user.accounting_org}",
+            f"{sent_invoice.invoice.title} is now synced with {sent_invoice.invoice.user.accounting_org.title()}",
         )
     else:
         show_alert_message(
             response,
             "error",
-            "We had trouble syncing this sent invoice, please try it again",
+            f"We had trouble syncing this sent invoice. {error_raised}",
         )
     return response

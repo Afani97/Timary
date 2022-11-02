@@ -275,13 +275,13 @@ class Invoice(BaseModel):
             StripeService.create_customer_for_invoice(self)
 
         if not self.user.accounting_org_id:
-            return None
+            return None, None
         try:
             AccountingService({"user": self.user, "invoice": self}).create_customer()
         except AccountingError as ae:
-            ae.log()
-            return False  # Failed to sync customer
-        return True  # Customer synced
+            error_reason = ae.log()
+            return False, error_reason  # Failed to sync customer
+        return True, None  # Customer synced
 
 
 class SentInvoice(BaseModel):
@@ -435,19 +435,19 @@ class SentInvoice(BaseModel):
     def sync_invoice(self):
 
         if not self.paid_status == SentInvoice.PaidStatus.PAID:
-            return None
+            return None, None
 
         if not self.user.accounting_org_id:
-            return None
+            return None, None
 
         try:
             AccountingService(
                 {"user": self.user, "sent_invoice": self}
             ).create_invoice()
         except AccountingError as ae:
-            ae.log()
-            return False
-        return True
+            error_reason = ae.log()
+            return False, error_reason
+        return True, None
 
 
 class User(AbstractUser, BaseModel):
