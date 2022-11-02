@@ -25,6 +25,7 @@
             htmx.on("showMessage", (e) => {
                 let alertType = e.detail.alertType;
                 let message = e.detail.message;
+                let persist = e.detail.persist;
                 let alertMessage = document.createElement("div");
                 alertMessage.id = `alert-${Math.trunc(Math.random() * 100 + 1)}`
                 alertMessage.classList.add('toast', 'toast-top', 'toast-center', 'w-80', 'z-50');
@@ -36,7 +37,10 @@
                     </div>
                 </div>`
                 document.getElementById("alert-messages").appendChild(alertMessage);
-                htmx.remove(htmx.find(`#${alertMessage.id}`), 2500);
+                console.log(persist)
+                if (!persist) {
+                    htmx.remove(htmx.find(`#${alertMessage.id}`), 2500);
+                }
             });
         </script>
     </head>
