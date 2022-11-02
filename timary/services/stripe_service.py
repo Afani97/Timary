@@ -56,6 +56,7 @@ class StripeService:
             capabilities={
                 "card_payments": {"requested": True},
                 "transfers": {"requested": True},
+                "us_bank_account_ach_payments": {"requested": True},
             },
             business_type="individual",
             business_profile={"mcc": "1520", "url": "www.usetimary.com"},
