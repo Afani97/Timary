@@ -213,9 +213,10 @@
             .querySelector("#payment-form")
             .addEventListener("submit", handleSubmit);
 
-        document
-            .querySelector("#quick-pay")
-            .addEventListener("click", handleQuickPay);
+        let quickPay = document.getElementById("quick-pay");
+        if (quickPay !== null) {
+            quickPay.addEventListener("click", handleQuickPay);
+        }
 
         // Fetches a payment intent and captures the client secret
         async function initialize() {

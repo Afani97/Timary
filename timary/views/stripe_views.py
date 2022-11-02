@@ -49,10 +49,11 @@ def pay_invoice(request, sent_invoice_id):
                 saved_payment_method = True
                 last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
+        hours, total = sent_invoice.get_hours_tracked()
         context = {
             "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
-            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "hours_tracked": hours,
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
             "client_secret": intent["client_secret"],
