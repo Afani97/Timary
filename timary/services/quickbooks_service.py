@@ -59,7 +59,7 @@ class QuickbooksService:
             failed_response = simulate_requests_response(
                 status_code=400,
                 error_num=10,
-                message="Was not able to find auth code. Please try selecting a valid Quickbooks account",
+                message="We weren't able to find a valid account. Please re-try adding a Quickbooks account.",
             )
             raise AccountingError(user=request.user, requests_response=failed_response)
 
