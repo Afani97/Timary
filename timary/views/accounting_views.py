@@ -34,22 +34,29 @@ def accounting_redirect(request):
     except AccountingError as ae:
         error_reason = ae.log(initial_sync=True)
         messages.error(
-            request, f"We had trouble connecting to {user.accounting_org.title()}."
+            request,
+            f"We had trouble connecting to {user.accounting_org.title()}.",
+            extra_tags="generic-err",
         )
         if error_reason:
-            messages.error(request, error_reason)
+            messages.error(request, error_reason, extra_tags="specific-err")
         return redirect(reverse("timary:user_profile"))
 
     if not access_token:
         messages.error(
             request,
             f"Unable to connect to {user.accounting_org.title()}. Please try again.",
+            extra_tags="missing-token-err",
         )
         user.accounting_org = None
         user.save()
         return redirect(reverse("timary:user_profile"))
 
-    messages.success(request, f"Successfully connected {user.accounting_org.title()}.")
+    messages.success(
+        request,
+        f"Successfully connected {user.accounting_org.title()}.",
+        extra_tags="success-msg",
+    )
     return redirect(reverse("timary:user_profile"))
 
 
@@ -103,3 +110,9 @@ def accounting_sync(request):
             "We have noted this error and will reach out to resolve soon.",
         )
         return redirect(reverse("timary:user_profile"))
+    messages.success(
+        request,
+        "success",
+        f"Successfully synced all your invoices with {request.user.accounting_org.title()}",
+    )
+    return redirect(reverse("timary:user_profile"))
