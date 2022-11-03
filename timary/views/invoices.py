@@ -356,5 +356,6 @@ def sync_sent_invoice(request, sent_invoice_id):
             response,
             "error",
             f"We had trouble syncing this sent invoice. {error_raised}",
+            persist=True,
         )
     return response

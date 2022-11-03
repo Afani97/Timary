@@ -6,6 +6,7 @@ from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
+from timary.utils import simulate_requests_response
 
 
 class QuickbooksService:
@@ -54,7 +55,13 @@ class QuickbooksService:
             request.user.accounting_org_id = realm_id
             request.user.save()
             return response["access_token"]
-        return None
+        else:
+            failed_response = simulate_requests_response(
+                status_code=400,
+                error_num=10,
+                message="Was not able to find auth code. Please try selecting a valid Quickbooks account",
+            )
+            raise AccountingError(user=request.user, requests_response=failed_response)
 
     @staticmethod
     def get_refreshed_tokens(user):

@@ -71,6 +71,10 @@ Timary Team
         return error_reason
 
     def quickbook_errors(self, response):
+        # No auth code found in oauth setup.
+        if "error" in response and response["error"] == 10 and self.initial_sync:
+            return response["message"]
+
         if "Fault" in response and len(response["Fault"]["Error"]) > 0:
             first_error = response["Fault"]["Error"][0]
             if first_error["code"] == "6240":

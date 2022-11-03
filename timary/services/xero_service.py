@@ -4,10 +4,10 @@ import json
 import requests
 from django.conf import settings
 from django.urls import reverse
-from requests import Response
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
+from timary.utils import simulate_requests_response
 
 
 class XeroService:
@@ -73,13 +73,10 @@ class XeroService:
             request.user.save()
             return response["access_token"]
         else:
-            failed_response = Response()
-            failed_response.code = "400"
-            failed_response.error_type = "expired"
-            failed_response.status_code = 400
-            failed_response._content = (
-                b'{ "error": 10, "message" : "Was not able to find auth code. '
-                b'Please try selecting a valid Xero organization" }'
+            failed_response = simulate_requests_response(
+                status_code=400,
+                error_num=10,
+                message="Was not able to find auth code. Please try selecting a valid Xero organization",
             )
             raise AccountingError(user=request.user, requests_response=failed_response)
 
