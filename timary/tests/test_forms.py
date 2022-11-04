@@ -367,7 +367,8 @@ class TestPayInvoice(TestCase):
             },
         )
         self.assertEqual(
-            form.errors, {"email": ["Wrong email recipient, unable to process payment"]}
+            form.errors,
+            {"email": ["Unable to process payment, please enter correct details."]},
         )
 
     def test_sent_invoice_error_wrong_first_name(self):
@@ -381,7 +382,11 @@ class TestPayInvoice(TestCase):
         )
         self.assertEqual(
             form.errors,
-            {"first_name": ["Wrong name recipient, unable to process payment"]},
+            {
+                "first_name": [
+                    "Unable to process payment, please enter correct details."
+                ]
+            },
         )
 
 

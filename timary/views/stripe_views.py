@@ -31,9 +31,7 @@ def pay_invoice(request, sent_invoice_id):
         if pay_invoice_form.is_valid():
             return JsonResponse({"valid": True, "errors": {}})
         else:
-            return JsonResponse(
-                {"valid": False, "errors": pay_invoice_form.errors.as_json()}
-            )
+            return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
         intent = StripeService.create_payment_intent_for_payout(sent_invoice)
         sent_invoice.stripe_payment_intent_id = intent["id"]
@@ -181,7 +179,7 @@ def stripe_webhook(request):
             hours_tracked, _ = sent_invoice.get_hours_tracked()
             today = datetime.date.today()
 
-            # Notify email recipient that payment failed
+            # Notify client that payment failed
             msg_body = render_to_string(
                 "email/sent_invoice_email.html",
                 {

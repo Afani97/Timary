@@ -169,6 +169,10 @@ class InvoiceForm(forms.ModelForm):
             "email_recipient_name",
             "email_recipient",
         ]
+        labels = {
+            "email_recipient_name": "Client's name",
+            "email_recipient": "Client's email",
+        }
         widgets = {
             "title": forms.TextInput(
                 attrs={
@@ -302,7 +306,9 @@ class PayInvoiceForm(forms.Form):
             cleaned_email.lower().strip()
             != self.sent_invoice.invoice.email_recipient.lower()
         ):
-            raise ValidationError("Wrong email recipient, unable to process payment")
+            raise ValidationError(
+                "Unable to process payment, please enter correct details."
+            )
 
     def clean_first_name(self):
         cleaned_name = self.cleaned_data.get("first_name")
@@ -310,7 +316,9 @@ class PayInvoiceForm(forms.Form):
             cleaned_name.lower().strip()
             not in self.sent_invoice.invoice.email_recipient_name.lower()
         ):
-            raise ValidationError("Wrong name recipient, unable to process payment")
+            raise ValidationError(
+                "Unable to process payment, please enter correct details."
+            )
 
 
 phone_number_regex = RegexValidator(

@@ -256,11 +256,10 @@
             while (errorMessages.length > 0) errorMessages[0].remove();
 
             if (!valid) {
-                errors = JSON.parse(errors)
                 for (const error in errors) {
                     let div = document.createElement("div");
                     div.classList.add("text-red-400", "error-messages", "text-sm", "mt-1");
-                    div.innerText = errors[error][0]["message"];
+                    div.innerText = errors[error];
                     document.getElementById(`id_${error}`).classList.add("input-error");
                     document.getElementById(`id_${error}`).after(div);
                 }

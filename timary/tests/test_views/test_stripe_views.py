@@ -63,6 +63,7 @@ class TestStripeViews(BaseTest):
         self.assertEqual(json_content, {"valid": True, "errors": {}})
 
     def test_pay_invoice_sent_invoice_invalid_details(self):
+        self.maxDiff = None
         self.client.logout()
         sent_invoice = SentInvoiceFactory()
         response = self.client.post(
@@ -73,11 +74,15 @@ class TestStripeViews(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        json_content = json.loads(response.content)
+        json_content = json.loads(response.content.decode())
         expected_json = {
             "valid": False,
-            "errors": '{"email": [{"message": "Wrong email recipient, unable to process payment", "code": ""}], '
-            '"first_name": [{"message": "Wrong name recipient, unable to process payment", "code": ""}]}',
+            "errors": {
+                "email": ["Unable to process payment, please enter correct details."],
+                "first_name": [
+                    "Unable to process payment, please enter correct details."
+                ],
+            },
         }
 
         self.assertEqual(json_content, expected_json)

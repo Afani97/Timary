@@ -80,7 +80,7 @@ Timary Team
             if first_error["code"] == "6240":
                 # Duplicate client name found.
                 return (
-                    "Duplicate email recipient name already found in Quickbooks. "
+                    "Duplicate client name already found in Quickbooks. "
                     "Please delete contact in Quickbooks and try again."
                 )
 
