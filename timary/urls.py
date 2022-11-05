@@ -65,6 +65,11 @@ urlpatterns += [
         views.update_invoice_branding,
         name="update_invoice_branding",
     ),
+    path(
+        "profile/settings/password/",
+        views.update_user_password,
+        name="update_user_password",
+    ),
     path("audit/", views.audit, name="audit"),
     path("invite/", views.invite_new_user, name="invite_new_user"),
 ]

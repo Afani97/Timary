@@ -1,6 +1,7 @@
 import datetime
 from tempfile import NamedTemporaryFile
 
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
@@ -13,8 +14,10 @@ from stripe.error import InvalidRequestError
 
 from timary.forms import (
     InvoiceBrandingSettingsForm,
+    LoginForm,
     ReferralInviteForm,
     SMSSettingsForm,
+    UpdatePasswordForm,
 )
 from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
@@ -34,6 +37,8 @@ def settings_partial(request, setting):
         template = "partials/settings/account/_accounting.html"
     if setting == "referral":
         template = "partials/settings/account/_referrals.html"
+    if setting == "password":
+        template = "partials/settings/account/_password.html"
     return render(
         request,
         template,
@@ -189,6 +194,42 @@ def update_accounting_integrations(request):
         "settings": request.user.settings,
     }
     return render(request, "partials/settings/account/_edit_accounting.html", context)
+
+
+@login_required()
+@require_http_methods(["GET", "PUT"])
+def update_user_password(request):
+    context = {
+        "password_form": UpdatePasswordForm(),
+    }
+    if request.method == "GET":
+        return render(
+            request, "partials/settings/account/_edit_password.html", context=context
+        )
+
+    elif request.method == "PUT":
+        put_params = QueryDict(request.body)
+        password_form = UpdatePasswordForm(put_params, user=request.user)
+        if password_form.is_valid():
+            new_password = password_form.cleaned_data.get("new_password")
+            request.user.set_password(new_password)
+            request.user.save()
+            response = render(request, "auth/login.html", {"form": LoginForm()})
+            response["HX-Redirect"] = "/login/"
+            logout(request)
+            return response
+        else:
+            context["password_form"] = UpdatePasswordForm()
+            response = render(
+                request, "partials/settings/account/_edit_password.html", context
+            )
+            show_alert_message(
+                response, "error", "Unable to update, please try again.", persist=True
+            )
+            return response
+
+    else:
+        raise Http404()
 
 
 @login_required

@@ -561,3 +561,44 @@ class ReferralInviteForm(forms.Form):
 
     class Meta:
         fields = ["email"]
+
+
+class UpdatePasswordForm(forms.Form):
+    current_password = forms.CharField(
+        label="Current Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+        required=True,
+    )
+    new_password = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+        required=True,
+    )
+
+    class Meta:
+        fields = ["current_password", "new_password"]
+
+    def __init__(self, *args, **kwargs):
+        self.user: User = kwargs.pop("user") if "user" in kwargs else None
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        validated_data = super().clean()
+
+        current_password = validated_data.get("current_password")
+        if not self.user.check_password(current_password):
+            raise ValidationError("Unable to update password")
+
+        return validated_data
