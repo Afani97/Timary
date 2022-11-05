@@ -1,21 +1,20 @@
-<div class="wrapper grid grid-cols-3 items-center">
+<div class="wrapper flex justify-between">
     <div class="tooltip" data-tip="Connect an accounting service to sync your invoices">
         <div class="text-left">
             {% if profile.get_accounting_connected  %}
-                Syncing to:
+                {{ profile.get_accounting_connected|title }}
             {% else %}
-                Accounting sync not connected
+                Add accounting service
             {% endif %}
         </div>
     </div>
-    <div class="text-center"> {{ profile.get_accounting_connected|default_if_none:""|title }} </div>
     <a class="link text-right"
         hx-get="{% url 'timary:update_accounting_integrations' %}"
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
         _="on click add .loading to me">
         {% if profile.get_accounting_connected %}
-            View
+            Update
         {% else %}
             Add
         {% endif %}

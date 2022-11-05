@@ -1,0 +1,9 @@
+<div class="wrapper flex justify-between">
+    <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
+        <div class="text-left">SMS availability </div>
+    </div>
+    <a class="link text-right"
+        hx-get="{% url 'timary:update_sms_settings' %}"
+        hx-target="closest .wrapper"
+        hx-swap="outerHTML">Update</a>
+</div>

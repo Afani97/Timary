@@ -27,13 +27,13 @@ from timary.utils import show_alert_message
 def settings_partial(request, setting):
     template = ""
     if setting == "sms":
-        template = "partials/settings/_sms.html"
+        template = "partials/settings/preferences/_sms.html"
     if setting == "payment_method":
-        template = "partials/settings/_payment_method.html"
+        template = "partials/settings/account/_payment_method.html"
     if setting == "accounting":
-        template = "partials/settings/_accounting.html"
+        template = "partials/settings/account/_accounting.html"
     if setting == "referral":
-        template = "partials/settings/_referrals.html"
+        template = "partials/settings/account/_referrals.html"
     return render(
         request,
         template,
@@ -49,7 +49,9 @@ def update_sms_settings(request):
         "settings": request.user.settings,
     }
     if request.method == "GET":
-        return render(request, "partials/settings/_edit_sms.html", context=context)
+        return render(
+            request, "partials/settings/preferences/_edit_sms.html", context=context
+        )
 
     elif request.method == "PUT":
         put_params = dict(QueryDict(request.body))
@@ -58,7 +60,7 @@ def update_sms_settings(request):
             user_settings_form.save()
             response = render(
                 request,
-                "partials/settings/_sms.html",
+                "partials/settings/preferences/_sms.html",
                 {"settings": request.user.settings},
             )
             show_alert_message(
@@ -69,7 +71,9 @@ def update_sms_settings(request):
             return response
         else:
             context["settings_form"] = user_settings_form
-            return render(request, "partials/settings/_edit_sms.html", context)
+            return render(
+                request, "partials/settings/preferences/_edit_sms.html", context
+            )
 
     else:
         raise Http404()
@@ -91,7 +95,9 @@ def update_payment_method_settings(request):
     if request.method == "POST":
         if "first_token" not in request.POST or "second_token" not in request.POST:
             return render(
-                request, "partials/settings/_edit_payment_method.html", stripe_errors
+                request,
+                "partials/settings/account/_edit_payment_method.html",
+                stripe_errors,
             )
         try:
             success = StripeService.update_payment_method(
@@ -102,13 +108,13 @@ def update_payment_method_settings(request):
         except InvalidRequestError:
             return render(
                 request,
-                "partials/settings/_edit_payment_method.html",
+                "partials/settings/account/_edit_payment_method.html",
                 stripe_errors,
             )
         if success:
             response = render(
                 request,
-                "partials/settings/_payment_method.html",
+                "partials/settings/account/_payment_method.html",
                 {"settings": request.user.settings},
             )
             show_alert_message(
@@ -120,11 +126,13 @@ def update_payment_method_settings(request):
         else:
             return render(
                 request,
-                "partials/settings/_edit_payment_method.html",
+                "partials/settings/account/_edit_payment_method.html",
                 stripe_errors,
             )
 
-    return render(request, "partials/settings/_edit_payment_method.html", context)
+    return render(
+        request, "partials/settings/account/_edit_payment_method.html", context
+    )
 
 
 @login_required()
@@ -180,7 +188,7 @@ def update_accounting_integrations(request):
         "profile": request.user,
         "settings": request.user.settings,
     }
-    return render(request, "partials/settings/_edit_accounting.html", context)
+    return render(request, "partials/settings/account/_edit_accounting.html", context)
 
 
 @login_required
@@ -300,4 +308,4 @@ Timary LLC
             context["success"] = "Invite sent! Send another"
         else:
             context["error"] = "Unable to send invite, try again!"
-    return render(request, "partials/settings/_invite_referral.html", context)
+    return render(request, "partials/settings/account/_invite_referral.html", context)

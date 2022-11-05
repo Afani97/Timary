@@ -72,7 +72,7 @@ def accounting_disconnect(request):
     user.save()
     return render(
         request,
-        "partials/settings/_edit_accounting.html",
+        "partials/settings/account/_edit_accounting.html",
         {"settings": user.settings},
     )
 

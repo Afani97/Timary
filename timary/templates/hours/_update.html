@@ -34,6 +34,6 @@
     </div>
     <div class="card-actions mb-5 flex justify-center">
         <a class="btn btn-ghost" hx-get="{% url 'timary:get_single_hours' hours_id=hour.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
-        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Update hours</button>
+        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Update </button>
     </div>
 </form>
