@@ -23,7 +23,10 @@ from timary.services.stripe_service import StripeService
 @csrf_exempt
 def pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
-    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+    if (
+        sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
+        or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
+    ):
         return redirect(reverse("timary:login"))
 
     if request.method == "POST":
@@ -209,6 +212,17 @@ def stripe_webhook(request):
         else:
             # Other stripe webhook event
             pass
+
+    elif event["type"] == "payment_intent.processing":
+        payment_intent = event["data"]["object"]
+        if SentInvoice.objects.filter(
+            stripe_payment_intent_id=payment_intent["id"]
+        ).exists():
+            sent_invoice = SentInvoice.objects.get(
+                stripe_payment_intent_id=payment_intent["id"]
+            )
+            sent_invoice.paid_status = SentInvoice.PaidStatus.PENDING
+            sent_invoice.save()
 
     elif event["type"] in [
         "payment_intent.succeeded",

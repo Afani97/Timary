@@ -69,7 +69,7 @@ class SentInvoiceFactory(DjangoModelFactory):
     hours_end_date = factory.LazyFunction(datetime.date.today)
     date_sent = factory.LazyFunction(datetime.date.today)
     total_price = factory.Faker("pyint", min_value=100, max_value=10_000)
-    paid_status = SentInvoice.PaidStatus.PENDING
+    paid_status = SentInvoice.PaidStatus.NOT_STARTED
 
 
 class DailyHoursFactory(DjangoModelFactory):

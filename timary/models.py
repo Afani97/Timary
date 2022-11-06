@@ -286,6 +286,7 @@ class Invoice(BaseModel):
 
 class SentInvoice(BaseModel):
     class PaidStatus(models.IntegerChoices):
+        NOT_STARTED = 0, "NOT_STARTED"
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
         FAILED = 3, "FAILED"
@@ -310,7 +311,7 @@ class SentInvoice(BaseModel):
     )
     total_price = models.PositiveIntegerField()
     paid_status = models.PositiveSmallIntegerField(
-        default=PaidStatus.PENDING, choices=PaidStatus.choices
+        default=PaidStatus.NOT_STARTED, choices=PaidStatus.choices
     )
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
 

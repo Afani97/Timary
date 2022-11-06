@@ -508,7 +508,11 @@ class TestInvoices(BaseTest):
 
         hours1 = DailyHoursFactory(invoice__user=self.user)
         hours2 = DailyHoursFactory(invoice__user=self.user)
-        s1 = SentInvoiceFactory(invoice=hours1.invoice, user=self.user)
+        s1 = SentInvoiceFactory(
+            invoice=hours1.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PENDING,
+        )
         s2 = SentInvoiceFactory(
             invoice=hours2.invoice,
             user=self.user,
