@@ -2,17 +2,13 @@
     <div class="card-body grid grid-cols-3 gap-4">
         <div class="col-span-2">
             <div class="card-title">Status:
-                <span class="pr-1
-                    {% if sent_invoice.paid_status == 2 %}
-                        text-green-300
-                    {% elif sent_invoice.paid_status == 3 %}
-                        text-red-300
-                    {% else %}
-                        text-yellow-300
-                    {% endif %}
-                ">
-                    {{ sent_invoice.get_paid_status_display|title }}
-                </span>
+                {% if sent_invoice.paid_status == 2 %}
+                    <span class="pr-1 text-green-300">Paid</span>
+                {% elif sent_invoice.paid_status == 3 %}
+                    <span class="pr-1 text-red-300">Failed</span>
+                {% else %}
+                    <span class="pr-1 text-yellow-300">Pending</span>
+                {% endif %}
                 {% if sent_invoice.is_synced %}
                     <div class="tooltip" data-tip="Synced with your accounting service.">
                         {% include 'partials/_check_svg.html' %}
