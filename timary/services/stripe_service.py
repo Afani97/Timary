@@ -161,6 +161,11 @@ class StripeService:
         )
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
+            payment_method_options={
+                "us_bank_account": {
+                    "verification_method": "instant",
+                }
+            },
             customer=sent_invoice.invoice.email_recipient_stripe_customer_id,
             amount=invoice_amount,
             setup_future_usage="off_session",
