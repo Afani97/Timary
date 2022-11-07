@@ -101,8 +101,10 @@ def quick_pay_invoice(request, sent_invoice_id):
 @require_http_methods(["GET"])
 def invoice_payment_success(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
-    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+    if sent_invoice.paid_status != SentInvoice.PaidStatus.NOT_STARTED:
         return redirect(reverse("timary:login"))
+    sent_invoice.paid_status = SentInvoice.PaidStatus.PENDING
+    sent_invoice.save()
 
     return render(request, "invoices/success_pay_invoice.html", {})
 
@@ -212,17 +214,6 @@ def stripe_webhook(request):
         else:
             # Other stripe webhook event
             pass
-
-    elif event["type"] == "payment_intent.processing":
-        payment_intent = event["data"]["object"]
-        if SentInvoice.objects.filter(
-            stripe_payment_intent_id=payment_intent["id"]
-        ).exists():
-            sent_invoice = SentInvoice.objects.get(
-                stripe_payment_intent_id=payment_intent["id"]
-            )
-            sent_invoice.paid_status = SentInvoice.PaidStatus.PENDING
-            sent_invoice.save()
 
     elif event["type"] in [
         "payment_intent.succeeded",
