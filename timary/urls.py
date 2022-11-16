@@ -165,7 +165,12 @@ urlpatterns += [
 
 # STRIPE URLS
 urlpatterns += [
-    path("stripe-webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path(
+        "stripe-standard-webhook/", views.stripe_standard_webhook, name="stripe_webhook"
+    ),
+    path(
+        "stripe-connect-webhook/", views.stripe_connect_webhook, name="stripe_webhook"
+    ),
     path(
         "invoice-payment/<uuid:sent_invoice_id>/", views.pay_invoice, name="pay_invoice"
     ),

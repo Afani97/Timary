@@ -146,9 +146,7 @@ def completed_connect_account(request):
     return redirect(reverse("timary:user_profile"))
 
 
-@require_http_methods(["POST"])
-@csrf_exempt
-def stripe_webhook(request):
+def stripe_webhook(request, stripe_secret):
     """
     Test locally => stripe listen --forward-to localhost:8000/stripe-webhook/
     Copy webhook secret into STRIPE_WEBHOOK_SECRET
@@ -157,9 +155,7 @@ def stripe_webhook(request):
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
+        event = stripe.Webhook.construct_event(payload, sig_header, stripe_secret)
     except ValueError as e:
         # Invalid payload
         raise e
@@ -252,3 +248,15 @@ def stripe_webhook(request):
         print("Unhandled event type {}".format(event["type"]))
 
     return JsonResponse({"success": True})
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def stripe_standard_webhook(request):
+    return stripe_webhook(request, settings.STRIPE_STANDARD_WEBHOOK_SECRET)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def stripe_connect_webhook(request):
+    return stripe_webhook(request, settings.STRIPE_CONNECT_WEBHOOK_SECRET)
