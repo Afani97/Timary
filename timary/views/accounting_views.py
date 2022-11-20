@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
-from timary.models import User
+from timary.models import SentInvoice, User
 from timary.services.accounting_service import AccountingService
 
 
@@ -82,37 +82,40 @@ def accounting_disconnect(request):
 def accounting_sync(request):
     accounting_service = AccountingService({"user": request.user})
     # Sync the current invoice customers first
-    try:
-        accounting_service.sync_customers()
-    except AccountingError as ae:
-        ae.log()
-        messages.error(
-            request,
-            f"We had trouble syncing your customers with {request.user.accounting_org.title()}.",
-        )
-        messages.info(
-            request,
-            "We have noted this error and will reach out to resolve soon.",
-        )
-        return redirect(reverse("timary:user_profile"))
+    synced_invoices = []
+    for invoice in request.user.get_all_invoices():
+        synced_invoice = {
+            "invoice": invoice,
+            "customer_synced": True,
+            "synced_sent_invoices": [],
+        }
+        if not invoice.accounting_customer_id:
+            try:
+                accounting_service.service_klass().create_customer(invoice)
+            except AccountingError as ae:
+                ae.log()
+                synced_invoice["customer_synced"] = False
 
-    # Then sync the current paid sent invoices
-    try:
-        accounting_service.sync_invoices()
-    except AccountingError as ae:
-        ae.log()
-        messages.error(
-            request,
-            f"We had trouble syncing your paid invoices with {request.user.accounting_org.title()}.",
-        )
-        messages.info(
-            request,
-            "We have noted this error and will reach out to resolve soon.",
-        )
-        return redirect(reverse("timary:user_profile"))
-    messages.success(
+        # Then sync the current paid sent invoices
+        synced_sent_invoices = []
+        for sent_invoice in invoice.invoice_snapshots.filter(
+            paid_status=SentInvoice.PaidStatus.PAID
+        ):
+            sent_invoice_synced = True
+            if not sent_invoice.accounting_invoice_id:
+                try:
+                    accounting_service.service_klass().create_invoice(sent_invoice)
+                except AccountingError as ae:
+                    ae.log()
+                    sent_invoice_synced = False
+            synced_sent_invoices.append((sent_invoice, sent_invoice_synced))
+        synced_invoice["synced_sent_invoices"] = synced_sent_invoices
+        synced_invoices.append(synced_invoice)
+
+    return render(
         request,
-        "success",
-        f"Successfully synced all your invoices with {request.user.accounting_org.title()}",
+        "invoices/_synced_results.html",
+        {
+            "synced_invoices": synced_invoices,
+        },
     )
-    return redirect(reverse("timary:user_profile"))

@@ -1,0 +1,20 @@
+<div>
+    <h2 class="mb-4">Synced invoices:</h2>
+    {% for sync_invoice in synced_invoices %}
+        <div class="text-xl font-bold">{{ sync_invoice.invoice.title }}</div>
+        <div class="flex pl-5 my-2">
+            <div class="pr-5">Client: <span class="font-bold">{{ sync_invoice.invoice.email_recipient_name }}</span></div>
+            {% if sync_invoice.customer_synced %}
+                {% include 'partials/_check_svg.html' %}
+            {% endif %}
+        </div>
+        {% for sent_invoice, sent_invoice_synced in sync_invoice.synced_sent_invoices %}
+            <div class="flex pl-5 my-2">
+                <div class="pr-5">{{ sent_invoice.date_sent }} - ${{ sent_invoice.total_price }}</div>
+                {% if sent_invoice_synced %}
+                    {% include 'partials/_check_svg.html' %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>

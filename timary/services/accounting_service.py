@@ -51,19 +51,3 @@ class AccountingService:
         sent_invoice = self.kwargs.get("sent_invoice")
         if self.service_klass:
             self.service_klass().create_invoice(sent_invoice)
-
-    def sync_customers(self):
-        user = self.kwargs.get("user")
-        if self.service_klass:
-            for invoice in user.get_all_invoices():
-                self.service_klass().create_customer(invoice)
-
-    def sync_invoices(self):
-        from timary.models import SentInvoice
-
-        user = self.kwargs.get("user")
-        if self.service_klass:
-            for sent_invoice in user.sent_invoices.filter(
-                paid_status=SentInvoice.PaidStatus.PAID
-            ):
-                self.service_klass().create_invoice(sent_invoice)

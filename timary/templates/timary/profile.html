@@ -20,8 +20,35 @@
         </div>
     </div>
 
+    <input type="checkbox" id="sync-modal" class="modal-toggle" />
+    <div for="sync-modal" class="modal items-center">
+        <div class="modal-box relative lg:w-1/2 lg:max-w-5xl">
+            <label
+                for="sync-modal"
+                class="btn btn-sm btn-circle absolute right-2 top-2 close-sync-modal"
+                _="on click call resetSyncView()"
+            >
+                ✕
+            </label>
+            <div class="sync-inner-modal" id="sync-inner">
+                <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block js %}
     <script src="https://js.stripe.com/v3/" defer></script>
+    <script>
+        function resetSyncView() {
+            htmx.find("#sync-inner").innerHTML = `
+            <div class="flex justify-center">
+                <button class="btn btn-lg loading">loading</button>
+            </div>
+            `;
+        }
+    </script>
 {% endblock %}
