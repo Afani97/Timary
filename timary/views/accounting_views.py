@@ -87,13 +87,14 @@ def accounting_sync(request):
         synced_invoice = {
             "invoice": invoice,
             "customer_synced": True,
+            "customer_synced_error": None,
             "synced_sent_invoices": [],
         }
         if not invoice.accounting_customer_id:
             try:
                 accounting_service.service_klass().create_customer(invoice)
             except AccountingError as ae:
-                ae.log()
+                synced_invoice["customer_synced_error"] = ae.log()
                 synced_invoice["customer_synced"] = False
 
         # Then sync the current paid sent invoices
@@ -102,13 +103,16 @@ def accounting_sync(request):
             paid_status=SentInvoice.PaidStatus.PAID
         ):
             sent_invoice_synced = True
+            sent_invoice_synced_error = None
             if not sent_invoice.accounting_invoice_id:
                 try:
                     accounting_service.service_klass().create_invoice(sent_invoice)
                 except AccountingError as ae:
-                    ae.log()
+                    sent_invoice_synced_error = ae.log()
                     sent_invoice_synced = False
-            synced_sent_invoices.append((sent_invoice, sent_invoice_synced))
+            synced_sent_invoices.append(
+                (sent_invoice, sent_invoice_synced, sent_invoice_synced_error)
+            )
         synced_invoice["synced_sent_invoices"] = synced_sent_invoices
         synced_invoices.append(synced_invoice)
 

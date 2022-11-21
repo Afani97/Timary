@@ -83,6 +83,12 @@ Timary Team
                     "Duplicate client name already found in Quickbooks. "
                     "Please delete contact in Quickbooks and try again."
                 )
+            if first_error["code"] == "6560":
+                # No customer linked with invoice
+                return (
+                    "Customer not found linked with invoice, please make sure the client "
+                    "is synced with Quickbooks first then re-sync this invoice."
+                )
 
     def freshbook_errors(self, response):
         # Freshbooks account is not active anymore
