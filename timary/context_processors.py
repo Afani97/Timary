@@ -7,6 +7,10 @@ def site_url(request):
     return {"site_url": settings.SITE_URL}
 
 
+def debug_mode(request):
+    return {"debug_mode": settings.DEBUG}
+
+
 def completed_connect_account(request):
     # connect_status == 0 => Account complete
     # connect_status == 1 => Pending verifications

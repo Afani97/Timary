@@ -19,8 +19,13 @@ runp:
 	python manage.py runserver 0.0.0.0:8000
 
 static:
+	make build
 	python manage.py collectstatic --no-input
 .PHONY: static
+
+build:
+	python manage.py tailwind build
+.PHONY: build
 
 test:
 	python manage.py test --failfast --exclude-tag=ui

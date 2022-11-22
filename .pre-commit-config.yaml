@@ -6,7 +6,9 @@ repos:
     hooks:
       - id: debug-statements
       - id: trailing-whitespace
+        exclude: '^staticfiles/'
       - id: end-of-file-fixer
+        exclude: '^staticfiles/'
       - id: requirements-txt-fixer
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.4
@@ -17,7 +19,9 @@ repos:
     rev: v1.5.2
     hooks:
       - id: djhtml
+        exclude: '^staticfiles/'
       - id: djcss
+        exclude: '^staticfiles/'
       - id: djjs
         exclude: '^staticfiles/'
   - repo: "https://github.com/pycqa/isort"

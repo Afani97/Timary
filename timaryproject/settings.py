@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_browser_reload",
     "storages",
+    "tailwind",
+    "timarytailwind",
 ]
 
 MIDDLEWARE = [
@@ -91,6 +93,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "timary.context_processors.site_url",
+                "timary.context_processors.debug_mode",
                 "timary.context_processors.completed_connect_account",
             ],
         },
@@ -177,6 +180,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -326,6 +333,9 @@ SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
 
 # PLAYWRIGHT
 HEADLESS_UI = True
+
+# DJANGO TAILWIND
+TAILWIND_APP_NAME = "timarytailwind"
 
 
 if "test" in sys.argv or os.environ.get("GITHUB_WORKFLOW"):

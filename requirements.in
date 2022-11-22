@@ -11,6 +11,7 @@ django-otp
 django-phonenumber-field
 django-q
 django-storages
+django-tailwind
 django-twilio
 httmock
 openpyxl

@@ -3,7 +3,7 @@
         <h2 class="card-title">{{ hour.hours|floatformat:2 }} hrs for {{ hour.invoice.title }}</h2>
         {% if not hour.sent_invoice_id %}
             <div class="card-actions">
-                <a class="btn btn-primary btn-sm md:btn"
+                <a class="btn xs:btn-sm btn-primary"
                     hx-get="{% url 'timary:edit_hours' hour.id %}"
                     hx-target="closest li"
                     hx-swap="outerHTML"
@@ -11,7 +11,7 @@
                     Edit
                 </a>
 
-                <a class="btn btn-outline btn-error btn-sm md:btn"
+                <a class="btn xs:btn-sm btn-error btn-outline"
                     hx-delete="{% url 'timary:delete_hours' hour.id %}"
                     hx-confirm="Are you sure you want to delete these hours?"
                     hx-target="closest li"
