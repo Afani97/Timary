@@ -238,7 +238,8 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(
             response.response,
-            f"Wrong input, only numbers please. How many hours to log for: {invoice.title}. Reply 'S' to skip",
+            f"Wrong input, allowed formats are '1.5' or '1:30'. "
+            f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
 
@@ -458,5 +459,57 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertIn(
             f"Unable to track hours for {fake_invoice_title}.", response.response
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 0)
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_hours_passed_as_hours_and_min(
+        self, message_list_mock, message_response_mock
+    ):
+        """Return an error message if invoice isn't found in twilio body."""
+        self.data["Body"] = "1:30"
+        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        message_list_mock.return_value = [
+            Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertEqual(response.response, "All set for today. Keep it up!")
+        self.assertEqual(DailyHoursInput.objects.count(), 1)
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_raise_error_if_hours_passed_as_hours_and_min_not_valid(
+        self, message_list_mock, message_response_mock
+    ):
+        """Return an error message if invoice isn't found in twilio body."""
+        self.data["Body"] = "1::30"
+        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        message_list_mock.return_value = [
+            Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn(
+            f"Wrong input, allowed formats are '1.5' or '1:30'. "
+            f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
+            response.response,
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)

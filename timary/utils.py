@@ -35,3 +35,16 @@ def simulate_requests_response(status_code, error_num, message):
     response_content = {"error": error_num, "message": message}
     failed_response._content = json.dumps(response_content, indent=2).encode("utf-8")
     return failed_response
+
+
+def convert_hours_to_decimal_hours(time):
+    convert_hours_map = [1, 1.0 / 60, 1.0 / 3600]
+    try:
+        dec_time = sum(
+            a * b for a, b in zip(convert_hours_map, map(int, time.split(":")))
+        )
+    except Exception as e:
+        raise e
+    if not dec_time:
+        raise ValueError()
+    return dec_time
