@@ -21,6 +21,7 @@ runp:
 static:
 	make build
 	python manage.py collectstatic --no-input
+	git restore staticfiles/admin
 .PHONY: static
 
 build:

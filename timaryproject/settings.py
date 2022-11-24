@@ -74,8 +74,6 @@ MIDDLEWARE = [
     # "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # TIMARY
-    "timary.middleware.SimpleUserAgentMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
