@@ -391,9 +391,6 @@ class SentInvoice(BaseModel):
             {
                 "can_accept_payments": False,
                 "user_name": self.user.invoice_branding_properties()["user_name"],
-                "next_weeks_date": self.user.invoice_branding_properties()[
-                    "next_weeks_date"
-                ],
                 "total_amount": self.total_price,
                 "sent_invoice_id": self.id,
                 "invoice": self.invoice,

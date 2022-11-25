@@ -10,7 +10,7 @@
 
 {% block main %}
     <div class="mb-6">
-        <div class="mt-0 mb-4  text-3xl font-semibold text-left">Hi {{ recipient_name }},</div>
+        <div class="mt-0 mb-4  text-3xl font-semibold text-left">Hi {{ invoice.email_recipient_name }},</div>
         {% if next_weeks_date %}
             <div class="my-2 text-xl leading-7">Thanks for using Timary. This is an invoice for {{ user_name }}'s services.</div>
         {% else %}

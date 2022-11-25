@@ -16,7 +16,12 @@ from timary.tasks import (
     send_invoice_preview,
     send_weekly_updates,
 )
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import (
+    DailyHoursFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class TestGatherInvoices(TestCase):
@@ -406,6 +411,36 @@ class TestSendInvoice(TestCase):
         """
         html_message = TestSendInvoice.extract_html()
         self.assertInHTML(weekly_log_item, html_message)
+
+    @patch("timary.services.twilio_service.TwilioClient.sent_payment_success")
+    def test_paid_invoice_receipt(self, twilio_mock):
+        twilio_mock.return_value = None
+        invoice = InvoiceFactory(
+            user__stripe_payouts_enabled=True, user__first_name="Bob"
+        )
+        # Save last date before it's updated in send_invoice method to test email contents below
+        hours = DailyHoursFactory(invoice=invoice, hours=1)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice, paid_status=SentInvoice.PaidStatus.PAID, user=invoice.user
+        )
+        hours.sent_invoice_id = sent_invoice.id
+        hours.save()
+
+        sent_invoice.success_notification()
+
+        html_message = TestSendInvoice.extract_html()
+        with self.subTest("Testing title"):
+            msg = f"""
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.email_recipient_name},</div>
+            <div class="my-2 text-xl leading-7">Thanks for using Timary.
+            This is a copy of the invoice paid for Bob's services on {template_date(date.today())}.
+            </div>
+            """
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing amount due"):
+            msg = f"<strong>Total Paid: ${sent_invoice.total_price + 5}</strong>"
+            self.assertInHTML(msg, html_message)
 
 
 class TestWeeklyInvoiceUpdates(TestCase):
