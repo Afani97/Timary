@@ -343,6 +343,23 @@ class TestInvoice(TestCase):
 
         self.assertEqual(form.errors, {"title": ["Title cannot start with a number."]})
 
+    def test_invoice_error_start_on_less_than_today(self):
+        form = InvoiceForm(
+            data={
+                "title": "Test",
+                "invoice_rate": 100,
+                "invoice_type": 1,
+                "invoice_interval": "M",
+                "email_recipient_name": "User Test",
+                "email_recipient": "user@test.com",
+                "start_on": datetime.date.today() - datetime.timedelta(days=1),
+            }
+        )
+
+        self.assertEqual(
+            form.errors, {"start_on": ["Cannot start invoice less than today."]}
+        )
+
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):

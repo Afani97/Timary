@@ -58,6 +58,12 @@
             </label>
             <div>{{ form.email_recipient }}</div>
         </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ form.start_on.label_tag }}</span>
+            </label>
+            <div>{{ form.start_on }}</div>
+        </div>
     </div>
     <div class="card-actions flex justify-center">
         {% if not show_close %}

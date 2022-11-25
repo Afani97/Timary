@@ -64,7 +64,11 @@ def create_invoice(request):
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
         invoice.user = user
-        invoice.calculate_next_date()
+        if start_on := invoice_form.cleaned_data.get("start_on"):
+            invoice.next_date = start_on
+            invoice.last_date = date.today()
+        else:
+            invoice.calculate_next_date()
         invoice.save()
         invoice.sync_customer()
 

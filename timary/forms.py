@@ -124,6 +124,14 @@ class InvoiceForm(forms.ModelForm):
             }
         ),
     )
+    start_on = forms.DateField(
+        required=False,
+        widget=DateInput(
+            attrs={
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
@@ -168,6 +176,7 @@ class InvoiceForm(forms.ModelForm):
             "weekly_rate",
             "email_recipient_name",
             "email_recipient",
+            "start_on",
         ]
         labels = {
             "email_recipient_name": "Client's name",
@@ -224,6 +233,13 @@ class InvoiceForm(forms.ModelForm):
         invoice_interval = validated_data.get("invoice_interval")
         milestone_total_steps = validated_data.get("milestone_total_steps")
         weekly_rate = validated_data.get("weekly_rate")
+
+        if "start_on" in validated_data:
+            start_on = validated_data.get("start_on", None)
+            if start_on and start_on < datetime.date.today():
+                raise ValidationError(
+                    {"start_on": ["Cannot start invoice less than today."]}
+                )
         if invoice_type == 1 and not invoice_interval:
             raise ValidationError(
                 {"invoice_interval": ["Invoice interval is required"]}
