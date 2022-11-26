@@ -24,7 +24,7 @@ def twilio_reply(request):
             TwilioClient.send_message(user, "All set for today. Keep it up!")
         return MessagingResponse()
 
-    _, invoice_title = last_message.body.split(":")
+    _, invoice_title = last_message.body.rsplit(":", maxsplit=1)
     invoice_title = invoice_title.split(".")[0].strip()
     invoices = user.get_invoices.filter(title__exact=invoice_title)
     invoice = None

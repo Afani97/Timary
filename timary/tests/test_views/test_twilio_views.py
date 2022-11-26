@@ -513,3 +513,52 @@ class TestTwilioReplyWebhook(TestCase):
             response.response,
         )
         self.assertEqual(DailyHoursInput.objects.count(), 0)
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_respond_to_raised_error_if_hours_passed_as_hours_and_min_not_valid(
+        self, message_list_mock, message_response_mock
+    ):
+        """Return an error message if invoice isn't found in twilio body."""
+        # FIRST INVOICE IS VALID PARSED
+        self.data["Body"] = "1::30"
+        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        message_list_mock.return_value = [
+            Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn(
+            f"Wrong input, allowed formats are '1.5' or '1:30'. "
+            f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
+            response.response,
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 0)
+
+        # SECOND INVOICE PARSED IT CORRECTLY DUE TO THE SECOND ':' IN BODY
+        message_list_mock.return_value = [
+            Message(
+                f"Wrong input, allowed formats are '1.5' or '1:30'. "
+                f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
+            )
+        ]
+
+        self.data["Body"] = "2:30"
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertEqual(response.response, "All set for today. Keep it up!")
+        self.assertEqual(DailyHoursInput.objects.count(), 1)
