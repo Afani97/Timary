@@ -148,8 +148,8 @@ def completed_connect_account(request):
 
 def stripe_webhook(request, stripe_secret):
     """
-    Test locally => stripe listen --forward-to localhost:8000/stripe-webhook/
-    Copy webhook secret into STRIPE_WEBHOOK_SECRET
+    Test locally => stripe listen --forward-to localhost:8000/stripe-stardard-webhook/
+    Copy webhook secret into STRIPE_STANDARD_WEBHOOK_SECRET
     """
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]

@@ -80,7 +80,7 @@ def register_user(request):
                         """,
                             user.email,
                         )
-                        return redirect(account_link_url)
+                        return redirect(reverse("timary:manage_invoices"))
                     else:
                         form.add_error(
                             "email", "Unable to create account with credentials"
