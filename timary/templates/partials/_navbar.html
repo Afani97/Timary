@@ -125,97 +125,107 @@
 
 {# Timer #}
 {% if request.user.is_authenticated %}
-    <div class="flex justify-center my-10 hidden" id="timer_container">
-        <div hx-get="{% url 'timary:update_timer' %}"
-            id="update-timer" hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
-            hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
-            hx-swap="none"
-        >
-            <span class="font-mono text-2xl countdown flex justify-center my-5">
-                <span id="timer_hour">00</span>:
-                <span id="timer_min">00</span>:
-                <span id="timer_sec">00</span>
-            </span>
-            <div class="btn-group">
-                <button id="pause_timer" class="btn btn-active hidden" _="on click call pause()">Pause</button>
-                <button id="resume_timer" class="btn btn-active hidden" _="on click call resume()">Resume</button>
-                <button id="stop_timer" class="btn hidden" _="on click call stop()">Stop</button>
-                <button id="reset_timer" class="btn hidden" _="on click call reset()">Reset</button>
+    <div class="my-10 hidden max-w-xl mx-auto px-3 md:px-0 " id="timer_container">
+        <div class="alert alert-info shadow-lg">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <span>Don't close this tab! The timer will stop.</span>
             </div>
         </div>
-        <script nonce="manage-hours">
-            {% include "partials/timer_class.html" %}
+        <div class="flex justify-center my-5">
+            <div hx-get="{% url 'timary:update_timer' %}"
+                id="update-timer" hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
+                hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
+                hx-swap="none"
+            >
+                <span class="font-mono text-2xl countdown flex justify-center my-5">
+                    <span id="timer_hour">00</span>:
+                    <span id="timer_min">00</span>:
+                    <span id="timer_sec">00</span>
+                </span>
+                <div class="btn-group">
+                    <button id="pause_timer" class="btn btn-active hidden" _="on click call pause()">Pause</button>
+                    <button id="resume_timer" class="btn btn-active hidden" _="on click call resume()">Resume</button>
+                    <button id="stop_timer" class="btn hidden" _="on click call stop()">Stop</button>
+                    <button id="reset_timer" class="btn hidden" _="on click call reset()">Reset</button>
+                </div>
+            </div>
+            <script nonce="manage-hours">
+                {% include "partials/timer_class.html" %}
 
-            var timer_container = document.getElementById("timer_container");
-            var timer_hour_span = document.getElementById("timer_hour");
-            var timer_min_span = document.getElementById("timer_min");
-            var timer_sec_span = document.getElementById("timer_sec");
-            var hoursTimer = new timaryTimer();
+                var timer_container = document.getElementById("timer_container");
+                var timer_hour_span = document.getElementById("timer_hour");
+                var timer_min_span = document.getElementById("timer_min");
+                var timer_sec_span = document.getElementById("timer_sec");
+                var hoursTimer = new timaryTimer();
 
-            document.addEventListener("DOMContentLoaded", () => {
-                // Resume/pause timer if page is refreshed, etc.
-                let activeTimerMS = "{{ active_timer_ms|safe }}";
-                let timerPaused = "{{ timer_paused|safe }}";
-                let isMainView = "{{ is_main_view|safe }}";
+                document.addEventListener("DOMContentLoaded", () => {
+                    // Resume/pause timer if page is refreshed, etc.
+                    let activeTimerMS = "{{ active_timer_ms|safe }}";
+                    let timerPaused = "{{ timer_paused|safe }}";
+                    let isMainView = "{{ is_main_view|safe }}";
 
-                // Complicated logic here, hope to simplify someday
-                // 1. If timer is active:
-                //    - Show timer ( + controls on main page )
-                //    - If timer hasn't been paused, continue the timer
-                //    - If paused, update timer time, don't continue timer
-                // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
-                if (activeTimerMS) {
-                    timer_container.classList.remove("hidden");
-                    hoursTimer.overallTime =  parseInt(activeTimerMS);
-                    update_timer(hoursTimer.overallTime);
+                    // Complicated logic here, hope to simplify someday
+                    // 1. If timer is active:
+                    //    - Show timer ( + controls on main page )
+                    //    - If timer hasn't been paused, continue the timer
+                    //    - If paused, update timer time, don't continue timer
+                    // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
+                    if (activeTimerMS) {
+                        timer_container.classList.remove("hidden");
+                        hoursTimer.overallTime =  parseInt(activeTimerMS);
+                        update_timer(hoursTimer.overallTime);
 
-                    if (timerPaused === "false") {
-                        if (isMainView === "True") {
-                            start_timer_btn.classList.add("hidden")
-                            resume();
-                        } else {
-                            hoursTimer.start();
-                            timer();
+                        if (timerPaused === "false") {
+                            if (isMainView === "True") {
+                                start_timer_btn.classList.add("hidden")
+                                resume();
+                            } else {
+                                hoursTimer.start();
+                                timer();
+                            }
+                            hoursTimer.isPaused = false;
+                            hoursTimer.isStopped = false;
+                        } else if (timerPaused === "true") {
+                            if (isMainView === "True") {
+                                start_timer_btn.classList.add("hidden")
+                                pause_timer_btn.classList.add("hidden");
+                                resume_timer_btn.classList.remove("hidden");
+                                stop_timer_btn.classList.remove("hidden");
+                                reset_timer_btn.classList.remove("hidden");
+                            }
+                            hoursTimer.isPaused = true;
+                            hoursTimer.isStopped = true;
                         }
-                        hoursTimer.isPaused = false;
-                        hoursTimer.isStopped = false;
-                    } else if (timerPaused === "true") {
-                        if (isMainView === "True") {
-                            start_timer_btn.classList.add("hidden")
-                            pause_timer_btn.classList.add("hidden");
-                            resume_timer_btn.classList.remove("hidden");
-                            stop_timer_btn.classList.remove("hidden");
-                            reset_timer_btn.classList.remove("hidden");
-                        }
+                    } else {
                         hoursTimer.isPaused = true;
                         hoursTimer.isStopped = true;
                     }
-                } else {
-                    hoursTimer.isPaused = true;
-                    hoursTimer.isStopped = true;
+                })
+
+                function update_timer(totalTime) {
+                    const timeInSeconds = Math.round(totalTime / 1000);
+                    let hrs = Math.floor(timeInSeconds / 3600);
+                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+                    let secs = timeInSeconds % 60;
+                    timer_hour_span.style.cssText = `--value: ${hrs}`;
+                    timer_min_span.style.cssText = `--value: ${mins}`;
+                    timer_sec_span.style.cssText = `--value: ${secs}`;
                 }
-            })
 
-            function update_timer(totalTime) {
-                const timeInSeconds = Math.round(totalTime / 1000);
-                let hrs = Math.floor(timeInSeconds / 3600);
-                let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
-                let secs = timeInSeconds % 60;
-                timer_hour_span.style.cssText = `--value: ${hrs}`;
-                timer_min_span.style.cssText = `--value: ${mins}`;
-                timer_sec_span.style.cssText = `--value: ${secs}`;
-            }
+                function timerRunning() { return !hoursTimer.isPaused && !hoursTimer.isStopped; }
+                function timerIsPaused() { return hoursTimer.isPaused; }
+                function timerHasStopped() { return hoursTimer.isStopped; }
+                function getTimerVal() { return hoursTimer.getTime(); }
 
-            function timerRunning() { return !hoursTimer.isPaused && !hoursTimer.isStopped; }
-            function timerIsPaused() { return hoursTimer.isPaused; }
-            function timerHasStopped() { return hoursTimer.isStopped; }
-            function getTimerVal() { return hoursTimer.getTime(); }
-
-            function timer() {
-                setInterval(() => {
-                    update_timer(hoursTimer.getTime());
-                }, 100)
-            }
-        </script>
+                function timer() {
+                    setInterval(() => {
+                        update_timer(hoursTimer.getTime());
+                    }, 100)
+                }
+            </script>
+        </div>
     </div>
 {% endif %}
