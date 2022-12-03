@@ -89,6 +89,13 @@ Timary Team
                     "Customer not found linked with invoice, please make sure the client "
                     "is synced with Quickbooks first then re-sync this invoice."
                 )
+            if first_error["code"] == "6190":
+                # Customer's Quickbooks account is inactive
+                return (
+                    "Subscription period has ended or canceled or there was a billing problem."
+                    "You can't add data to QuickBooks Online Plus because your trial or subscription period ended, "
+                    "you canceled your subscription, or there was a billing problem."
+                )
 
     def freshbook_errors(self, response):
         # Freshbooks account is not active anymore
