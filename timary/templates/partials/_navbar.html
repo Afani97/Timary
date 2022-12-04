@@ -126,12 +126,12 @@
 {# Timer #}
 {% if request.user.is_authenticated %}
     <div class="my-10 hidden max-w-xl mx-auto px-3 md:px-0 " id="timer_container">
-        <div class="alert alert-info shadow-lg">
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
+        <div class="alert alert-info shadow-lg alert-msg">
+            <div class="flex flex-row justify-between w-full px-3">
                 <span>Don't close this tab! The timer will stop.</span>
+                <span>
+                    <svg _="on click remove closest .alert-msg" xmlns="http://www.w3.org/2000/svg"  class="stroke-current flex-shrink-0 h-6 w-6 " fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </span>
             </div>
         </div>
         <div class="flex justify-center my-5">
