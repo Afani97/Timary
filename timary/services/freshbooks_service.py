@@ -140,8 +140,11 @@ class FreshbooksService:
         return None
 
     @staticmethod
-    def create_customer(invoice):
-        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            freshbooks_auth_token = auth_token
+        else:
+            freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(invoice.user)
         data = {
             "client": {
                 "email": invoice.email_recipient,
@@ -163,10 +166,13 @@ class FreshbooksService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(
-            sent_invoice.user
-        )
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            freshbooks_auth_token = auth_token
+        else:
+            freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(
+                sent_invoice.user
+            )
 
         today = datetime.date.today()
         today_formatted = today.strftime("%Y-%m-%d")

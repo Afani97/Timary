@@ -117,8 +117,11 @@ class XeroService:
             return None
 
     @staticmethod
-    def create_customer(invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            xero_auth_token = auth_token
+        else:
+            xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
 
         data = {
             "Name": invoice.email_recipient_name,
@@ -148,8 +151,11 @@ class XeroService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            xero_auth_token = auth_token
+        else:
+            xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
 
         # Generate invoice
         today = datetime.date.today() + datetime.timedelta(days=1)

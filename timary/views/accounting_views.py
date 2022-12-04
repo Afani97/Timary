@@ -83,6 +83,7 @@ def accounting_sync(request):
     accounting_service = AccountingService({"user": request.user})
     # Sync the current invoice customers first
     synced_invoices = []
+    auth_token = accounting_service.get_request_auth_token()
     for invoice in request.user.get_all_invoices():
         synced_invoice = {
             "invoice": invoice,
@@ -92,7 +93,7 @@ def accounting_sync(request):
         }
         if not invoice.accounting_customer_id:
             try:
-                accounting_service.service_klass().create_customer(invoice)
+                accounting_service.service_klass().create_customer(invoice, auth_token)
             except AccountingError as ae:
                 synced_invoice["customer_synced_error"] = ae.log()
                 synced_invoice["customer_synced"] = False
@@ -106,7 +107,9 @@ def accounting_sync(request):
             sent_invoice_synced_error = None
             if not sent_invoice.accounting_invoice_id:
                 try:
-                    accounting_service.service_klass().create_invoice(sent_invoice)
+                    accounting_service.service_klass().create_invoice(
+                        sent_invoice, auth_token
+                    )
                 except AccountingError as ae:
                     sent_invoice_synced_error = ae.log()
                     sent_invoice_synced = False

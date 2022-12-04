@@ -110,8 +110,11 @@ class QuickbooksService:
         return None
 
     @staticmethod
-    def create_customer(invoice):
-        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            quickbooks_auth_token = auth_token
+        else:
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
         endpoint = (
             f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
         )
@@ -133,10 +136,13 @@ class QuickbooksService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(
-            sent_invoice.user
-        )
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            quickbooks_auth_token = auth_token
+        else:
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(
+                sent_invoice.user
+            )
 
         # Generate invoice
         endpoint = (

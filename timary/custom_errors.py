@@ -92,7 +92,7 @@ Timary Team
             if first_error["code"] == "6190":
                 # Customer's Quickbooks account is inactive
                 return (
-                    "Subscription period has ended or canceled or there was a billing problem."
+                    "Subscription period has ended or canceled or there was a billing problem. "
                     "You can't add data to QuickBooks Online Plus because your trial or subscription period ended, "
                     "you canceled your subscription, or there was a billing problem."
                 )

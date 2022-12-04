@@ -42,6 +42,11 @@ class AccountingService:
         if self.service_klass:
             self.service_klass().refresh_tokens(user)
 
+    def get_request_auth_token(self):
+        user = self.kwargs.get("user")
+        if self.service_klass:
+            return self.service_klass().get_refreshed_tokens(user)
+
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
         if self.service_klass:

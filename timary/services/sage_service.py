@@ -99,8 +99,11 @@ class SageService:
         return None
 
     @staticmethod
-    def create_customer(invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            sage_auth_token = auth_token
+        else:
+            sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
@@ -130,8 +133,11 @@ class SageService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            sage_auth_token = auth_token
+        else:
+            sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 

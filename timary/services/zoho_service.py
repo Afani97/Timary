@@ -111,8 +111,11 @@ class ZohoService:
             user.save()
 
     @staticmethod
-    def create_customer(invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            zoho_auth_token = auth_token
+        else:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
 
         recipient_name = invoice.email_recipient_name.split(" ")
         data = {
@@ -149,8 +152,11 @@ class ZohoService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=False):
+        if auth_token:
+            zoho_auth_token = auth_token
+        else:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
 
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
