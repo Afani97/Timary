@@ -28,14 +28,6 @@ class AccountingError(Exception):
             user.accounting_org_id = None
             user.accounting_refresh_token = None
             user.save()
-        print(
-            f"{self.service=}, "
-            f"{self.user_id=}, "
-            f"{self.requests_response.status_code=}, "
-            f"{self.requests_response.reason=}, "
-            f"{self.requests_response.json()=}",
-            file=sys.stderr,
-        )
 
         error_reason = None
         if self.service.lower() == "quickbooks":
@@ -50,6 +42,16 @@ class AccountingError(Exception):
             error_reason = self.sage_errors(self.requests_response.json())
 
         if not error_reason:
+            # Let Sentry catch this error
+            print(
+                f"{self.service=}, "
+                f"{self.user_id=}, "
+                f"{self.requests_response.status_code=}, "
+                f"{self.requests_response.reason=}, "
+                f"{self.requests_response.json()=}",
+                file=sys.stderr,
+            )
+
             EmailService.send_plain(
                 "Oops, we ran into an error at Timary",
                 f"""
