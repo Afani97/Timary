@@ -8,6 +8,7 @@ from timary.forms import LoginForm, RegisterForm
 from timary.models import User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
+from timary.utils import generate_fake_initial_data
 
 
 def register_user(request):
@@ -49,6 +50,7 @@ def register_user(request):
                     user.stripe_connect_id = connect_id
                     user.stripe_customer_id = customer_id
                     user.save()
+                    generate_fake_initial_data(user)
                     authenticated_user = authenticate(
                         username=user.username, password=password
                     )
