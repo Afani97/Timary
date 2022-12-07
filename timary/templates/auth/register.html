@@ -104,7 +104,7 @@
         }
 
         function checkPasswordIsValid() {
-            const regex = new RegExp("^(?=.{5,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+*!=]).*$");
+            const regex = new RegExp("^(?=.{5,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+*!=-]).*$");
             const passwordInput = document.querySelector("#id_password");
             if (passwordInput.value.length === 0) {
                 passwordInput.classList.remove("input-success");
