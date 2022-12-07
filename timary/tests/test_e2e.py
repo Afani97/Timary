@@ -4,20 +4,24 @@ from contextlib import contextmanager
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import tag
+from django.test import override_settings, tag
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 
 
+@override_settings(DEBUG=True)
 class BaseUITest(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+        os.environ["DEBUG"] = "True"
         super().setUpClass()
         cls.playwright = sync_playwright().start()
-        cls.browser = cls.playwright.webkit.launch(headless=settings.HEADLESS_UI)
+        cls.browser = cls.playwright.webkit.launch(
+            headless=settings.HEADLESS_UI, slow_mo=100
+        )
 
     @classmethod
     def tearDownClass(cls):

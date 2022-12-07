@@ -3,6 +3,7 @@ import json
 import random
 
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 from requests import Response
 
 from timary.models import DailyHoursInput, Invoice, SentInvoice
@@ -56,7 +57,7 @@ def convert_hours_to_decimal_hours(time):
 
 
 def generate_fake_initial_data(user):
-    today = datetime.date.today()
+    today = timezone.now()
 
     example_invoice = Invoice.objects.create(
         title="Example title",
@@ -84,3 +85,12 @@ def generate_fake_initial_data(user):
         )
         hours.sent_invoice_id = sent_invoice.id
         hours.save()
+
+    from django_q.tasks import schedule
+
+    schedule(
+        "timary.tasks.delete_example_invoices",
+        str(example_invoice.id),
+        schedule_type="O",
+        next_run=today + datetime.timedelta(weeks=1),
+    )
