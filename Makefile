@@ -22,6 +22,9 @@ static:
 	make build
 	python manage.py collectstatic --no-input
 	git restore staticfiles/admin
+	git add staticfiles/css
+	git add staticfiles/staticfiles.json
+	git add timarytailwind/static/css
 .PHONY: static
 
 build:

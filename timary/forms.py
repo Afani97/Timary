@@ -471,8 +471,9 @@ class RegisterForm(forms.ModelForm):
                 "placeholder": "*********",
                 "type": "password",
                 "class": "input input-bordered border-2 text-lg w-full mb-4",
-            }
+            },
         ),
+        help_text="Please provide at least 5 characters including 1 uppercase, 1 number, 1 special character.",
         required=True,
     )
 
