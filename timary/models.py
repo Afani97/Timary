@@ -309,7 +309,11 @@ class SentInvoice(BaseModel):
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="sent_invoices"
     )
-    total_price = models.PositiveIntegerField()
+    total_price = models.DecimalField(
+        default=0,
+        max_digits=9,
+        decimal_places=2,
+    )
     paid_status = models.PositiveSmallIntegerField(
         default=PaidStatus.NOT_STARTED, choices=PaidStatus.choices
     )

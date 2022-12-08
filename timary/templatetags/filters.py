@@ -18,3 +18,8 @@ def nextmonday(field):
     day_shift = (weekday - today.weekday()) % 7
     next_date = (today + datetime.timedelta(days=day_shift)).date()
     return template_date(next_date, "M. j, Y") if next_date != today.date() else "today"
+
+
+@register.filter(name="addf")
+def addfloats(val, arg):
+    return float(val) + float(arg)

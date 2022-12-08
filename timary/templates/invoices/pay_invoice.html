@@ -1,4 +1,5 @@
 {% extends 'timary/base.html' %}
+{% load filters %}
 
 {% block css %}
     <style>
@@ -125,7 +126,7 @@
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
                 <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
-                <p>Total Amount Due: ${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
+                <p>Total Amount Due: ${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
             </div>
             <div class="overflow-y-auto mt-10">
                 <table class="table">
@@ -141,7 +142,7 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
-                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat }}</span></td>
+                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
                             </tr>
                         {% endfor %}
                         <tr>
@@ -155,7 +156,7 @@
                                 <p class="f-fallback purchase_total purchase_total--label">Total</p>
                             </td>
                             <td width="20%" class="purchase_footer" valign="middle">
-                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
+                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
                             </td>
                         </tr>
                     </tbody>

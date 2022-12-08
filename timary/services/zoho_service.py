@@ -164,7 +164,7 @@ class ZohoService:
         # Generate item
         data = {
             "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
-            "rate": sent_invoice.total_price,
+            "rate": float(sent_invoice.total_price),
         }
         try:
             item_request = ZohoService.create_request(
@@ -203,9 +203,9 @@ class ZohoService:
             "line_items": [
                 {
                     "item_id": item_id,
-                    "rate": int(sent_invoice.total_price),
+                    "rate": int(float(sent_invoice.total_price)),
                     "quantity": 1,
-                    "item_total": int(sent_invoice.total_price),
+                    "item_total": int(float(sent_invoice.total_price)),
                 }
             ],
         }
@@ -234,12 +234,12 @@ class ZohoService:
         data = {
             "customer_id": sent_invoice.invoice.accounting_customer_id,
             "payment_mode": "creditcard",
-            "amount": int(sent_invoice.total_price),
+            "amount": int(float(sent_invoice.total_price)),
             "date": today_formatted,
             "invoices": [
                 {
                     "invoice_id": sent_invoice.accounting_invoice_id,
-                    "amount_applied": int(sent_invoice.total_price),
+                    "amount_applied": int(float(sent_invoice.total_price)),
                 }
             ],
         }

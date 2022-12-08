@@ -85,7 +85,7 @@ class TestUI(BaseUITest):
             page.fill("#id_hours", "2")
             page.click('button:has-text("Add new hours")')
             page.wait_for_selector("#hours-list li", timeout=2000)
-            self.assertEqual(page.inner_text(".stat-value"), "2.00")
+            self.assertEqual(page.inner_text(".stat-value"), "2")
 
     @tag("ui")
     def test_log_first_hours_time_format(self):
@@ -109,7 +109,7 @@ class TestUI(BaseUITest):
             page.fill("#hours-list #id_hours", "2")
             page.click('button:has-text("Update")')
             page.wait_for_selector("#hours-list li", timeout=2000)
-            self.assertEqual(page.inner_text(".stat-value"), "2.00")
+            self.assertEqual(page.inner_text(".stat-value"), "2")
 
     @tag("ui")
     def test_edit_invoice(self):

@@ -256,9 +256,9 @@ class TestInvoice(TestCase):
         hours3.sent_invoice_id = sent_invoice_3.id
 
         last_six = invoice.get_last_six_months()
-        self.assertEqual(last_six[-1]["data"], "$50")
-        self.assertEqual(last_six[-2]["data"], "$50")
-        self.assertEqual(last_six[-3]["data"], "$100")
+        self.assertEqual(last_six[-1]["data"], "$50.00")
+        self.assertEqual(last_six[-2]["data"], "$50.00")
+        self.assertEqual(last_six[-3]["data"], "$100.00")
 
     def test_get_last_six_months_including_weekly(self):
         invoice = InvoiceFactory(invoice_type=3, invoice_rate=1000)
@@ -284,10 +284,10 @@ class TestInvoice(TestCase):
             date_sent=datetime.date.today() - relativedelta(months=3),
         )
         last_six = invoice.get_last_six_months()
-        self.assertEqual(last_six[-1]["data"], "$1000")
-        self.assertEqual(last_six[-2]["data"], "$2000")
-        self.assertEqual(last_six[-3]["data"], "$3000")
-        self.assertEqual(last_six[-4]["data"], "$4000")
+        self.assertEqual(last_six[-1]["data"], "$1000.00")
+        self.assertEqual(last_six[-2]["data"], "$2000.00")
+        self.assertEqual(last_six[-3]["data"], "$3000.00")
+        self.assertEqual(last_six[-4]["data"], "$4000.00")
 
 
 class TestSentInvoice(TestCase):

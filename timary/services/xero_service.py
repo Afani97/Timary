@@ -170,7 +170,7 @@ class XeroService:
                 {
                     "Description": f"{sent_invoice.user.first_name} services",
                     "Quantity": "1",
-                    "UnitAmount": sent_invoice.total_price,
+                    "UnitAmount": float(sent_invoice.total_price),
                     "AccountCode": "4000",
                     "TaxType": "NONE",
                 }
@@ -203,7 +203,7 @@ class XeroService:
             "Invoice": {"InvoiceID": sent_invoice.accounting_invoice_id},
             "Account": {"Code": "6040"},
             "Date": today_formatted,
-            "Amount": sent_invoice.total_price,
+            "Amount": float(sent_invoice.total_price),
             "Status": "AUTHORISED",
         }
         try:

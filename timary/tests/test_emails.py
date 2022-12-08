@@ -479,8 +479,8 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         with self.subTest("Testing hours line item"):
             msg = f"""
-                <div>{ floatformat(hour.hours, 2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
-                <div>${ floatformat(hour.hours * invoice.invoice_rate) }</div>
+                <div>{ floatformat(hour.hours, -2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
+                <div>${ floatformat(hour.hours * invoice.invoice_rate, -2) }</div>
                 """
             self.assertInHTML(msg, html_message)
 

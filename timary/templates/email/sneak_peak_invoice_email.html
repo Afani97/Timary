@@ -11,7 +11,7 @@
     </div>
     <div class="text-xl font-medium my-4 p-6 tracking-wide bg-base-300">
         <div class="mb-1">
-            <strong>Amount Due: ${{ total_amount | floatformat }}</strong>
+            <strong>Amount Due: ${{ total_amount | floatformat:-2 }}</strong>
         </div>
         <div>
             <strong>Due By:</strong> {{ next_weeks_date }}
@@ -30,13 +30,13 @@
             {% for hour in hours_tracked %}
                 <div class="flex justify-between py-3">
                     <div>{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</div>
-                    <div>${{ hour.cost | floatformat }}</div>
+                    <div>${{ hour.cost | floatformat:-2 }}</div>
                 </div>
             {% endfor %}
         </div>
         <div class="flex justify-end text-xl font-semibold mt-6 mb-10">
             <div>Total</div>
-            <div class="ml-24">${{ total_amount | floatformat }}</div>
+            <div class="ml-24">${{ total_amount | floatformat:-2 }}</div>
         </div>
     </div>
 {% endblock %}

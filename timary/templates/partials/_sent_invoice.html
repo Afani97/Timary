@@ -15,7 +15,7 @@
                     </div>
                 {% endif %}
             </div>
-            <p>Amount earned: ${{ sent_invoice.total_price }}</p>
+            <p>Amount earned: ${{ sent_invoice.total_price|floatformat:-2 }}</p>
             <p>{{ sent_invoice.date_sent }}</p>
         </div>
         <div class="col-span-1">
