@@ -18,10 +18,12 @@ class DailyHoursForm(forms.ModelForm):
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
         if user:
-            invoice_qs = user.get_invoices
+            invoice_qs = user.get_invoices.filter(next_date__isnull=False)
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
+            else:
+                self.fields["invoice"].queryset = Invoice.objects.none()
 
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()

@@ -316,7 +316,7 @@ class TestSendInvoice(TestCase):
         with self.subTest("Testing one day details"):
             formatted_date = hours_1.date_tracked.strftime("%b %-d")
             msg = f"""
-            <div>1.00 hours on { formatted_date }</div>
+            <div>1 hours on { formatted_date }</div>
             <div>$25</div>
             """
             self.assertInHTML(msg, html_message)
@@ -357,7 +357,7 @@ class TestSendInvoice(TestCase):
         with self.subTest("Testing one day details"):
             formatted_date = hours_1.date_tracked.strftime("%b %-d")
             msg = f"""
-            <div>1.00 hours on { formatted_date }</div>
+            <div>1 hours on { formatted_date }</div>
             <div>$25</div>
             """
             self.assertInHTML(msg, html_message)
@@ -439,7 +439,7 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing amount due"):
-            msg = f"<strong>Total Paid: ${sent_invoice.total_price + 5}</strong>"
+            msg = f"<strong>Total Paid: ${floatformat(sent_invoice.total_price + 5, -2)}</strong>"
             self.assertInHTML(msg, html_message)
 
 
