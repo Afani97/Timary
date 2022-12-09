@@ -96,6 +96,11 @@ class SageService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
+        elif method_type == "delete":
+            response = requests.delete(url, headers=headers)
+            if not response.ok:
+                raise AccountingError(requests_response=response)
+            return response.json()
         return None
 
     @staticmethod
@@ -247,5 +252,49 @@ class SageService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        sage_auth_token = SageService.get_refreshed_tokens(user)
+        data = {
+            "contact": {
+                "contact_type_ids": ["CUSTOMER"],
+                "name": "Bob Smith",
+                "main_contact_person": {
+                    "contact_person_type_ids": ["CUSTOMER"],
+                    "name": "Bob Smith",
+                    "email": "bob@example.com",
+                    "is_main_contact": True,
+                    "is_preferred_contact": True,
+                },
+            }
+        }
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+
+        customer_id = response["id"]
+
+        try:
+            SageService.create_request(
+                sage_auth_token,
+                f"contacts/{customer_id}",
+                "delete",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

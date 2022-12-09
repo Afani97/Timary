@@ -200,3 +200,35 @@ class QuickbooksService:
                 user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
+
+    @staticmethod
+    def test_integration(user):
+        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(user)
+        endpoint = f"v3/company/{user.accounting_org_id}/customer?minorversion=63"
+        data = {
+            "DisplayName": "Bob Smith",
+            "FullyQualifiedName": "Bob Smith",
+            "PrimaryEmailAddr": {"Address": "bob@example.com"},
+        }
+        try:
+            response = QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+
+        customer_id = response["Customer"]["Id"]
+
+        data = {"Active": False, "SyncToken": "0", "Id": customer_id, "sparse": True}
+        try:
+            QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )

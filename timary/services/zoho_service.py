@@ -93,6 +93,9 @@ class ZohoService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
+        if method_type == "delete":
+            response = requests.delete(url, headers=headers)
+            return response.json()
         return None
 
     @staticmethod
@@ -254,5 +257,54 @@ class ZohoService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        zoho_auth_token = ZohoService.get_refreshed_tokens(user)
+
+        data = {
+            "contact_name": "Bob Smith",
+            "email": "bob@example.com",
+            "contact_persons": [
+                {
+                    "first_name": "Bob",
+                    "last_name": "Smith",
+                    "email": "bob@example.com",
+                    "is_primary_contact": True,
+                }
+            ],
+        }
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token,
+                user.accounting_org_id,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        if "contact" not in response or "contact_id" not in response["contact"]:
+            raise AccountingError(
+                user=user,
+                requests_response=response,
+            )
+        customer_id = response["contact"]["contact_id"]
+
+        try:
+            ZohoService.create_request(
+                zoho_auth_token,
+                user.accounting_org_id,
+                f"contacts/{customer_id}",
+                "delete",
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

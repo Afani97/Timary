@@ -56,3 +56,8 @@ class AccountingService:
         sent_invoice = self.kwargs.get("sent_invoice")
         if self.service_klass:
             self.service_klass().create_invoice(sent_invoice)
+
+    def test_integration(self):
+        user = self.kwargs.get("user")
+        if self.service_klass:
+            self.service_klass().test_integration(user)

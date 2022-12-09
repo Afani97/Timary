@@ -11,7 +11,7 @@ from timary.custom_errors import AccountingError
 class FreshbooksService:
     @staticmethod
     def get_domain():
-        ngrok_local_url = "https://626e-71-87-212-255.ngrok.io"
+        ngrok_local_url = "https://d011-71-87-212-255.ngrok.io"
 
         domain = (
             settings.SITE_URL
@@ -132,7 +132,7 @@ class FreshbooksService:
         if method_type == "get":
             response = requests.get(url, headers=headers)
             return response.json()
-        elif method_type == "post":
+        elif method_type in ["post", "put"]:
             response = requests.post(url, headers=headers, data=json.dumps(data))
             if not response.ok:
                 raise AccountingError(requests_response=response)
@@ -230,5 +230,41 @@ class FreshbooksService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(user)
+        data = {
+            "client": {
+                "email": "bob@example.com",
+                "fname": "Bob",
+                "lname": "Smith",
+            }
+        }
+        endpoint = f"accounting/account/{user.accounting_org_id}/users/clients"
+        try:
+            response = FreshbooksService.create_request(
+                freshbooks_auth_token, endpoint, method_type="post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customer_id = response["response"]["result"]["client"]["id"]
+
+        data = {"client": {"vis_state": 1}}
+        endpoint = (
+            f"accounting/account/{user.accounting_org_id}/users/clients/{customer_id}"
+        )
+        try:
+            FreshbooksService.create_request(
+                freshbooks_auth_token, endpoint, method_type="put", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

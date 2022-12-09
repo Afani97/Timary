@@ -219,3 +219,50 @@ class XeroService:
                 user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
+
+    @staticmethod
+    def test_integration(user):
+        xero_auth_token = XeroService.get_refreshed_tokens(user)
+
+        data = {
+            "Name": "Bob Smith",
+            "EmailAddress": "bob@example.com",
+        }
+
+        try:
+            response = XeroService.create_request(
+                xero_auth_token,
+                user.accounting_org_id,
+                "Contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        response_json = response.json()
+        if "Contacts" not in response_json:
+            raise AccountingError(
+                user=user,
+                requests_response=response,
+            )
+
+        customer_id = response_json["Contacts"][0]["ContactID"]
+
+        data = {"ContactID": customer_id, "ContactStatus": "ARCHIVED"}
+
+        try:
+            XeroService.create_request(
+                xero_auth_token,
+                user.accounting_org_id,
+                "Contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )

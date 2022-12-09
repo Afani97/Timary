@@ -27,10 +27,9 @@ def accounting_connect(request):
 @require_http_methods(["GET"])
 def accounting_redirect(request):
     user: User = request.user
+    accounting_service = AccountingService({"user": user, "request": request})
     try:
-        access_token = AccountingService(
-            {"user": user, "request": request}
-        ).get_auth_tokens()
+        access_token = accounting_service.get_auth_tokens()
     except AccountingError as ae:
         error_reason = ae.log(initial_sync=True)
         messages.error(
@@ -50,6 +49,19 @@ def accounting_redirect(request):
         )
         user.accounting_org = None
         user.save()
+        return redirect(reverse("timary:user_profile"))
+
+    try:
+        accounting_service.test_integration()
+    except AccountingError as ae:
+        error_reason = ae.log(initial_sync=True)
+        messages.error(
+            request,
+            f"We had trouble integrating with {user.accounting_org.title()}.",
+            extra_tags="integration-err",
+        )
+        if error_reason:
+            messages.error(request, error_reason, extra_tags="specific-err")
         return redirect(reverse("timary:user_profile"))
 
     messages.success(
