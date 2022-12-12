@@ -41,6 +41,7 @@ django==4.1.2
     #   -r requirements.in
     #   django-browser-reload
     #   django-csp
+    #   django-debug-toolbar
     #   django-multiselectfield
     #   django-otp
     #   django-phonenumber-field
@@ -54,6 +55,8 @@ django-browser-reload==1.6.0
     #   -r requirements.in
     #   django-tailwind
 django-csp==3.7
+    # via -r requirements.in
+django-debug-toolbar==3.8.1
     # via -r requirements.in
 django-multiselectfield @ git+https://github.com/macmichael01/django-multiselectfield@master
     # via -r requirements.in
@@ -159,7 +162,9 @@ six==1.16.0
     #   html5lib
     #   python-dateutil
 sqlparse==0.4.3
-    # via django
+    # via
+    #   django
+    #   django-debug-toolbar
 stripe==4.2.0
     # via -r requirements.in
 tinycss2==1.2.1
