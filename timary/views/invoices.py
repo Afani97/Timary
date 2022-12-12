@@ -21,8 +21,7 @@ from timary.utils import show_active_timer, show_alert_message
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
     sent_invoices_owed = request.user.sent_invoices.filter(
-        Q(paid_status=SentInvoice.PaidStatus.PENDING)
-        | Q(paid_status=SentInvoice.PaidStatus.FAILED)
+        ~Q(paid_status=SentInvoice.PaidStatus.PAID)
     ).aggregate(total=Sum("total_price"))
     sent_invoices_owed = (
         sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
@@ -38,8 +37,8 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
-        "sent_invoices_owed": int(sent_invoices_owed),
-        "sent_invoices_earned": int(sent_invoices_paid),
+        "sent_invoices_owed": sent_invoices_owed,
+        "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
     context.update(show_active_timer(request.user))

@@ -20,12 +20,12 @@
         <div class="md:flex justify-center mb-4 hidden">
             <div class="stats shadow">
                 <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_owed }}</div>
+                    <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>
                     <div class="stat-desc">owed</div>
                 </div>
 
                 <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_earned }}</div>
+                    <div class="stat-value">${{ sent_invoices_earned|floatformat:-2 }}</div>
                     <div class="stat-desc">total earned</div>
                 </div>
 

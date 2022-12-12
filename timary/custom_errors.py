@@ -126,4 +126,4 @@ Timary Team
             first_error = response[0]
             # Sage account is not active anymore.
             if first_error["$dataCode"] == "AuthorizationFailure":
-                return "Your Sage account seems to be in-active. Please re-active to sync your invoices."
+                return "Your Sage account seems to be in-active. Please re-activate to sync your invoices."

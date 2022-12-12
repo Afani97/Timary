@@ -529,12 +529,12 @@ class TestInvoices(BaseTest):
             f"""
             <div class="stats shadow">
               <div class="stat place-items-center">
-                <div class="stat-value">${int(s1.total_price) }</div>
+                <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
                 <div class="stat-desc">owed</div>
               </div>
 
               <div class="stat place-items-center">
-                <div class="stat-value">${ int(s2.total_price) }</div>
+                <div class="stat-value">${ floatformat(s2.total_price, -2) }</div>
                 <div class="stat-desc">total earned</div>
               </div>
             </div>""",
