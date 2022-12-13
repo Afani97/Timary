@@ -4,7 +4,6 @@ factory-boy
 django
 django-browser-reload
 django-csp
-django-debug-toolbar
 # django-multiselectfield
 # Use this until django-mulitselectfield is updated
 git+https://github.com/macmichael01/django-multiselectfield@master

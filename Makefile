@@ -21,7 +21,7 @@ runp:
 static:
 	make build
 	python manage.py collectstatic --no-input
-	git restore staticfiles/admin staticfiles/debug_toolbar/
+	git restore staticfiles/admin
 	git add staticfiles/css staticfiles/staticfiles.json timarytailwind/static/css
 .PHONY: static
 
