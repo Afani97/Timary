@@ -366,7 +366,11 @@ class TestUser(TestCase):
         user = UserFactory(phone_number_availability=["Mon", "Tue"])
         self.assertEqual(
             user.settings,
-            {"phone_number_availability": ["Mon", "Tue"], "accounting_connected": None},
+            {
+                "phone_number_availability": ["Mon", "Tue"],
+                "accounting_connected": None,
+                "subscription_active": True,
+            },
         )
 
     def test_get_active_invoices(self):

@@ -445,6 +445,7 @@ ari@usetimary.com
             and self.paid_status == SentInvoice.PaidStatus.PAID
             and self.accounting_invoice_id is None
             and self.invoice.accounting_customer_id is not None
+            and self.user.settings["subscription_active"]
         )
 
     def sync_invoice(self):
@@ -471,6 +472,11 @@ class User(AbstractUser, BaseModel):
         PENDING = 2, "PENDING"
         MORE_INFO = 3, "MORE_INFO"
 
+    class StripeSubscriptionStatus(models.IntegerChoices):
+        TRIAL = 1, "TRIAL"
+        ACTIVE = 2, "ACTIVE"
+        INACTIVE = 3, "INACTIVE"
+
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
@@ -478,6 +484,9 @@ class User(AbstractUser, BaseModel):
     stripe_connect_reason = models.IntegerField(
         default=StripeConnectDisabledReasons.MORE_INFO,
         choices=StripeConnectDisabledReasons.choices,
+    )
+    stripe_subscription_status = models.IntegerField(
+        default=StripeSubscriptionStatus.TRIAL, choices=StripeSubscriptionStatus.choices
     )
 
     WEEK_DAYS = (
@@ -523,11 +532,19 @@ class User(AbstractUser, BaseModel):
         return {
             "accounting_connected": self.get_accounting_connected,
             "phone_number_availability": self.phone_number_availability,
+            "subscription_active": self.subscription_is_active,
         }
 
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
+
+    @property
+    def subscription_is_active(self):
+        return self.stripe_subscription_status in [
+            User.StripeSubscriptionStatus.TRIAL,
+            User.StripeSubscriptionStatus.ACTIVE,
+        ]
 
     def get_all_invoices(self):
         return self.invoices.all()
@@ -556,7 +573,7 @@ class User(AbstractUser, BaseModel):
 
     @property
     def can_accept_payments(self):
-        return self.stripe_payouts_enabled
+        return self.stripe_payouts_enabled and self.settings["subscription_active"]
 
     def user_referred(self):
         subscription = StripeService.get_subscription(self.stripe_subscription_id)

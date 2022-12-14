@@ -319,7 +319,7 @@ class TestStripeViews(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "invoices/success_pay_invoice.html")
 
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.get_connect_account")
     def test_onboard_success_with_payouts_not_enabled(
         self, stripe_connect_mock, stripe_subscription_mock
@@ -337,7 +337,7 @@ class TestStripeViews(BaseTest):
         self.assertRedirects(response, reverse("timary:manage_invoices"))
         self.assertFalse(self.user.stripe_payouts_enabled)
 
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.get_connect_account")
     def test_onboard_success_without_user_redirects_to_register(
         self, stripe_connect_mock, stripe_subscription_mock
@@ -352,7 +352,7 @@ class TestStripeViews(BaseTest):
         )
         self.assertFalse(self.user.stripe_payouts_enabled)
 
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.get_connect_account")
     def test_onboard_success_invalid_user_id(
         self, stripe_connect_mock, stripe_subscription_mock

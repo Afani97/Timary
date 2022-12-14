@@ -199,12 +199,25 @@ class StripeService:
         return intent
 
     @classmethod
-    def create_subscription(cls, user, delete_current=None):
+    def create_new_subscription(cls, user):
         stripe.api_key = cls.stripe_api_key
 
-        if delete_current and user.stripe_subscription_id:
-            if stripe.Subscription.retrieve(user.stripe_subscription_id):
-                stripe.Subscription.delete(user.stripe_subscription_id)
+        subscription = stripe.Subscription.create(
+            customer=user.stripe_customer_id,
+            items=[
+                {"price": StripeService.get_price_id()},
+            ],
+            trial_period_days=30,  # 30 day free trial
+        )
+        user.stripe_subscription_id = subscription["id"]
+        user.save()
+
+    @classmethod
+    def readd_subscription(cls, user):
+        """Difference from create_new_subscription is no trial"""
+        from timary.models import User
+
+        stripe.api_key = cls.stripe_api_key
 
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
@@ -213,6 +226,7 @@ class StripeService:
             ],
         )
         user.stripe_subscription_id = subscription["id"]
+        user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
         user.save()
 
     @classmethod
@@ -224,6 +238,16 @@ class StripeService:
     def get_subscription(cls, subscription_id):
         stripe.api_key = cls.stripe_api_key
         return stripe.Subscription.retrieve(subscription_id)
+
+    @classmethod
+    def cancel_subscription(cls, user):
+        from timary.models import User
+
+        stripe.api_key = cls.stripe_api_key
+        stripe.Subscription.delete(user.stripe_subscription_id)
+        user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
+        user.stripe_subscription_id = None
+        user.save()
 
     @classmethod
     def update_connect_account(cls, user_id, account_id):

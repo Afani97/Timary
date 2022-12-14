@@ -225,6 +225,15 @@ def generate_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
+    if not request.user.settings["subscription_active"]:
+        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        show_alert_message(
+            response,
+            "warning",
+            "Your account is in-active. Please re-activate to generate an invoice.",
+            persist=True,
+        )
+        return response
     if (
         invoice.invoice_type == Invoice.InvoiceType.MILESTONE
         and invoice.milestone_step > invoice.milestone_total_steps

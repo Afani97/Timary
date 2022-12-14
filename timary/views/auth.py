@@ -55,6 +55,7 @@ def register_user(request):
                         username=user.username, password=password
                     )
                     if authenticated_user:
+                        StripeService.create_new_subscription(user)
                         login(request, authenticated_user)
 
                         if referrer_id:

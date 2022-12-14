@@ -69,7 +69,7 @@ class TestUserProfile(BaseTest):
             response.content.decode("utf-8"),
         )
 
-    @patch("timary.services.stripe_service.StripeService.create_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     def test_update_user_profile(self, stripe_subscription_mock):
         stripe_subscription_mock.return_value = None
         data = {

@@ -42,7 +42,7 @@
                             </a>
                         </li>
                     {% endif %}
-                    {% if invoice.user.accounting_org_id and not invoice.accounting_customer_id %}
+                    {% if invoice.user.accounting_org_id and not invoice.accounting_customer_id and invoice.user.settings.subscription_active %}
                         <li>
                             <a hx-get="{% url 'timary:sync_invoice' invoice_id=invoice.id %}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">

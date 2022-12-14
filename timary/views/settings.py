@@ -232,6 +232,35 @@ def update_user_password(request):
         raise Http404()
 
 
+@login_required()
+@require_http_methods(["GET"])
+def update_subscription(request):
+    action = request.GET.get("action")
+    if action.lower() == "cancel":
+        StripeService.cancel_subscription(request.user)
+        response = render(request, "partials/settings/account/_add_subscription.html")
+        show_alert_message(
+            response,
+            "warning",
+            "We're sorry to see you go. Note, no more invoices or accounting service "
+            "will be updated until you re-subscribe.",
+            persist=True,
+        )
+        return response
+    elif action.lower() == "add":
+        StripeService.readd_subscription(request.user)
+        response = render(
+            request, "partials/settings/account/_cancel_subscription.html"
+        )
+        show_alert_message(
+            response,
+            "success",
+            "Hooray! We're happy you're back! Please let us know if you have any questions. Other than that, welcome!",
+            persist=True,
+        )
+        return response
+
+
 @login_required
 @require_http_methods(["GET"])
 def audit(request):
