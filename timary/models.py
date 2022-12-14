@@ -408,6 +408,19 @@ class SentInvoice(BaseModel):
             msg_body,
             self.invoice.email_recipient,
         )
+        EmailService.send_plain(
+            "Success! Your getting paid!",
+            f"""
+Your recent invoice (#{self.email_id}) has been processed for payment.
+
+You should receive your funds as soon as it has finished, usually within a few days.
+
+Thanks again for using Timary,
+Ari
+ari@usetimary.com
+            """,
+            self.user.email,
+        )
 
         if self.user.accounting_org_id:
             try:
