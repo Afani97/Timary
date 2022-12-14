@@ -25,6 +25,21 @@ class ZohoMocks:
     @staticmethod
     @urlmatch(
         scheme="https",
+        netloc="invoice.zoho.com",
+        path="/api/v3/organization",
+        method="GET",
+    )
+    def zoho_org_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = (
+            b'{"message": "success", "organizations": [{"organization_id": "abc123"}]}'
+        )
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
         netloc="accounts.zoho.com",
         path="/oauth/v2/token",
         method="POST",
@@ -139,7 +154,7 @@ class TestZohoService(TestCase):
         get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
-        with HTTMock(ZohoMocks.zoho_oauth_mock):
+        with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_org_mock):
             auth_token = ZohoService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 

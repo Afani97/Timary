@@ -20,12 +20,12 @@
         <div class="md:flex justify-center mb-4 hidden">
             <div class="stats shadow">
                 <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_owed }}</div>
+                    <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>
                     <div class="stat-desc">owed</div>
                 </div>
 
                 <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_earned }}</div>
+                    <div class="stat-value">${{ sent_invoices_earned|floatformat:-2 }}</div>
                     <div class="stat-desc">total earned</div>
                 </div>
 
@@ -76,7 +76,7 @@
 
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
-        <div class="modal-box bg-neutral">
+        <div class="modal-box bg-neutral w-11/12 max-w-2xl">
             {% include "invoices/_create.html" with form=new_invoice %}
         </div>
     </div>

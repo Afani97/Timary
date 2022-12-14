@@ -144,9 +144,9 @@ class TestInvoices(BaseTest):
 
     def test_manage_invoices(self):
         response = self.client.get(reverse("timary:manage_invoices"))
-        self.assertContains(
-            response,
+        self.assertInHTML(
             f'<h2 class="card-title">{self.invoice.title} - Rate: ${self.invoice.invoice_rate}</h2>',
+            response.content.decode(),
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
@@ -218,7 +218,7 @@ class TestInvoices(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
             f"""<ul class="list-none">
-                <li class="text-xl">{floatformat(hour.hours, 2)} hrs on {date(hour.date_tracked, "M jS")}</li>
+                <li class="text-xl">{floatformat(hour.hours, -2)} hrs on {date(hour.date_tracked, "M jS")}</li>
            </ul>""",
             response.content.decode("utf-8"),
         )
@@ -508,7 +508,11 @@ class TestInvoices(BaseTest):
 
         hours1 = DailyHoursFactory(invoice__user=self.user)
         hours2 = DailyHoursFactory(invoice__user=self.user)
-        s1 = SentInvoiceFactory(invoice=hours1.invoice, user=self.user)
+        s1 = SentInvoiceFactory(
+            invoice=hours1.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PENDING,
+        )
         s2 = SentInvoiceFactory(
             invoice=hours2.invoice,
             user=self.user,
@@ -525,12 +529,12 @@ class TestInvoices(BaseTest):
             f"""
             <div class="stats shadow">
               <div class="stat place-items-center">
-                <div class="stat-value">${int(s1.total_price) }</div>
+                <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
                 <div class="stat-desc">owed</div>
               </div>
 
               <div class="stat place-items-center">
-                <div class="stat-value">${ int(s2.total_price) }</div>
+                <div class="stat-value">${ floatformat(s2.total_price, -2) }</div>
                 <div class="stat-desc">total earned</div>
               </div>
             </div>""",

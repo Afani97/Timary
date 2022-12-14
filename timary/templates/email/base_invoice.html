@@ -62,6 +62,9 @@
                 </div>
             {% endif %}
             <div class="social_media my-8 flex flex-col space-y-1">
+                {% if invoice_branding.personal_website %}
+                    <a href="{{ invoice_branding.personal_website }}" id="personal_website" class="link text-center">{{ invoice_branding.personal_website }}</a>
+                {% endif %}
                 {% if invoice_branding.linked_in %}
                     <a href="{{ invoice_branding.linked_in }}" id="linked_in" class="link text-center">Linkedin</a>
                 {% endif %}

@@ -7,6 +7,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from timary.models import DailyHoursInput, User
 from timary.services.twilio_service import TwilioClient
+from timary.utils import convert_hours_to_decimal_hours
 
 
 @twilio_view
@@ -23,25 +24,47 @@ def twilio_reply(request):
             TwilioClient.send_message(user, "All set for today. Keep it up!")
         return MessagingResponse()
 
-    _, invoice_title = last_message.body.split(":")
-    invoice_title = invoice_title.split(".")[0]
-    invoice = user.get_invoices.filter(title=invoice_title.strip()).first()
+    _, invoice_title = last_message.body.rsplit(":", maxsplit=1)
+    invoice_title = invoice_title.split(".")[0].strip()
+    invoices = user.get_invoices.filter(title__exact=invoice_title)
+    invoice = None
+    if invoices.count() == 1:
+        invoice = invoices.first()
+
+    if not invoice:
+        r = MessagingResponse()
+        r.message(f"Unable to track hours for {invoice_title}.")
+        return r
 
     skip = False
     if twilio_request.body.lower() == "s":
         skip = True
 
     if not skip:
+        # Normal decimal hours
         try:
             hours = Decimal(twilio_request.body)
         except InvalidOperation:
-            r = MessagingResponse()
-            r.message(
-                f"Wrong input, only numbers please. How many hours to log for: {invoice.title}. Reply 'S' to skip"
-            )
-            return r
+            # Hours entered as 1:30 -> 1.5 hours
+            if ":" in twilio_request.body:
+                try:
+                    hours = convert_hours_to_decimal_hours(twilio_request.body)
+                except Exception:
+                    r = MessagingResponse()
+                    r.message(
+                        f"Wrong input, allowed formats are '1.5' or '1:30'. "
+                        f"How many hours to log for: {invoice.title}. Reply 'S' to skip"
+                    )
+                    return r
+            else:
+                r = MessagingResponse()
+                r.message(
+                    f"Wrong input, allowed formats are '1.5' or '1:30'. "
+                    f"How many hours to log for: {invoice.title}. Reply 'S' to skip"
+                )
+                return r
 
-        if 0 < hours <= 24:
+        if hours and 0 < hours <= 24:
             DailyHoursInput.objects.create(
                 hours=hours,
                 date_tracked=datetime.date.today(),

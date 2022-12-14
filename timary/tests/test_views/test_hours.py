@@ -1,6 +1,7 @@
 import datetime
 import random
 
+from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -126,7 +127,7 @@ class TestDailyHours(BaseTest):
         self.hours.refresh_from_db()
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{self.hours.hours} hrs for {self.hours.invoice.title}</h2>
+            <h2 class="card-title">{floatformat(self.hours.hours, -2)} hrs for {self.hours.invoice.title}</h2>
             """,
             response.content.decode("utf-8"),
         )

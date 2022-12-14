@@ -46,7 +46,7 @@ class TestAuthViews(TestCase):
             },
         )
         self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, self.STRIPE_REDIRECT)
+        self.assertEquals(response.url, reverse("timary:manage_invoices"))
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
@@ -69,7 +69,7 @@ class TestAuthViews(TestCase):
             },
         )
         self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, self.STRIPE_REDIRECT)
+        self.assertEquals(response.url, reverse("timary:manage_invoices"))
         self.assertTrue(user_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")

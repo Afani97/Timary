@@ -5,7 +5,7 @@
 
 {% block content %}
     <div class="max-w-3xl mx-auto mt-6">
-        <h1 class="text-3xl mb-4 text-center">Signup</h1>
+        <h1 class="text-3xl mb-4 text-center">Register</h1>
 
         <div class="max-w-xl mx-auto">
             <div class="card md:p-5 bg-neutral text-neutral-content">
@@ -22,6 +22,7 @@
                                     <span class="label-text">{{ field.label}}</span>
                                 </label>
                                 {{ field | addclass:field.field.widget.attrs.class}}
+                                <span class="label-text-alt -mt-2">{{ field.help_text }}</span>
                                 {% for error in field.errors %}
                                     <div class="text-red-600">
                                         <strong>{{ error|escape }}</strong>
@@ -69,11 +70,17 @@
 
         let elements;
         let cardElement;
+        let cardElementComplete = false;
 
         initialize();
 
         let signupButton = document.querySelector("#register-btn");
         signupButton.addEventListener("click", handleSubmit);
+
+        const passwordInput = document.querySelector("#id_password");
+        passwordInput.addEventListener("keyup", checkPasswordIsValid);
+
+        let registerBtn = htmx.find("#register-btn");
 
         // Fetches a payment intent and captures the client secret
         function initialize() {
@@ -81,16 +88,46 @@
             cardElement = elements.create("card", {{ stripe_card_element_ui|safe }});
             cardElement.mount("#card-element");
 
-            let registerBtn = htmx.find("#register-btn");
             cardElement.on('change', function(e) {
                 if (e.complete) {
-                    htmx.removeClass(registerBtn, "btn-disabled");
-                    htmx.addClass(registerBtn, "btn-primary")
+                    cardElementComplete = true;
+                    if (checkPasswordIsValid()) {
+                        htmx.removeClass(registerBtn, "btn-disabled");
+                        htmx.addClass(registerBtn, "btn-primary");
+                    }
                 } else {
+                    cardElementComplete = false;
                     htmx.addClass(registerBtn, "btn-disabled");
-                    htmx.removeClass(registerBtn, "btn-primary")
+                    htmx.removeClass(registerBtn, "btn-primary");
                 }
             })
+        }
+
+        function checkPasswordIsValid() {
+            const regex = new RegExp("^(?=.{5,})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+*!=-]).*$");
+            const passwordInput = document.querySelector("#id_password");
+            if (passwordInput.value.length === 0) {
+                passwordInput.classList.remove("input-success");
+                passwordInput.classList.remove("input-error");
+                htmx.addClass(registerBtn, "btn-disabled");
+                htmx.removeClass(registerBtn, "btn-primary");
+                return false;
+            }
+            const isValid = regex.test(passwordInput.value);
+            if (isValid) {
+                passwordInput.classList.remove("input-error");
+                passwordInput.classList.add("input-success");
+                if (cardElementComplete) {
+                    htmx.removeClass(registerBtn, "btn-disabled");
+                    htmx.addClass(registerBtn, "btn-primary")
+                }
+            } else {
+                passwordInput.classList.remove("input-success");
+                passwordInput.classList.add("input-error");
+                htmx.addClass(registerBtn, "btn-disabled");
+                htmx.removeClass(registerBtn, "btn-primary");
+            }
+            return isValid;
         }
 
         function createHiddenInput(el, val) {

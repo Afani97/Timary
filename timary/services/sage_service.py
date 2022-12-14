@@ -96,11 +96,19 @@ class SageService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
+        elif method_type == "delete":
+            response = requests.delete(url, headers=headers)
+            if not response.ok:
+                raise AccountingError(requests_response=response)
+            return response.json()
         return None
 
     @staticmethod
-    def create_customer(invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            sage_auth_token = auth_token
+        else:
+            sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
@@ -130,8 +138,11 @@ class SageService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            sage_auth_token = auth_token
+        else:
+            sage_auth_token = SageService.get_refreshed_tokens(sent_invoice.user)
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
 
@@ -241,5 +252,49 @@ class SageService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        sage_auth_token = SageService.get_refreshed_tokens(user)
+        data = {
+            "contact": {
+                "contact_type_ids": ["CUSTOMER"],
+                "name": "Bob Smith",
+                "main_contact_person": {
+                    "contact_person_type_ids": ["CUSTOMER"],
+                    "name": "Bob Smith",
+                    "email": "bob@example.com",
+                    "is_main_contact": True,
+                    "is_preferred_contact": True,
+                },
+            }
+        }
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+
+        customer_id = response["id"]
+
+        try:
+            SageService.create_request(
+                sage_auth_token,
+                f"contacts/{customer_id}",
+                "delete",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

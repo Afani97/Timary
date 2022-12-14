@@ -7,6 +7,7 @@ from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
+from timary.utils import simulate_requests_response
 
 
 class XeroService:
@@ -71,7 +72,13 @@ class XeroService:
             request.user.accounting_org_id = tenant_response[0]["tenantId"]
             request.user.save()
             return response["access_token"]
-        return None
+        else:
+            failed_response = simulate_requests_response(
+                status_code=400,
+                error_num=10,
+                message="We weren't able to find a valid account. Please re-try adding a Xero organization.",
+            )
+            raise AccountingError(user=request.user, requests_response=failed_response)
 
     @staticmethod
     def get_refreshed_tokens(user):
@@ -103,17 +110,18 @@ class XeroService:
             response = requests.get(url, headers=headers)
             return response.json()
         elif method_type == "post":
-            response = requests.post(url, headers=headers, data=json.dumps(data))
-            return response.json()
+            return requests.post(url, headers=headers, data=json.dumps(data))
         elif method_type == "put":
-            response = requests.put(url, headers=headers, data=json.dumps(data))
-            return response.json()
+            return requests.put(url, headers=headers, data=json.dumps(data))
         else:
             return None
 
     @staticmethod
-    def create_customer(invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            xero_auth_token = auth_token
+        else:
+            xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
 
         data = {
             "Name": invoice.email_recipient_name,
@@ -133,17 +141,21 @@ class XeroService:
                 user=invoice.user,
                 requests_response=ae.requests_response,
             )
-        if "Contacts" not in response:
+        response_json = response.json()
+        if "Contacts" not in response_json:
             raise AccountingError(
                 user=invoice.user,
                 requests_response=response,
             )
-        invoice.accounting_customer_id = response["Contacts"][0]["ContactID"]
+        invoice.accounting_customer_id = response_json["Contacts"][0]["ContactID"]
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            xero_auth_token = auth_token
+        else:
+            xero_auth_token = XeroService.get_refreshed_tokens(sent_invoice.user)
 
         # Generate invoice
         today = datetime.date.today() + datetime.timedelta(days=1)
@@ -158,8 +170,8 @@ class XeroService:
                 {
                     "Description": f"{sent_invoice.user.first_name} services",
                     "Quantity": "1",
-                    "UnitAmount": sent_invoice.total_price,
-                    "AccountCode": "400",
+                    "UnitAmount": float(sent_invoice.total_price),
+                    "AccountCode": "4000",
                     "TaxType": "NONE",
                 }
             ],
@@ -177,20 +189,21 @@ class XeroService:
                 user=sent_invoice.user,
                 requests_response=ae.requests_response,
             )
-        if "Invoices" not in response:
+        response_json = response.json()
+        if "Invoices" not in response_json:
             raise AccountingError(
                 user=sent_invoice.user,
                 requests_response=response,
             )
-        sent_invoice.accounting_invoice_id = response["Invoices"][0]["InvoiceID"]
+        sent_invoice.accounting_invoice_id = response_json["Invoices"][0]["InvoiceID"]
         sent_invoice.save()
 
         # Generate payment for invoice
         data = {
             "Invoice": {"InvoiceID": sent_invoice.accounting_invoice_id},
-            "Account": {"Code": "400"},
+            "Account": {"Code": "6040"},
             "Date": today_formatted,
-            "Amount": sent_invoice.total_price,
+            "Amount": float(sent_invoice.total_price),
             "Status": "AUTHORISED",
         }
         try:
@@ -204,5 +217,52 @@ class XeroService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        xero_auth_token = XeroService.get_refreshed_tokens(user)
+
+        data = {
+            "Name": "Bob Smith",
+            "EmailAddress": "bob@example.com",
+        }
+
+        try:
+            response = XeroService.create_request(
+                xero_auth_token,
+                user.accounting_org_id,
+                "Contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        response_json = response.json()
+        if "Contacts" not in response_json:
+            raise AccountingError(
+                user=user,
+                requests_response=response,
+            )
+
+        customer_id = response_json["Contacts"][0]["ContactID"]
+
+        data = {"ContactID": customer_id, "ContactStatus": "ARCHIVED"}
+
+        try:
+            XeroService.create_request(
+                xero_auth_token,
+                user.accounting_org_id,
+                "Contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

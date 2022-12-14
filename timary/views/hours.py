@@ -136,3 +136,18 @@ def repeat_hours(request):
         response, "success", "Yesterday's hours repeated again today", "newHours"
     )
     return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def update_timer(request):
+    timer_val = request.GET.get("timerVal", None)
+    timer_paused = request.GET.get("timerPaused", None)
+    timer_stopped = request.GET.get("timerStopped", None)
+    if timer_stopped and timer_stopped == "true":
+        request.user.timer_is_active = None
+        request.user.save()
+        return HttpResponse("Stopped")
+    request.user.timer_is_active = f"{timer_val},{timer_paused}"
+    request.user.save()
+    return HttpResponse("Ok")

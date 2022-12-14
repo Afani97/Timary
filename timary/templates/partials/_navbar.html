@@ -1,4 +1,4 @@
-<div class="navbar mb-2 px-6 md:px-12 shadow-lg bg-neutral text-neutral-content" hx-boost="true">
+<div class="navbar mb-2 px-6 md:px-12 shadow-lg bg-neutral text-neutral-content">
     <div class="flex-1 px-2 mx-2">
         <a class="text-lg font-bold" href="{% url 'timary:landing_page' %}">
             Timary
@@ -75,9 +75,19 @@
         </div>
     </div>
 </div>
+
 {% if request.user.is_authenticated %}
     <div class="mx-5 md:mx-0">
-        {% if not completed_connect_account %}
+        {% if connect_status == 1 %}
+            <div class="alert alert-info max-w-3xl mx-auto">
+                <div class="flex-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <label class="mx-3 text-center">
+                        Stripe is verifying your credentials so you'll receive your payments. Should be resolved soon!
+                    </label>
+                </div>
+            </div>
+        {% elif connect_status == 2 %}
             <div class="alert alert-warning max-w-3xl mx-auto">
                 <div class="flex-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -95,16 +105,127 @@
 {% endif %}
 
 <div id="alert-messages" class="mx-5">
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert {{ message.tags }} shadow-lg max-w-xl mx-auto my-2">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>{{ message }}</span>
+                <div class="flex flex-row justify-between w-full">
+                    <div class="flex flex-row space-x-2 ">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>{{ message }}</span>
+                    </div>
+                    <div onclick="document.getElementsByClassName('{{ message.extra_tags }}')[0].remove()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </div>
             </div>
         {% endfor %}
-
     {% endif %}
 </div>
+<div id="toast-messages" class="toast toast-top toast-center z-50"></div>
+
+{# Timer #}
+{% if request.user.is_authenticated %}
+    <div class="my-10 hidden max-w-xl mx-auto px-3 md:px-0 " id="timer_container">
+        <div class="alert alert-info shadow-lg alert-msg">
+            <div class="flex flex-row justify-between w-full px-3">
+                <span>Don't close this tab! The timer will stop.</span>
+                <span>
+                    <svg _="on click remove closest .alert-msg" xmlns="http://www.w3.org/2000/svg"  class="stroke-current flex-shrink-0 h-6 w-6 " fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </span>
+            </div>
+        </div>
+        <div class="flex justify-center my-5">
+            <div hx-get="{% url 'timary:update_timer' %}"
+                id="update-timer" hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
+                hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
+                hx-swap="none"
+            >
+                <span class="font-mono text-2xl countdown flex justify-center my-5">
+                    <span id="timer_hour">00</span>:
+                    <span id="timer_min">00</span>:
+                    <span id="timer_sec">00</span>
+                </span>
+                <div class="btn-group">
+                    <button id="pause_timer" class="btn btn-active hidden" _="on click call pause()">Pause</button>
+                    <button id="resume_timer" class="btn btn-active hidden" _="on click call resume()">Resume</button>
+                    <button id="stop_timer" class="btn hidden" _="on click call stop()">Stop</button>
+                    <button id="reset_timer" class="btn hidden" _="on click call reset()">Reset</button>
+                </div>
+            </div>
+            <script nonce="manage-hours">
+                {% include "partials/timer_class.html" %}
+
+                var timer_container = document.getElementById("timer_container");
+                var timer_hour_span = document.getElementById("timer_hour");
+                var timer_min_span = document.getElementById("timer_min");
+                var timer_sec_span = document.getElementById("timer_sec");
+                var hoursTimer = new timaryTimer();
+
+                document.addEventListener("DOMContentLoaded", () => {
+                    // Resume/pause timer if page is refreshed, etc.
+                    let activeTimerMS = "{{ active_timer_ms|safe }}";
+                    let timerPaused = "{{ timer_paused|safe }}";
+                    let isMainView = "{{ is_main_view|safe }}";
+
+                    // Complicated logic here, hope to simplify someday
+                    // 1. If timer is active:
+                    //    - Show timer ( + controls on main page )
+                    //    - If timer hasn't been paused, continue the timer
+                    //    - If paused, update timer time, don't continue timer
+                    // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
+                    if (activeTimerMS) {
+                        timer_container.classList.remove("hidden");
+                        hoursTimer.overallTime =  parseInt(activeTimerMS);
+                        update_timer(hoursTimer.overallTime);
+
+                        if (timerPaused === "false") {
+                            if (isMainView === "True") {
+                                start_timer_btn.classList.add("hidden")
+                                resume();
+                            } else {
+                                hoursTimer.start();
+                                timer();
+                            }
+                            hoursTimer.isPaused = false;
+                            hoursTimer.isStopped = false;
+                        } else if (timerPaused === "true") {
+                            if (isMainView === "True") {
+                                start_timer_btn.classList.add("hidden")
+                                pause_timer_btn.classList.add("hidden");
+                                resume_timer_btn.classList.remove("hidden");
+                                stop_timer_btn.classList.remove("hidden");
+                                reset_timer_btn.classList.remove("hidden");
+                            }
+                            hoursTimer.isPaused = true;
+                            hoursTimer.isStopped = true;
+                        }
+                    } else {
+                        hoursTimer.isPaused = true;
+                        hoursTimer.isStopped = true;
+                    }
+                })
+
+                function update_timer(totalTime) {
+                    const timeInSeconds = Math.round(totalTime / 1000);
+                    let hrs = Math.floor(timeInSeconds / 3600);
+                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+                    let secs = timeInSeconds % 60;
+                    timer_hour_span.style.cssText = `--value: ${hrs}`;
+                    timer_min_span.style.cssText = `--value: ${mins}`;
+                    timer_sec_span.style.cssText = `--value: ${secs}`;
+                }
+
+                function timerRunning() { return !hoursTimer.isPaused && !hoursTimer.isStopped; }
+                function timerIsPaused() { return hoursTimer.isPaused; }
+                function timerHasStopped() { return hoursTimer.isStopped; }
+                function getTimerVal() { return hoursTimer.getTime(); }
+
+                function timer() {
+                    setInterval(() => {
+                        update_timer(hoursTimer.getTime());
+                    }, 100)
+                }
+            </script>
+        </div>
+    </div>
+{% endif %}

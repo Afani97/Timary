@@ -6,6 +6,7 @@ from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
+from timary.utils import simulate_requests_response
 
 
 class QuickbooksService:
@@ -54,7 +55,13 @@ class QuickbooksService:
             request.user.accounting_org_id = realm_id
             request.user.save()
             return response["access_token"]
-        return None
+        else:
+            failed_response = simulate_requests_response(
+                status_code=400,
+                error_num=10,
+                message="We weren't able to find a valid account. Please re-try adding a Quickbooks account.",
+            )
+            raise AccountingError(user=request.user, requests_response=failed_response)
 
     @staticmethod
     def get_refreshed_tokens(user):
@@ -103,8 +110,11 @@ class QuickbooksService:
         return None
 
     @staticmethod
-    def create_customer(invoice):
-        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            quickbooks_auth_token = auth_token
+        else:
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
         endpoint = (
             f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
         )
@@ -126,10 +136,13 @@ class QuickbooksService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(
-            sent_invoice.user
-        )
+    def create_invoice(sent_invoice, auth_token=None):
+        if auth_token:
+            quickbooks_auth_token = auth_token
+        else:
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(
+                sent_invoice.user
+            )
 
         # Generate invoice
         endpoint = (
@@ -185,5 +198,37 @@ class QuickbooksService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(user)
+        endpoint = f"v3/company/{user.accounting_org_id}/customer?minorversion=63"
+        data = {
+            "DisplayName": "Bob Smith",
+            "FullyQualifiedName": "Bob Smith",
+            "PrimaryEmailAddr": {"Address": "bob@example.com"},
+        }
+        try:
+            response = QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+
+        customer_id = response["Customer"]["Id"]
+
+        data = {"Active": False, "SyncToken": "0", "Id": customer_id, "sparse": True}
+        try:
+            QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

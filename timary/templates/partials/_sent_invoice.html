@@ -1,24 +1,27 @@
 <li class="card shadow-lg bordered mb-2">
     <div class="card-body grid grid-cols-3 gap-4">
         <div class="col-span-2">
-            <p  class="card-title">Status:
-                <span class="
-                    {% if sent_invoice.paid_status == 2 %}
-                        text-green-300
-                    {% elif sent_invoice.paid_status == 3 %}
-                        text-red-300
-                    {% else %}
-                        text-yellow-300
-                    {% endif %}
-                ">
-                    {{ sent_invoice.get_paid_status_display|title }}
-                </span>
-            </p>
-            <p>Amount earned: ${{ sent_invoice.total_price }}</p>
+            <div class="card-title">Status:
+                {% if sent_invoice.paid_status == 2 %}
+                    <span class="pr-1 text-green-300">Paid</span>
+                {% elif sent_invoice.paid_status == 3 %}
+                    <span class="pr-1 text-red-300">Failed</span>
+                {% else %}
+                    <span class="pr-1 text-yellow-300">Pending</span>
+                {% endif %}
+                {% if sent_invoice.is_synced %}
+                    <div class="tooltip" data-tip="Synced with your accounting service.">
+                        {% include 'partials/_check_svg.html' %}
+                    </div>
+                {% endif %}
+            </div>
+            <p>${{ sent_invoice.total_price|floatformat:-2 }}</p>
             <p>{{ sent_invoice.date_sent }}</p>
+            <p>#{{ sent_invoice.email_id }}</p>
         </div>
         <div class="col-span-1">
-            {% if sent_invoice.paid_status == 1 or sent_invoice.paid_status == 3 %}
+            {# RESEND INVOICE BUTTON #}
+            {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
                 <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
                     hx-target="closest li"
                     hx-swap="outerHTML"
@@ -31,6 +34,18 @@
                     {% else %}
                         Resend invoice
                     {% endif %}
+                </a>
+            {% endif %}
+
+            {# SYNC INVOICE BUTTON #}
+            {% if sent_invoice.can_be_synced %}
+                <a hx-get="{% url 'timary:sync_sent_invoice' sent_invoice_id=sent_invoice.id %}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    class="btn btn-accent btn-outline"
+                    _="on htmx:beforeRequest add .loading to me"
+                >
+                    Sync Invoice
                 </a>
             {% endif %}
         </div>

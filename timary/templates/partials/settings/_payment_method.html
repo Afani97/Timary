@@ -1,9 +1,0 @@
-<div class="wrapper flex justify-between">
-    <div class="text-left"> Payment method </div>
-    <div></div>
-    <a class="link text-right"
-        hx-get="{% url 'timary:update_payment_method_settings' %}"
-        hx-target="closest .wrapper"
-        hx-swap="outerHTML"
-        _="on click add .loading to me">Update</a>
-</div>

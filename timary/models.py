@@ -271,19 +271,22 @@ class Invoice(BaseModel):
         return hours_tracked, total_cost_amount
 
     def sync_customer(self):
-        StripeService.create_customer_for_invoice(self)
+        if not self.email_recipient_stripe_customer_id:
+            StripeService.create_customer_for_invoice(self)
 
-        if self.user.accounting_org_id:
-            try:
-                AccountingService(
-                    {"user": self.user, "invoice": self}
-                ).create_customer()
-            except AccountingError as ae:
-                ae.log()
+        if not self.user.accounting_org_id:
+            return None, None
+        try:
+            AccountingService({"user": self.user, "invoice": self}).create_customer()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason  # Failed to sync customer
+        return True, None  # Customer synced
 
 
 class SentInvoice(BaseModel):
     class PaidStatus(models.IntegerChoices):
+        NOT_STARTED = 0, "NOT_STARTED"
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
         FAILED = 3, "FAILED"
@@ -306,9 +309,13 @@ class SentInvoice(BaseModel):
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="sent_invoices"
     )
-    total_price = models.PositiveIntegerField()
+    total_price = models.DecimalField(
+        default=0,
+        max_digits=9,
+        decimal_places=2,
+    )
     paid_status = models.PositiveSmallIntegerField(
-        default=PaidStatus.PENDING, choices=PaidStatus.choices
+        default=PaidStatus.NOT_STARTED, choices=PaidStatus.choices
     )
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
 
@@ -388,9 +395,6 @@ class SentInvoice(BaseModel):
             {
                 "can_accept_payments": False,
                 "user_name": self.user.invoice_branding_properties()["user_name"],
-                "next_weeks_date": self.user.invoice_branding_properties()[
-                    "next_weeks_date"
-                ],
                 "total_amount": self.total_price,
                 "sent_invoice_id": self.id,
                 "invoice": self.invoice,
@@ -404,6 +408,19 @@ class SentInvoice(BaseModel):
             msg_body,
             self.invoice.email_recipient,
         )
+        EmailService.send_plain(
+            "Success! Your getting paid!",
+            f"""
+Your recent invoice (#{self.email_id}) has been processed for payment.
+
+You should receive your funds as soon as it has finished, usually within a few days.
+
+Thanks again for using Timary,
+Ari
+ari@usetimary.com
+            """,
+            self.user.email,
+        )
 
         if self.user.accounting_org_id:
             try:
@@ -413,12 +430,55 @@ class SentInvoice(BaseModel):
             except AccountingError as ae:
                 ae.log()
 
+    @property
+    def is_synced(self):
+        return (
+            self.paid_status == SentInvoice.PaidStatus.PAID
+            and self.accounting_invoice_id is not None
+            and self.invoice.accounting_customer_id is not None
+        )
+
+    @property
+    def can_be_synced(self):
+        return (
+            self.user.accounting_org_id is not None
+            and self.paid_status == SentInvoice.PaidStatus.PAID
+            and self.accounting_invoice_id is None
+            and self.invoice.accounting_customer_id is not None
+        )
+
+    def sync_invoice(self):
+
+        if not self.paid_status == SentInvoice.PaidStatus.PAID:
+            return None, None
+
+        if not self.user.accounting_org_id:
+            return None, None
+
+        try:
+            AccountingService(
+                {"user": self.user, "sent_invoice": self}
+            ).create_invoice()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason
+        return True, None
+
 
 class User(AbstractUser, BaseModel):
+    class StripeConnectDisabledReasons(models.IntegerChoices):
+        NONE = 1, "NONE"
+        PENDING = 2, "PENDING"
+        MORE_INFO = 3, "MORE_INFO"
+
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_payouts_enabled = models.BooleanField(default=False)
     stripe_connect_id = models.CharField(max_length=200, null=True, blank=True)
     stripe_subscription_id = models.CharField(max_length=200, null=True, blank=True)
+    stripe_connect_reason = models.IntegerField(
+        default=StripeConnectDisabledReasons.MORE_INFO,
+        choices=StripeConnectDisabledReasons.choices,
+    )
 
     WEEK_DAYS = (
         ("Mon", "Mon"),
@@ -449,6 +509,9 @@ class User(AbstractUser, BaseModel):
         max_length=10, unique=True, default=create_new_ref_number
     )
 
+    # Keep track of active timer
+    timer_is_active = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
 
@@ -465,6 +528,9 @@ class User(AbstractUser, BaseModel):
     @property
     def get_invoices(self):
         return self.invoices.filter(is_archived=False)
+
+    def get_all_invoices(self):
+        return self.invoices.all()
 
     def invoices_not_logged(self):
         invoices = set(
@@ -536,7 +602,20 @@ class User(AbstractUser, BaseModel):
             "hide_timary": self.invoice_branding.get("hide_timary") or False,
             "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
             "profile_pic": self.profile_pic,
+            "personal_website": self.invoice_branding.get("personal_website") or "",
             "linked_in": self.invoice_branding.get("linked_in") or "",
             "twitter": self.invoice_branding.get("twitter") or "",
             "youtube": self.invoice_branding.get("youtube") or "",
         }
+
+    def update_payouts_enabled(self, reason):
+        if not reason:
+            self.stripe_payouts_enabled = True
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.NONE
+        elif reason in ["requirements.pending_verification", "under_review"]:
+            self.stripe_payouts_enabled = False
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.PENDING
+        elif reason in ["requirements.past_due", "rejected.other", "other"]:
+            self.stripe_payouts_enabled = False
+            self.stripe_connect_reason = User.StripeConnectDisabledReasons.MORE_INFO
+        self.save()

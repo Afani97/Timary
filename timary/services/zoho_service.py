@@ -49,6 +49,13 @@ class ZohoService:
                 )
 
             request.user.accounting_refresh_token = response["refresh_token"]
+            try:
+                ZohoService.get_organization_id(request.user, response["access_token"])
+            except AccountingError as ae:
+                raise AccountingError(
+                    user=request.user,
+                    requests_response=ae.requests_response,
+                )
             request.user.save()
             return response["access_token"]
         return None
@@ -86,6 +93,9 @@ class ZohoService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
+        if method_type == "delete":
+            response = requests.delete(url, headers=headers)
+            return response.json()
         return None
 
     @staticmethod
@@ -94,7 +104,8 @@ class ZohoService:
             "https://invoice.zoho.com/api/v3/organizations",
             headers={"Authorization": f"Zoho-oauthtoken {access_token}"},
         )
-        zoho_org_request.raise_for_status()
+        if not zoho_org_request.ok:
+            raise AccountingError(requests_response=zoho_org_request)
         zoho_org_response = zoho_org_request.json()
         if zoho_org_response["message"] == "success":
             user.accounting_org_id = zoho_org_response["organizations"][0][
@@ -103,8 +114,11 @@ class ZohoService:
             user.save()
 
     @staticmethod
-    def create_customer(invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
+    def create_customer(invoice, auth_token=None):
+        if auth_token:
+            zoho_auth_token = auth_token
+        else:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
 
         recipient_name = invoice.email_recipient_name.split(" ")
         data = {
@@ -141,8 +155,11 @@ class ZohoService:
         invoice.save()
 
     @staticmethod
-    def create_invoice(sent_invoice):
-        zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
+    def create_invoice(sent_invoice, auth_token=False):
+        if auth_token:
+            zoho_auth_token = auth_token
+        else:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(sent_invoice.user)
 
         today = datetime.date.today() + datetime.timedelta(days=1)
         today_formatted = today.strftime("%Y-%m-%d")
@@ -150,7 +167,7 @@ class ZohoService:
         # Generate item
         data = {
             "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
-            "rate": sent_invoice.total_price,
+            "rate": float(sent_invoice.total_price),
         }
         try:
             item_request = ZohoService.create_request(
@@ -189,9 +206,9 @@ class ZohoService:
             "line_items": [
                 {
                     "item_id": item_id,
-                    "rate": int(sent_invoice.total_price),
+                    "rate": int(float(sent_invoice.total_price)),
                     "quantity": 1,
-                    "item_total": int(sent_invoice.total_price),
+                    "item_total": int(float(sent_invoice.total_price)),
                 }
             ],
         }
@@ -220,12 +237,12 @@ class ZohoService:
         data = {
             "customer_id": sent_invoice.invoice.accounting_customer_id,
             "payment_mode": "creditcard",
-            "amount": int(sent_invoice.total_price),
+            "amount": int(float(sent_invoice.total_price)),
             "date": today_formatted,
             "invoices": [
                 {
                     "invoice_id": sent_invoice.accounting_invoice_id,
-                    "amount_applied": int(sent_invoice.total_price),
+                    "amount_applied": int(float(sent_invoice.total_price)),
                 }
             ],
         }
@@ -240,5 +257,54 @@ class ZohoService:
         except AccountingError as ae:
             raise AccountingError(
                 user=sent_invoice.user,
+                requests_response=ae.requests_response,
+            )
+
+    @staticmethod
+    def test_integration(user):
+        zoho_auth_token = ZohoService.get_refreshed_tokens(user)
+
+        data = {
+            "contact_name": "Bob Smith",
+            "email": "bob@example.com",
+            "contact_persons": [
+                {
+                    "first_name": "Bob",
+                    "last_name": "Smith",
+                    "email": "bob@example.com",
+                    "is_primary_contact": True,
+                }
+            ],
+        }
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token,
+                user.accounting_org_id,
+                "contacts",
+                "post",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        if "contact" not in response or "contact_id" not in response["contact"]:
+            raise AccountingError(
+                user=user,
+                requests_response=response,
+            )
+        customer_id = response["contact"]["contact_id"]
+
+        try:
+            ZohoService.create_request(
+                zoho_auth_token,
+                user.accounting_org_id,
+                f"contacts/{customer_id}",
+                "delete",
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
                 requests_response=ae.requests_response,
             )

@@ -39,6 +39,19 @@ class FreshbookMocks:
     @urlmatch(
         scheme="https",
         netloc="api.freshbooks.com",
+        path="/auth/api/v1/users/me",
+        method="GET",
+    )
+    def freshbook_org_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"response": {"business_memberships": [{"business": {"account_id": "abc123"}}]}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.freshbooks.com",
         path="/accounting/account/abc123/users/clients",
         method="POST",
     )
@@ -113,7 +126,9 @@ class TestFreshbooksService(TestCase):
         get_request = rf.get("/accounting-redirect?code=abc123&realmId=abc123")
         get_request.user = self.user
 
-        with HTTMock(FreshbookMocks.freshbook_oauth_mock):
+        with HTTMock(
+            FreshbookMocks.freshbook_oauth_mock, FreshbookMocks.freshbook_org_mock
+        ):
             auth_token = FreshbooksService.get_auth_tokens(get_request)
             self.assertEquals(auth_token, "abc123")
 

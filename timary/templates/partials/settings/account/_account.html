@@ -1,0 +1,19 @@
+<div class="flex flex-col w-full justify-center space-y-4 px-2" id="user-account">
+    {% include "partials/settings/account/_password.html" %}
+    <div class="divider"></div>
+
+    {% include 'partials/settings/account/_payment_method.html' %}
+    <div class="divider"></div>
+
+    {% include 'partials/settings/account/_accounting.html' %}
+    <div class="divider"></div>
+
+    {% include "partials/settings/account/_referrals.html" %}
+    <div class="divider"></div>
+
+    <div class="flex justify-between">
+        <div>Invoice audit log</div>
+        <div></div>
+        <a href="{% url 'timary:audit' %}" class="btn btn-sm">Download</a>
+    </div>
+</div>

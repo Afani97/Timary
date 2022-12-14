@@ -8,9 +8,7 @@ from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django_q.tasks import async_task
 
-from timary.custom_errors import AccountingError
 from timary.models import Invoice, SentInvoice, User
-from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
 
@@ -218,11 +216,9 @@ def backup_db_file():
     return True
 
 
-def refresh_accounting_integration_tokens():
-    """Run this every first of the month"""
-    users = User.objects.exclude(accounting_org_id__isnull=True)
-    for user in users:
-        try:
-            AccountingService({"user": user}).refresh_tokens()
-        except AccountingError as ae:
-            ae.log()
+def delete_example_invoices(invoice_id):
+    """Delete example invoices generated"""
+    invoice = Invoice.objects.get(id=invoice_id)
+    for sent_invoice in invoice.invoice_snapshots.all():
+        sent_invoice.delete()
+    invoice.delete()

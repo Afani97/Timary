@@ -18,14 +18,32 @@ class TestHourStats(TestCase):
         date_mock.today.return_value = datetime.date(2022, 8, 25)
         user = UserFactory()
         invoice = InvoiceFactory(user=user, invoice_rate=50, invoice_type=1)
-        sent_invoice = SentInvoiceFactory(invoice=invoice, user=user, total_price=300)
-        DailyHoursFactory(invoice=invoice, hours=2)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice,
+            user=user,
+            total_price=300,
+            paid_status=2,
+            date_sent=datetime.date(2022, 8, 25),
+        )
+        sent_invoice.user = user
+        sent_invoice.save()
+        DailyHoursFactory(
+            invoice=invoice, date_tracked=datetime.datetime(2022, 8, 25), hours=2
+        )
 
-        DailyHoursFactory(invoice=invoice, sent_invoice_id=sent_invoice.id, hours=3)
+        DailyHoursFactory(
+            invoice=invoice,
+            date_tracked=datetime.datetime(2022, 8, 25),
+            sent_invoice_id=sent_invoice.id,
+            hours=3,
+        )
 
         weekly_invoice = InvoiceFactory(user=user, invoice_rate=1500, invoice_type=3)
         SentInvoiceFactory(
-            invoice=weekly_invoice, user=user, total_price=weekly_invoice.invoice_rate
+            invoice=weekly_invoice,
+            user=user,
+            total_price=weekly_invoice.invoice_rate,
+            date_sent=datetime.date(2022, 8, 25),
         )
 
         hour_stats = HourStats(user=user)

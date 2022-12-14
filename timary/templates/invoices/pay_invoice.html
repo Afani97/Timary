@@ -1,4 +1,5 @@
 {% extends 'timary/base.html' %}
+{% load filters %}
 
 {% block css %}
     <style>
@@ -121,11 +122,11 @@
 
     <div class="grid grid-cols-1 grid-flow-row md:grid-cols-7 md:grid-flow-col">
 
-        <div class="col-span-3 mx-5">
+        <div class="col-span-3 mx-5 mt-5">
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
                 <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
-                <p>Total Amount Due: ${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
+                <p>Total Amount Due: ${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
             </div>
             <div class="overflow-y-auto mt-10">
                 <table class="table">
@@ -140,8 +141,8 @@
                         {% for hour in hours_tracked %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
-                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat }}</span></td>
+                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
+                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
                             </tr>
                         {% endfor %}
                         <tr>
@@ -155,7 +156,7 @@
                                 <p class="f-fallback purchase_total purchase_total--label">Total</p>
                             </td>
                             <td width="20%" class="purchase_footer" valign="middle">
-                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|add:"5"|floatformat }}</p>
+                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
                             </td>
                         </tr>
                     </tbody>
@@ -166,7 +167,7 @@
         <div class="divider divider-horizontal md:divider-vertical col-span-1"></div>
 
         <!-- Display a payment form -->
-        <form id="payment-form" class="col-span-3 h-80 mb-10">
+        <form id="payment-form" class="col-span-3 mb-10">
             <div class="grid grid-cols-4 gap-2">
                 {% for field in pay_invoice_form %}
                     <div class="form-control my-4 {{ field.field.widget.attrs.classes }}">
@@ -213,9 +214,10 @@
             .querySelector("#payment-form")
             .addEventListener("submit", handleSubmit);
 
-        document
-            .querySelector("#quick-pay")
-            .addEventListener("click", handleQuickPay);
+        let quickPay = document.getElementById("quick-pay");
+        if (quickPay !== null) {
+            quickPay.addEventListener("click", handleQuickPay);
+        }
 
         // Fetches a payment intent and captures the client secret
         async function initialize() {
@@ -255,11 +257,10 @@
             while (errorMessages.length > 0) errorMessages[0].remove();
 
             if (!valid) {
-                errors = JSON.parse(errors)
                 for (const error in errors) {
                     let div = document.createElement("div");
                     div.classList.add("text-red-400", "error-messages", "text-sm", "mt-1");
-                    div.innerText = errors[error][0]["message"];
+                    div.innerText = errors[error];
                     document.getElementById(`id_${error}`).classList.add("input-error");
                     document.getElementById(`id_${error}`).after(div);
                 }

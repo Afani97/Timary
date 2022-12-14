@@ -14,6 +14,7 @@ def class_for_name(class_name):
 class AccountingService:
     def __init__(self, kwargs):
         self.kwargs = kwargs
+        self.service_klass = None
         if "user" in self.kwargs:
             user = self.kwargs.get("user")
             if user.accounting_org:
@@ -41,6 +42,11 @@ class AccountingService:
         if self.service_klass:
             self.service_klass().refresh_tokens(user)
 
+    def get_request_auth_token(self):
+        user = self.kwargs.get("user")
+        if self.service_klass:
+            return self.service_klass().get_refreshed_tokens(user)
+
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
         if self.service_klass:
@@ -51,18 +57,7 @@ class AccountingService:
         if self.service_klass:
             self.service_klass().create_invoice(sent_invoice)
 
-    def sync_customers(self):
+    def test_integration(self):
         user = self.kwargs.get("user")
         if self.service_klass:
-            for invoice in user.get_invoices:
-                self.service_klass().create_customer(invoice)
-
-    def sync_invoices(self):
-        from timary.models import SentInvoice
-
-        user = self.kwargs.get("user")
-        if self.service_klass:
-            for sent_invoice in user.sent_invoices.filter(
-                paid_status=SentInvoice.PaidStatus.PAID
-            ):
-                self.service_klass().create_invoice(sent_invoice)
+            self.service_klass().test_integration(user)

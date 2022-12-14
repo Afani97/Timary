@@ -1,6 +1,6 @@
 import datetime
 
-from django.contrib.auth.forms import forms
+from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
@@ -18,10 +18,12 @@ class DailyHoursForm(forms.ModelForm):
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
         if user:
-            invoice_qs = user.get_invoices
+            invoice_qs = user.get_invoices.filter(next_date__isnull=False)
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
+            else:
+                self.fields["invoice"].queryset = Invoice.objects.none()
 
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
@@ -124,6 +126,14 @@ class InvoiceForm(forms.ModelForm):
             }
         ),
     )
+    start_on = forms.DateField(
+        required=False,
+        widget=DateInput(
+            attrs={
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
@@ -168,7 +178,12 @@ class InvoiceForm(forms.ModelForm):
             "weekly_rate",
             "email_recipient_name",
             "email_recipient",
+            "start_on",
         ]
+        labels = {
+            "email_recipient_name": "Client's name",
+            "email_recipient": "Client's email",
+        }
         widgets = {
             "title": forms.TextInput(
                 attrs={
@@ -220,6 +235,13 @@ class InvoiceForm(forms.ModelForm):
         invoice_interval = validated_data.get("invoice_interval")
         milestone_total_steps = validated_data.get("milestone_total_steps")
         weekly_rate = validated_data.get("weekly_rate")
+
+        if "start_on" in validated_data:
+            start_on = validated_data.get("start_on", None)
+            if start_on and start_on < datetime.date.today():
+                raise ValidationError(
+                    {"start_on": ["Cannot start invoice less than today."]}
+                )
         if invoice_type == 1 and not invoice_interval:
             raise ValidationError(
                 {"invoice_interval": ["Invoice interval is required"]}
@@ -302,7 +324,9 @@ class PayInvoiceForm(forms.Form):
             cleaned_email.lower().strip()
             != self.sent_invoice.invoice.email_recipient.lower()
         ):
-            raise ValidationError("Wrong email recipient, unable to process payment")
+            raise ValidationError(
+                "Unable to process payment, please enter correct details."
+            )
 
     def clean_first_name(self):
         cleaned_name = self.cleaned_data.get("first_name")
@@ -310,7 +334,9 @@ class PayInvoiceForm(forms.Form):
             cleaned_name.lower().strip()
             not in self.sent_invoice.invoice.email_recipient_name.lower()
         ):
-            raise ValidationError("Wrong name recipient, unable to process payment")
+            raise ValidationError(
+                "Unable to process payment, please enter correct details."
+            )
 
 
 phone_number_regex = RegexValidator(
@@ -413,6 +439,7 @@ class InvoiceBrandingSettingsForm(forms.Form):
     company_name = forms.CharField(max_length=50, required=False)
     hide_timary = forms.BooleanField(required=False)
     show_profile_pic = forms.BooleanField(required=False)
+    personal_website = forms.CharField(required=False)
     linked_in = forms.CharField(required=False)
     twitter = forms.CharField(required=False)
     youtube = forms.CharField(required=False)
@@ -446,8 +473,9 @@ class RegisterForm(forms.ModelForm):
                 "placeholder": "*********",
                 "type": "password",
                 "class": "input input-bordered border-2 text-lg w-full mb-4",
-            }
+            },
         ),
+        help_text="Please provide at least 5 characters including 1 uppercase, 1 number, 1 special character.",
         required=True,
     )
 
@@ -552,3 +580,44 @@ class ReferralInviteForm(forms.Form):
 
     class Meta:
         fields = ["email"]
+
+
+class UpdatePasswordForm(forms.Form):
+    current_password = forms.CharField(
+        label="Current Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+        required=True,
+    )
+    new_password = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder": "*********",
+                "type": "password",
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+        required=True,
+    )
+
+    class Meta:
+        fields = ["current_password", "new_password"]
+
+    def __init__(self, *args, **kwargs):
+        self.user: User = kwargs.pop("user") if "user" in kwargs else None
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        validated_data = super().clean()
+
+        current_password = validated_data.get("current_password")
+        if not self.user.check_password(current_password):
+            raise ValidationError("Unable to update password")
+
+        return validated_data

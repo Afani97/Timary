@@ -77,6 +77,22 @@
                         {% endif %}
                         <div class="divider"></div>
                         <div class="form-control">
+                            <label class="label" for="personal_website">
+                                <span class="label-text">Personal Website</span>
+                            </label>
+                            <input
+                                name="personal_website"
+                                class="input input-bordered border-2 w-full"
+                                placeholder=""
+                                value="{{ invoice_branding_config.personal_website }}"
+                                _="on load if {{ invoice_branding_config.personal_website|yesno:"true,false" }} put my.value into #personal_website.innerHTML then remove .hidden from #personal_website else add .hidden to #personal_website end
+                                    on keyup if my.value put my.value into #personal_website.href then put my.value into #personal_website.innerHTML then remove .hidden from #personal_website else add .hidden to #personal_website"/>
+                            <label class="label">
+                                <span class="label-text-alt">Include https://www.</span>
+                            </label>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="form-control">
                             <label class="label" for="linked_in">
                                 <span class="label-text">LinkedIn</span>
                             </label>
@@ -206,6 +222,7 @@
                             {% endif %}
                         </div>
                         <div class="social_media my-8 flex flex-col space-y-1">
+                            <a href="{{ invoice_branding_config.personal_website }}" id="personal_website" class="link text-center hidden"></a>
                             <a href="{{ invoice_branding_config.linked_in }}" id="linked_in" class="link text-center hidden">Linkedin</a>
                             <a href="{{ invoice_branding_config.twitter }}" id="twitter" class="link text-center hidden">Twitter</a>
                             <a href="{{ invoice_branding_config.youtube }}" id="youtube" class="link text-center hidden">Youtube</a>

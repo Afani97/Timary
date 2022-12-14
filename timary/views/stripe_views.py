@@ -23,7 +23,10 @@ from timary.services.stripe_service import StripeService
 @csrf_exempt
 def pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
-    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+    if (
+        sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
+        or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
+    ):
         return redirect(reverse("timary:login"))
 
     if request.method == "POST":
@@ -31,9 +34,7 @@ def pay_invoice(request, sent_invoice_id):
         if pay_invoice_form.is_valid():
             return JsonResponse({"valid": True, "errors": {}})
         else:
-            return JsonResponse(
-                {"valid": False, "errors": pay_invoice_form.errors.as_json()}
-            )
+            return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
         intent = StripeService.create_payment_intent_for_payout(sent_invoice)
         sent_invoice.stripe_payment_intent_id = intent["id"]
@@ -49,10 +50,11 @@ def pay_invoice(request, sent_invoice_id):
                 saved_payment_method = True
                 last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
+        hours, total = sent_invoice.get_hours_tracked()
         context = {
             "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
-            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "hours_tracked": hours,
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
             "client_secret": intent["client_secret"],
@@ -99,8 +101,10 @@ def quick_pay_invoice(request, sent_invoice_id):
 @require_http_methods(["GET"])
 def invoice_payment_success(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
-    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+    if sent_invoice.paid_status != SentInvoice.PaidStatus.NOT_STARTED:
         return redirect(reverse("timary:login"))
+    sent_invoice.paid_status = SentInvoice.PaidStatus.PENDING
+    sent_invoice.save()
 
     return render(request, "invoices/success_pay_invoice.html", {})
 
@@ -115,10 +119,6 @@ def onboard_success(request):
         return redirect(reverse("timary:register"))
 
     StripeService.create_subscription(user)
-
-    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
-    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    user.save()
 
     login(request, user)
 
@@ -142,27 +142,20 @@ def completed_connect_account(request):
     user = User.objects.filter(id=request.GET.get("user_id")).first()
     if not user:
         return redirect(reverse("timary:register"))
-    connect_account = StripeService.get_connect_account(user.stripe_connect_id)
-    user.stripe_payouts_enabled = connect_account["payouts_enabled"]
-    user.save()
     login(request, user)
     return redirect(reverse("timary:user_profile"))
 
 
-@require_http_methods(["POST"])
-@csrf_exempt
-def stripe_webhook(request):
+def stripe_webhook(request, stripe_secret):
     """
-    Test locally => stripe listen --forward-to localhost:8000/stripe-webhook/
-    Copy webhook secret into STRIPE_WEBHOOK_SECRET
+    Test locally => stripe listen --forward-to localhost:8000/stripe-stardard-webhook/
+    Copy webhook secret into STRIPE_STANDARD_WEBHOOK_SECRET
     """
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
+        event = stripe.Webhook.construct_event(payload, sig_header, stripe_secret)
     except ValueError as e:
         # Invalid payload
         raise e
@@ -187,7 +180,7 @@ def stripe_webhook(request):
             hours_tracked, _ = sent_invoice.get_hours_tracked()
             today = datetime.date.today()
 
-            # Notify email recipient that payment failed
+            # Notify client that payment failed
             msg_body = render_to_string(
                 "email/sent_invoice_email.html",
                 {
@@ -241,9 +234,29 @@ def stripe_webhook(request):
         else:
             # Other stripe webhook event
             pass
-
+    elif event["type"] == "account.updated":
+        user_account_id = event["data"]["object"]["id"]
+        user = User.objects.filter(stripe_connect_id=user_account_id)
+        if user.exists():
+            user = user.first()
+            account_connect_requirements_reason = event["data"]["object"][
+                "requirements"
+            ]["disabled_reason"]
+            user.update_payouts_enabled(account_connect_requirements_reason)
     # ... handle other event types
     else:
         print("Unhandled event type {}".format(event["type"]))
 
     return JsonResponse({"success": True})
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def stripe_standard_webhook(request):
+    return stripe_webhook(request, settings.STRIPE_STANDARD_WEBHOOK_SECRET)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def stripe_connect_webhook(request):
+    return stripe_webhook(request, settings.STRIPE_CONNECT_WEBHOOK_SECRET)

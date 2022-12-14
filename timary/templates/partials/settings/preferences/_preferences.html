@@ -1,0 +1,9 @@
+<div class="flex flex-col w-full justify-center space-y-4 px-2" id="user-preferences">
+    {% include 'partials/settings/preferences/_sms.html' with settings=settings %}
+    <div class="divider"></div>
+
+    <div class="flex justify-between">
+        <div>Invoice branding</div>
+        <a href="{% url 'timary:update_invoice_branding' %}" class="link">Customize</a>
+    </div>
+</div>

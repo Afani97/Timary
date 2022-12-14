@@ -13,7 +13,7 @@ from timary.forms import DailyHoursForm, InvoiceForm
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import show_alert_message
+from timary.utils import show_active_timer, show_alert_message
 
 
 @login_required()
@@ -21,8 +21,7 @@ from timary.utils import show_alert_message
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
     sent_invoices_owed = request.user.sent_invoices.filter(
-        Q(paid_status=SentInvoice.PaidStatus.PENDING)
-        | Q(paid_status=SentInvoice.PaidStatus.FAILED)
+        ~Q(paid_status=SentInvoice.PaidStatus.PAID)
     ).aggregate(total=Sum("total_price"))
     sent_invoices_owed = (
         sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
@@ -38,10 +37,11 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
-        "sent_invoices_owed": int(sent_invoices_owed),
-        "sent_invoices_earned": int(sent_invoices_paid),
+        "sent_invoices_owed": sent_invoices_owed,
+        "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True),
     }
+    context.update(show_active_timer(request.user))
     return render(
         request,
         "invoices/manage_invoices.html",
@@ -63,7 +63,11 @@ def create_invoice(request):
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
         invoice.user = user
-        invoice.calculate_next_date()
+        if start_on := invoice_form.cleaned_data.get("start_on"):
+            invoice.next_date = start_on
+            invoice.last_date = date.today()
+        else:
+            invoice.calculate_next_date()
         invoice.save()
         invoice.sync_customer()
 
@@ -299,3 +303,62 @@ def sent_invoices_list(request, invoice_id):
         if invoice.is_archived:
             return_message = "There weren't any invoices sent."
         return HttpResponse(return_message)
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+
+    customer_synced, error_raised = invoice.sync_customer()
+    if invoice.is_archived:
+        response = render(
+            request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
+        )
+    else:
+        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+
+    if customer_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{invoice.title} is now synced with {invoice.user.accounting_org}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"We had trouble syncing {invoice.title}. {error_raised}",
+            persist=True,
+        )
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_sent_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+
+    invoice_synced, error_raised = sent_invoice.sync_invoice()
+    response = render(
+        request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
+    )
+
+    if invoice_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{sent_invoice.invoice.title} is now synced with {sent_invoice.invoice.user.accounting_org.title()}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"We had trouble syncing this sent invoice. {error_raised}",
+            persist=True,
+        )
+    return response

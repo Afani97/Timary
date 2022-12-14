@@ -16,7 +16,7 @@ class HoursQuerySet(models.QuerySet):
                 date_tracked__year__gte=current_date.year,
             )
             .exclude(hours=0)
-            .select_related("invoice")
+            .select_related("invoice", "invoice__user")
             .order_by("-date_tracked")
         )
 
@@ -31,46 +31,35 @@ class HourStats:
         self.first_month = datetime.today().replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
-        from timary.models import SentInvoice
+        from timary.models import DailyHoursInput, SentInvoice
 
-        sent_invoices = SentInvoice.objects.filter(user=self.user).exclude(
-            paid_status=SentInvoice.PaidStatus.FAILED
-        )
-        if date_range:
-            sent_invoices = sent_invoices.filter(date_sent__range=date_range)
-        else:
-            sent_invoices = sent_invoices.filter(
-                date_sent__month__gte=self.current_month.month,
-                date_sent__year__gte=self.current_month.year,
-            )
-        total_hours = 0
-        total_amount = 0
-        for sent_invoice in sent_invoices:
-            hours, total = sent_invoice.get_hours_tracked()
-            if hours:
-                total_hours += hours.aggregate(total_hours=Sum("hours"))["total_hours"]
-            total_amount += total
+        sent_invoices = self.user.sent_invoices.filter(
+            date_sent__range=date_range
+        ).exclude(paid_status=SentInvoice.PaidStatus.FAILED)
 
-        return total_hours, total_amount
+        total_hours = DailyHoursInput.objects.filter(
+            sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True))
+        ).aggregate(total_hours=Sum("hours"))["total_hours"]
+        total_amount = sent_invoices.aggregate(total_amount=Sum("total_price"))[
+            "total_amount"
+        ]
+
+        return total_hours or 0, total_amount or 0
 
     def get_untracked_hour_stats(self, date_range=None):
         from timary.models import DailyHoursInput
 
         qs = (
             DailyHoursInput.objects.filter(
-                invoice__user=self.user, sent_invoice_id__isnull=True
+                invoice__user=self.user,
+                sent_invoice_id__isnull=True,
+                date_tracked__range=date_range,
             )
             .exclude(hours=0)
             .select_related("invoice")
             .order_by("-date_tracked")
         )
-        if date_range:
-            qs = qs.filter(date_tracked__range=date_range)
-        else:
-            qs = qs.filter(
-                date_tracked__month__gte=self.current_month.month,
-                date_tracked__year__gte=self.current_month.year,
-            )
+
         total_hours_sum = qs.aggregate(total_hours=Sum("hours"))["total_hours"]
         total_amount_sum_non_weekly_invoice = (
             qs.filter(invoice__invoice_type__lt=3)
@@ -89,7 +78,7 @@ class HourStats:
         }
 
     def get_current_month_stats(self):
-        return self.get_stats()
+        return self.get_stats((self.current_month.replace(day=1), self.current_month))
 
     def get_last_month_stats(self):
         date_range = (

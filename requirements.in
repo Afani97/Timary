@@ -4,12 +4,15 @@ factory-boy
 django
 django-browser-reload
 django-csp
-django-multiselectfield
+# django-multiselectfield
+# Use this until django-mulitselectfield is updated
+git+https://github.com/macmichael01/django-multiselectfield@master
 django-otp
 django-phonenumber-field
 django-q
 django-render-block
 django-storages
+django-tailwind
 django-twilio
 djangorestframework
 djangorestframework-xml

@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_xml",
+    "tailwind",
+    "timarytailwind",
 ]
 
 MIDDLEWARE = [
@@ -76,8 +78,6 @@ MIDDLEWARE = [
     # "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # TIMARY
-    "timary.middleware.SimpleUserAgentMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
@@ -95,6 +95,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "timary.context_processors.site_url",
+                "timary.context_processors.debug_mode",
                 "timary.context_processors.completed_connect_account",
             ],
         },
@@ -159,6 +160,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 5,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -182,6 +186,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -195,6 +203,8 @@ LOGIN_URL = "/login/"
 LOGOUT_REDIRECT_URL = "/login/"
 LOGIN_REDIRECT_URL = ""
 
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # EMAIL
 DEFAULT_FROM_EMAIL = (
@@ -287,10 +297,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # STRIPE
 STRIPE_PUBLIC_API_KEY = config("STRIPE_PUBLIC_API_KEY", default="abc123")
 STRIPE_SECRET_API_KEY = config("STRIPE_SECRET_API_KEY", default="abc123")
-STRIPE_STARTER_ID = config("STRIPE_STARTER_ID", default="abc123")
-STRIPE_PROFESSIONAL_ID = config("STRIPE_PROFESSIONAL_ID", default="abc123")
-STRIPE_BUSINESS_ID = config("STRIPE_BUSINESS_ID", default="abc123")
-STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="abc123")
+STRIPE_PRICE_ID = config("STRIPE_PRICE_ID", default="abc123")
+STRIPE_STANDARD_WEBHOOK_SECRET = config(
+    "STRIPE_STANDARD_WEBHOOK_SECRET", default="abc123"
+)
+STRIPE_CONNECT_WEBHOOK_SECRET = config(
+    "STRIPE_CONNECT_WEBHOOK_SECRET", default="abc123"
+)
 
 
 # OTP
@@ -325,6 +338,9 @@ SAGE_SECRET_KEY = config("SAGE_SECRET_KEY", default="abc123")
 
 # PLAYWRIGHT
 HEADLESS_UI = True
+
+# DJANGO TAILWIND
+TAILWIND_APP_NAME = "timarytailwind"
 
 
 # DRF

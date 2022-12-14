@@ -6,7 +6,9 @@ repos:
     hooks:
       - id: debug-statements
       - id: trailing-whitespace
+        exclude: (staticfiles)
       - id: end-of-file-fixer
+        exclude: (staticfiles)
       - id: requirements-txt-fixer
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.4
@@ -14,12 +16,14 @@ repos:
       - id: bandit
         args: [ '-iii', '-ll' ]
   - repo: https://github.com/rtts/djhtml
-    rev: v1.5.0
+    rev: v1.5.2
     hooks:
       - id: djhtml
+        exclude: (staticfiles)
       - id: djcss
+        exclude: (staticfiles)
       - id: djjs
-        exclude: '^staticfiles/'
+        exclude: (staticfiles)
   - repo: "https://github.com/pycqa/isort"
     rev: 5.10.1
     hooks:
@@ -35,6 +39,13 @@ repos:
       - id: black
   - repo: local
     hooks:
+      - id: django-static
+        name: Add staticfiles.
+        entry: sh -c 'make static'
+        types:
+          - python
+        pass_filenames: false
+        language: system
       - id: django-check
         name: Check django project for potential problems
         entry: sh -c 'python manage.py check'

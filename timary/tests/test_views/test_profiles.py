@@ -127,10 +127,8 @@ class TestUserProfile(BaseTest):
         )
         self.user.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
-        self.assertInHTML(
-            "<div class='text-center'>  Mon </div>",
-            response.content.decode("utf-8"),
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/preferences/_sms.html"
         )
 
 
@@ -145,16 +143,15 @@ class TestUserSettings(BaseTest):
         response = self.client.get(reverse("timary:user_profile"))
         self.assertInHTML(
             """
-            <div class="wrapper grid grid-cols-3 items-center">
+            <div class="wrapper flex justify-between">
                 <div class="tooltip" data-tip="Which days do you want texted to logs hours for ">
-                    <div class="text-left">SMS availability:</div>
+                    <div class="text-left">SMS availability</div>
                 </div>
-                <div class="text-center">  Tue </div>
                 <a class="link text-right"
                        hx-get="/profile/settings/sms/"
                        hx-target="closest .wrapper"
                        hx-swap="outerHTML"
-                       >Edit availability</a>
+                       >Update</a>
             </div>
             """,
             response.content.decode("utf-8"),
@@ -162,7 +159,7 @@ class TestUserSettings(BaseTest):
 
     def test_get_sms_settings_partial(self):
         rendered_template = self.setup_template(
-            "partials/settings/_sms.html",
+            "partials/settings/preferences/_sms.html",
             {
                 "settings_form": SMSSettingsForm(instance=self.user),
                 "settings": self.user.settings,
@@ -211,7 +208,9 @@ class TestUserSettings(BaseTest):
                     day[0],
                     response.content.decode("utf-8"),
                 )
-        self.assertEqual(response.templates[0].name, "partials/settings/_edit_sms.html")
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/preferences/_edit_sms.html"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_update_sms_settings(self):
@@ -223,12 +222,12 @@ class TestUserSettings(BaseTest):
             reverse("timary:update_sms_settings"),
             data=urlencode(url_params),  # HTMX PUT FORM
         )
+
         self.user.refresh_from_db()
-        self.assertInHTML(
-            "<div class='text-center'>Mon Tue</div>",
-            response.content.decode("utf-8"),
+        self.assertEqual(self.user.phone_number_availability, ["Mon", "Tue"])
+        self.assertEqual(
+            response.templates[0].name, "partials/settings/preferences/_sms.html"
         )
-        self.assertEqual(response.templates[0].name, "partials/settings/_sms.html")
         self.assertEqual(response.status_code, 200)
 
     def test_get_profile_partial_redirect(self):

@@ -15,6 +15,7 @@ from timary.models import Contract, DailyHoursInput
 from timary.querysets import HourStats
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
+from timary.utils import show_active_timer
 
 
 def bad_request(request, exception):
@@ -115,7 +116,9 @@ def index(request):
         "new_hour_form": DailyHoursForm(user=user),
         "hours": hours,
         "show_repeat": show_repeat_option,
+        "is_main_view": True,  # Needed to show timer controls, hidden for other views
     }
+    context.update(show_active_timer(user))
     context.update(get_hours_tracked(user))
     return render(request, "timary/index.html", context=context)
 
@@ -125,6 +128,7 @@ def index(request):
 def dashboard_stats(request):
     context = get_hours_tracked(request.user)
     context["new_hour_form"] = DailyHoursForm(user=request.user)
+    context.update(show_active_timer(request.user))
     response = render(
         request,
         "partials/_dashboard_stats.html",

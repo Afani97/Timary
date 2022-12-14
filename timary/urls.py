@@ -26,6 +26,7 @@ urlpatterns = [
     path("questions/", views.questions, name="questions"),
     path("contract/", views.contract_builder, name="contract_builder"),
     path("stopwatch/", views.stopwatch, name="stopwatch"),
+    path("update_timer/", views.update_timer, name="update_timer"),
 ]
 
 
@@ -63,6 +64,11 @@ urlpatterns += [
         "profile/invoice_branding/",
         views.update_invoice_branding,
         name="update_invoice_branding",
+    ),
+    path(
+        "profile/settings/password/",
+        views.update_user_password,
+        name="update_user_password",
     ),
     path("audit/", views.audit, name="audit"),
     path("invite/", views.invite_new_user, name="invite_new_user"),
@@ -125,6 +131,16 @@ urlpatterns += [
         views.sent_invoices_list,
         name="sent_invoices_list",
     ),
+    path(
+        "invoices/<uuid:invoice_id>/sync/",
+        views.sync_invoice,
+        name="sync_invoice",
+    ),
+    path(
+        "invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
+        views.sync_sent_invoice,
+        name="sync_sent_invoice",
+    ),
 ]
 
 # AUTH URLS
@@ -143,12 +159,18 @@ urlpatterns += [
         name="accounting_disconnect",
     ),
     path("accounting-redirect/", views.accounting_redirect, name="accounting_redirect"),
+    path("accounting-sync/", views.accounting_sync, name="accounting_sync"),
 ]
 
 
 # STRIPE URLS
 urlpatterns += [
-    path("stripe-webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path(
+        "stripe-standard-webhook/", views.stripe_standard_webhook, name="stripe_webhook"
+    ),
+    path(
+        "stripe-connect-webhook/", views.stripe_connect_webhook, name="stripe_webhook"
+    ),
     path(
         "invoice-payment/<uuid:sent_invoice_id>/", views.pay_invoice, name="pay_invoice"
     ),

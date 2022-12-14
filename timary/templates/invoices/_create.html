@@ -9,54 +9,69 @@
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
     {% endif %}
 
-    <div class="flex card-body -mt-5 -mx-5 md:mx-0">
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.title.label_tag }}</span>
-            </label>
-            <div>{{ form.title }}</div>
+    <div class="flex card-body -mt-5 -mx-5 md:mx-0 ">
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.title.label_tag }}</span>
+                </label>
+                <div>{{ form.title }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
+                </label>
+                <div>{{ form.invoice_rate }}</div>
+            </div>
         </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
-            </label>
-            <div>{{ form.invoice_rate }}</div>
+
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.invoice_type.label_tag }}</span>
+                </label>
+                <div>{{ form.invoice_type }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
+                </label>
+                <div>{{ form.invoice_interval }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.milestone_total_steps.label_tag }}</span>
+                </label>
+                <div>{{ form.milestone_total_steps }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.weekly_rate.label_tag }}</span>
+                </label>
+                <div>{{ form.weekly_rate }}</div>
+            </div>
         </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.invoice_type.label_tag }}</span>
-            </label>
-            <div>{{ form.invoice_type }}</div>
+
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
+                </label>
+                <div>{{ form.email_recipient_name }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.email_recipient.label_tag }}</span>
+                </label>
+                <div>{{ form.email_recipient }}</div>
+            </div>
         </div>
+
         <div class="form-control w-full">
             <label class="label">
-                <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
+                <span class="label-text">{{ form.start_on.label_tag }}</span>
             </label>
-            <div>{{ form.invoice_interval }}</div>
-        </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.milestone_total_steps.label_tag }}</span>
-            </label>
-            <div>{{ form.milestone_total_steps }}</div>
-        </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.weekly_rate.label_tag }}</span>
-            </label>
-            <div>{{ form.weekly_rate }}</div>
-        </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
-            </label>
-            <div>{{ form.email_recipient_name }}</div>
-        </div>
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.email_recipient.label_tag }}</span>
-            </label>
-            <div>{{ form.email_recipient }}</div>
+            <div>{{ form.start_on }}</div>
         </div>
     </div>
     <div class="card-actions flex justify-center">
