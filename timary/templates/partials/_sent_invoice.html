@@ -15,8 +15,9 @@
                     </div>
                 {% endif %}
             </div>
-            <p>Amount earned: ${{ sent_invoice.total_price|floatformat:-2 }}</p>
+            <p>${{ sent_invoice.total_price|floatformat:-2 }}</p>
             <p>{{ sent_invoice.date_sent }}</p>
+            <p>#{{ sent_invoice.email_id }}</p>
         </div>
         <div class="col-span-1">
             {# RESEND INVOICE BUTTON #}
