@@ -1,3 +1,4 @@
+import sys
 import time
 
 import stripe
@@ -219,12 +220,19 @@ class StripeService:
 
         stripe.api_key = cls.stripe_api_key
 
-        subscription = stripe.Subscription.create(
-            customer=user.stripe_customer_id,
-            items=[
-                {"price": StripeService.get_price_id()},
-            ],
-        )
+        try:
+            subscription = stripe.Subscription.create(
+                customer=user.stripe_customer_id,
+                items=[
+                    {"price": StripeService.get_price_id()},
+                ],
+            )
+        except stripe.error.InvalidRequestError as e:
+            print(
+                f"Subscription failed to re-add: user_id={user.id}. stripe error={str(e)}",
+                file=sys.stderr,
+            )
+            raise
         user.stripe_subscription_id = subscription["id"]
         user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
         user.save()

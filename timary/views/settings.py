@@ -259,6 +259,7 @@ def update_subscription(request):
             persist=True,
         )
         return response
+    return Http404
 
 
 @login_required

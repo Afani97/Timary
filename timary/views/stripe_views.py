@@ -23,11 +23,13 @@ from timary.services.stripe_service import StripeService
 @csrf_exempt
 def pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if not sent_invoice.user.settings["subscription_active"]:
+        return redirect(reverse("timary:landing_page"))
     if (
         sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
         or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
     ):
-        return redirect(reverse("timary:login"))
+        return redirect(reverse("timary:landing_page"))
 
     if request.method == "POST":
         pay_invoice_form = PayInvoiceForm(request.POST, sent_invoice=sent_invoice)
@@ -73,8 +75,10 @@ def pay_invoice(request, sent_invoice_id):
 @require_http_methods(["GET"])
 def quick_pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if not sent_invoice.user.settings["subscription_active"]:
+        return redirect(reverse("timary:landing_page"))
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
-        return redirect(reverse("timary:login"))
+        return redirect(reverse("timary:landing_page"))
 
     try:
         intent = StripeService.confirm_payment(sent_invoice)

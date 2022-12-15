@@ -39,7 +39,7 @@ class TestStripeViews(BaseTest):
             reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
         )
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("timary:login"))
+        self.assertRedirects(response, reverse("timary:landing_page"))
 
     def test_pay_invoice_raise_error_unknown_sent_invoice(self):
         self.client.logout()
@@ -284,7 +284,9 @@ class TestStripeViews(BaseTest):
                 "timary:quick_pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
             )
         )
-        self.assertRedirects(response, reverse("timary:login"), target_status_code=302)
+        self.assertRedirects(
+            response, reverse("timary:landing_page"), target_status_code=302
+        )
 
     def test_invoice_payment_success_invalid_invoice_id(self):
         self.client.logout()
