@@ -49,12 +49,12 @@ class AccountingService:
 
     def create_customer(self):
         invoice = self.kwargs.get("invoice")
-        if self.service_klass:
+        if self.service_klass and invoice.user.settings["subscription_active"]:
             self.service_klass().create_customer(invoice)
 
     def create_invoice(self):
         sent_invoice = self.kwargs.get("sent_invoice")
-        if self.service_klass:
+        if self.service_klass and sent_invoice.user.settings["subscription_active"]:
             self.service_klass().create_invoice(sent_invoice)
 
     def test_integration(self):
