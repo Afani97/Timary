@@ -1,6 +1,7 @@
 import datetime
 import os
 from contextlib import contextmanager
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -50,7 +51,9 @@ class TestUI(BaseUITest):
             self.assertEqual(page.inner_text("#intro-text"), "Hello there")
 
     @tag("ui")
-    def test_create_first_invoice(self):
+    @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
+    def test_create_first_invoice(self, stripe_customer_mock):
+        stripe_customer_mock.return_value = None
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
             page.fill("#id_title", "Timary")
@@ -62,7 +65,9 @@ class TestUI(BaseUITest):
             self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
 
     @tag("ui")
-    def test_create_first_invoice_milestone(self):
+    @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
+    def test_create_first_invoice_milestone(self, stripe_customer_mock):
+        stripe_customer_mock.return_value = None
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
             page.fill("#id_title", "Timary")
