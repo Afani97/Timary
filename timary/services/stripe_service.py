@@ -1,8 +1,11 @@
+import datetime
 import sys
 import time
 
 import stripe
 from django.conf import settings
+from django.utils import timezone
+from django_q.tasks import schedule
 
 from timary.services.email_service import EmailService
 
@@ -212,6 +215,33 @@ class StripeService:
         )
         user.stripe_subscription_id = subscription["id"]
         user.save()
+
+        # Send trial reminders for 14, 7, 2, 1 days left
+        days_of_notice = [16, 23, 28, 29]
+        today = timezone.now()
+        for day in days_of_notice:
+            days_left = 30 - day
+            _ = schedule(
+                "timary.services.email_service.EmailService.send_plain",
+                f"Timary free trial ending in {days_left} day{'s' if day > 1 else ''}.",
+                f"""
+Hello {user.first_name.capitalize()},
+
+Just wanted to give you a heads up that the free trial for Timary ends in {days_left} days{'s' if day > 1 else ''}.
+
+If you feel that Timary isn't a good fit, we're sorry to hear that.
+Please go to your account and cancel the subscription if you don't need Timary's services any longer.
+
+Otherwise, keep as you are.
+
+Thanks again,
+Aristotel
+ari@usetimary.com
+                """,
+                user.email,
+                schedule_type="O",
+                next_run=today + datetime.timedelta(days=day),
+            )
 
     @classmethod
     def readd_subscription(cls, user):
