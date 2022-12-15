@@ -232,10 +232,11 @@ class StripeService:
                 f"Subscription failed to re-add: user_id={user.id}. stripe error={str(e)}",
                 file=sys.stderr,
             )
-            raise
+            return False
         user.stripe_subscription_id = subscription["id"]
         user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
         user.save()
+        return True
 
     @classmethod
     def get_connect_account(cls, account_id):

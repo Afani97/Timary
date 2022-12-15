@@ -248,16 +248,23 @@ def update_subscription(request):
         )
         return response
     elif action.lower() == "add":
-        StripeService.readd_subscription(request.user)
-        response = render(
-            request, "partials/settings/account/_cancel_subscription.html"
-        )
-        show_alert_message(
-            response,
-            "success",
-            "Hooray! We're happy you're back! Please let us know if you have any questions. Other than that, welcome!",
-            persist=True,
-        )
+        subscription_created = StripeService.readd_subscription(request.user)
+        response = render(request, "partials/settings/account/_add_subscription.html")
+        if subscription_created:
+            show_alert_message(
+                response,
+                "success",
+                "Hooray! We're happy you're back! "
+                "Please let us know if you have any questions. Other than that, welcome!",
+                persist=True,
+            )
+        else:
+            show_alert_message(
+                response,
+                "error",
+                "Error while re-adding the subscription! Try updating the payment method then resubscribe.",
+                persist=True,
+            )
         return response
     return Http404
 
