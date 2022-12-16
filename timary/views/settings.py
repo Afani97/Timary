@@ -1,4 +1,5 @@
 import datetime
+import sys
 from tempfile import NamedTemporaryFile
 
 from django.contrib.auth import logout
@@ -10,7 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from stripe.error import InvalidRequestError
+from stripe.error import CardError, InvalidRequestError
 
 from timary.forms import (
     InvoiceBrandingSettingsForm,
@@ -110,7 +111,11 @@ def update_payment_method_settings(request):
                 request.POST.get("first_token"),
                 request.POST.get("second_token"),
             )
-        except InvalidRequestError:
+        except (InvalidRequestError, CardError) as e:
+            print(
+                f"Error updating payment method: user.id={request.user.id}, error={str(e)}",
+                file=sys.stderr,
+            )
             return render(
                 request,
                 "partials/settings/account/_edit_payment_method.html",
