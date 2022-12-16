@@ -575,6 +575,8 @@ class User(AbstractUser, BaseModel):
         return self.stripe_payouts_enabled and self.settings["subscription_active"]
 
     def user_referred(self):
+        if not self.settings["subscription_active"]:
+            return
         subscription = StripeService.get_subscription(self.stripe_subscription_id)
         amount = 500  # $5
         if subscription["discount"]:
