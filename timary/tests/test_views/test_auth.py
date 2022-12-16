@@ -11,7 +11,6 @@ class TestAuthViews(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = UserFactory()
-        self.STRIPE_REDIRECT = "https://connect.stripe.com"
 
     def test_login(self):
         response = self.client.post(
@@ -31,13 +30,11 @@ class TestAuthViews(TestCase):
         )
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
-    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
-    def test_signup(
-        self, stripe_create_mock, stripe_subscription_mock, stripe_intent_mock
-    ):
-        stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
-        stripe_subscription_mock.return_value = "abc123"
+    @patch("timary.models.User.onboard_user")
+    def test_signup(self, user_onboard_mock, stripe_create_mock, stripe_intent_mock):
+        user_onboard_mock.return_value = None
+        stripe_create_mock.return_value = "abc123", "abc123"
         stripe_intent_mock.return_value = "abc123"
         response = self.client.post(
             reverse("timary:register"),
@@ -51,21 +48,22 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 302)
         self.assertEquals(response.url, reverse("timary:manage_invoices"))
+        self.assertTrue(user_onboard_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
-    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
     @patch("timary.models.User.user_referred")
+    @patch("timary.models.User.onboard_user")
     def test_signup_with_referred_id(
         self,
-        user_mock,
+        user_onboard_mock,
+        user_referrer_mock,
         stripe_create_mock,
-        stripe_subscription_mock,
         stripe_intent_mock,
     ):
-        user_mock.return_value = None
-        stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
-        stripe_subscription_mock.return_value = "abc123"
+        user_onboard_mock.return_value = None
+        user_referrer_mock.return_value = None
+        stripe_create_mock.return_value = "abc123", "abc123"
         stripe_intent_mock.return_value = "abc123"
         response = self.client.post(
             reverse("timary:register"),
@@ -80,16 +78,13 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 302)
         self.assertEquals(response.url, reverse("timary:manage_invoices"))
-        self.assertTrue(user_mock.assert_called_once)
+        self.assertTrue(user_referrer_mock.assert_called_once)
+        self.assertTrue(user_onboard_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
-    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
-    def test_signup_error_invalid_email(
-        self, stripe_create_mock, stripe_subscription_mock, stripe_intent_mock
-    ):
-        stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
-        stripe_subscription_mock.return_value = "abc123"
+    def test_signup_error_invalid_email(self, stripe_create_mock, stripe_intent_mock):
+        stripe_create_mock.return_value = "abc123", "abc123"
         stripe_intent_mock.return_value = "abc123"
         response = self.client.post(
             reverse("timary:register"),
@@ -108,13 +103,11 @@ class TestAuthViews(TestCase):
         )
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
-    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
     def test_signup_error_card_is_not_debit(
-        self, stripe_create_mock, stripe_subscription_mock, stripe_intent_mock
+        self, stripe_create_mock, stripe_intent_mock
     ):
-        stripe_create_mock.return_value = "abc123", "abc123", self.STRIPE_REDIRECT
-        stripe_subscription_mock.return_value = "abc123"
+        stripe_create_mock.return_value = "abc123", "abc123"
         stripe_create_mock.side_effect = stripe.error.InvalidRequestError(
             "Debit card is needed here!", None
         )

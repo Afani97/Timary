@@ -12,6 +12,7 @@ from django.db.models import F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.template.loader import render_to_string
 from django.utils.text import slugify
+from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -637,3 +638,32 @@ class User(AbstractUser, BaseModel):
             self.stripe_payouts_enabled = False
             self.stripe_connect_reason = User.StripeConnectDisabledReasons.MORE_INFO
         self.save()
+
+    def onboard_user(self):
+        """Don't block the main process for these tasks"""
+        _ = async_task(
+            "timary.services.stripe_service.StripeService.create_new_subscription", self
+        )
+
+        _ = async_task(
+            "timary.services.email_service.EmailService.send_plain",
+            "Welcome to Timary!",
+            f"""
+Hi {self.first_name},
+
+I want to personally thank you for joining Timary.
+
+It's not everyday that someone signs up for a new service.
+I'm glad to see you've chosen my app to help alleviate some of your difficulties.
+
+As will most products, Timary will improve with time and that can happen a lot faster if you help out!
+Please do not hesitate to email me with any pain points you run into while using the app.
+Any and all feedback is welcome!
+
+I really appreciate for the opportunity to work with you,
+Aristotel F
+Timary
+
+        """,
+            self.email,
+        )

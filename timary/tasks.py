@@ -222,11 +222,3 @@ def backup_db_file():
     except ClientError:
         return False
     return True
-
-
-def delete_example_invoices(invoice_id):
-    """Delete example invoices generated"""
-    invoice = Invoice.objects.get(id=invoice_id)
-    for sent_invoice in invoice.invoice_snapshots.all():
-        sent_invoice.delete()
-    invoice.delete()

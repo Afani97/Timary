@@ -46,11 +46,11 @@ class BaseUITest(StaticLiveServerTestCase):
 
 class TestUI(BaseUITest):
     @tag("ui")
-    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
+    @patch("timary.models.User.onboard_user")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
-    def test_register_account(self, stripe_new_mock, stripe_subscription_mock):
-        stripe_new_mock.return_value = "abc123", "abc123", "www.example.com"
-        stripe_subscription_mock.return_value = None
+    def test_register_account(self, stripe_new_mock, onboard_user_mock):
+        stripe_new_mock.return_value = "abc123", "abc123"
+        onboard_user_mock.return_value = None
         page = self.browser.new_page()
 
         page.goto(f'{self.live_server_url}{reverse("timary:register")}')

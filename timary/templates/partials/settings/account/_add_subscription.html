@@ -4,7 +4,8 @@
         hx-get="{% url 'timary:update_subscription' %}?action=add"
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
-        _="on click add .loading to me"
+        hx-confirm="Are you sure you want to re-subscribe?"
+        _="on htmx:beforeRequest add .loading to me"
     >
         Subscribe
     </a>

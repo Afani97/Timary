@@ -6,9 +6,7 @@ from stripe.error import InvalidRequestError
 
 from timary.forms import LoginForm, RegisterForm
 from timary.models import User
-from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
-from timary.utils import generate_fake_initial_data
 
 
 def register_user(request):
@@ -32,11 +30,7 @@ def register_user(request):
                 password = form.cleaned_data.get("password")
                 stripe_card_error = False
                 try:
-                    (
-                        connect_id,
-                        customer_id,
-                        account_link_url,
-                    ) = StripeService.create_new_account(
+                    connect_id, customer_id = StripeService.create_new_account(
                         request, user, first_token, second_token
                     )
                 except InvalidRequestError:
@@ -50,39 +44,17 @@ def register_user(request):
                     user.stripe_connect_id = connect_id
                     user.stripe_customer_id = customer_id
                     user.save()
-                    generate_fake_initial_data(user)
                     authenticated_user = authenticate(
                         username=user.username, password=password
                     )
                     if authenticated_user:
-                        StripeService.create_new_subscription(user)
                         login(request, authenticated_user)
+                        user.onboard_user()
 
                         if referrer_id:
                             user_referred_by = User.objects.get(referrer_id=referrer_id)
                             if user_referred_by:
                                 user_referred_by.user_referred()
-
-                        EmailService.send_plain(
-                            "Welcome to Timary!",
-                            """
-    I want to personally thank you for joining Timary.
-
-    It's not everyday that someone signs up for a new service.
-    I'm glad to see you've chosen my app to help alleviate some of your difficulties.
-
-    As will most products, Timary will improve with time and that can happen a lot faster if you help out!
-    Please do not hesitate to email me with any pain points you run into while using the app.
-    Any and all feedback is welcome!
-
-    I really appreciate for the opportunity to work with you,
-    Aristotel F
-    Timary
-
-
-                        """,
-                            user.email,
-                        )
                         return redirect(reverse("timary:manage_invoices"))
                     else:
                         form.add_error(

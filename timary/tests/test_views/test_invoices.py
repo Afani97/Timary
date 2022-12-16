@@ -157,7 +157,7 @@ class TestInvoices(BaseTest):
         self.assertInHTML(
             """
             <div class="text-center lg:text-left md:mr-20">
-                <h1 class="mb-5 text-5xl font-bold" id="intro-text">
+                <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
                     Hello there
                 </h1>
                 <p class="mb-5">

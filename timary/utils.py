@@ -1,12 +1,6 @@
-import datetime
 import json
-import random
 
-from dateutil.relativedelta import relativedelta
-from django.utils import timezone
 from requests import Response
-
-from timary.models import DailyHoursInput, Invoice, SentInvoice
 
 
 def show_alert_message(
@@ -54,43 +48,3 @@ def convert_hours_to_decimal_hours(time):
     if not dec_time:
         raise ValueError()
     return dec_time
-
-
-def generate_fake_initial_data(user):
-    today = timezone.now()
-
-    example_invoice = Invoice.objects.create(
-        title="Archive Me",
-        user=user,
-        invoice_rate=125,
-        email_recipient_name="Bob Smith",
-        email_recipient="bobs@example.com",
-        invoice_interval="M",
-        next_date=today + datetime.timedelta(days=1),
-        last_date=today,
-    )
-    date_times = [(today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)]
-    for dt in date_times:
-        hours = DailyHoursInput.objects.create(
-            hours=random.randint(4, 10),
-            invoice=example_invoice,
-            date_tracked=dt,
-        )
-        sent_invoice = SentInvoice.objects.create(
-            invoice=example_invoice,
-            user=user,
-            date_sent=dt,
-            total_price=hours.hours * example_invoice.invoice_rate,
-            paid_status=random.randint(1, 3),
-        )
-        hours.sent_invoice_id = sent_invoice.id
-        hours.save()
-
-    from django_q.tasks import schedule
-
-    schedule(
-        "timary.tasks.delete_example_invoices",
-        str(example_invoice.id),
-        schedule_type="O",
-        next_run=today + datetime.timedelta(weeks=1),
-    )
