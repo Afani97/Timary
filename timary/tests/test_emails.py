@@ -442,6 +442,17 @@ class TestSendInvoice(TestCase):
             msg = f"<strong>Total Paid: ${floatformat(sent_invoice.total_price + 5, -2)}</strong>"
             self.assertInHTML(msg, html_message)
 
+    def test_dont_send_invoice_if_no_active_subscription(self):
+        hours = DailyHoursFactory()
+        hours.invoice.user.stripe_subscription_status = 3
+        hours.invoice.user.save()
+
+        send_invoice(hours.invoice.id)
+        self.assertEqual(len(mail.outbox), 0)
+
+        hours.invoice.refresh_from_db()
+        self.assertEquals(SentInvoice.objects.count(), 0)
+
 
 class TestWeeklyInvoiceUpdates(TestCase):
     def setUp(self) -> None:
@@ -455,6 +466,16 @@ class TestWeeklyInvoiceUpdates(TestCase):
         end = s.find("</body>")
         message = s[start:end]
         return message
+
+    def test_dont_send_weekly_update_if_no_active_subscription(self):
+        invoice = InvoiceFactory()
+        invoice.user.stripe_subscription_status = 3
+        invoice.user.save()
+        DailyHoursFactory(invoice=invoice)
+
+        send_weekly_updates()
+
+        self.assertEquals(len(mail.outbox), 0)
 
     def test_send_weekly_update(self):
         """Only shows hours tracked for current week, not prior and send email update."""

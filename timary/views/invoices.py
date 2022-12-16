@@ -176,6 +176,17 @@ def resend_invoice_email(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
         return redirect(reverse("timary:user_profile"))
+    if not request.user.settings["subscription_active"]:
+        response = render(
+            request, "partials/_sent_invoice.html", {"_sent_invoice": sent_invoice}
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Your account is in-active. Please re-activate to generate an invoice.",
+            persist=True,
+        )
+        return response
     invoice = sent_invoice.invoice
     if request.user != invoice.user:
         raise Http404
@@ -351,6 +362,18 @@ def sync_sent_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
     if request.user != sent_invoice.user:
         raise Http404
+
+    if not request.user.settings["subscription_active"]:
+        response = render(
+            request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
+        )
+        show_alert_message(
+            response,
+            "error",
+            "Your account is in-active. Please re-activate to sync your invoices.",
+            persist=True,
+        )
+        return response
 
     invoice_synced, error_raised = sent_invoice.sync_invoice()
     response = render(

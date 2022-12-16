@@ -449,12 +449,11 @@ ari@usetimary.com
         )
 
     def sync_invoice(self):
-
-        if not self.paid_status == SentInvoice.PaidStatus.PAID:
-            return None, None
+        if self.paid_status != SentInvoice.PaidStatus.PAID:
+            return None, "Invoice isn't paid"
 
         if not self.user.accounting_org_id:
-            return None, None
+            return None, "No accounting service found"
 
         try:
             AccountingService(

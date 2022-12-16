@@ -479,6 +479,26 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(expected_response, response.content.decode("utf-8"))
 
+    def test_dont_resend_invoice_email_if_not_active_subscription(self):
+        invoice = InvoiceFactory()
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=invoice.user)
+        invoice.user.stripe_subscription_status = 3
+        invoice.user.save()
+        self.client.force_login(invoice.user)
+
+        response = self.client.get(
+            reverse(
+                "timary:resend_invoice_email",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertIn(
+            "Your account is in-active. Please re-activate to generate an invoice",
+            response.headers["HX-Trigger"],
+        )
+        self.client.logout()
+
     def test_resend_invoice_email_already_paid(self):
         invoice = InvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(
@@ -540,6 +560,24 @@ class TestInvoices(BaseTest):
             </div>""",
             response.content.decode("utf-8"),
         )
+
+    def test_dont_generate_invoice_if_not_active_subscription(self):
+        hours = DailyHoursFactory()
+        hours.invoice.user.stripe_subscription_status = 3
+        hours.invoice.user.save()
+        self.client.force_login(hours.invoice.user)
+        response = self.client.get(
+            reverse("timary:generate_invoice", kwargs={"invoice_id": hours.invoice.id}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "Your account is in-active. Please re-activate to generate an invoice",
+            response.headers["HX-Trigger"],
+        )
+
+        self.assertEquals(len(mail.outbox), 0)
+        self.client.logout()
 
     def test_generate_invoice(self):
         todays_date = datetime.date.today()
@@ -612,3 +650,82 @@ class TestInvoices(BaseTest):
             """,
             response.content.decode("utf-8"),
         )
+
+    def test_dont_sync_sent_invoice_if_not_active_subscription(self):
+        hours = DailyHoursFactory()
+        hours.invoice.user.stripe_subscription_status = 3
+        hours.invoice.user.save()
+        sent_invoice = SentInvoiceFactory(
+            invoice=hours.invoice, user=hours.invoice.user
+        )
+        self.client.force_login(hours.invoice.user)
+        response = self.client.get(
+            reverse(
+                "timary:sync_sent_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+
+        self.assertIn(
+            "Your account is in-active. Please re-activate to sync your invoice",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
+        self.client.logout()
+
+    @patch("timary.services.accounting_service.AccountingService.create_invoice")
+    def test_sync_sent_invoice(self, create_invoice_mock):
+        create_invoice_mock.return_value = None
+        self.user.accounting_org = "quickbooks"
+        self.user.accounting_org_id = "abc123"
+        self.user.save()
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse(
+                "timary:sync_sent_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+        self.assertIn(
+            f"{sent_invoice.invoice.title} is now synced with {sent_invoice.invoice.user.accounting_org.title()}",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
+    def test_sync_sent_invoice_error_no_paid(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PENDING,
+        )
+        response = self.client.get(
+            reverse(
+                "timary:sync_sent_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+        self.assertIn(
+            "Invoice isn't paid",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
+    def test_sync_sent_invoice_error_no_accounting_service(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+        )
+        response = self.client.get(
+            reverse(
+                "timary:sync_sent_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+        self.assertIn(
+            "No accounting service found",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")

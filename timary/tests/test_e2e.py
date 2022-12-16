@@ -1,5 +1,6 @@
 import datetime
 import os
+import uuid
 from contextlib import contextmanager
 from unittest.mock import patch
 
@@ -44,6 +45,35 @@ class BaseUITest(StaticLiveServerTestCase):
 
 
 class TestUI(BaseUITest):
+    @tag("ui")
+    @patch("timary.services.stripe_service.StripeService.create_new_subscription")
+    @patch("timary.services.stripe_service.StripeService.create_new_account")
+    def test_register_account(self, stripe_new_mock, stripe_subscription_mock):
+        stripe_new_mock.return_value = "abc123", "abc123", "www.example.com"
+        stripe_subscription_mock.return_value = None
+        page = self.browser.new_page()
+
+        page.goto(f'{self.live_server_url}{reverse("timary:register")}')
+        page.fill("#id_full_name", "John Smith", timeout=1000)
+        page.fill("#id_email", f"john+{uuid.uuid4()}@test.com")
+        page.fill("#id_password", "Apple101!")
+
+        stripe_frame = page.frame_locator("iframe").first
+        stripe_frame.locator('[placeholder="Card number"]').fill("4000056655665556")
+        stripe_frame.locator('[placeholder="MM / YY"]').fill("04/30")
+        stripe_frame.locator('[placeholder="CVC"]').fill("242")
+        stripe_frame.locator('[placeholder="ZIP"]').fill("10101")
+
+        page.wait_for_timeout(100)
+
+        page.click('button:has-text("Start Free Trial")')
+
+        page.wait_for_timeout(1000)
+
+        self.assertIsNotNone(page.locator("h1", has_text="Your current invoices").first)
+
+        page.close()
+
     @tag("ui")
     def test_login_for_first_time_view_welcome_invoice_page(self):
         with self.start_test(UserFactory()) as page:

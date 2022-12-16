@@ -237,6 +237,21 @@ class TestStripeViews(BaseTest):
                 """
         self.assertNotIn(msg, html_body)
 
+    def test_invoice_payment_no_active_subscription(self):
+        sent_invoice = SentInvoiceFactory(
+            paid_status=SentInvoice.PaidStatus.NOT_STARTED
+        )
+        sent_invoice.user.stripe_subscription_status = 3
+        sent_invoice.user.save()
+        self.client.force_login(sent_invoice.user)
+        response = self.client.get(
+            reverse(
+                "timary:pay_invoice",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+
     @patch("timary.services.stripe_service.StripeService.confirm_payment")
     def test_quick_pay_confirm(self, stripe_payment_mock):
         stripe_payment_mock.return_value = {"id": "12345"}

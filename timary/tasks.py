@@ -169,6 +169,8 @@ def send_weekly_updates():
         invoice_type=Invoice.InvoiceType.WEEKLY
     )
     for invoice in all_invoices:
+        if not invoice.user.settings["subscription_active"]:
+            continue
         hours = invoice.get_hours_tracked()
         if hours:
             hours_tracked_this_week = hours.filter(
