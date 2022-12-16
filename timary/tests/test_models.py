@@ -366,7 +366,11 @@ class TestUser(TestCase):
         user = UserFactory(phone_number_availability=["Mon", "Tue"])
         self.assertEqual(
             user.settings,
-            {"phone_number_availability": ["Mon", "Tue"], "accounting_connected": None},
+            {
+                "phone_number_availability": ["Mon", "Tue"],
+                "accounting_connected": None,
+                "subscription_active": True,
+            },
         )
 
     def test_get_active_invoices(self):
@@ -467,3 +471,9 @@ class TestUser(TestCase):
         user = UserFactory()
         # Business accounts are allowed one more coupon, which is modified to $10
         self.assertEqual(user.user_referred(), "abc123")
+
+    def test_user_referred_dont_add_coupon_if_no_active_subscription(self):
+        user = UserFactory()
+        user.stripe_subscription_status = 3
+        user.save()
+        self.assertIsNone(user.user_referred())

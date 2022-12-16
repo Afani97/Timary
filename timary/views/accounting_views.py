@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -92,6 +93,10 @@ def accounting_disconnect(request):
 @login_required()
 @require_http_methods(["GET"])
 def accounting_sync(request):
+    if not request.user.settings["subscription_active"]:
+        return HttpResponse(
+            "Your account is in-active. Please re-activate to sync your invoices."
+        )
     accounting_service = AccountingService({"user": request.user})
     # Sync the current invoice customers first
     synced_invoices = []

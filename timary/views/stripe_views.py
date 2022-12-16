@@ -23,11 +23,13 @@ from timary.services.stripe_service import StripeService
 @csrf_exempt
 def pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if not sent_invoice.user.settings["subscription_active"]:
+        return redirect(reverse("timary:landing_page"))
     if (
         sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
         or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
     ):
-        return redirect(reverse("timary:login"))
+        return redirect(reverse("timary:landing_page"))
 
     if request.method == "POST":
         pay_invoice_form = PayInvoiceForm(request.POST, sent_invoice=sent_invoice)
@@ -73,8 +75,10 @@ def pay_invoice(request, sent_invoice_id):
 @require_http_methods(["GET"])
 def quick_pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if not sent_invoice.user.settings["subscription_active"]:
+        return redirect(reverse("timary:landing_page"))
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
-        return redirect(reverse("timary:login"))
+        return redirect(reverse("timary:landing_page"))
 
     try:
         intent = StripeService.confirm_payment(sent_invoice)
@@ -117,8 +121,6 @@ def onboard_success(request):
     user = User.objects.filter(id=request.GET.get("user_id")).first()
     if not user:
         return redirect(reverse("timary:register"))
-
-    StripeService.create_subscription(user)
 
     login(request, user)
 
@@ -244,6 +246,24 @@ def stripe_webhook(request, stripe_secret):
             ]["disabled_reason"]
             user.update_payouts_enabled(account_connect_requirements_reason)
     # ... handle other event types
+    elif event["type"] == "invoice.created":
+        user_subscription_id = event["data"]["object"]["id"]
+        user = User.objects.filter(stripe_subscription_id=user_subscription_id)
+        if user.exists():
+            user = user.first()
+            user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
+    elif event["type"] in [
+        "invoice.finalization_failed",
+        "invoice.payment_action_required",
+        "invoice.payment_failed",
+    ]:
+        # Could be any reason, but subscription has failed
+        user_subscription_id = event["data"]["object"]["id"]
+        user = User.objects.filter(stripe_subscription_id=user_subscription_id)
+        if user.exists():
+            user = user.first()
+            user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
+            print(f"Subscription failed: {user_subscription_id=}", file=sys.stderr)
     else:
         print("Unhandled event type {}".format(event["type"]))
 

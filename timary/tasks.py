@@ -68,6 +68,8 @@ def gather_invoices():
 
 def send_invoice(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
+    if not invoice.user.settings["subscription_active"]:
+        return
     hours_tracked, total_amount = invoice.get_hours_stats()
     if (
         invoice.invoice_type != Invoice.InvoiceType.WEEKLY
@@ -111,6 +113,8 @@ def send_invoice(invoice_id):
 
 def send_invoice_preview(invoice_id):
     invoice = Invoice.objects.get(id=invoice_id)
+    if not invoice.user.settings["subscription_active"]:
+        return
     hours_tracked, total_amount = invoice.get_hours_stats()
     today = date.today()
 
@@ -148,6 +152,8 @@ def send_reminder_sms():
     for user in users:
         if weekday not in user.settings.get("phone_number_availability"):
             continue
+        if not user.settings["subscription_active"]:
+            continue
         remaining_invoices = user.invoices_not_logged()
         if remaining_invoices:
             invoice = remaining_invoices.pop()
@@ -163,6 +169,8 @@ def send_weekly_updates():
         invoice_type=Invoice.InvoiceType.WEEKLY
     )
     for invoice in all_invoices:
+        if not invoice.user.settings["subscription_active"]:
+            continue
         hours = invoice.get_hours_tracked()
         if hours:
             hours_tracked_this_week = hours.filter(

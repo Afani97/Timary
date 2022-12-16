@@ -18,6 +18,22 @@ from timary.views.twilio_views import twilio_reply
 class TestTwilioSendReminderSMS(TestCase):
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
     @patch("timary.tasks.date")
+    def test_send_0_messages_if_no_active_subscription(
+        self, today_mock, message_create_mock
+    ):
+        today_mock.today.return_value = datetime.date(2022, 1, 10)
+        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        message_create_mock.return_value = None
+
+        invoice = InvoiceFactory(user__phone_number_availability=["Mon"])
+        invoice.user.stripe_subscription_status = 3
+        invoice.user.save()
+
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("0 message(s) sent.", invoices_sent)
+
+    @patch("twilio.rest.api.v2010.account.message.MessageList.create")
+    @patch("timary.tasks.date")
     def test_send_0_messages(self, today_mock, message_create_mock):
         today_mock.today.return_value = datetime.date(2022, 1, 10)
         today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)

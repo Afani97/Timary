@@ -1,4 +1,5 @@
 import datetime
+import sys
 from tempfile import NamedTemporaryFile
 
 from django.contrib.auth import logout
@@ -10,7 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from stripe.error import InvalidRequestError
+from stripe.error import CardError, InvalidRequestError
 
 from timary.forms import (
     InvoiceBrandingSettingsForm,
@@ -110,7 +111,11 @@ def update_payment_method_settings(request):
                 request.POST.get("first_token"),
                 request.POST.get("second_token"),
             )
-        except InvalidRequestError:
+        except (InvalidRequestError, CardError) as e:
+            print(
+                f"Error updating payment method: user.id={request.user.id}, error={str(e)}",
+                file=sys.stderr,
+            )
             return render(
                 request,
                 "partials/settings/account/_edit_payment_method.html",
@@ -230,6 +235,45 @@ def update_user_password(request):
 
     else:
         raise Http404()
+
+
+@login_required()
+@require_http_methods(["GET"])
+def update_subscription(request):
+    action = request.GET.get("action")
+    if action.lower() == "cancel":
+        StripeService.cancel_subscription(request.user)
+        response = render(request, "partials/settings/account/_add_subscription.html")
+        show_alert_message(
+            response,
+            "warning",
+            "We're sorry to see you go. Note, no more invoices or accounting service "
+            "will be updated until you re-subscribe.",
+            persist=True,
+        )
+        return response
+    elif action.lower() == "add":
+        subscription_created = StripeService.readd_subscription(request.user)
+        response = render(
+            request, "partials/settings/account/_cancel_subscription.html"
+        )
+        if subscription_created:
+            show_alert_message(
+                response,
+                "success",
+                "Hooray! We're happy you're back! "
+                "Please let us know if you have any questions. Other than that, welcome!",
+                persist=True,
+            )
+        else:
+            show_alert_message(
+                response,
+                "error",
+                "Error while re-adding the subscription! Try updating the payment method then resubscribe.",
+                persist=True,
+            )
+        return response
+    return Http404
 
 
 @login_required

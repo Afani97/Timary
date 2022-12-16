@@ -1,0 +1,11 @@
+<div class="wrapper flex justify-between">
+    <div class="text-left">Subscription</div>
+    <a class="btn btn-sm text-right"
+        hx-get="{% url 'timary:update_subscription' %}?action=add"
+        hx-target="closest .wrapper"
+        hx-swap="outerHTML"
+        _="on click add .loading to me"
+    >
+        Subscribe
+    </a>
+</div>
