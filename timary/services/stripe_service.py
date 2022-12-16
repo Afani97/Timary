@@ -288,6 +288,23 @@ ari@usetimary.com
         user.stripe_subscription_id = None
         user.save()
 
+        EmailService.send_plain(
+            "No one likes a breakup.",
+            f"""
+Hi {user.first_name.capitalize()},
+
+We're saddened that Timary wasn't the right fit.
+
+If you have a minute, can you please reply with a quick message what Timary lacked that you wished was supported.
+
+
+Hope to see you again,
+Aristotel
+ari@usetimary.com
+            """,
+            user.email,
+        )
+
     @classmethod
     def update_connect_account(cls, user_id, account_id):
         stripe.api_key = cls.stripe_api_key
