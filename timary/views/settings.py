@@ -254,7 +254,9 @@ def update_subscription(request):
         return response
     elif action.lower() == "add":
         subscription_created = StripeService.readd_subscription(request.user)
-        response = render(request, "partials/settings/account/_add_subscription.html")
+        response = render(
+            request, "partials/settings/account/_cancel_subscription.html"
+        )
         if subscription_created:
             show_alert_message(
                 response,
