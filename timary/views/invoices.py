@@ -183,7 +183,7 @@ def resend_invoice_email(request, sent_invoice_id):
         show_alert_message(
             response,
             "warning",
-            "Your account is in-active. Please re-activate to generate an invoice.",
+            "Your account is in-active. Please re-activate to resend an invoice.",
             persist=True,
         )
         return response

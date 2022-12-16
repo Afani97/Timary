@@ -494,7 +494,7 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(len(mail.outbox), 0)
         self.assertIn(
-            "Your account is in-active. Please re-activate to generate an invoice",
+            "Your account is in-active. Please re-activate to resend an invoice",
             response.headers["HX-Trigger"],
         )
         self.client.logout()
