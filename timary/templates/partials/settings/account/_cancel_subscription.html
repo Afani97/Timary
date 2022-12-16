@@ -5,7 +5,7 @@
         hx-get="{% url 'timary:update_subscription' %}?action=cancel"
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
-        hx-confirm="Are you sure you want to cancel? No data will be lost but you can't receive payments any more"
+        hx-confirm="Are you sure you want to cancel? No data will be lost but you can't receive payments anymore"
         _="on htmx:beforeRequest add .loading to me"
     >
         Cancel
