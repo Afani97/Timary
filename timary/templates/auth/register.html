@@ -4,59 +4,131 @@
 {% block title %} Signup {% endblock %}
 
 {% block content %}
-    <div class="max-w-3xl mx-auto mt-6">
+    <div class="mt-6 px-2">
         <h1 class="text-3xl mb-4 text-center">Register</h1>
 
-        <div class="max-w-xl mx-auto">
-            <div class="card md:p-5 bg-neutral text-neutral-content">
-                <div class="card-body">
-                    {% if form.errors %}
-                        {% include "partials/_form_errors.html" with form_errors=form.errors %}
-                    {% endif %}
-                    <form action="{% url 'timary:register' %}{% if referrer_id %}?referrer_id={{ referrer_id }}{% endif %}" method="post">
-                        {% csrf_token %}
-
-                        {% for field in form.visible_fields %}
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">{{ field.label}}</span>
-                                </label>
-                                {{ field | addclass:field.field.widget.attrs.class}}
-                                <span class="label-text-alt -mt-2">{{ field.help_text }}</span>
-                                {% for error in field.errors %}
-                                    <div class="text-red-600">
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
+        <div class="flex flex-col space-y-3 sm:space-y-0 sm:space-x-3 sm:flex-row justify-between mx-auto max-w-6xl">
+            <section class="text-gray-400 body-font overflow-hidden">
+                <div class="container mx-auto max-w-lg mx-auto">
+                    <div class="flex flex-wrap justify-center max-w-3xl mx-auto">
+                        <div class="flex flex-col justify-center md:flex-row md:justify-between p-4 w-full rounded-lg border-2 border-gray-700">
+                            <div class="h-full p-6 flex flex-col relative overflow-hidden">
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Unlimited hours to log
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Accept payments directly
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Unlimited recurring invoices
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Sync with accounting software
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Custom invoice branding
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-2">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>Log hours through text
+                                </p>
+                                <p class="flex items-center text-gray-400 mb-6">
+                                    <span class="w-4 h-4 mr-2 inline-flex items-center justify-center bg-gray-800 text-gray-500 rounded-full flex-shrink-0">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" class="w-3 h-3" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>View stats per invoice
+                                </p>
                             </div>
-                        {% endfor %}
+                            <div class="h-full p-6 flex flex-col relative overflow-hidden mt-5 md:mt-0 md:w-1/2">
+                                <h2 class="text-sm tracking-widest text-gray-400 title-font mb-1 font-medium text-center md:text-left">BUSINESS</h2>
+                                <h1 class="text-5xl text-white leading-none flex justify-center md:justify-start items-center pb-4 mb-4 border-b border-gray-800">
+                                    <span>$29</span>
+                                    <span class="text-lg ml-1 font-normal text-gray-400">/mo</span>
+                                </h1>
+                                <label class="text-xs mt-2 pb-4 mb-4 border-b border-gray-800">
+                                    Free 30 day trial
+                                </label>
+                                <p class="text-xs mt-2">Up to $10/m savings after two successful referrals, forever.</p>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Debit card</span> </label>
-                            <div id="card-element"></div>
-                            <label class="label">
-                                <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
-                                    bank account.</span>
-                            </label>
-                            <div id="payment-message" class="hidden text-red-600"></div>
+                            </div>
                         </div>
+                    </div>
+                    <p class="flex justify-center mt-6">
+                        <a class="text-sm link link-hover" href="{% url 'timary:login' %}">Already registered?</a>
+                    </p>
+                </div>
+            </section>
+            <div class="">
+                <div class="card md:px-5 bg-neutral text-neutral-content">
+                    <div class="card-body">
+                        {% if form.errors %}
+                            {% include "partials/_form_errors.html" with form_errors=form.errors %}
+                        {% endif %}
+                        <form action="{% url 'timary:register' %}{% if referrer_id %}?referrer_id={{ referrer_id }}{% endif %}" method="post">
+                            {% csrf_token %}
 
-                        <div class="card-actions flex justify-center mt-8">
-                            <button class="btn btn-disabled" type="submit" id="register-btn"> Continue </button>
-                        </div>
-                        <div class="flex justify-center invisible" id="loader">
-                            <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </div>
-                    </form>
+                            {% for field in form.visible_fields %}
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">{{ field.label}}</span>
+                                    </label>
+                                    {{ field | addclass:field.field.widget.attrs.class}}
+                                    <span class="label-text-alt -mt-2">{{ field.help_text }}</span>
+                                    {% for error in field.errors %}
+                                        <div class="text-red-600">
+                                            <strong>{{ error|escape }}</strong>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Debit card</span> </label>
+                                <div id="card-element"></div>
+                                <label class="label">
+                                    <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
+                                        bank account.</span>
+                                </label>
+                                <div id="payment-message" class="hidden text-red-600"></div>
+                            </div>
+
+                            <div class="card-actions flex justify-center mt-8">
+                                <button class="btn btn-disabled" type="submit" id="register-btn"> Start Free Trial </button>
+                            </div>
+                            <div class="flex justify-center hidden" id="loader">
+                                <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-            <p class="flex justify-center mt-6">
-                <a class="text-sm link link-hover" href="{% url 'timary:login' %}">Login?</a>
-            </p>
         </div>
 
     </div>
@@ -141,8 +213,8 @@
         }
 
         function showMessage(messageText) {
-            document.getElementById("register-btn").classList.remove("invisible");
-            document.getElementById("loader").classList.add("invisible");
+            document.getElementById("register-btn").classList.remove("hidden");
+            document.getElementById("loader").classList.add("hidden");
             const messageContainer = document.querySelector("#payment-message");
 
             messageContainer.classList.remove("hidden");
@@ -151,8 +223,8 @@
 
         function handleSubmit(e) {
             e.preventDefault();
-            document.getElementById("register-btn").classList.add("invisible");
-            document.getElementById("loader").classList.remove("invisible");
+            document.getElementById("register-btn").classList.add("hidden");
+            document.getElementById("loader").classList.remove("hidden");
 
             stripe.createToken(cardElement, {"currency": "usd"}).then(function(firstToken) {
 

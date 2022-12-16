@@ -1,4 +1,12 @@
 <div class="flex flex-col w-full justify-center space-y-4 px-2" id="user-account">
+
+    {% if settings.subscription_active %}
+        {% include "partials/settings/account/_cancel_subscription.html" %}
+    {% else %}
+        {% include "partials/settings/account/_add_subscription.html" %}
+    {% endif %}
+    <div class="divider"></div>
+
     {% include "partials/settings/account/_password.html" %}
     <div class="divider"></div>
 

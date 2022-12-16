@@ -1,7 +1,11 @@
+import datetime
+import sys
 import time
 
 import stripe
 from django.conf import settings
+from django.utils import timezone
+from django_q.tasks import schedule
 
 from timary.services.email_service import EmailService
 
@@ -199,21 +203,70 @@ class StripeService:
         return intent
 
     @classmethod
-    def create_subscription(cls, user, delete_current=None):
+    def create_new_subscription(cls, user):
         stripe.api_key = cls.stripe_api_key
-
-        if delete_current and user.stripe_subscription_id:
-            if stripe.Subscription.retrieve(user.stripe_subscription_id):
-                stripe.Subscription.delete(user.stripe_subscription_id)
 
         subscription = stripe.Subscription.create(
             customer=user.stripe_customer_id,
             items=[
                 {"price": StripeService.get_price_id()},
             ],
+            trial_period_days=30,  # 30 day free trial
         )
         user.stripe_subscription_id = subscription["id"]
         user.save()
+
+        # Send trial reminders for 14, 7, 2, 1 days left
+        days_of_notice = [16, 23, 28, 29]
+        today = timezone.now()
+        for day in days_of_notice:
+            days_left = 30 - day
+            _ = schedule(
+                "timary.services.email_service.EmailService.send_plain",
+                f"Timary free trial ending in {days_left} day{'s' if day > 1 else ''}.",
+                f"""
+Hello {user.first_name.capitalize()},
+
+Just wanted to give you a heads up that the free trial for Timary ends in {days_left} days{'s' if day > 1 else ''}.
+
+If you feel that Timary isn't a good fit, we're sorry to hear that.
+Please go to your account and cancel the subscription if you don't need Timary's services any longer.
+
+Otherwise, keep as you are.
+
+Thanks again,
+Aristotel
+ari@usetimary.com
+                """,
+                user.email,
+                schedule_type="O",
+                next_run=today + datetime.timedelta(days=day),
+            )
+
+    @classmethod
+    def readd_subscription(cls, user):
+        """Difference from create_new_subscription is no trial"""
+        from timary.models import User
+
+        stripe.api_key = cls.stripe_api_key
+
+        try:
+            subscription = stripe.Subscription.create(
+                customer=user.stripe_customer_id,
+                items=[
+                    {"price": StripeService.get_price_id()},
+                ],
+            )
+        except stripe.error.InvalidRequestError as e:
+            print(
+                f"Subscription failed to re-add: user_id={user.id}. stripe error={str(e)}",
+                file=sys.stderr,
+            )
+            return False
+        user.stripe_subscription_id = subscription["id"]
+        user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
+        user.save()
+        return True
 
     @classmethod
     def get_connect_account(cls, account_id):
@@ -224,6 +277,33 @@ class StripeService:
     def get_subscription(cls, subscription_id):
         stripe.api_key = cls.stripe_api_key
         return stripe.Subscription.retrieve(subscription_id)
+
+    @classmethod
+    def cancel_subscription(cls, user):
+        from timary.models import User
+
+        stripe.api_key = cls.stripe_api_key
+        stripe.Subscription.delete(user.stripe_subscription_id)
+        user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
+        user.stripe_subscription_id = None
+        user.save()
+
+        EmailService.send_plain(
+            "No one likes a breakup.",
+            f"""
+Hi {user.first_name.capitalize()},
+
+We're saddened that Timary wasn't the right fit.
+
+If you have a minute, can you please reply with a quick message what Timary lacked that you wished was supported.
+
+
+Hope to see you again,
+Aristotel
+ari@usetimary.com
+            """,
+            user.email,
+        )
 
     @classmethod
     def update_connect_account(cls, user_id, account_id):

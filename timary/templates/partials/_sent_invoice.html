@@ -21,20 +21,22 @@
         </div>
         <div class="col-span-1">
             {# RESEND INVOICE BUTTON #}
-            {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
-                <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
-                    hx-target="closest li"
-                    hx-swap="outerHTML"
-                    class="btn btn-secondary"
-                    _="on htmx:beforeRequest add .loading to me"
-                    {% if invoice_resent %} disabled="disabled" {% endif %}
-                >
-                    {% if invoice_resent %}
-                        Invoice resent
-                    {% else %}
-                        Resend invoice
-                    {% endif %}
-                </a>
+            {% if sent_invoice.user.settings.subscription_active %}
+                {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
+                    <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
+                        hx-target="closest li"
+                        hx-swap="outerHTML"
+                        class="btn btn-secondary"
+                        _="on htmx:beforeRequest add .loading to me"
+                        {% if invoice_resent %} disabled="disabled" {% endif %}
+                    >
+                        {% if invoice_resent %}
+                            Invoice resent
+                        {% else %}
+                            Resend invoice
+                        {% endif %}
+                    </a>
+                {% endif %}
             {% endif %}
 
             {# SYNC INVOICE BUTTON #}

@@ -60,7 +60,7 @@ def generate_fake_initial_data(user):
     today = timezone.now()
 
     example_invoice = Invoice.objects.create(
-        title="Example title",
+        title="Archive Me",
         user=user,
         invoice_rate=125,
         email_recipient_name="Bob Smith",
