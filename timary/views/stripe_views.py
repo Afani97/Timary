@@ -263,6 +263,25 @@ def stripe_webhook(request, stripe_secret):
         if user.exists():
             user = user.first()
             user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
+            EmailService.send_plain(
+                "Oop, something went wrong",
+                f"""
+Hello {user.first_name.capitalize()},
+
+Looks like Stripe had trouble charging your card.
+
+Nothing to worry about, just head to your profile page and update your payment method.
+
+Once that succeeds, then re-activate the subscription and you should be good to go.
+
+If there are any questions, please do not hesitate to reply to this email.
+
+Otherwise, enjoy the rest of your day.
+Aristotel F
+ari@usetimary.com
+                """,
+                user.email,
+            )
             print(f"Subscription failed: {user_subscription_id=}", file=sys.stderr)
     else:
         print("Unhandled event type {}".format(event["type"]))
