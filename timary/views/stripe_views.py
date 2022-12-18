@@ -236,6 +236,7 @@ def stripe_webhook(request, stripe_secret):
         else:
             # Other stripe webhook event
             pass
+
     elif event["type"] == "account.updated":
         user_account_id = event["data"]["object"]["id"]
         user = User.objects.filter(stripe_connect_id=user_account_id)
@@ -245,13 +246,15 @@ def stripe_webhook(request, stripe_secret):
                 "requirements"
             ]["disabled_reason"]
             user.update_payouts_enabled(account_connect_requirements_reason)
-    # ... handle other event types
+
     elif event["type"] == "invoice.created":
         user_subscription_id = event["data"]["object"]["id"]
-        user = User.objects.filter(stripe_subscription_id=user_subscription_id)
-        if user.exists():
-            user = user.first()
+        user_found = User.objects.filter(stripe_subscription_id=user_subscription_id)
+        if user_found.exists():
+            user = user_found.first()
             user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
+            user.save()
+
     elif event["type"] in [
         "invoice.finalization_failed",
         "invoice.payment_action_required",
@@ -263,8 +266,9 @@ def stripe_webhook(request, stripe_secret):
         if user.exists():
             user = user.first()
             user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
+            user.save()
             EmailService.send_plain(
-                "Oop, something went wrong",
+                "Oops, something went wrong over here at Timary",
                 f"""
 Hello {user.first_name.capitalize()},
 
@@ -282,10 +286,9 @@ ari@usetimary.com
                 """,
                 user.email,
             )
-            print(f"Subscription failed: {user_subscription_id=}", file=sys.stderr)
     else:
+        # ... handle other event types
         print("Unhandled event type {}".format(event["type"]))
-
     return JsonResponse({"success": True})
 
 

@@ -6,7 +6,7 @@ from unittest.mock import patch
 from django.core import mail
 from django.urls import reverse
 
-from timary.models import SentInvoice
+from timary.models import SentInvoice, User
 from timary.tests.factories import (
     DailyHoursFactory,
     InvoiceFactory,
@@ -391,7 +391,7 @@ class TestStripeViews(BaseTest):
 
     @patch("stripe.Webhook.construct_event")
     @patch("timary.models.SentInvoice.success_notification")
-    def test_stripe_webhook_success(
+    def test_stripe_webhook_payment_success(
         self, success_notification_mock, stripe_webhook_mock
     ):
         success_notification_mock.return_value = None
@@ -410,7 +410,7 @@ class TestStripeViews(BaseTest):
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.PAID)
 
     @patch("stripe.Webhook.construct_event")
-    def test_stripe_webhook_error(self, stripe_webhook_mock):
+    def test_stripe_webhook_payment_error(self, stripe_webhook_mock):
         sent_invoice = SentInvoiceFactory(stripe_payment_intent_id="abc123")
         stripe_webhook_mock.return_value = {
             "type": "payment_intent.payment_failed",
@@ -422,8 +422,6 @@ class TestStripeViews(BaseTest):
         )
         sent_invoice.refresh_from_db()
 
-        sent_invoice.refresh_from_db()
-
         html_subject = (
             f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. "
             f"An error occurred while trying to transfer the funds for this invoice. "
@@ -433,3 +431,49 @@ class TestStripeViews(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.FAILED)
         self.assertEqual(mail.outbox[0].subject, html_subject)
+
+    @patch("stripe.Webhook.construct_event")
+    def test_stripe_webhook_trial_success(self, stripe_webhook_mock):
+        user = UserFactory(stripe_subscription_id="abc123")
+        stripe_webhook_mock.return_value = {
+            "type": "invoice.created",
+            "data": {"object": {"id": "abc123"}},
+        }
+
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("timary:stripe_webhook"), data={}, HTTP_STRIPE_SIGNATURE="abc123"
+        )
+
+        user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            user.stripe_subscription_status, User.StripeSubscriptionStatus.ACTIVE
+        )
+
+    @patch("stripe.Webhook.construct_event")
+    def test_stripe_webhook_trial_error(self, stripe_webhook_mock):
+        user = UserFactory(
+            stripe_subscription_id="abc123",
+            stripe_subscription_status=User.StripeSubscriptionStatus.TRIAL,
+        )
+        stripe_webhook_mock.return_value = {
+            "type": "invoice.finalization_failed",
+            "data": {"object": {"id": "abc123"}},
+        }
+
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("timary:stripe_webhook"), data={}, HTTP_STRIPE_SIGNATURE="abc123"
+        )
+
+        user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            user.stripe_subscription_status, User.StripeSubscriptionStatus.INACTIVE
+        )
+        self.assertEqual(
+            mail.outbox[0].subject, "Oops, something went wrong over here at Timary"
+        )
