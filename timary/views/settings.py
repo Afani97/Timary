@@ -329,7 +329,7 @@ def audit(request):
             ]
         )
 
-    tab = Table(displayName="Table1", ref=f"A1:G{len(sent_invoices) + 1}")
+    tab = Table(displayName="Table1", ref=f"A1:I{len(sent_invoices) + 1}")
 
     style = TableStyleInfo(
         name="TableStyleMedium9",
