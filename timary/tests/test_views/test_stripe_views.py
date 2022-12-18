@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import patch
 
 from django.core import mail
+from django.test import override_settings
 from django.urls import reverse
 
 from timary.models import SentInvoice, User
@@ -453,6 +454,7 @@ class TestStripeViews(BaseTest):
         )
 
     @patch("stripe.Webhook.construct_event")
+    @override_settings(DEBUG=True)
     def test_stripe_webhook_trial_error(self, stripe_webhook_mock):
         user = UserFactory(
             stripe_subscription_id="abc123",

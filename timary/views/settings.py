@@ -2,6 +2,7 @@ import datetime
 import sys
 from tempfile import NamedTemporaryFile
 
+from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -112,10 +113,11 @@ def update_payment_method_settings(request):
                 request.POST.get("second_token"),
             )
         except (InvalidRequestError, CardError) as e:
-            print(
-                f"Error updating payment method: user.id={request.user.id}, error={str(e)}",
-                file=sys.stderr,
-            )
+            if not settings.DEBUG:
+                print(
+                    f"Error updating payment method: user.id={request.user.id}, error={str(e)}",
+                    file=sys.stderr,
+                )
             return render(
                 request,
                 "partials/settings/account/_edit_payment_method.html",
@@ -165,7 +167,7 @@ def update_invoice_branding(request):
         )
         return render(request, "invoices/invoice_branding.html", context)
 
-    elif request.method == "POST":
+    else:
 
         if invoice_branding_form.is_valid():
             for k, v in invoice_branding_form.cleaned_data.items():
@@ -186,9 +188,6 @@ def update_invoice_branding(request):
                 "Unable to update Invoice branding",
             )
             return response
-
-    else:
-        raise Http404()
 
 
 @login_required
@@ -242,15 +241,23 @@ def update_user_password(request):
 def update_subscription(request):
     action = request.GET.get("action")
     if action.lower() == "cancel":
-        StripeService.cancel_subscription(request.user)
+        subscription_cancelled = StripeService.cancel_subscription(request.user)
         response = render(request, "partials/settings/account/_add_subscription.html")
-        show_alert_message(
-            response,
-            "warning",
-            "We're sorry to see you go. Note, no more invoices or accounting service "
-            "will be updated until you re-subscribe.",
-            persist=True,
-        )
+        if subscription_cancelled:
+            show_alert_message(
+                response,
+                "warning",
+                "We're sorry to see you go. Note, no more invoices or accounting service "
+                "will be updated until you re-subscribe.",
+                persist=True,
+            )
+        else:
+            show_alert_message(
+                response,
+                "warning",
+                "Error while cancelling your subscription, please try again.",
+                persist=True,
+            )
         return response
     elif action.lower() == "add":
         subscription_created = StripeService.readd_subscription(request.user)

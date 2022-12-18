@@ -277,7 +277,14 @@ ari@usetimary.com
         from timary.models import User
 
         stripe.api_key = cls.stripe_api_key
-        stripe.Subscription.delete(user.stripe_subscription_id)
+        try:
+            stripe.Subscription.delete(user.stripe_subscription_id)
+        except stripe.error.InvalidRequestError as e:
+            print(
+                f"Subscription failed to cancel: user_id={user.id}. stripe error={str(e)}",
+                file=sys.stderr,
+            )
+            return False
         user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
         user.stripe_subscription_id = None
         user.save()

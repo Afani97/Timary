@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import stripe
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -248,3 +250,115 @@ class TestUserSettings(BaseTest):
             data=urlencode(url_params),  # HTMX PUT FORM
         )
         self.assertEqual(response.status_code, 302)
+
+    def test_update_password_settings(self):
+        user = UserFactory()
+        url_params = [
+            ("current_password", "Apple101!"),
+            ("new_password", "NewPassword1!"),
+        ]
+        self.client.force_login(user)
+        response = self.client.put(
+            reverse("timary:update_user_password"),
+            data=urlencode(url_params),  # HTMX PUT FORM
+        )
+
+        user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(user.check_password("NewPassword1!"))
+
+    @patch("timary.services.stripe_service.StripeService.create_payment_intent")
+    @patch("timary.services.stripe_service.StripeService.update_payment_method")
+    def test_update_payment_method_settings_success(
+        self, update_payment_mock, create_payment_mock
+    ):
+        update_payment_mock.return_value = True
+        create_payment_mock.return_value = None
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("timary:update_payment_method_settings"),
+            {"first_token": "abc123", "second_token": "abc123"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("partials/settings/account/_payment_method.html")
+        self.assertIn(
+            "Successfully updated debit card.", response.headers["HX-Trigger"]
+        )
+
+    @patch("timary.services.stripe_service.StripeService.create_payment_intent")
+    @patch("timary.services.stripe_service.StripeService.update_payment_method")
+    def test_update_payment_method_settings_stripe_error(
+        self, update_payment_mock, create_payment_mock
+    ):
+        update_payment_mock.return_value = False
+        create_payment_mock.return_value = None
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("timary:update_payment_method_settings"),
+            {"first_token": "abc123", "second_token": "abc123"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("partials/settings/account/_edit_payment_method.html")
+        self.assertIn(
+            "Error updating payment method, please try again.",
+            response.content.decode("utf-8"),
+        )
+
+    @patch("timary.services.stripe_service.StripeService.create_payment_intent")
+    @patch("timary.services.stripe_service.StripeService.update_payment_method")
+    @override_settings(DEBUG=True)
+    def test_update_payment_method_settings_card_error(
+        self, update_payment_mock, create_payment_mock
+    ):
+        create_payment_mock.return_value = None
+        update_payment_mock.return_value = False
+        update_payment_mock.side_effect = stripe.error.InvalidRequestError(
+            "Debit card is needed here!", None
+        )
+
+        response = self.client.post(
+            reverse("timary:update_payment_method_settings"),
+            {"first_token": "abc123", "second_token": "abc123"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("partials/settings/account/_edit_payment_method.html")
+        self.assertIn(
+            "Error updating payment method, please try again.",
+            response.content.decode("utf-8"),
+        )
+
+    @patch("timary.services.stripe_service.StripeService.readd_subscription")
+    def test_update_subscription_success(self, add_subscription_mock):
+        add_subscription_mock.return_value = True
+
+        response = self.client.get(
+            f'{reverse("timary:update_subscription")}?action=add'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("partials/settings/account/_cancel_subscription.html")
+        self.assertIn(
+            "Hooray! We're happy you're back!",
+            response.headers["HX-Trigger"],
+        )
+
+    @patch("timary.services.stripe_service.StripeService.cancel_subscription")
+    def test_update_subscription_error(self, cancel_subscription_mock):
+        cancel_subscription_mock.return_value = True
+
+        response = self.client.get(
+            f'{reverse("timary:update_subscription")}?action=cancel'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("partials/settings/account/_add_subscription.html")
+        self.assertIn(
+            "We're sorry to see you go.",
+            response.headers["HX-Trigger"],
+        )

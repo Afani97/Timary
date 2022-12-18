@@ -286,6 +286,8 @@ ari@usetimary.com
                 """,
                 user.email,
             )
+            if not settings.DEBUG:
+                print(f"Subscription failed: user_id={user.id}", file=sys.stderr)
     else:
         # ... handle other event types
         print("Unhandled event type {}".format(event["type"]))
