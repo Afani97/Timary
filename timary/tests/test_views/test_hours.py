@@ -42,7 +42,10 @@ class TestDailyHours(BaseTest):
             "partials/_hour.html",
             {"hour": self.hours},
         )
-        self.assertIn('<div class="card-actions">', hours_not_invoiced_template)
+        self.assertIn(
+            '<div class="card-actions flex flex-col space-y-2">',
+            hours_not_invoiced_template,
+        )
 
     def test_create_daily_hours(self):
         DailyHoursInput.objects.all().delete()
@@ -127,7 +130,7 @@ class TestDailyHours(BaseTest):
         self.hours.refresh_from_db()
         self.assertInHTML(
             f"""
-            <h2 class="card-title">{floatformat(self.hours.hours, -2)} hrs for {self.hours.invoice.title}</h2>
+            <h2 class="text-3xl font-bold">{floatformat(self.hours.hours, 2)}</h2>
             """,
             response.content.decode("utf-8"),
         )
