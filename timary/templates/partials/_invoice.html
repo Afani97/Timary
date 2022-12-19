@@ -2,15 +2,17 @@
 <li class="card card-bordered border-neutral" id="{{invoice.slug_title}}">
     <div class="card-body">
         <div class="flex justify-between">
-            <h2 class="card-title">
-                {{ invoice.title }} - {% if invoice.invoice_type == 3 %}Weekly {% endif %}Rate: ${{ invoice.invoice_rate }}
+            <div class="flex items-center mb-4">
+                <h2 class="text-3xl font-bold mr-4">{{ invoice.title }}</h2>
                 {% if invoice.user.accounting_org_id and invoice.accounting_customer_id %}
                     <div class="tooltip" data-tip="Synced with your accounting service.">
-                        {% include 'partials/_check_svg.html' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                        </svg>
                     </div>
                 {% endif %}
-            </h2>
-            <div class="dropdown dropdown-left rounded-box">
+            </div>
+            <div class="dropdown dropdown-left rounded-box mb-4">
                 <label tabindex="0" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </label>
@@ -34,7 +36,7 @@
                             View sent invoices
                         </label>
                     </li>
-                    {% if invoice.invoice_type == 1 %}
+                    {% if invoice.invoice_type == 1 or invoice.invoice_type == 3 %}
                         <li>
                             <a hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on click add .loading to me">
@@ -59,47 +61,70 @@
                 </ul>
             </div>
         </div>
-        <div class="flex">
-            <div class="flex flex-col md:flex-row w-full">
-                <div>
-                    {% if invoice.invoice_type == 1 %}
-                        {% if invoice.next_date %}
-                            <p class="text-xl">emailed {{ invoice.get_invoice_interval_display|lower }} to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                            <p class="text-xl">next date sent is {{ invoice.next_date|date:"M. j, Y" }}</p>
-                        {% else %}
-                            <p class="text-xl">invoice is paused</p>
+        <div>
+            <div class="flex mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-5">
+                    <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
+                    <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v.816a3.836 3.836 0 00-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 01-.921-.421l-.879-.66a.75.75 0 00-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 001.5 0v-.81a4.124 4.124 0 001.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 00-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 00.933-1.175l-.415-.33a3.836 3.836 0 00-1.719-.755V6z" clip-rule="evenodd" />
+                </svg>
+                {% if invoice.invoice_type == 3 %}Weekly{% else %}Hourly{% endif %} ${{ invoice.invoice_rate }}
+            </div>
+            {% if invoice.invoice_type == 1 %}
+                <div class="flex mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-5">
+                        <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clip-rule="evenodd" />
+                    </svg>
+                    {{ invoice.get_invoice_interval_display|title }}
+                </div>
+            {% endif %}
+            {% if invoice.invoice_type == 1 or invoice.invoice_type == 3%}
+                <div class="flex mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-5">
+                        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
+                    </svg>
+                    {# For interval and weekly invoices that can be paused, otherwise show the next date an invoice is generated #}
+                    {% if not invoice.next_date %}
+                        Paused
+                    {% else %}
+                        {% if invoice.invoice_type == 1 %}
+                            {{ invoice.next_date|date:"M. j, Y" }}
+                        {% elif invoice.invoice_type == 3 %}
+                            {{ ""|nextmonday|title }}
                         {% endif %}
-                    {% elif invoice.invoice_type == 2 %}
-                        <p class="text-xl my-2">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline">
-                            <ul class="steps grow col-span-3">
-                                {# Fancy way to make a range in templates #}
-                                {% with ''|center:invoice.milestone_total_steps as range %}
-                                    {% for _ in range %}
-                                        <li class="step{% if forloop.counter <= invoice.milestone_step %} step-primary {% endif %}">
-                                            {% if forloop.counter == invoice.milestone_step %} current {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                {% endwith %}
-                            </ul>
-                            {% if invoice.milestone_step <= invoice.milestone_total_steps %}
-                                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
-                                    hx-confirm="Are you sure you want to complete this milestone?"
-                                    hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-secondary mt-5"
-                                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
-                                    Complete current milestone
-                                </a>
-                            {% else %}
-                                <button class="btn btn-accent mt-5">Milestones all complete!</button>
-                            {% endif %}
-                        </div>
-                    {% elif invoice.invoice_type == 3 %}
-                        <p class="text-xl my-2">emailed to {{ invoice.email_recipient_name }} ({{ invoice.email_recipient }})</p>
-                        <p class="text-xl">next invoice sent out: {{ ""|nextmonday }}</p>
                     {% endif %}
                 </div>
+            {% endif %}
+            <div class="flex mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-5">
+                    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+                </svg>
+                {{ invoice.email_recipient_name }} - {{ invoice.email_recipient }}
             </div>
         </div>
+        {% if invoice.invoice_type == 2 %}
+            <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline my-5">
+                <ul class="steps grow col-span-3">
+                    {# Fancy way to make a range in templates #}
+                    {% with ''|center:invoice.milestone_total_steps as range %}
+                        {% for _ in range %}
+                            <li class="step{% if forloop.counter <= invoice.milestone_step %} step-primary {% endif %}">
+                                {% if forloop.counter == invoice.milestone_step %} current {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endwith %}
+                </ul>
+                {% if invoice.milestone_step <= invoice.milestone_total_steps %}
+                    <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
+                        hx-confirm="Are you sure you want to complete this milestone?"
+                        hx-target="closest #{{ invoice.slug_title }}" hx-swap="innerHTML" class="btn btn-sm btn-secondary my-5"
+                        _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
+                        Complete current milestone
+                    </a>
+                {% else %}
+                    <button class="btn btn-accent mt-5">Milestones all complete!</button>
+                {% endif %}
+            </div>
+        {% endif %}
 
         <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-5">
             <input type="checkbox" />

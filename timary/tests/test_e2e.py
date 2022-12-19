@@ -139,7 +139,7 @@ class TestUI(BaseUITest):
         hours = DailyHoursFactory()
         with self.start_test(hours.invoice.user) as page:
             page.wait_for_selector("#dashboard-title", timeout=2000)
-            page.click('a:has-text("Edit")')
+            page.wait_for_selector(".edit-hours", timeout=2000).click()
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
             page.fill("#hours-list #id_hours", "2")
             page.click('button:has-text("Update")')
@@ -160,8 +160,8 @@ class TestUI(BaseUITest):
             page.fill("#id_email_recipient_name", "John Smith")
             page.fill("#id_email_recipient", "john@smith.com")
             page.click('button:has-text("Update")')
-            page.wait_for_selector(".card-title", timeout=2000)
-            self.assertEqual(page.inner_text(".card-title"), "Timary 2 - Rate: $100")
+            page.wait_for_selector(".card-body h2", timeout=2000)
+            self.assertEqual(page.inner_text(".card-body h2"), "Timary 2")
 
     @tag("ui")
     def test_edit_hours_within_invoice(self):
