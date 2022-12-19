@@ -218,7 +218,7 @@ class TestInvoices(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
             f"""<ul class="list-none">
-                <li class="text-xl">{floatformat(hour.hours, -2)} hrs on {date(hour.date_tracked, "M jS")}</li>
+                <li class="text-xl">{date(hour.date_tracked, "M jS")} - {floatformat(hour.hours, -2)} hrs </li>
            </ul>""",
             response.content.decode("utf-8"),
         )

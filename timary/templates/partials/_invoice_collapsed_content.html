@@ -8,7 +8,7 @@
             <div class="h-full">
                 <ul class="list-none">
                     {% for hour in invoice.get_hours_tracked %}
-                        <li class="text-xl">{{ hour.hours|floatformat:-2 }} hrs on {{ hour.date_tracked|date:"M jS" }}</li>
+                        <li class="text-xl">{{ hour.date_tracked|date:"M jS" }} - {{ hour.hours|floatformat:-2 }} hrs</li>
                     {% endfor %}
                 </ul>
                 <label
