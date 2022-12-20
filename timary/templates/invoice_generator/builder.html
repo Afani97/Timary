@@ -39,7 +39,7 @@
                             <th>Item</th>
                             <th>Description</th>
                             <th>Quantity</th>
-                            <th>Unit Price</th>
+                            <th>Price</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -52,10 +52,10 @@
                                 <input type="text" placeholder="Description" class="input input-ghost w-full max-w-xs" />
                             </th>
                             <th>
-                                <input type="text" placeholder="Quantity" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="2" class="input input-ghost w-20" _="on input call updateAmountDue()" />
                             </th>
                             <th>
-                                <input type="text" placeholder="Unit Price" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="25.00" class="input input-ghost w-20" _="on input call updateAmountDue()" />
                             </th>
                             <th class="flex justify-center content-center mt-3">
                                 <button class="btn btn-xs btn-error btn-circle"
@@ -67,6 +67,15 @@
                             </th>
                         </tr>
                     </tbody>
+                    <tfoot>
+                      <tr class="mt-20">
+                        <th></th>
+                        <th></th>
+                        <th>Amount Due</th>
+                          <th><div class="text-xl" id="amount-due">$1000</div></th>
+                        <th></th>
+                      </tr>
+                    </tfoot>
                 </table>
                 <button class="btn mt-10" _="on click call addAnotherRow()">Add another</button>
             </div>
@@ -85,6 +94,18 @@
                 let copiedRow = tableBody.lastElementChild.cloneNode(true);
                 tableBody.appendChild(copiedRow)
                 _hyperscript.processNode(document.body);
+            }
+            function updateAmountDue() {
+                let tableBody = document.getElementById("table-body")
+                let total = 0.0;
+                Array.from(tableBody.rows).forEach(c => {
+                    let quantity = c.cells[2].children[0].value;
+                    let price = c.cells[3].children[0].value;
+                    if (!isNaN(quantity) && !isNaN(price)) {
+                        total += quantity * price;
+                    }
+                });
+                document.querySelector("#amount-due").innerHTML = `$${total.toFixed(2)}`;
             }
         </script>
     </body>
