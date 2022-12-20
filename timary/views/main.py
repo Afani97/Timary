@@ -65,6 +65,10 @@ def contract_builder(request):
     return render(request, "contract/builder.html", context)
 
 
+def invoice_generator(request):
+    return render(request, "invoice_generator/builder.html", {})
+
+
 def stopwatch(request):
     return render(request, "stopwatch.html", {})
 
