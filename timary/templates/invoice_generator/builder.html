@@ -8,59 +8,83 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
-        <title>Invoice Generator by Timary</title>
+        <title>Free Invoice Generator by Timary</title>
     </head>
     <body>
-        <main class="max-w-5xl mx-auto">
-            <h1 class="text-5xl font-bold text-center my-10 tracking-wide">Invoice Generator</h1>
-            <div class="flex flex-col space-y-3">
-                <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs" style="font-size: 2rem;"/>
-                <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs ml-2" />
-                <input type="text" placeholder="Email Address" class="input input-ghost input-md font-bold w-full max-w-xs ml-2" />
+        <main class="max-w-5xl mx-auto px-3">
+            <h1 class="text-5xl font-bold text-center my-16 tracking-wide">Free Invoice Generator</h1>
+            <div class="flex flex-row justify-between mb-20 w-full">
+                <div class="flex flex-col space-y-1 flex-1">
+                    <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 2rem;"/>
+                    <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                    <input type="text" placeholder="Business Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                    <input type="text" placeholder="Business Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+                </div>
+
+                <h2 class="self-center w-12 mx-10">Bill to:</h2>
+
+                <div class="flex flex-col justify-end space-y-1 flex-1 pl-10">
+                    <input type="text" placeholder="Client Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                    <input type="text" placeholder="Client Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                    <input type="text" placeholder="Client Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+                </div>
             </div>
+
 
             <div class="overflow-x-auto">
                 <table class="table w-full">
                     <!-- head -->
                     <thead>
                         <tr>
+                            <th>Item</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
                             <th></th>
-                            <th>Name</th>
-                            <th>Job</th>
-                            <th>Favorite Color</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        <!-- row 1 -->
                         <tr>
                             <th>
-                                <input type="text" placeholder="Email Address" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="Item" class="input input-ghost w-full max-w-xs" />
                             </th>
                             <th>
-                                <input type="text" placeholder="Email Address" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="Description" class="input input-ghost w-full max-w-xs" />
                             </th>
                             <th>
-                                <input type="text" placeholder="Email Address" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="Quantity" class="input input-ghost w-full max-w-xs" />
                             </th>
                             <th>
-                                <input type="text" placeholder="Email Address" class="input input-ghost w-full max-w-xs" />
+                                <input type="text" placeholder="Unit Price" class="input input-ghost w-full max-w-xs" />
+                            </th>
+                            <th class="flex justify-center content-center mt-3">
+                                <button class="btn btn-xs btn-error btn-circle"
+                                    _="on click if #table-body.children.length > 1 then remove the closest <tr/>">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </th>
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn" _="on click call addAnotherRow()">Add another</button>
-
+                <button class="btn mt-10" _="on click call addAnotherRow()">Add another</button>
             </div>
         </main>
 
+        <footer class="footer footer-center p-10 mt-40 bg-base-200 text-base-content rounded">
+            <div class="footer-title w-full">
+                <span>Built by <a href="{% url 'timary:landing_page' %}" class="link">Timary</a></span></div>
+        </footer>
+
+        <script src="https://unpkg.com/htmx.org@1.8.3"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
         <script>
             function addAnotherRow() {
-                console.log("hi")
                 let tableBody = document.getElementById("table-body")
                 let copiedRow = tableBody.lastElementChild.cloneNode(true);
-                console.log(copiedRow)
                 tableBody.appendChild(copiedRow)
+                _hyperscript.processNode(document.body);
             }
         </script>
     </body>
