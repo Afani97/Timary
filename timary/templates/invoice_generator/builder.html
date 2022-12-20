@@ -13,25 +13,27 @@
     <body>
         <main class="max-w-5xl mx-auto px-3">
             <h1 class="text-5xl font-bold text-center my-16 tracking-wide">Free Invoice Generator</h1>
-            <div class="flex flex-row justify-between mb-20 w-full">
-                <div class="flex flex-col space-y-1 flex-1">
-                    <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 2rem;"/>
-                    <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
-                    <input type="text" placeholder="Business Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
-                    <input type="text" placeholder="Business Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+
+            <div id="content-main">
+
+                <div class="flex flex-row justify-between mb-20 w-full">
+                    <div class="flex flex-col space-y-1 flex-1">
+                        <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 2rem;"/>
+                        <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                        <input type="text" placeholder="Business Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                        <input type="text" placeholder="Business Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+                    </div>
+
+                    <h2 class="self-center w-12 mx-10">Bill to:</h2>
+
+                    <div class="flex flex-col justify-end space-y-1 flex-1 pl-10">
+                        <input type="text" placeholder="Client Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                        <input type="text" placeholder="Client Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
+                        <input type="text" placeholder="Client Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+                    </div>
                 </div>
 
-                <h2 class="self-center w-12 mx-10">Bill to:</h2>
-
-                <div class="flex flex-col justify-end space-y-1 flex-1 pl-10">
-                    <input type="text" placeholder="Client Name" class="input input-ghost input-md font-bold w-full max-w-xs" />
-                    <input type="text" placeholder="Client Email" class="input input-ghost input-md font-bold w-full max-w-xs" />
-                    <input type="text" placeholder="Client Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
-                </div>
-            </div>
-
-
-            <div class="overflow-x-auto">
+                <div class="overflow-x-auto">
                 <table class="table w-full">
                     <!-- head -->
                     <thead>
@@ -77,7 +79,13 @@
                         </tr>
                     </tfoot>
                 </table>
-                <button class="btn mt-10" _="on click call addAnotherRow()">Add another</button>
+                <button class="btn mt-10" _="on click call addAnotherRow()" id="add-another">Add another</button>
+            </div>
+
+            </div>
+
+            <div class="flex justify-center mt-10">
+                <button class="btn btn-primary" _="on click call generateInvoice()">Generate</button>
             </div>
         </main>
 
@@ -89,6 +97,9 @@
         <script src="https://unpkg.com/htmx.org@1.8.3"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
         <script>
+            function generateInvoice() {
+                let element = document.getElementById('content-main');
+            }
             function addAnotherRow() {
                 let tableBody = document.getElementById("table-body")
                 let copiedRow = tableBody.lastElementChild.cloneNode(true);
