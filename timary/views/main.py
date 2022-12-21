@@ -1,4 +1,5 @@
 import datetime
+import random
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -66,7 +67,11 @@ def contract_builder(request):
 
 
 def invoice_generator(request):
-    return render(request, "invoice_generator/builder.html", {})
+    return render(
+        request,
+        "invoice_generator/builder.html",
+        {"random_num": random.randint(111111, 999999)},
+    )
 
 
 def stopwatch(request):
