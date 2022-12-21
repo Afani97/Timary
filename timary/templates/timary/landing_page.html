@@ -1,3 +1,4 @@
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,7 +7,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        {% if debug_mode %}
+            <link href="https://cdn.jsdelivr.net/npm/daisyui@2.42.1/dist/full.css" rel="stylesheet" type="text/css" />
+            <script src="https://cdn.tailwindcss.com"></script>
+        {% else %}
+            {% tailwind_css %}
+        {% endif %}
         <title>Hello from Timary!</title>
     </head>
     <body>
@@ -373,6 +379,7 @@
                     </div>
                 </div>
             </section>
+            {% include 'partials/_footer.html' %}
         </div>
     </body>
 </html>
