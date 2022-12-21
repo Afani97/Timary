@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="corporate">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
+        <title>Free Invoice Generator by Timary</title>
+    </head>
+    <body class="bg-base-300">
+        <main class="max-w-5xl mx-auto px-3 pt-16">
+            <div  id="title" class="mb-16">
+                <h1 class="text-5xl font-bold text-center tracking-wide mb-2">Free Invoice Generator</h1>
+                <p class="text-center">No credit card required, simple invoices generated in your browser by <a href="{% url 'timary:landing_page' %}" class="link">Timary!</a></p>
+            </div>
+
+            <div id="content-main" class="h-full">
+
+                <div class="flex flex-col md:flex-row justify-between mb-20 w-full">
+                    <div class="flex flex-col flex-1">
+                        <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 1.5rem;"/>
+                        <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
+                        <input type="text" placeholder="Business Email" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
+                        <input type="text" placeholder="Business Address" class="input input-ghost input-md font-bold w-full max-w-ws" />
+                    </div>
+
+                    <h2 class="md:self-center w-12 mx-10 pt-10">Bill to:</h2>
+
+                    <div class="flex flex-col justify-end flex-1 pl-10">
+                        <input type="text" placeholder="Client Name" id="client-name" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
+                        <input type="text" placeholder="Client Email" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
+                        <input type="text" placeholder="Client Address" class="input input-ghost input-md font-bold w-full max-w-ws -mb-4" />
+                    </div>
+                </div>
+                <div class="label mt-2 -mb-2">Invoice: #{{ random_num }}</div>
+                <div class="label mb-2">Date: {% now "M j, Y" %}</div>
+                <div class="overflow-x-auto w-full">
+                    <table class="table w-full">
+                        <!-- head -->
+                        <thead>
+                            <tr>
+                                <th class="first-col"></th>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="w-full">
+                            <tr>
+                                <th class="first-col"></th>
+                                <th>
+                                    <input type="text" placeholder="Item" class="input input-ghost w-64 md:w-full max-w-xs" />
+                                </th>
+                                <th>
+                                    <input type="text" placeholder="Description" class="input input-ghost w-64 md:w-full max-w-xs" />
+                                </th>
+                                <th>
+                                    <input type="text" placeholder="2" class="input input-ghost w-20" _="on input call updateAmountDue()" />
+                                </th>
+                                <th>
+                                    <input type="text" placeholder="25.00" class="input input-ghost w-20" _="on input call updateAmountDue()" />
+                                </th>
+                                <th class="flex justify-center content-center mt-3">
+                                    <button class="btn btn-xs btn-error btn-circle"
+                                        _="on click if #table-body.children.length > 1 then remove the closest <tr/> then call updateAmountDue()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </th>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="mt-20">
+                                <th class="first-col"></th>
+                                <th></th>
+                                <th></th>
+                                <th>Amount Due</th>
+                                <th><div class="text-xl" id="amount-due">$1000</div></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <button class="btn mt-10" _="on click call addAnotherRow()" id="add-another">Add another</button>
+                </div>
+
+            </div>
+
+            <div class="flex justify-center mt-10">
+                <button class="btn btn-primary" _="on click call generateInvoice()" id="generate-invoice">Generate</button>
+            </div>
+        </main>
+
+        <footer class="footer footer-center p-10 mt-40 bg-base-200 text-base-content rounded" id="footer">
+            <div class="footer-title w-full">
+                <span>Built by <a href="{% url 'timary:landing_page' %}" class="link">Timary</a></span>
+            </div>
+        </footer>
+
+        <script src="https://unpkg.com/htmx.org@1.8.3"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPGdhPK4P/uRW6/sruonlYj+Q7UHWeKfTAkBW+g83NKM+jMJFJ4iAPfSnVp7BKD4dKMHmVSvICUbE/V1sSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>
+
+            function generateInvoice() {
+                document.getElementById("add-another").style.display = "none";
+                document.getElementById("title").style.display = "none";
+                document.getElementById("generate-invoice").style.display = "none";
+                Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
+                Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.display = "none");
+                let opt = {
+                    margin:       [0, 0.1, 0, 0],
+                    filename:     `${document.querySelector("#client-name").value}-invoice-{{ random_num }}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { backgroundColor: "#3c4451" },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                html2pdf(document.querySelector("main"), opt);
+                setTimeout(function() {
+                    document.getElementById("add-another").style.display = "block";
+                    document.getElementById("title").style.display = "block";
+                    document.getElementById("generate-invoice").style.display = "block";
+                    Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
+                    Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.display = "block");
+                }, 2000);
+
+            }
+            function addAnotherRow() {
+                let tableBody = document.getElementById("table-body")
+                let copiedRow = tableBody.lastElementChild.cloneNode(true);
+                tableBody.appendChild(copiedRow)
+                _hyperscript.processNode(document.body);
+            }
+            function updateAmountDue() {
+                let tableBody = document.getElementById("table-body")
+                let total = 0.0;
+                Array.from(tableBody.rows).forEach(c => {
+                    let quantity = c.cells[3].children[0].value;
+                    let price = c.cells[4].children[0].value;
+                    if (!isNaN(quantity) && !isNaN(price)) {
+                        total += quantity * price;
+                    }
+                });
+                document.querySelector("#amount-due").innerHTML = `$${total.toFixed(2)}`;
+            }
+        </script>
+    </body>
+</html>
