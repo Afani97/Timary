@@ -27,7 +27,7 @@ urlpatterns = [
     path("contract/", views.contract_builder, name="contract_builder"),
     path("stopwatch/", views.stopwatch, name="stopwatch"),
     path("update_timer/", views.update_timer, name="update_timer"),
-    path("invoice/", views.invoice_generator, name="generate_invoice"),
+    path("invoice/", views.invoice_generator, name="invoice_generator"),
 ]
 
 
