@@ -92,7 +92,7 @@
             </div>
 
             <div class="flex justify-center mt-10">
-                <button class="btn btn-primary" _="on click call generateInvoice()" id="generate-invoice">Generate</button>
+                <label for="my-modal-6" class="btn btn-primary m-5" _="on click call generateInvoice()" id="generate-invoice">Generate</label>
             </div>
         </main>
 
@@ -102,17 +102,31 @@
             </div>
         </footer>
 
+        <input type="checkbox" id="my-modal-6" class="modal-toggle" />
+        <div class="modal modal-bottom sm:modal-middle">
+            <div class="modal-box">
+                <h3 class="font-bold text-xl">You're halfway there!</h3>
+                <p class="py-4">You've be saving $<span id="savings"></span> by using Timary to accept the payment for this invoice. Timary does not charge you fees per invoice.</p>
+                <p class="py-4">For one monthly price, Timary accepts unlimited payments from your clients saving you time and awkward moments.</p>
+                <div class="modal-action">
+                    <label for="my-modal-6" class="btn btn-outline">Close</label>
+                    <a href="{% url 'timary:landing_page' %}" class="btn btn-primary" target="_blank">Visit Timary</a>
+                </div>
+            </div>
+        </div>
+
         <script src="https://unpkg.com/htmx.org@1.8.3"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPGdhPK4P/uRW6/sruonlYj+Q7UHWeKfTAkBW+g83NKM+jMJFJ4iAPfSnVp7BKD4dKMHmVSvICUbE/V1sSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
 
             function generateInvoice() {
-                document.getElementById("add-another").style.display = "none";
-                document.getElementById("title").style.display = "none";
-                document.getElementById("generate-invoice").style.display = "none";
+                updateAmountDue();
+                document.getElementById("add-another").style.visibility = "hidden";
+                document.getElementById("title").style.visibility = "hidden";
+                document.getElementById("generate-invoice").style.visibility = "hidden";
                 Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
-                Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.display = "none");
+                Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.visibility = "hidden");
                 let opt = {
                     margin:       [0, 0.1, 0, 0],
                     filename:     `${document.querySelector("#client-name").value}-invoice-{{ random_num }}.pdf`,
@@ -122,11 +136,11 @@
                 };
                 html2pdf(document.querySelector("main"), opt);
                 setTimeout(function() {
-                    document.getElementById("add-another").style.display = "block";
-                    document.getElementById("title").style.display = "block";
-                    document.getElementById("generate-invoice").style.display = "block";
+                    document.getElementById("add-another").style.visibility = "visible";
+                    document.getElementById("title").style.visibility = "visible";
+                    document.getElementById("generate-invoice").style.visibility = "visible";
                     Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
-                    Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.display = "block");
+                    Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.visibility = "visible");
                 }, 2000);
 
             }
@@ -147,6 +161,9 @@
                     }
                 });
                 document.querySelector("#amount-due").innerHTML = `$${total.toFixed(2)}`;
+                let savings = ((total.toFixed(2) * 0.029) + 0.3).toFixed(2);
+                savings = savings > 1.0 ? savings : 0;
+                document.querySelector("#savings").innerHTML = `${savings}`;
             }
         </script>
     </body>
