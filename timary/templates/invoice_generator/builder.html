@@ -19,7 +19,7 @@
 
             <div id="content-main" class="h-full">
 
-                <div class="flex flex-col md:flex-row justify-between mb-20 w-full">
+                <div class="flex flex-col md:flex-row justify-between mb-20 w-full" id="invoice-details">
                     <div class="flex flex-col flex-1">
                         <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 1.5rem;"/>
                         <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
@@ -122,6 +122,7 @@
 
             function generateInvoice() {
                 updateAmountDue();
+                document.getElementById("invoice-details").classList.remove("flex-col");
                 document.getElementById("add-another").style.visibility = "hidden";
                 document.getElementById("title").style.visibility = "hidden";
                 document.getElementById("generate-invoice").style.visibility = "hidden";
@@ -136,6 +137,7 @@
                 };
                 html2pdf(document.querySelector("main"), opt);
                 setTimeout(function() {
+                    document.getElementById("invoice-details").classList.add("flex-col");
                     document.getElementById("add-another").style.visibility = "visible";
                     document.getElementById("title").style.visibility = "visible";
                     document.getElementById("generate-invoice").style.visibility = "visible";
