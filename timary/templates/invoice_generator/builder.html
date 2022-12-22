@@ -11,15 +11,15 @@
         <title>Free Invoice Generator by Timary</title>
     </head>
     <body class="bg-base-300">
-        <main class="max-w-5xl mx-auto px-3 pt-16">
-            <div  id="title" class="mb-16">
+        <main class="max-w-5xl mx-auto px-3">
+            <div id="title" class="pt-16">
                 <h1 class="text-5xl font-bold text-center tracking-wide mb-2">Free Invoice Generator</h1>
                 <p class="text-center">No credit card required, simple invoices generated in your browser by <a href="{% url 'timary:landing_page' %}" class="link">Timary!</a></p>
             </div>
 
-            <div id="content-main" class="h-full">
+            <div id="content-main" class="h-full pt-16">
 
-                <div class="flex flex-col md:flex-row justify-between mb-20 w-full" id="invoice-details">
+                <div class="flex flex-col md:flex-row justify-between mb-10 w-full" id="invoice-details">
                     <div class="flex flex-col flex-1">
                         <input type="text" placeholder="Company Name" class="input input-ghost input-lg font-bold w-full max-w-xs -ml-2" style="font-size: 1.5rem;"/>
                         <input type="text" placeholder="Your Name" class="input input-ghost input-md font-bold w-full max-w-xs -mb-4" />
@@ -42,8 +42,7 @@
                         <!-- head -->
                         <thead>
                             <tr>
-                                <th class="first-col"></th>
-                                <th>Item</th>
+                                <th></th>
                                 <th>Description</th>
                                 <th>Quantity</th>
                                 <th>Price</th>
@@ -53,9 +52,6 @@
                         <tbody id="table-body" class="w-full">
                             <tr>
                                 <th class="first-col"></th>
-                                <th>
-                                    <input type="text" placeholder="Item" class="input input-ghost w-64 md:w-full max-w-xs" />
-                                </th>
                                 <th>
                                     <input type="text" placeholder="Description" class="input input-ghost w-64 md:w-full max-w-xs" />
                                 </th>
@@ -77,7 +73,6 @@
                         </tbody>
                         <tfoot>
                             <tr class="mt-20">
-                                <th class="first-col"></th>
                                 <th></th>
                                 <th></th>
                                 <th>Amount Due</th>
@@ -114,36 +109,45 @@
                 </div>
             </div>
         </div>
-
         <script src="https://unpkg.com/htmx.org@1.8.3"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPGdhPK4P/uRW6/sruonlYj+Q7UHWeKfTAkBW+g83NKM+jMJFJ4iAPfSnVp7BKD4dKMHmVSvICUbE/V1sSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
-
             function generateInvoice() {
                 updateAmountDue();
                 document.getElementById("invoice-details").classList.remove("flex-col");
                 document.getElementById("add-another").style.visibility = "hidden";
-                document.getElementById("title").style.visibility = "hidden";
+                document.getElementById("title").style.display = "none";
                 document.getElementById("generate-invoice").style.visibility = "hidden";
-                Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
+                Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.visibility = "hidden");
                 Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.visibility = "hidden");
                 let opt = {
-                    margin:       [0, 0.1, 0, 0],
+                    margin:       [0.3, 0.1, 0.5, 0.1],
                     filename:     `${document.querySelector("#client-name").value}-invoice-{{ random_num }}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { backgroundColor: "#3c4451" },
+                    html2canvas:  { backgroundColor: "white" },
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
-                html2pdf(document.querySelector("main"), opt);
-                setTimeout(function() {
-                    document.getElementById("invoice-details").classList.add("flex-col");
-                    document.getElementById("add-another").style.visibility = "visible";
-                    document.getElementById("title").style.visibility = "visible";
-                    document.getElementById("generate-invoice").style.visibility = "visible";
-                    Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.display = "none");
-                    Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.visibility = "visible");
-                }, 2000);
+                html2pdf().from(document.querySelector("main")).set(opt).toPdf().get('pdf').then(function (pdf) {
+                    let totalPages = pdf.internal.getNumberOfPages();
+
+                    for (let i = 0; i < totalPages; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(150);
+                        pdf.text("created using timary - usetimary.com", (pdf.internal.pageSize.getWidth() / 2.75), (pdf.internal.pageSize.getHeight() - 0.2));
+                    }
+
+                    setTimeout(function() {
+                        document.getElementById("invoice-details").classList.add("flex-col");
+                        document.getElementById("add-another").style.visibility = "visible";
+                        document.getElementById("title").style.display = "block";
+                        document.getElementById("generate-invoice").style.visibility = "visible";
+                        Array.from(document.getElementsByClassName("first-col")).forEach(b => b.style.visibility = "visible");
+                        Array.from(document.getElementsByClassName("btn-error")).forEach(b => b.style.visibility = "visible");
+                    }, 2000);
+
+                }).save()
 
             }
             function addAnotherRow() {
