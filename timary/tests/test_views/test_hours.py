@@ -1,6 +1,7 @@
 import datetime
 import random
 
+from django.db.models import Sum
 from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -206,3 +207,41 @@ class TestDailyHours(BaseTest):
             "partials/_hours_grid.html", {"hours": hours}
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+
+    def test_repeat_daily_hours_excluding_skipped(self):
+        DailyHoursInput.objects.all().delete()
+        DailyHoursFactory(
+            hours=1,
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            hours=0,
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            hours=2,
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        self.assertEqual(
+            int(DailyHoursInput.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            3,
+        )
+        self.assertEqual(
+            DailyHoursInput.objects.count(),
+            3,
+        )
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            int(DailyHoursInput.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            6,
+        )
+        # Only two are created because 0 hours are skipped
+        self.assertEqual(
+            DailyHoursInput.objects.count(),
+            5,
+        )
