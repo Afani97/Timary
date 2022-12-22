@@ -18,11 +18,11 @@
             <a class="link link-hover" href="{% url 'timary:privacy' %}">Privacy Policy</a>
         </div>
     </div>
-    <div class="flex">
+    <div class="flex flex-col md:flex-row ">
         <a class="link link-hover" href="{% url 'timary:contract_builder' %}">Contract Builder</a>
-        <div class="divider">|</div>
+        <div class="divider hidden md:flex">|</div>
         <a class="link link-hover" href="{% url 'timary:stopwatch' %}">Super Simple Stopwatch</a>
-        <div class="divider">|</div>
+        <div class="divider hidden md:flex">|</div>
         <a class="link link-hover" href="{% url 'timary:invoice_generator' %}">Free Invoice Generator</a>
     </div>
 
