@@ -24,6 +24,7 @@ from timary.forms import (
 from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
+from timary.services.twilio_service import TwilioClient
 from timary.utils import show_alert_message
 
 
@@ -369,34 +370,51 @@ def invite_new_user(request):
             referrer_email_link = request.build_absolute_uri(
                 f"{reverse('timary:register')}?referrer_id={request.user.referrer_id}"
             )
-            EmailService.send_plain(
-                "You've been invited to try Timary!",
-                f"""
-Hello!
+            if form.cleaned_data.get("email", None):
+                EmailService.send_plain(
+                    "You've been invited to try Timary!",
+                    f"""
+    Hello!
 
-{request.user.first_name} has invited you to give Timary a try.
+    {request.user.first_name} has invited you to give Timary a try.
 
-They believe Timary might be a good fit for your needs.
+    They believe Timary might be a good fit for your needs.
 
-What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
+    What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
 
-We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
+    We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
 
-If you'd like to read more about us, visit: https://www.usetimary.com
-
-
-To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
-{referrer_email_link}
+    If you'd like to read more about us, visit: https://www.usetimary.com
 
 
-I hope Timary is right for you,
+    To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
+    {referrer_email_link}
 
-Aristotel F
-Timary LLC
 
-                """,
-                form.cleaned_data.get("email"),
-            )
+    I hope Timary is right for you,
+
+    Aristotel F
+    Timary LLC
+
+                    """,
+                    form.cleaned_data.get("email"),
+                )
+
+            if form.cleaned_data.get("phone_number", None):
+                TwilioClient.invite_user(
+                    form.cleaned_data.get("phone_number"),
+                    f"""
+Hello! You've been invited by {request.user.first_name.capitalize()} to give Timary a try!
+
+Please follow this link {referrer_email_link} to get started today.
+
+tldr for Timary.
+We are a time tracking, invoicing, bookkeeping syncing service to help streamline your business.
+
+Regards,
+Timary Team
+                    """,
+                )
             context["success"] = "Invite sent! Send another"
         else:
             context["error"] = "Unable to send invite, try again!"

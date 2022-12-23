@@ -202,6 +202,7 @@ def update_invoice_next_date(request, invoice_id):
             response,
             "error",
             f"{invoice.title} cannot be updated. Must set date greater than today.",
+            persist=True,
         )
     return response
 

@@ -16,7 +16,7 @@
         </div>
     {% endif %}
     <form>
-        <div class="form-control w-full">
+        <div class="form-control w-full mb-4">
             <label class="label">
                 <span class="label-text">Invite them by their email</span>
             </label>
@@ -25,6 +25,24 @@
                 <span
                     hx-post="{% url 'timary:invite_new_user' %}"
                     hx-include="[name='email']"
+                    hx-target="closest .wrapper"
+                    hx-swap="outerHTML"
+                    class="btn"
+                    _="on htmx:beforeRequest add .loading to me"
+                >
+                    Send
+                </span>
+            </label>
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">Invite them by their phone number</span>
+            </label>
+            <label class="input-group">
+                {{ invite_form.phone_number }}
+                <span
+                    hx-post="{% url 'timary:invite_new_user' %}"
+                    hx-include="[name='phone_number']"
                     hx-target="closest .wrapper"
                     hx-swap="outerHTML"
                     class="btn"

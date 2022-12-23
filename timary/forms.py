@@ -3,6 +3,7 @@ import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import DailyHoursInput, Invoice, User
 
@@ -569,7 +570,7 @@ class ContractForm(forms.Form):
 
 class ReferralInviteForm(forms.Form):
     email = forms.EmailField(
-        required=True,
+        required=False,
         widget=forms.EmailInput(
             attrs={
                 "class": "input input-bordered border-2 w-full",
@@ -577,9 +578,26 @@ class ReferralInviteForm(forms.Form):
             }
         ),
     )
+    phone_number = PhoneNumberField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "+13334445555",
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
+
+    def clean(self):
+        validate_data = super().clean()
+        if not validate_data.get("email") and not validate_data.get("phone_number"):
+            raise ValidationError(
+                "Either an email or phone number is needed to send an invite."
+            )
+        return validate_data
 
     class Meta:
-        fields = ["email"]
+        fields = ["email", "phone_number"]
 
 
 class UpdatePasswordForm(forms.Form):

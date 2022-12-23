@@ -32,6 +32,14 @@ class TwilioClient:
         )
 
     @staticmethod
+    def invite_user(phone_number, message):
+        _ = twilio_client.messages.create(
+            to=f"{phone_number.country_code}{phone_number.national_number}",
+            from_=settings.TWILIO_PHONE_NUMBER,
+            body=message,
+        )
+
+    @staticmethod
     def get_user_messages(user_number):
         recent_messages = twilio_client.messages.list(
             to=user_number, limit=1, date_sent=datetime
