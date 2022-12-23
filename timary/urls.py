@@ -113,6 +113,11 @@ urlpatterns += [
         name="update_invoice",
     ),
     path(
+        "invoices/<uuid:invoice_id>/update/next-date/",
+        views.update_invoice_next_date,
+        name="update_invoice_next_date",
+    ),
+    path(
         "invoices/<uuid:sent_invoice_id>/remind/",
         views.resend_invoice_email,
         name="resend_invoice_email",

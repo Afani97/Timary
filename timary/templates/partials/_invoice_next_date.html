@@ -1,0 +1,26 @@
+<div class="next-date-container">
+    <div class="flex justify-between space-x-2 w-32 items-center" id="next-date">
+        <div class="tooltip" data-tip="Date that next invoice is sent">
+            <span>{{ invoice.next_date|date:"M. j, Y" }}</span>
+        </div>
+        <svg _="on click remove .hidden from #update-next-date then add .hidden to #next-date"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+            <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+        </svg>
+    </div>
+    <div class="flex justify-between space-x-3 w-48 items-center hidden" id="update-next-date">
+        <input value="{{ invoice.next_date|date:"Y-m-d" }}" name="start_on_{{ invoice.email_id }}" class="input input-bordered input-sm" type="date" min="{% now "Y-m-d" %}"/>
+        <svg _="on click remove .hidden from #next-date then add .hidden to #update-next-date"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+        <svg hx-put="{% url 'timary:update_invoice_next_date' invoice_id=invoice.id %}"
+            hx-target=".next-date-container"
+            hx-swap="outerHTML"
+            hx-trigger="click"
+            hx-include="[name='start_on_{{ invoice.email_id }}']"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+        </svg>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -168,6 +168,33 @@ def update_invoice(request, invoice_id):
         return response
     else:
         return render(request, "invoices/_update.html", {"form": invoice_form})
+
+
+@login_required()
+@require_http_methods(["PUT"])
+def update_invoice_next_date(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.user != invoice.user:
+        raise Http404
+    put_params = QueryDict(request.body).copy()
+    next_date = datetime.strptime(
+        put_params.get(f"start_on_{invoice.email_id}"), "%Y-%m-%d"
+    ).date()
+    next_date_updated = False
+    if next_date > date.today():
+        invoice.next_date = next_date
+        invoice.save()
+        next_date_updated = True
+    response = render(request, "partials/_invoice_next_date.html", {"invoice": invoice})
+    if next_date_updated:
+        show_alert_message(response, "success", f"{invoice.title} was updated.")
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"{invoice.title} cannot be updated. Must set date greater than today.",
+        )
+    return response
 
 
 @login_required()

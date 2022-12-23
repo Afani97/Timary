@@ -87,7 +87,7 @@
                         Paused
                     {% else %}
                         {% if invoice.invoice_type == 1 %}
-                            {{ invoice.next_date|date:"M. j, Y" }}
+                            {% include 'partials/_invoice_next_date.html' with invoice=invoice %}
                         {% elif invoice.invoice_type == 3 %}
                             {{ ""|nextmonday|title }}
                         {% endif %}
