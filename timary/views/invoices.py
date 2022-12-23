@@ -50,8 +50,11 @@ def manage_invoices(request):
 
 
 @login_required()
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def create_invoice(request):
+    if request.method == "GET":
+        invoice_form = InvoiceForm(user=request.user)
+        return render(request, "invoices/_create.html", {"form": invoice_form})
     user: User = request.user
     request_data = request.POST.copy()
     if int(request_data.get("invoice_type")) == Invoice.InvoiceType.WEEKLY:
@@ -63,6 +66,18 @@ def create_invoice(request):
         prev_invoice_count = user.get_invoices.count()
         invoice = invoice_form.save(commit=False)
         invoice.user = user
+        # If user selects from list of contacts, get that contact's info
+        if contact_id := invoice_form.cleaned_data.get("contacts"):
+            contact = Invoice.objects.filter(
+                email_recipient_stripe_customer_id=contact_id
+            ).first()
+            invoice.email_recipient = contact.email_recipient
+            invoice.email_recipient_name = contact.email_recipient_name
+            invoice.email_recipient_stripe_customer_id = (
+                contact.email_recipient_stripe_customer_id
+            )
+            invoice.accounting_customer_id = contact.accounting_customer_id
+            invoice.save()
         if start_on := invoice_form.cleaned_data.get("start_on"):
             invoice.next_date = start_on
             invoice.last_date = date.today()
@@ -170,6 +185,7 @@ def update_invoice(request, invoice_id):
             prev_invoice_interval_type
             and invoice.invoice_type == Invoice.InvoiceType.INTERVAL
             and prev_invoice_interval_type != saved_invoice.invoice_interval
+            and invoice.next_date
         ):
             saved_invoice.calculate_next_date(update_last=False)
         response = render(request, "partials/_invoice.html", {"invoice": saved_invoice})

@@ -135,11 +135,29 @@ class InvoiceForm(forms.ModelForm):
             }
         ),
     )
+    contacts = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "label": "Contacts",
+                "class": "select select-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
         self.fields["invoice_rate"].label = "Hourly rate"
+        self.fields["contacts"].choices = [
+            (
+                inv.email_recipient_stripe_customer_id,
+                f"{inv.email_recipient_name} - {inv.email_recipient}",
+            )
+            for inv in Invoice.objects.all()
+        ]
+        self.fields["email_recipient_name"].required = False
+        self.fields["email_recipient"].required = False
         if not self.initial:
             self.fields["invoice_interval"].required = False
             self.fields["milestone_total_steps"].required = False
@@ -180,6 +198,7 @@ class InvoiceForm(forms.ModelForm):
             "email_recipient_name",
             "email_recipient",
             "start_on",
+            "contacts",
         ]
         labels = {
             "email_recipient_name": "Client's name",
@@ -236,6 +255,15 @@ class InvoiceForm(forms.ModelForm):
         invoice_interval = validated_data.get("invoice_interval")
         milestone_total_steps = validated_data.get("milestone_total_steps")
         weekly_rate = validated_data.get("weekly_rate")
+
+        if validated_data.get("contacts") or (
+            validated_data.get("email_recipient")
+            and validated_data.get("email_recipient_name")
+        ):
+            # No missing client info
+            pass
+        else:
+            raise ValidationError("A client needs be entered or selected from list")
 
         if "start_on" in validated_data:
             start_on = validated_data.get("start_on", None)

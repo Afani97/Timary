@@ -52,18 +52,37 @@
             </div>
         </div>
 
-        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0">
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
-                </label>
-                <div>{{ form.email_recipient_name }}</div>
+        <div class="flex flex-col justify-center space-y-2">
+            <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0 contact-info">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.email_recipient_name.label_tag }}</span>
+                    </label>
+                    <div>{{ form.email_recipient_name }}</div>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.email_recipient.label_tag }}</span>
+                    </label>
+                    <div>{{ form.email_recipient }}</div>
+                </div>
+
             </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.email_recipient.label_tag }}</span>
-                </label>
-                <div>{{ form.email_recipient }}</div>
+            <button class="btn contact-info" type="button"
+                _="on click remove .hidden from #contacts-list then add .hidden to .contact-info end"
+            >Select from previous clients?
+            </button>
+            <div class="flex flex-col space-y-2 hidden" id="contacts-list">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.contacts.label_tag }}</span>
+                    </label>
+                    <div>{{ form.contacts }}</div>
+                </div>
+                <button type="button" class="btn"
+                    _="on click add .hidden to #contacts-list then remove .hidden from .contact-info">
+                    Enter client info
+                </button>
             </div>
         </div>
 

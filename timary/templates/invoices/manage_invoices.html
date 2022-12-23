@@ -87,8 +87,14 @@
 
     {# New invoice modal #}
     <div id="new-invoice-modal" class="modal">
-        <div class="modal-box bg-neutral w-11/12 max-w-2xl">
-            {% include "invoices/_create.html" with form=new_invoice %}
+        <div class="modal-box bg-neutral w-11/12 max-w-2xl" id="create-invoice-inner">
+            <div class="flex justify-center"
+                hx-get="{% url 'timary:create_invoice' %}"
+                hx-target="#create-invoice-inner"
+                hx-trigger="revealed"
+                hx-swap="innerHTML">
+                <button class="btn btn-lg loading">loading</button>
+            </div>
         </div>
     </div>
     {# New invoice modal #}
@@ -139,26 +145,20 @@
 
 {% block js %}
     <script nonce="manage-invoices">
-        function clearInvoiceModal() {
-            let errors_list = htmx.find("#new-invoice-modal .list-none");
-            if (errors_list) {
-                errors_list.remove();
-            }
-
-            htmx.find("#id_title").value = "";
-            htmx.find("#id_invoice_type").value = 1;
-            htmx.find("#id_invoice_rate").value = 50;
-            htmx.find("#id_weekly_rate").value = 0;
-            htmx.find("#id_milestone_total_steps").value = 3;
-            htmx.find("#id_email_recipient_name").value = "";
-            htmx.find("#id_email_recipient").value = "";
-        }
-
         var LOADER = `
-        <div class="flex justify-center">
+        <div class="flex justify-center"
+            hx-get="{% url 'timary:create_invoice' %}"
+            hx-target="#create-invoice-inner"
+            hx-trigger="revealed"
+            hx-swap="innerHTML">
             <button class="btn btn-lg loading">loading</button>
         </div>
         `;
+
+        function clearInvoiceModal() {
+            htmx.find("#create-invoice-inner").innerHTML = LOADER;
+            htmx.process(document.body)
+        }
 
         function resetEditHoursView() {
             htmx.find("#edit-hours-inner").innerHTML = LOADER;
@@ -170,7 +170,7 @@
 
         htmx.on("clearInvoiceModal", function(){
             htmx.find("#close-invoice-modal").click();
-            clearInvoiceModal();
+            htmx.find("#create-invoice-inner").innerHTML = LOADER;
         });
     </script>
 {% endblock  %}

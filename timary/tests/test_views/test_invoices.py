@@ -74,6 +74,24 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
+    def test_create_invoice_from_client_list(self):
+        InvoiceFactory(user=self.user, email_recipient_stripe_customer_id="abc123")
+        response = self.client.post(
+            reverse("timary:create_invoice"),
+            {
+                "title": "Some title",
+                "invoice_rate": 50,
+                "invoice_type": 1,
+                "invoice_interval": "D",
+                "contacts": "abc123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Invoice.objects.filter(email_recipient_stripe_customer_id="abc123").count(),
+            2,
+        )
+
     @patch(
         "timary.services.stripe_service.StripeService.create_customer_for_invoice",
         return_value=None,

@@ -261,8 +261,8 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(
-            form.errors, {"email_recipient_name": ["This field is required."]}
+        self.assertIn(
+            "A client needs be entered or selected from list", str(form.errors)
         )
 
     def test_invoice_error_invalid_email_recipient_name(self):
@@ -277,9 +277,7 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(
-            form.errors, {"email_recipient_name": ["Only valid names allowed."]}
-        )
+        self.assertIn("Only valid names allowed.", str(form.errors))
 
     def test_invoice_error_missing_email_recipient(self):
         form = InvoiceForm(
@@ -292,7 +290,9 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(form.errors, {"email_recipient": ["This field is required."]})
+        self.assertIn(
+            "A client needs be entered or selected from list", str(form.errors)
+        )
 
     def test_invoice_error_invalid_email_recipient(self):
         form = InvoiceForm(
@@ -306,9 +306,7 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(
-            form.errors, {"email_recipient": ["Enter a valid email address."]}
-        )
+        self.assertIn("Enter a valid email address.", str(form.errors))
 
     def test_invoice_error_duplicate_title(self):
         user = UserFactory()
