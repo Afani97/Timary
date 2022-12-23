@@ -156,15 +156,24 @@ def update_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body).copy()
+    prev_invoice_interval_type = (
+        invoice.invoice_interval
+        if invoice.invoice_type == Invoice.InvoiceType.INTERVAL
+        else None
+    )
     if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
         put_params.update({"invoice_rate": put_params["weekly_rate"]})
     invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
-        invoice = invoice_form.save()
-        if invoice.next_date:
-            invoice.calculate_next_date(update_last=False)
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
-        show_alert_message(response, "success", f"{invoice.title} was updated.")
+        saved_invoice = invoice_form.save()
+        if (
+            prev_invoice_interval_type
+            and invoice.invoice_type == Invoice.InvoiceType.INTERVAL
+            and prev_invoice_interval_type != saved_invoice.invoice_interval
+        ):
+            saved_invoice.calculate_next_date(update_last=False)
+        response = render(request, "partials/_invoice.html", {"invoice": saved_invoice})
+        show_alert_message(response, "success", f"{saved_invoice.title} was updated.")
         return response
     else:
         return render(request, "invoices/_update.html", {"form": invoice_form})
