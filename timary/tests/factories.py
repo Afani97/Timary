@@ -22,6 +22,7 @@ class UserFactory(DjangoModelFactory):
     phone_number_availability = factory.Iterator(
         ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"]
     )
+    phone_number_repeat_sms = False
 
 
 def get_next_date():

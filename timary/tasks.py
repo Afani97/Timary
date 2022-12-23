@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.template.loader import render_to_string
-from django_q.tasks import async_task
+from django_q.tasks import async_task, schedule
 
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
@@ -159,7 +159,25 @@ def send_reminder_sms():
             invoice = remaining_invoices.pop()
             TwilioClient.log_hours(invoice)
             invoices_sent_count += 1
+            if user.phone_number_repeat_sms:
+                _ = schedule(
+                    "timary.tasks.remind_sms_again",
+                    user.id,
+                    schedule_type="O",
+                    next_run=date.today() + timedelta(hours=1),
+                )
     return f"{invoices_sent_count} message(s) sent."
+
+
+def remind_sms_again(user_id):
+    user = User.objects.get(id=user_id)
+    remaining_invoices = user.invoices_not_logged()
+    invoices_sent_count = 0
+    if remaining_invoices:
+        invoice = remaining_invoices.pop()
+        TwilioClient.log_hours(invoice)
+        invoices_sent_count += 1
+    return f"{invoices_sent_count} message(s) resent."
 
 
 def send_weekly_updates():

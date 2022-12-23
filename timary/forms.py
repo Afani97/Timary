@@ -422,7 +422,7 @@ class UserForm(forms.ModelForm):
 class SMSSettingsForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["phone_number_availability"]
+        fields = ["phone_number_availability", "phone_number_repeat_sms"]
 
 
 def validate_due_date_integer(val):

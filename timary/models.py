@@ -502,6 +502,7 @@ class User(AbstractUser, BaseModel):
     phone_number_availability = MultiSelectField(
         choices=WEEK_DAYS, null=True, blank=True
     )
+    phone_number_repeat_sms = models.BooleanField(default=False)
 
     # Accounting integration
     accounting_org = models.CharField(max_length=200, blank=True, null=True)
