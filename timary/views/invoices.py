@@ -312,7 +312,21 @@ def sent_invoices_list(request, invoice_id):
         return render(
             request,
             "partials/_sent_invoices_list.html",
-            {"sent_invoices": sent_invoices},
+            {
+                "sent_invoices": sent_invoices,
+                "not_started_count": sent_invoices.filter(
+                    paid_status=SentInvoice.PaidStatus.NOT_STARTED
+                ).count(),
+                "pending_count": sent_invoices.filter(
+                    paid_status=SentInvoice.PaidStatus.PENDING
+                ).count(),
+                "paid_count": sent_invoices.filter(
+                    paid_status=SentInvoice.PaidStatus.PAID
+                ).count(),
+                "failed_count": sent_invoices.filter(
+                    paid_status=SentInvoice.PaidStatus.FAILED
+                ).count(),
+            },
         )
     else:
         return_message = (
