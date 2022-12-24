@@ -30,7 +30,7 @@
     {% endif %}
     {% if invoice.budget_percentage > 0 %}
         <div class="flex flex-col w-full">
-            <div class="text-center mb-10">Budget</div>
+            <div class="text-center mb-5">Budget</div>
             <div class="flex justify-center mb-5 sm:mb-12">
                 <div
                     class="radial-progress text-black bg-accent border-4 border-accent"
@@ -43,20 +43,47 @@
         <div class="divider md:divider-horizontal"></div>
     {% endif %}
     <div class="w-full">
-        <table class="charts-css column show-labels show-primary-axis show-heading show-data-on-hover">
-            <caption> $$ Earned last 6 months </caption>
-            <tbody>
-                {% for month in invoice.get_last_six_months %}
-                    <tr>
-                        <th scope="row">
-                            {{ month.display }}
-                        </th>
-                        <td style="--size:{{ month.size}};">
-                            <span class="tooltip">{{ month.data }}</span>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="flex flex-row justify-center w-full h-48">
+            <canvas id="chart-{{ invoice.email_id }}"></canvas>
+        </div>
     </div>
 </div>
+
+<script>
+    var config = {
+        type: 'bar',
+        data: {
+            datasets: [
+                {
+                    "data": {{ invoice.get_last_six_months.1|safe }},
+                    "label": '$$ Earned last 6 months',
+                    "fill": false,
+                    "backgroundColor": ["rgba(255, 99, 132, 0.2)","rgba(255, 159, 64, 0.2)","rgba(255, 205, 86, 0.2)","rgba(75, 192, 192, 0.2)","rgba(54, 162, 235, 0.2)","rgba(153, 102, 255, 0.2)","rgba(201, 203, 207, 0.2)"],
+                    "borderColor": ["rgb(255, 99, 132)","rgb(255, 159, 64)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)","rgb(153, 102, 255)","rgb(201, 203, 207)"],
+                    "borderWidth": 1
+                }
+            ],
+            labels: {{ invoice.get_last_six_months.0|safe }}
+        },
+        options: {
+            responsive: true,
+            legend: {
+                labels: {
+                    padding: 20,
+                    fontSize: 15
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        autoSkip: false,
+                        maxTicksLimit: 20
+                    },
+                }]
+            }
+        }
+    };
+    var ctx = document.getElementById('chart-{{invoice.email_id}}');
+    new Chart(ctx, config);
+</script>

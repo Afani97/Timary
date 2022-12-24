@@ -199,28 +199,17 @@ class Invoice(BaseModel):
             .distinct()
             .values("month")
             .order_by("month")
-            .annotate(h=Sum("total_price"))
-            .values("month", "h")
+            .annotate(totals=Sum("total_price"))
+            .values("month", "totals")
         )
-        max_hr = 0
-        if six_months_qs:
-            max_hr = int(max(hour["h"] for hour in six_months_qs))
-        data = []
+        months = []
+        totals = []
         for m in date_times:
             datum = list(filter(lambda x: m == x["month"], six_months_qs))
-            obj = {
-                "month": m,
-                "display": m.strftime("%b"),
-                "size": 0,
-                "data": "0h",
-            }
-            if len(datum) > 0:
-                datum = datum[0]
-                hours = datum["h"]
-                obj["size"] = round((hours / (max_hr + 100)), 2)
-                obj["data"] = f"${round(hours, 2)}"
-            data.append(obj)
-        return sorted(data, key=lambda x: x["month"])
+            months.insert(0, m.strftime("%b"))
+            total_count = float(datum[0]["totals"]) if datum else 0
+            totals.insert(0, total_count)
+        return months, totals
 
     def get_next_date(self):
         if self.invoice_interval == Invoice.Interval.DAILY:
