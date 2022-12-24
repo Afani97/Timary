@@ -149,13 +149,13 @@ class InvoiceForm(forms.ModelForm):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
         self.fields["invoice_rate"].label = "Hourly rate"
-        self.fields["contacts"].choices = [
+        self.fields["contacts"].choices = {
             (
                 inv.email_recipient_stripe_customer_id,
                 f"{inv.email_recipient_name} - {inv.email_recipient}",
             )
             for inv in Invoice.objects.all()
-        ]
+        }
         self.fields["email_recipient_name"].required = False
         self.fields["email_recipient"].required = False
         if not self.initial:
