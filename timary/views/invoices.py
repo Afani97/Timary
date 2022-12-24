@@ -9,7 +9,16 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import DailyHoursForm, InvoiceForm
+from timary.forms import (
+    CreateIntervalForm,
+    CreateMilestoneForm,
+    CreateWeeklyForm,
+    DailyHoursForm,
+    InvoiceForm,
+    UpdateIntervalForm,
+    UpdateMilestoneForm,
+    UpdateWeeklyForm,
+)
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
@@ -53,14 +62,19 @@ def manage_invoices(request):
 @require_http_methods(["GET", "POST"])
 def create_invoice(request):
     if request.method == "GET":
-        invoice_form = InvoiceForm(user=request.user)
-        return render(request, "invoices/_create.html", {"form": invoice_form})
+        invoice_form_class, template = get_invoice_form_class(
+            Invoice.InvoiceType(int(request.GET.get("type")))
+        )
+        invoice_form = invoice_form_class(user=request.user)
+        return render(
+            request, f"invoices/{template}/_create.html", {"form": invoice_form}
+        )
     user: User = request.user
     request_data = request.POST.copy()
-    if int(request_data.get("invoice_type")) == Invoice.InvoiceType.WEEKLY:
-        request_data.update({"invoice_rate": request_data["weekly_rate"]})
-
-    invoice_form = InvoiceForm(request_data or None, user=user)
+    invoice_form_class, template = get_invoice_form_class(
+        Invoice.InvoiceType(int(request_data.get("invoice_type")))
+    )
+    invoice_form = invoice_form_class(request_data, user=user)
 
     if invoice_form.is_valid():
         prev_invoice_count = user.get_invoices.count()
@@ -78,11 +92,7 @@ def create_invoice(request):
             )
             invoice.accounting_customer_id = contact.accounting_customer_id
             invoice.save()
-        if start_on := invoice_form.cleaned_data.get("start_on"):
-            invoice.next_date = start_on
-            invoice.last_date = date.today()
-        else:
-            invoice.calculate_next_date()
+        invoice.calculate_next_date()
         invoice.save()
         invoice.sync_customer()
 
@@ -98,7 +108,9 @@ def create_invoice(request):
             ] = "/main/"  # To trigger refresh to remove empty state
         return response
     else:
-        response = render(request, "invoices/_create.html", {"form": invoice_form})
+        response = render(
+            request, f"invoices/{template}/_create.html", {"form": invoice_form}
+        )
         response["HX-Retarget"] = "#new-invoice-form"
         response["HX-Reswap"] = "outerHTML"
         return response
@@ -151,14 +163,32 @@ def archive_invoice(request, invoice_id):
     return response
 
 
+def get_invoice_form_class(type, action="create"):
+    if type == Invoice.InvoiceType.INTERVAL:
+        invoice_form = CreateIntervalForm if action == "create" else UpdateIntervalForm
+        template = "interval"
+    elif type == Invoice.InvoiceType.MILESTONE:
+        invoice_form = (
+            CreateMilestoneForm if action == "create" else UpdateMilestoneForm
+        )
+        template = "milestone"
+    else:
+        invoice_form = CreateWeeklyForm if action == "create" else UpdateWeeklyForm
+        template = "weekly"
+    return invoice_form, template
+
+
 @login_required()
 @require_http_methods(["GET"])
 def edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    invoice_form = InvoiceForm(instance=invoice, user=request.user)
-    return render(request, "invoices/_update.html", {"form": invoice_form})
+    invoice_form_class, template = get_invoice_form_class(
+        invoice.invoice_type, action="update"
+    )
+    form = invoice_form_class(instance=invoice, user=request.user)
+    return render(request, f"invoices/{template}/_update.html", {"form": form})
 
 
 @login_required()
@@ -168,14 +198,16 @@ def update_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body).copy()
+    put_params.update({"invoice_type": invoice.invoice_type})
+    invoice_form_class, template = get_invoice_form_class(
+        invoice.invoice_type, action="update"
+    )
     prev_invoice_interval_type = (
         invoice.invoice_interval
         if invoice.invoice_type == Invoice.InvoiceType.INTERVAL
         else None
     )
-    if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-        put_params.update({"invoice_rate": put_params["weekly_rate"]})
-    invoice_form = InvoiceForm(put_params, instance=invoice, user=request.user)
+    invoice_form = invoice_form_class(put_params, instance=invoice, user=request.user)
     if invoice_form.is_valid():
         saved_invoice = invoice_form.save()
         if (
@@ -189,7 +221,9 @@ def update_invoice(request, invoice_id):
         show_alert_message(response, "success", f"{saved_invoice.title} was updated.")
         return response
     else:
-        return render(request, "invoices/_update.html", {"form": invoice_form})
+        return render(
+            request, f"invoices/{template}/_update.html", {"form": invoice_form}
+        )
 
 
 @login_required()

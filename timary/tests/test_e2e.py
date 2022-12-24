@@ -86,6 +86,8 @@ class TestUI(BaseUITest):
         stripe_customer_mock.return_value = None
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-interval")
+            page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
             page.fill("#id_invoice_rate", "100")
             page.fill("#id_email_recipient_name", "John Smith")
@@ -100,10 +102,27 @@ class TestUI(BaseUITest):
         stripe_customer_mock.return_value = None
         with self.start_test(UserFactory()) as page:
             page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-milestone", timeout=2000)
+            page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
             page.fill("#id_invoice_rate", "100")
-            page.locator(".hero select#id_invoice_type").select_option("2")
             page.fill("#id_milestone_total_steps", "5")
+            page.fill("#id_email_recipient_name", "John Smith")
+            page.fill("#id_email_recipient", "john@smith.com")
+            page.click('button:has-text("Add new invoice")')
+            page.wait_for_selector("#dashboard-title", timeout=2000)
+            self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
+
+    @tag("ui")
+    @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
+    def test_create_first_invoice_weekly(self, stripe_customer_mock):
+        stripe_customer_mock.return_value = None
+        with self.start_test(UserFactory()) as page:
+            page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-weekly", timeout=2000)
+            page.wait_for_selector("#id_title", timeout=2000)
+            page.fill("#id_title", "Timary")
+            page.fill("#id_invoice_rate", "100")
             page.fill("#id_email_recipient_name", "John Smith")
             page.fill("#id_email_recipient", "john@smith.com")
             page.click('button:has-text("Add new invoice")')

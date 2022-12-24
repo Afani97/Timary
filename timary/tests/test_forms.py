@@ -5,9 +5,11 @@ from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 
 from timary.forms import (
+    CreateIntervalForm,
+    CreateMilestoneForm,
+    CreateWeeklyForm,
     DailyHoursForm,
     InvoiceBrandingSettingsForm,
-    InvoiceForm,
     LoginForm,
     PayInvoiceForm,
     RegisterForm,
@@ -115,15 +117,14 @@ class TestRegister(TestCase):
         )
 
 
-class TestInvoice(TestCase):
+class TestInvoices(TestCase):
     def test_invoice_success(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -132,12 +133,11 @@ class TestInvoice(TestCase):
         self.assertEqual(form.errors, {})
 
     def test_invoice_error_missing_title(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -145,12 +145,11 @@ class TestInvoice(TestCase):
         self.assertEqual(form.errors, {"title": ["This field is required."]})
 
     def test_invoice_error_missing_invoice_rate(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -159,13 +158,12 @@ class TestInvoice(TestCase):
         self.assertEqual(form.errors, {"invoice_rate": ["This field is required."]})
 
     def test_invoice_error_invoice_rate_min_value(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 0,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "milestone_total_steps": 2,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
             }
@@ -177,7 +175,7 @@ class TestInvoice(TestCase):
         )
 
     def test_invoice_error_missing_invoice_interval(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -187,12 +185,10 @@ class TestInvoice(TestCase):
             }
         )
 
-        self.assertEqual(
-            form.errors, {"invoice_interval": ["Invoice interval is required"]}
-        )
+        self.assertEqual(form.errors, {"invoice_interval": ["This field is required."]})
 
     def test_invoice_error_incorrect_invoice_interval(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -206,14 +202,13 @@ class TestInvoice(TestCase):
             form.errors,
             {
                 "invoice_interval": [
-                    "Select a valid choice. I is not one of the available choices.",
-                    "Invoice interval is required",
+                    "Select a valid choice. I is not one of the available choices."
                 ]
             },
         )
 
     def test_invoice_error_missing_milestone_total_step(self):
-        form = InvoiceForm(
+        form = CreateMilestoneForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -225,16 +220,17 @@ class TestInvoice(TestCase):
 
         self.assertEqual(
             form.errors,
-            {"milestone_total_steps": ["Milestone total steps is required"]},
+            {"milestone_total_steps": ["This field is required."]},
         )
 
     def test_invoice_error_milestone_total_step_less_than_current_step(self):
         invoice = InvoiceFactory(invoice_type=2, milestone_step=5)
-        form = InvoiceForm(
+        form = CreateMilestoneForm(
             instance=invoice,
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
+                "invoice_type": 2,
                 "milestone_total_steps": 3,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
@@ -251,7 +247,7 @@ class TestInvoice(TestCase):
         )
 
     def test_invoice_error_missing_email_recipient_name(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -266,7 +262,7 @@ class TestInvoice(TestCase):
         )
 
     def test_invoice_error_invalid_email_recipient_name(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -280,7 +276,7 @@ class TestInvoice(TestCase):
         self.assertIn("Only valid names allowed.", str(form.errors))
 
     def test_invoice_error_missing_email_recipient(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -295,7 +291,7 @@ class TestInvoice(TestCase):
         )
 
     def test_invoice_error_invalid_email_recipient(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
@@ -311,7 +307,7 @@ class TestInvoice(TestCase):
     def test_invoice_error_duplicate_title(self):
         user = UserFactory()
         invoice = InvoiceFactory(user=user)
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             user=user,
             data={
                 "title": invoice.title,
@@ -328,7 +324,7 @@ class TestInvoice(TestCase):
         )
 
     def test_invoice_error_title_begins_with_number(self):
-        form = InvoiceForm(
+        form = CreateIntervalForm(
             data={
                 "title": "1Password dev",
                 "invoice_rate": 100,
@@ -341,22 +337,17 @@ class TestInvoice(TestCase):
 
         self.assertEqual(form.errors, {"title": ["Title cannot start with a number."]})
 
-    def test_invoice_error_start_on_less_than_today(self):
-        form = InvoiceForm(
+    def test_invoice_error_missing_weekly_rate(self):
+        form = CreateWeeklyForm(
             data={
-                "title": "Test",
-                "invoice_rate": 100,
-                "invoice_type": 1,
-                "invoice_interval": "M",
-                "email_recipient_name": "User Test",
+                "title": "Some title",
+                "invoice_type": 3,
+                "email_recipient_name": "John Smith",
                 "email_recipient": "user@test.com",
-                "start_on": datetime.date.today() - datetime.timedelta(days=1),
             }
         )
 
-        self.assertEqual(
-            form.errors, {"start_on": ["Cannot start invoice less than today."]}
-        )
+        self.assertEqual(form.errors, {"invoice_rate": ["This field is required."]})
 
 
 class TestPayInvoice(TestCase):

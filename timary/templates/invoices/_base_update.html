@@ -17,37 +17,8 @@
                 </label>
                 <div>{{ form.title }}</div>
             </div>
-            {% if form.instance.invoice_type != 3 %}
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
-                    </label>
-                    <div>{{ form.invoice_rate }}</div>
-                </div>
-            {% endif %}
-            {% if form.instance.invoice_type == 1 %}
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
-                    </label>
-                    <div>{{ form.invoice_interval }}</div>
-                </div>
-            {% elif form.instance.invoice_type == 2 %}
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.milestone_total_steps.label_tag }}</span>
-                    </label>
-                    <div>{{ form.milestone_total_steps }}</div>
-                </div>
-            {% elif form.instance.invoice_type == 3 %}
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.weekly_rate.label_tag }}</span>
-                    </label>
-                    <div>{{ form.weekly_rate }}</div>
-                </div>
-            {% endif %}
 
+            {% block interval_type %}{% endblock %}
         </div>
 
         <div class="flex flex-col space-y-1 md:flex-row md:space-x-3 md:space-y-0">

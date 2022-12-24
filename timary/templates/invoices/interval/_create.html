@@ -1,0 +1,19 @@
+{% extends 'invoices/_base_create.html' %}
+
+{% block invoice_type %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
+        </label>
+        <div>{{ form.invoice_rate }}</div>
+    </div>
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
+        </label>
+        <div>{{ form.invoice_interval }}</div>
+    </div>
+{% endblock %}
+{% block hidden_invoice_type %}
+    <input value="1" name="invoice_type" id="id_invoice_type" type="number" />
+{% endblock %}

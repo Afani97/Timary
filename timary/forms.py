@@ -96,109 +96,18 @@ class DailyHoursForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
-    # Don't require budget in create form
-    total_budget = forms.IntegerField(
-        required=False,
-        widget=forms.NumberInput(
-            attrs={
-                "min": 1,
-                "max": 1_000_000,
-                "class": "input input-bordered border-2 text-lg w-full",
-                "placeholder": "10000",
-            }
-        ),
-    )
-    milestone_total_steps = forms.IntegerField(
-        widget=forms.NumberInput(
-            attrs={
-                "placeholder": 3,
-                "min": 2,
-                "max": 12,
-                "class": "input input-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
-    weekly_rate = forms.IntegerField(
-        widget=forms.NumberInput(
-            attrs={
-                "placeholder": 1200,
-                "min": 100,
-                "class": "input input-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
-    start_on = forms.DateField(
-        required=False,
-        widget=DateInput(
-            attrs={
-                "class": "input input-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
-    contacts = forms.ChoiceField(
-        required=False,
-        widget=forms.Select(
-            attrs={
-                "label": "Clients",
-                "class": "select select-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
-        self.fields["invoice_rate"].label = "Hourly rate"
-        self.fields["contacts"].choices = {
-            (
-                inv.email_recipient_stripe_customer_id,
-                f"{inv.email_recipient_name} - {inv.email_recipient}",
-            )
-            for inv in Invoice.objects.all()
-        }
-        self.fields["email_recipient_name"].required = False
-        self.fields["email_recipient"].required = False
-        if not self.initial:
-            self.fields["invoice_interval"].required = False
-            self.fields["milestone_total_steps"].required = False
-            self.fields["weekly_rate"].required = False
-            self.fields["milestone_total_steps"].widget.attrs[
-                "_"
-            ] = "on load add .hidden .invoice-type .invoice-type-2 to the closest .form-control"
-            self.fields["weekly_rate"].widget.attrs["_"] = (
-                "on load add .hidden .invoice-type .invoice-type-3 to the closest .form-control end "
-                "on intersection(intersecting) having threshold 1 "
-                "if intersecting add .hidden to #id_invoice_rate's parentNode's parentNode "
-                "else remove .hidden from #id_invoice_rate's parentNode's parentNode end "
-            )
-        if self.initial:
-            # Problems of dealing with dynamic selects + show/hide certain fields.
-            self.fields["invoice_type"].required = False
-            if self.instance.invoice_type == Invoice.InvoiceType.MILESTONE:
-                self.fields["invoice_interval"].required = False
-                self.fields["weekly_rate"].required = False
-            if self.instance.invoice_type == Invoice.InvoiceType.INTERVAL:
-                self.fields["milestone_total_steps"].required = False
-                self.fields["weekly_rate"].required = False
-            if self.instance.invoice_type == Invoice.InvoiceType.WEEKLY:
-                self.fields["weekly_rate"].initial = self.instance.invoice_rate
-                self.fields["invoice_interval"].required = False
-                self.fields["milestone_total_steps"].required = False
 
     class Meta:
         model = Invoice
         fields = [
             "title",
-            "invoice_rate",
-            "total_budget",
             "invoice_type",
-            "invoice_interval",
-            "milestone_total_steps",
-            "weekly_rate",
+            "invoice_rate",
             "email_recipient_name",
             "email_recipient",
-            "start_on",
-            "contacts",
         ]
         labels = {
             "email_recipient_name": "Client's name",
@@ -219,21 +128,6 @@ class InvoiceForm(forms.ModelForm):
                     "class": "input input-bordered border-2 text-lg w-full",
                 },
             ),
-            "invoice_type": forms.Select(
-                attrs={
-                    "label": "Invoice",
-                    "class": "select select-bordered border-2 text-lg w-full",
-                    "_": "on change set inv_type to `invoice-type-${my.value}` then "
-                    "add .hidden to .invoice-type then remove .hidden from .{inv_type}",
-                }
-            ),
-            "invoice_interval": forms.Select(
-                attrs={
-                    "label": "Invoice",
-                    "class": "select select-bordered border-2 text-lg w-full",
-                    "_": "on load add .invoice-type .invoice-type-1 to the closest .form-control",
-                }
-            ),
             "email_recipient_name": forms.TextInput(
                 attrs={
                     "placeholder": "John Smith",
@@ -247,42 +141,6 @@ class InvoiceForm(forms.ModelForm):
                 }
             ),
         }
-
-    def clean(self):
-        validated_data = super().clean()
-
-        invoice_type = validated_data.get("invoice_type")
-        invoice_interval = validated_data.get("invoice_interval")
-        milestone_total_steps = validated_data.get("milestone_total_steps")
-        weekly_rate = validated_data.get("weekly_rate")
-
-        if validated_data.get("contacts") or (
-            validated_data.get("email_recipient")
-            and validated_data.get("email_recipient_name")
-        ):
-            # No missing client info
-            pass
-        else:
-            raise ValidationError("A client needs be entered or selected from list")
-
-        if "start_on" in validated_data:
-            start_on = validated_data.get("start_on", None)
-            if start_on and start_on < datetime.date.today():
-                raise ValidationError(
-                    {"start_on": ["Cannot start invoice less than today."]}
-                )
-        if invoice_type == 1 and not invoice_interval:
-            raise ValidationError(
-                {"invoice_interval": ["Invoice interval is required"]}
-            )
-        if invoice_type == 2 and not milestone_total_steps:
-            raise ValidationError(
-                {"milestone_total_steps": ["Milestone total steps is required"]}
-            )
-        if invoice_type == 3 and not weekly_rate:
-            raise ValidationError({"weekly_rate": ["Weekly rate is required"]})
-
-        return validated_data
 
     def clean_email_recipient_name(self):
         email_recipient_name = self.cleaned_data.get("email_recipient_name")
@@ -303,18 +161,149 @@ class InvoiceForm(forms.ModelForm):
             raise ValidationError("Title cannot start with a number.")
         return title
 
-    def clean_milestone_total_steps(self):
-        total_steps = self.cleaned_data.get("milestone_total_steps")
-        if (
-            self.instance
-            and self.instance.invoice_type == Invoice.InvoiceType.MILESTONE
-            and self.instance.milestone_step
+
+class CreateInvoiceForm(InvoiceForm):
+    contacts = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "label": "Clients",
+                "class": "select select-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["contacts"].choices = {
+            (
+                inv.email_recipient_stripe_customer_id,
+                f"{inv.email_recipient_name} - {inv.email_recipient}",
+            )
+            for inv in Invoice.objects.filter(user=self.user)
+        }
+        # For the contacts logic
+        self.fields["email_recipient_name"].required = False
+        self.fields["email_recipient"].required = False
+
+    class Meta(InvoiceForm.Meta):
+        fields = InvoiceForm.Meta.fields + [
+            "contacts",
+        ]
+
+    def clean(self):
+        validated_data = super().clean()
+
+        if validated_data.get("contacts") or (
+            validated_data.get("email_recipient")
+            and validated_data.get("email_recipient_name")
         ):
-            if total_steps < self.instance.milestone_step:
-                raise ValidationError(
-                    "Cannot set milestone total steps to less than what is already completed"
-                )
-        return total_steps
+            # No missing client info
+            pass
+        else:
+            raise ValidationError("A client needs be entered or selected from list")
+
+
+class UpdateInvoiceForm(InvoiceForm):
+    total_budget = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                "min": 1,
+                "max": 1_000_000,
+                "class": "input input-bordered border-2 text-lg w-full",
+                "placeholder": "10000",
+            }
+        ),
+    )
+
+    class Meta(InvoiceForm.Meta):
+        fields = InvoiceForm.Meta.fields + [
+            "total_budget",
+        ]
+
+
+def create_invoice_interval(superclass):
+    class IntervalForm(superclass):
+        def __init__(self, *args, **kwargs):
+            super(IntervalForm, self).__init__(*args, **kwargs)
+            self.fields["invoice_interval"].required = True
+
+        class Meta(superclass.Meta):
+            labels = {"invoice_rate": "Hourly rate", "invoice_interval": "Interval"}
+            fields = superclass.Meta.fields + ["invoice_interval"]
+            widgets = {
+                **superclass.Meta.widgets,
+                "invoice_interval": forms.Select(
+                    attrs={
+                        "class": "select select-bordered border-2 text-lg w-full",
+                    }
+                ),
+            }
+
+    return IntervalForm
+
+
+CreateIntervalForm = create_invoice_interval(CreateInvoiceForm)
+UpdateIntervalForm = create_invoice_interval(UpdateInvoiceForm)
+
+
+def create_invoice_milestone(superclass):
+    class MilestoneForm(superclass):
+        milestone_total_steps = forms.IntegerField(
+            widget=forms.NumberInput(
+                attrs={
+                    "placeholder": 3,
+                    "min": 2,
+                    "max": 12,
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+        )
+
+        def __init__(self, *args, **kwargs):
+            super(MilestoneForm, self).__init__(*args, **kwargs)
+            self.fields["milestone_total_steps"].required = True
+
+        class Meta(superclass.Meta):
+            labels = {"invoice_rate": "Hourly rate"}
+            fields = superclass.Meta.fields + ["milestone_total_steps"]
+
+        def clean_milestone_total_steps(self):
+            total_steps = self.cleaned_data.get("milestone_total_steps")
+            if self.instance and self.instance.milestone_step:
+                if total_steps < self.instance.milestone_step:
+                    raise ValidationError(
+                        "Cannot set milestone total steps to less than what is already completed"
+                    )
+            return total_steps
+
+    return MilestoneForm
+
+
+CreateMilestoneForm = create_invoice_milestone(CreateInvoiceForm)
+UpdateMilestoneForm = create_invoice_milestone(UpdateInvoiceForm)
+
+
+def create_invoice_weekly(superclass):
+    class WeeklyForm(superclass):
+        class Meta(superclass.Meta):
+            widgets = {
+                **superclass.Meta.widgets,
+                "invoice_rate": forms.NumberInput(
+                    attrs={
+                        "label": "Weekly rate",
+                        "class": "select select-bordered border-2 text-lg w-full",
+                        "max": 1_000_000,
+                    }
+                ),
+            }
+
+    return WeeklyForm
+
+
+CreateWeeklyForm = create_invoice_weekly(CreateInvoiceForm)
+UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
 
 
 class PayInvoiceForm(forms.Form):

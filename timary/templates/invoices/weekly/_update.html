@@ -1,0 +1,10 @@
+{% extends 'invoices/_base_update.html' %}
+
+{% block interval_type %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
+        </label>
+        <div>{{ form.invoice_rate }}</div>
+    </div>
+{% endblock %}

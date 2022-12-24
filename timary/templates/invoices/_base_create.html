@@ -1,4 +1,4 @@
-<form class=""
+<form class="bg-neutral rounded-xl max-w-3xl mx-auto"
     hx-post="{% url 'timary:create_invoice' %}"
     hx-swap="beforeend"
     hx-target="#invoices-list"
@@ -17,39 +17,10 @@
                 </label>
                 <div>{{ form.title }}</div>
             </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
-                </label>
-                <div>{{ form.invoice_rate }}</div>
-            </div>
         </div>
 
-        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0">
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.invoice_type.label_tag }}</span>
-                </label>
-                <div>{{ form.invoice_type }}</div>
-            </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.invoice_interval.label_tag }}</span>
-                </label>
-                <div>{{ form.invoice_interval }}</div>
-            </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.milestone_total_steps.label_tag }}</span>
-                </label>
-                <div>{{ form.milestone_total_steps }}</div>
-            </div>
-            <div class="form-control w-full">
-                <label class="label">
-                    <span class="label-text">{{ form.weekly_rate.label_tag }}</span>
-                </label>
-                <div>{{ form.weekly_rate }}</div>
-            </div>
+        <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0 w-full">
+            {% block invoice_type %}{% endblock %}
         </div>
 
         <div class="flex flex-col justify-center space-y-2">
@@ -85,18 +56,11 @@
                 </button>
             </div>
         </div>
-
-        <div class="form-control w-full">
-            <label class="label">
-                <span class="label-text">{{ form.start_on.label_tag }}</span>
-            </label>
-            <div>{{ form.start_on }}</div>
-        </div>
+    </div>
+    <div class="hidden">
+        {% block hidden_invoice_type %}{% endblock %}
     </div>
     <div class="card-actions flex justify-center">
-        {#        {% if not show_close %}#}
-        {#            <a href="#" class="btn" id="close-invoice-modal" _="on click call clearInvoiceModal()">Close</a>#}
-        {#        {% endif %}#}
         <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Add new invoice</button>
     </div>
 </form>

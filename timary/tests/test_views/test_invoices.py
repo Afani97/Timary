@@ -141,7 +141,7 @@ class TestInvoices(BaseTest):
             {
                 "title": "Some title",
                 "invoice_type": 3,
-                "weekly_rate": 1200,
+                "invoice_rate": 1200,
                 "email_recipient_name": "John Smith",
                 "email_recipient": "john@test.com",
             },
@@ -173,17 +173,12 @@ class TestInvoices(BaseTest):
     def test_manage_zero_invoices(self):
         Invoice.objects.filter(user=self.user).all().delete()
         response = self.client.get(reverse("timary:manage_invoices"))
-        self.assertInHTML(
-            """
-            <div class="text-center lg:text-left md:mr-20">
-                <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
-                    Hello there
-                </h1>
-                <p class="mb-5">
-                    We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
-                </p>
-            </div>
-            """,
+        self.assertIn(
+            "Hello there",  # Intro text
+            response.content.decode("utf-8"),
+        )
+        self.assertIn(
+            "We all gotta start somewhere right? Begin your journey by adding your first invoicing details.",
             response.content.decode("utf-8"),
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
@@ -356,7 +351,7 @@ class TestInvoices(BaseTest):
         invoice = InvoiceFactory(invoice_type=3, user=self.user, invoice_rate=50)
         url_params = {
             "title": "Some title",
-            "weekly_rate": 100,
+            "invoice_rate": 100,
             "email_recipient_name": "John Smith",
             "email_recipient": "john@test.com",
         }
