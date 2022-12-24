@@ -136,6 +136,7 @@ class Invoice(BaseModel):
     milestone_step = models.IntegerField(default=1, null=True, blank=True)
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
+    is_paused = models.BooleanField(default=False, null=True, blank=True)
     is_archived = models.BooleanField(default=False, null=True, blank=True)
     total_budget = models.IntegerField(null=True, blank=True)
 
@@ -542,13 +543,10 @@ class User(AbstractUser, BaseModel):
     def invoices_not_logged(self):
         invoices = set(
             self.get_invoices.filter(
-                Q(next_date__isnull=False)
-                & Q(hours_tracked__date_tracked__exact=date.today())
+                Q(is_paused=False) & Q(hours_tracked__date_tracked__exact=date.today())
             )
         )
-        remaining_invoices = (
-            set(self.get_invoices.filter(next_date__isnull=False)) - invoices
-        )
+        remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices
         if len(remaining_invoices) > 0:
             return remaining_invoices
 

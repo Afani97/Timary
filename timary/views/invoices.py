@@ -119,18 +119,15 @@ def pause_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    paused = False
-    if invoice.next_date:
-        paused = True
-        invoice.next_date = None
-    else:
-        invoice.calculate_next_date(update_last=False)
+    invoice.is_paused = not invoice.is_paused
+    if invoice.next_date <= date.today():
+        invoice.calculate_next_date(update_last=True)
     invoice.save()
     response = render(request, "partials/_invoice.html", {"invoice": invoice})
     show_alert_message(
         response,
         "info",
-        f"{invoice.title} has been {'paused' if paused else 'unpaused'}",
+        f"{invoice.title} has been {'paused' if invoice.is_paused else 'unpaused'}",
     )
     return response
 
@@ -185,7 +182,7 @@ def update_invoice(request, invoice_id):
             prev_invoice_interval_type
             and invoice.invoice_type == Invoice.InvoiceType.INTERVAL
             and prev_invoice_interval_type != saved_invoice.invoice_interval
-            and invoice.next_date
+            and not invoice.is_paused
         ):
             saved_invoice.calculate_next_date(update_last=False)
         response = render(request, "partials/_invoice.html", {"invoice": saved_invoice})

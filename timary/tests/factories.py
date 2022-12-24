@@ -58,6 +58,7 @@ class InvoiceFactory(DjangoModelFactory):
     last_date = factory.LazyFunction(get_last_date)
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
     is_archived = False
+    is_paused = False
 
 
 class SentInvoiceFactory(DjangoModelFactory):

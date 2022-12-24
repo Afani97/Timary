@@ -19,7 +19,7 @@ class DailyHoursForm(forms.ModelForm):
         super(DailyHoursForm, self).__init__(*args, **kwargs)
 
         if user:
-            invoice_qs = user.get_invoices.filter(next_date__isnull=False)
+            invoice_qs = user.get_invoices.filter(is_paused=False)
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()

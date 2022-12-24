@@ -1,3 +1,4 @@
+import copy
 import datetime
 import uuid
 from unittest.mock import patch
@@ -368,7 +369,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(invoice.invoice_rate, 100)
 
-    def test_update_invoice_dont_update_next_date_if_none(self):
+    def test_update_invoice_dont_update_next_date_if_paused(self):
         url_params = {
             "title": "Some title",
             "invoice_rate": 100,
@@ -376,20 +377,19 @@ class TestInvoices(BaseTest):
             "email_recipient_name": "John Smith",
             "email_recipient": "john@test.com",
         }
-        self.invoice.next_date = None
+        self.invoice.invoice_interval = "W"
+        self.invoice.calculate_next_date()
+        next_date = copy.copy(self.invoice.next_date)
+        self.invoice.is_paused = True
         self.invoice.save()
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
             data=urlencode(url_params),  # HTML PUT FORM
         )
         self.invoice.refresh_from_db()
-        self.assertIsNone(self.invoice.next_date)
-        self.assertIn(
-            "Paused",
-            response.content.decode("utf-8"),
-        )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
+        # Invoice next date shouldn't change if invoice is paused
+        self.assertEqual(self.invoice.next_date, next_date)
 
     def test_update_invoice_error(self):
         response = self.client.put(
@@ -406,7 +406,7 @@ class TestInvoices(BaseTest):
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
         invoice.refresh_from_db()
-        self.assertIsNone(invoice.next_date)
+        self.assertTrue(invoice.is_paused)
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 
@@ -435,7 +435,7 @@ class TestInvoices(BaseTest):
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
         invoice.refresh_from_db()
-        self.assertIsNone(invoice.next_date)
+        self.assertTrue(invoice.next_date)
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
 

@@ -16,16 +16,17 @@ from timary.services.twilio_service import TwilioClient
 def gather_invoices():
     today = date.today()
     tomorrow = today + timedelta(days=1)
-    null_query = Q(next_date__isnull=False)
+    paused_query = Q(is_paused=False)
+    archived_query = Q(is_archived=False)
     today_query = Q(
         next_date__day=today.day,
         next_date__month=today.month,
         next_date__year=today.year,
     )
     invoices_sent_today = Invoice.objects.filter(
-        null_query
+        paused_query
         & today_query
-        & Q(is_archived=False)
+        & archived_query
         & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
     )
     for invoice in invoices_sent_today:
@@ -37,9 +38,9 @@ def gather_invoices():
         next_date__year=tomorrow.year,
     )
     invoices_sent_tomorrow = Invoice.objects.filter(
-        null_query
+        paused_query
         & tomorrow_query
-        & Q(is_archived=False)
+        & archived_query
         & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
     )
     for invoice in invoices_sent_tomorrow:
@@ -49,9 +50,7 @@ def gather_invoices():
 
     if today.weekday() == 0:
         invoices_sent_only_on_mondays = Invoice.objects.filter(
-            null_query
-            & Q(is_archived=False)
-            & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
+            paused_query & archived_query & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
         )
         for invoice in invoices_sent_only_on_mondays:
             _ = async_task(send_invoice, invoice.id)
