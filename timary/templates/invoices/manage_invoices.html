@@ -6,7 +6,13 @@
     {% if invoices|length != 0 %}
         <div class="flex flex-col md:flex-row justify-between mt-10 mx-5">
             <h1 class="text-3xl mb-8 text-center font-bold" id="current-invoices">Your current invoices</h1>
-            <label for="new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</label>
+            <div class="flex justify-center">
+                <label hx-get="{% url 'timary:create_invoice' %}"
+                    hx-target="#new-invoice-inner"
+                    hx-trigger="click"
+                    hx-swap="innerHTML"
+                    for="new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10 px-10">New invoice</label>
+            </div>
         </div>
     {% endif %}
 
@@ -84,14 +90,12 @@
             <label _="on click call clearInvoiceModal()"
                 for="new-invoice-modal"
                 class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
-            <div class="flex justify-center"
-                hx-get="{% url 'timary:create_invoice' %}"
-                hx-target="this"
-                hx-trigger="revealed"
-                hx-swap="outerHTML"
-                id="new-invoice-inner">
-                <button class="btn btn-lg loading">loading</button>
+            <div id="new-invoice-inner">
+                <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
+                </div>
             </div>
+
         </div>
     </div>
     {# New invoice modal #}
@@ -141,18 +145,13 @@
 {% block js %}
     <script nonce="manage-invoices">
         var LOADER = `
-        <div class="flex justify-center"
-            hx-get="{% url 'timary:create_invoice' %}"
-            hx-target="#create-invoice-inner"
-            hx-trigger="revealed"
-            hx-swap="innerHTML"
-            id="new-invoice-inner">
+        <div class="flex justify-center">
             <button class="btn btn-lg loading">loading</button>
         </div>
         `;
 
         function clearInvoiceModal() {
-            htmx.find("#new-invoice-inner").parent.innerHTML = LOADER;
+            htmx.find("#new-invoice-inner").innerHTML = LOADER;
             htmx.process(document.body)
         }
 
@@ -166,7 +165,7 @@
 
         htmx.on("clearInvoiceModal", function(){
             htmx.find("#close-invoice-modal").click();
-            htmx.find("#new-invoice-inner").parent.innerHTML = LOADER;
+            htmx.find("#new-invoice-inner").innerHTML = LOADER;
         });
     </script>
 {% endblock  %}
