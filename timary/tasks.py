@@ -162,15 +162,15 @@ def send_reminder_sms():
             if user.phone_number_repeat_sms:
                 _ = schedule(
                     "timary.tasks.remind_sms_again",
-                    user.id,
+                    user.email,
                     schedule_type="O",
                     next_run=date.today() + timedelta(hours=1),
                 )
     return f"{invoices_sent_count} message(s) sent."
 
 
-def remind_sms_again(user_id):
-    user = User.objects.get(id=user_id)
+def remind_sms_again(user_email):
+    user = User.objects.get(email=user_email)
     remaining_invoices = user.invoices_not_logged()
     invoices_sent_count = 0
     if remaining_invoices:
