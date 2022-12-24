@@ -139,7 +139,7 @@ class InvoiceForm(forms.ModelForm):
         required=False,
         widget=forms.Select(
             attrs={
-                "label": "Contacts",
+                "label": "Clients",
                 "class": "select select-bordered border-2 text-lg w-full",
             }
         ),

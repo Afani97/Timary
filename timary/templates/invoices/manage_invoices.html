@@ -6,7 +6,7 @@
     {% if invoices|length != 0 %}
         <div class="flex flex-col md:flex-row justify-between mt-10 mx-5">
             <h1 class="text-3xl mb-8 text-center font-bold" id="current-invoices">Your current invoices</h1>
-            <a href="#new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</a>
+            <label for="new-invoice-modal" class="btn btn-primary mx-10 md:mx-0 mb-10">New invoice</label>
         </div>
     {% endif %}
 
@@ -78,13 +78,18 @@
     {% endif %}
 
     {# New invoice modal #}
-    <div id="new-invoice-modal" class="modal">
-        <div class="modal-box bg-neutral w-11/12 max-w-2xl" id="create-invoice-inner">
+    <input type="checkbox" id="new-invoice-modal" class="modal-toggle">
+    <div class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box bg-neutral relative sm:w-11/12 max-w-2xl">
+            <label _="on click call clearInvoiceModal()"
+                for="new-invoice-modal"
+                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
             <div class="flex justify-center"
                 hx-get="{% url 'timary:create_invoice' %}"
-                hx-target="#create-invoice-inner"
+                hx-target="this"
                 hx-trigger="revealed"
-                hx-swap="innerHTML">
+                hx-swap="outerHTML"
+                id="new-invoice-inner">
                 <button class="btn btn-lg loading">loading</button>
             </div>
         </div>
@@ -93,12 +98,12 @@
 
     {# Edit hours modal #}
     <input type="checkbox" id="edit-hours-modal" class="modal-toggle" />
-    <div for="edit-hours-modal" class="modal items-center">
-        <div class="modal-box relative ">
+    <div for="edit-hours-modal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box relative bg-neutral">
             <h3 class="font-bold text-lg my-6">Update hours for this invoice period</h3>
             <label
                 for="edit-hours-modal"
-                class="btn btn-sm btn-circle absolute right-2 top-2 close-edit-hours-modal"
+                class="btn bg-base-100 btn-sm btn-circle absolute right-2 top-2 close-edit-hours-modal"
                 _="on click call resetEditHoursView()"
             >
                 ✕
@@ -114,16 +119,14 @@
 
     {# Sent invoices modal #}
     <input type="checkbox" id="sent-invoices-modal" class="modal-toggle" />
-    <div for="sent-invoices-modal" class="modal items-center">
-        <div class="modal-box relative lg:w-1/2 lg:max-w-5xl">
+    <div for="sent-invoices-modal" class="modal modal-bottom md:modal-middle">
+        <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
             <h3 class="font-bold text-lg my-6">View sent invoices</h3>
             <label
                 for="sent-invoices-modal"
-                class="btn btn-sm btn-circle absolute right-2 top-2 close-sent-invoices-modal"
+                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2 close-sent-invoices-modal"
                 _="on click call resetSentInvoicesView()"
-            >
-                ✕
-            </label>
+            >✕</label>
             <div class="sent-invoices-inner-modal" id="sent-invoices-inner">
                 <div class="flex justify-center">
                     <button class="btn btn-lg loading">loading</button>
@@ -142,13 +145,14 @@
             hx-get="{% url 'timary:create_invoice' %}"
             hx-target="#create-invoice-inner"
             hx-trigger="revealed"
-            hx-swap="innerHTML">
+            hx-swap="innerHTML"
+            id="new-invoice-inner">
             <button class="btn btn-lg loading">loading</button>
         </div>
         `;
 
         function clearInvoiceModal() {
-            htmx.find("#create-invoice-inner").innerHTML = LOADER;
+            htmx.find("#new-invoice-inner").parent.innerHTML = LOADER;
             htmx.process(document.body)
         }
 
@@ -162,7 +166,7 @@
 
         htmx.on("clearInvoiceModal", function(){
             htmx.find("#close-invoice-modal").click();
-            htmx.find("#create-invoice-inner").innerHTML = LOADER;
+            htmx.find("#new-invoice-inner").parent.innerHTML = LOADER;
         });
     </script>
 {% endblock  %}

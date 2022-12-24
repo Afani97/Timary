@@ -15,8 +15,13 @@
         </div>
 
         {# New hours modal #}
-        <div id="hours-modal" class="modal items-center">
-            <div class="modal-box bg-neutral">
+        <input type="checkbox" id="hours-modal" class="modal-toggle">
+        <div id="hours-modal" class="modal modal-bottom sm:modal-middle">
+            <div class="modal-box relative bg-neutral">
+                <label _="on click call clearHoursModal()"
+                    for="hours-modal"
+                    id="close-hours-modal"
+                    class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
                 {% include "hours/_create.html" with form=new_hour_form %}
             </div>
         </div>
