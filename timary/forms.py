@@ -182,6 +182,7 @@ class CreateInvoiceForm(InvoiceForm):
             )
             for inv in Invoice.objects.filter(user=self.user)
         }
+        self.fields["contacts"].choices.insert(0, ("", "Select a client"))
         # For the contacts logic
         self.fields["email_recipient_name"].required = False
         self.fields["email_recipient"].required = False
