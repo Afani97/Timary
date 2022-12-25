@@ -161,8 +161,8 @@
                 let tableBody = document.getElementById("table-body")
                 let total = 0.0;
                 Array.from(tableBody.rows).forEach(c => {
-                    let quantity = c.cells[3].children[0].value;
-                    let price = c.cells[4].children[0].value;
+                    let quantity = c.cells[2].children[0].value;
+                    let price = c.cells[3].children[0].value;
                     if (!isNaN(quantity) && !isNaN(price)) {
                         total += quantity * price;
                     }
