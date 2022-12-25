@@ -28,15 +28,16 @@
         </div>
         <div class="divider md:divider-horizontal"></div>
     {% endif %}
+    {{ invoice.budget_percentage }}
     {% if invoice.budget_percentage > 0 %}
         <div class="flex flex-col w-full">
             <div class="text-center mb-5">Budget</div>
             <div class="flex justify-center mb-5 sm:mb-12">
                 <div
                     class="radial-progress text-black bg-accent border-4 border-accent"
-                    style="--value:{{ invoice.budget_percentage }}; --thickness: 4px;"
+                    style="--value:{{ invoice.budget_percentage|floatformat:-2 }}; --thickness: 4px;"
                 >
-                    {{ invoice.budget_percentage|floatformat:-2 }}%
+                    {{ invoice.budget_percentage|floatformat:2 }}%
                 </div>
             </div>
         </div>

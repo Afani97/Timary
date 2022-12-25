@@ -480,7 +480,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
     def test_send_weekly_update(self):
         """Only shows hours tracked for current week, not prior and send email update."""
         invoice = InvoiceFactory(
-            last_date=(self.todays_date - datetime.timedelta(days=3))
+            last_date=(self.todays_date - datetime.timedelta(days=3)), invoice_type=1
         )
         hour = DailyHoursFactory(invoice=invoice)
         DailyHoursFactory(
@@ -502,16 +502,5 @@ class TestWeeklyInvoiceUpdates(TestCase):
             msg = f"""
                 <div>{ floatformat(hour.hours, -2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
                 <div>${ floatformat(hour.hours * invoice.invoice_rate, -2) }</div>
-                """
-            self.assertInHTML(msg, html_message)
-
-        with self.subTest("Testing invoice budget"):
-            msg = f"""
-                <div
-                    class="radial-progress bg-accent  border-4 border-accent"
-                    style="--value:{ invoice.budget_percentage }; --thickness: 4px;"
-                >
-                    { floatformat(invoice.budget_percentage,-2) }%
-                </div>
                 """
             self.assertInHTML(msg, html_message)

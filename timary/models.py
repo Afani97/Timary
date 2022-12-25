@@ -176,10 +176,24 @@ class Invoice(BaseModel):
             .order_by("date_tracked")
         )
 
-    @property
     def budget_percentage(self):
         if not self.total_budget:
             return 0
+
+        if self.invoice_type == Invoice.InvoiceType.WEEKLY:
+            total_price = self.invoice_snapshots.filter(
+                paid_status=SentInvoice.PaidStatus.PAID
+            ).aggregate(total_cost=Sum("total_price"))
+            if "total_cost" in total_price:
+                return (
+                    round(
+                        float(total_price["total_cost"]) / float(self.total_budget),
+                        ndigits=2,
+                    )
+                    * 100
+                )
+            else:
+                return 0
 
         total_hours = self.hours_tracked.filter(
             date_tracked__lte=datetime.date.today()
@@ -188,7 +202,7 @@ class Invoice(BaseModel):
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * self.invoice_rate
 
-        return (total_cost_amount / self.total_budget) * 100
+        return round((total_cost_amount / self.total_budget), ndigits=2) * 100
 
     def get_last_six_months(self):
         today = datetime.date.today()

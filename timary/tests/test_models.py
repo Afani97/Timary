@@ -221,7 +221,7 @@ class TestInvoice(TestCase):
         DailyHoursFactory(hours=1, invoice=invoice, date_tracked=yesterday)
         DailyHoursFactory(hours=2, invoice=invoice)
         # (6 hours * $50) / $1000
-        self.assertEqual(invoice.budget_percentage, Decimal("30.0"))
+        self.assertEqual(invoice.budget_percentage(), Decimal("30.0"))
 
     def test_get_last_six_months(self):
         invoice = InvoiceFactory()
