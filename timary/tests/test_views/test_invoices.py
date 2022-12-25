@@ -231,10 +231,10 @@ class TestInvoices(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         self.assertInHTML(
-            f"""<ul class="list-none">
+            f"""
                 <li class="flex justify-between text-xl"><span>{date(hour.date_tracked, "M j")}</span>
                 <span>{floatformat(hour.hours, -2)} hrs </span></li>
-           </ul>""",
+           """,
             response.content.decode("utf-8"),
         )
         self.client.force_login(self.user)

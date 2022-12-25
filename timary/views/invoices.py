@@ -380,9 +380,7 @@ def invoice_hour_stats(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    return render(
-        request, "partials/_invoice_collapsed_content.html", {"invoice": invoice}
-    )
+    return render(request, "partials/_invoice_period_hours.html", {"invoice": invoice})
 
 
 @login_required()
