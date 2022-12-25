@@ -180,14 +180,14 @@ class Invoice(BaseModel):
         if not self.total_budget:
             return 0
 
-        if self.invoice_type == Invoice.InvoiceType.WEEKLY:
+        if self.invoice_type == Invoice.InvoiceType.WEEKLY and self.total_budget:
             total_price = self.invoice_snapshots.filter(
                 paid_status=SentInvoice.PaidStatus.PAID
             ).aggregate(total_cost=Sum("total_price"))
-            if "total_cost" in total_price:
+            if total_cost := total_price["total_cost"]:
                 return (
                     round(
-                        float(total_price["total_cost"]) / float(self.total_budget),
+                        float(total_cost) / float(self.total_budget),
                         ndigits=2,
                     )
                     * 100
