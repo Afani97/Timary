@@ -294,7 +294,7 @@ def create_invoice_weekly(superclass):
                 "invoice_rate": forms.NumberInput(
                     attrs={
                         "label": "Weekly rate",
-                        "class": "select select-bordered border-2 text-lg w-full",
+                        "class": "input input-bordered border-2 text-lg w-full",
                         "max": 1_000_000,
                     }
                 ),
