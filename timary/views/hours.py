@@ -93,7 +93,9 @@ def patch_hours(request, hours_id):
             "hours/_patch.html",
             {"form": hours_form, "success_msg": "Successfully updated hours!"},
         )
-        response["HX-Trigger"] = "refreshHourStats"  # To trigger hours stats refresh
+        response[
+            "HX-Trigger"
+        ] = f"refreshHourStats-{hour.invoice.email_id}"  # To trigger hours stats refresh
         return response
     else:
         return render(request, "hours/_patch.html", {"form": hours_form})
@@ -108,7 +110,7 @@ def delete_hours(request, hours_id):
     hours.delete()
     response = HttpResponse("", status=200)
     response["HX-Trigger"] = json.dumps(
-        {"newHours": None, "refreshHourStats": None}
+        {"newHours": None, f"refreshHourStats-{hours.invoice.email_id}": None}
     )  # To trigger stats refresh
     return response
 
