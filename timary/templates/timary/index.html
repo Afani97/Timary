@@ -1,33 +1,26 @@
 {% extends 'timary/base.html' %}
 
 {% block content %}
-    <h1 class="text-3xl text-center mt-8 font-bold" id="dashboard-title">Dashboard</h1>
-    <div class="grid grid-flow-row md:grid-flow-col md:grid-cols-6 gap-3 m-5">
-        <div class="col-span-3 md:col-span-2">
-            <div class="flex flex-col justify-between items-center">
-                {# Dashboard stats #}
-                <div class="rounded">
-                    {% include 'partials/_dashboard_stats.html' %}
-                </div>
-                {# Dashboard stats #}
-            </div>
+    <h1 class="text-3xl text-center my-8 font-bold" id="dashboard-title">Dashboard</h1>
+    <div class="grid grid-flow-row md:grid-flow-col md:grid-cols-6 gap-3">
+        <div class="col-span-3 md:col-span-2 flex justify-center">
+            {% include 'partials/_dashboard_stats.html' %}
         </div>
-
-        {# New hours modal #}
-        <input type="checkbox" id="hours-modal" class="modal-toggle">
-        <div id="hours-modal" class="modal modal-bottom sm:modal-middle">
-            <div class="modal-box relative bg-neutral">
-                <label _="on click call clearHoursModal()"
-                    for="hours-modal"
-                    id="close-hours-modal"
-                    class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
-                {% include "hours/_create.html" with form=new_hour_form %}
-            </div>
-        </div>
-        {# New hours modal #}
-
         {% include "partials/_hours_list.html" %}
     </div>
+
+    {# New hours modal #}
+    <input type="checkbox" id="hours-modal" class="modal-toggle">
+    <div id="hours-modal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box relative bg-neutral">
+            <label _="on click call clearHoursModal()"
+                for="hours-modal"
+                id="close-hours-modal"
+                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
+            {% include "hours/_create.html" with form=new_hour_form %}
+        </div>
+    </div>
+    {# New hours modal #}
 
 {% endblock %}
 

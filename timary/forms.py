@@ -165,9 +165,9 @@ class InvoiceForm(forms.ModelForm):
 class CreateInvoiceForm(InvoiceForm):
     contacts = forms.ChoiceField(
         required=False,
+        label="Clients",
         widget=forms.Select(
             attrs={
-                "label": "Clients",
                 "class": "select select-bordered border-2 text-lg w-full",
             }
         ),
