@@ -3,54 +3,53 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
-    {% if invoices|length != 0 %}
-        <div class="flex flex-col md:flex-row justify-between mt-10 mx-5">
-            <h1 class="text-3xl mb-8 text-center font-bold" id="current-invoices">Invoices</h1>
-            <div class="flex justify-center">
-                <div class="dropdown dropdown-hover dropdown-bottom dropdown-end mb-5">
-                    <label tabindex="0" class="btn m-1 btn-primary">New invoice</label>
-                    <div tabindex="0" class="dropdown-content">
-                        <ul class="menu bg-neutral w-56 rounded-box">
-                            <li class="hover-bordered"
-                                hx-get="{% url 'timary:create_invoice' %}?type=1"
-                                hx-target="#new-invoice-inner"
-                                hx-trigger="click"
-                                hx-swap="innerHTML"
-                            >
-                                <label class="flex flex-col" for="new-invoice-modal">
-                                    <span class="text-xl font-bold text-left">Interval</span>
-                                    <span class="text-sm">A recurring invoice sent out on a schedule</span>
-                                </label>
-                            </li>
-                            <li class="hover-bordered"
-                                hx-get="{% url 'timary:create_invoice' %}?type=2"
-                                hx-target="#new-invoice-inner"
-                                hx-trigger="click"
-                                hx-swap="innerHTML">
-                                <label class="flex flex-col" for="new-invoice-modal">
-                                    <span class="text-xl font-bold text-left">Milestone</span>
-                                    <span class="text-sm">Break up your invoice into steps</span>
-                                </label>
-                            </li>
-                            <li class="hover-bordered"
-                                hx-get="{% url 'timary:create_invoice' %}?type=3"
-                                hx-target="#new-invoice-inner"
-                                hx-trigger="click"
-                                hx-swap="innerHTML">
-                                <label class="flex flex-col" for="new-invoice-modal">
-                                    <span class="text-xl font-bold text-left">Weekly</span>
-                                    <span class="text-sm">Flat rate bill sent out Mondays</span>
-                                </label>
-                            </li>
-                        </ul>
+    <div class="max-w-5xl mx-auto md:px-5">
+        {% if invoices|length != 0 %}
+            <div class="flex flex-row justify-between my-8 md:m-8 items-baseline">
+                <h1 class="text-3xl text-center font-bold" id="current-invoices">Invoices</h1>
+                <div class="flex justify-center">
+                    <div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
+                        <label tabindex="0" class="btn m-1 btn-primary">New invoice</label>
+                        <div tabindex="0" class="dropdown-content">
+                            <ul class="menu bg-neutral w-56 rounded-box">
+                                <li class="hover-bordered"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=1"
+                                    hx-target="#new-invoice-inner"
+                                    hx-trigger="click"
+                                    hx-swap="innerHTML"
+                                >
+                                    <label class="flex flex-col" for="new-invoice-modal">
+                                        <span class="text-xl font-bold text-left">Interval</span>
+                                        <span class="text-sm">A recurring invoice sent out on a schedule</span>
+                                    </label>
+                                </li>
+                                <li class="hover-bordered"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=2"
+                                    hx-target="#new-invoice-inner"
+                                    hx-trigger="click"
+                                    hx-swap="innerHTML">
+                                    <label class="flex flex-col" for="new-invoice-modal">
+                                        <span class="text-xl font-bold text-left">Milestone</span>
+                                        <span class="text-sm">Break up your invoice into steps</span>
+                                    </label>
+                                </li>
+                                <li class="hover-bordered"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=3"
+                                    hx-target="#new-invoice-inner"
+                                    hx-trigger="click"
+                                    hx-swap="innerHTML">
+                                    <label class="flex flex-col" for="new-invoice-modal">
+                                        <span class="text-xl font-bold text-left">Weekly</span>
+                                        <span class="text-sm">Flat rate bill sent out Mondays</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    {% endif %}
+        {% endif %}
 
-
-    <div class="max-w-5xl mx-auto md:px-5">
         <div class="md:flex justify-center mb-4 hidden">
             <div class="stats shadow">
                 <div class="stat place-items-center">
