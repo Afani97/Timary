@@ -1,3 +1,4 @@
+import datetime
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -163,7 +164,7 @@ def send_reminder_sms():
                     "timary.tasks.remind_sms_again",
                     user.email,
                     schedule_type="O",
-                    next_run=date.today() + timedelta(hours=1),
+                    next_run=datetime.datetime.today() + timedelta(hours=1),
                 )
     return f"{invoices_sent_count} message(s) sent."
 
