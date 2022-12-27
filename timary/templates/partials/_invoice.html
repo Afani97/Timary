@@ -210,6 +210,22 @@
                                             maxTicksLimit: 20
                                         },
                                     }]
+                                },
+                                tooltips: {
+                                    callbacks: {
+                                        title: function(tooltipItem, data) {
+                                            return data['labels'][tooltipItem[0]['index']];
+                                        },
+                                        label: function(tooltipItem, data) {
+                                            return `$${parseFloat(data['datasets'][0]['data'][tooltipItem['index']]).toFixed(2)}`;
+                                        }
+                                    },
+                                    backgroundColor: '#FFF',
+                                    titleFontSize: 16,
+                                    titleFontColor: '#0066ff',
+                                    bodyFontColor: '#000',
+                                    bodyFontSize: 14,
+                                    displayColors: false
                                 }
                             }
                         };

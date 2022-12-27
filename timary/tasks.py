@@ -86,7 +86,7 @@ def send_invoice(invoice_id):
     sent_invoice = SentInvoice.create(invoice=invoice)
     for hour in hours_tracked:
         hour.sent_invoice_id = sent_invoice.id
-        hour.save()
+        hour.save(update_fields=["sent_invoice_id"])
 
     msg_body = render_to_string(
         "email/sent_invoice_email.html",

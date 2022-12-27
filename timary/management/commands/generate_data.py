@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 )
 
             for _ in range(0, 5):
-                random_int = random.randint(2, 12)
+                random_int = random.randint(2, 24)
                 SentInvoiceFactory(
                     invoice=invoice,
                     user=user,
