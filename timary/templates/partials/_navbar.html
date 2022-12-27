@@ -1,10 +1,10 @@
-<div class="navbar mb-2 px-6 md:px-12 shadow-lg bg-neutral text-neutral-content">
-    <div class="flex-1 px-2 mx-2">
+<div class="navbar mb-2 md:px-12 shadow-lg bg-neutral text-neutral-content">
+    <div class="flex-1 mx-2 px-1 md:px-0 md:mx-0">
         <a class="text-lg font-bold" href="{% url 'timary:landing_page' %}">
             Timary
         </a>
     </div>
-    <div class="flex-none hidden px-2 mx-2 md:flex">
+    <div class="flex-none hidden md:flex">
         <div class="flex items-stretch">
             {% if request.user.is_authenticated %}
                 <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:index' %}">
@@ -27,9 +27,9 @@
             {% endif %}
         </div>
     </div>
-    <div class="flex md:hidden md:flex-none">
+    <div class="flex md:hidden md:flex-none -mx-1 md:mx-0">
         <div class="dropdown dropdown-left" id="dropdown-menu">
-            <div tabindex="0" class="m-1 btn" id="hamburger-menu">
+            <div tabindex="0" class="btn m-1" id="hamburger-menu">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
