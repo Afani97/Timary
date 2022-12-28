@@ -21,7 +21,7 @@
         <div class="text-3xl font-semibold tracking-wide">{% now "M. j, Y" %}</div>
         <div id="repeat-day" >
             <div class="flex justify-center">
-                <button class="btn btn-secondary" hx-get="{% url 'timary:repeat_hours' %}" hx-target="#repeat-day" hx-swap="outerHTML" _="on click add .loading to me">
+                <button class="btn btn-secondary" hx-get="{% url 'timary:repeat_hours' %}" hx-target="#hours-list" hx-swap="outerHTML" _="on click add .loading to me">
                     Repeat previous day?</button>
             </div>
             <div class="divider"></div>

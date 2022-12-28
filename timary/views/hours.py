@@ -174,7 +174,14 @@ def repeat_hours(request):
             )
         )
 
-    response = render(request, "partials/_hours_grid.html", {"hours": hours})
+    all_hours = DailyHoursInput.all_hours.current_month(request.user)
+    show_most_frequent_options = request.user.show_most_frequent_options(all_hours)
+    context = {
+        "hours": all_hours,
+    }
+    if len(show_most_frequent_options) > 0:
+        context["frequent_options"] = show_most_frequent_options
+    response = render(request, "partials/_hours_list.html", context)
     # "newHours" - To trigger dashboard stats refresh
     show_alert_message(
         response, "success", "Yesterday's hours repeated again today", "newHours"

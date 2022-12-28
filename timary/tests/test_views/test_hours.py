@@ -224,13 +224,6 @@ class TestDailyHours(BaseTest):
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(DailyHoursInput.objects.count(), 4)
-        hours = DailyHoursInput.objects.filter(
-            invoice__user=self.user, date_tracked=datetime.date.today()
-        )
-        rendered_template = self.setup_template(
-            "partials/_hours_grid.html", {"hours": hours}
-        )
-        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_repeat_daily_hours_excluding_skipped(self):
         DailyHoursInput.objects.all().delete()
