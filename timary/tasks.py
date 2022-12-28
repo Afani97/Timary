@@ -9,9 +9,41 @@ from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django_q.tasks import async_task, schedule
 
-from timary.models import Invoice, SentInvoice, User
+from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
+
+
+def gather_recurring_hours():
+    all_recurring_hours = DailyHoursInput.objects.exclude(
+        Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
+    ).exclude(invoice__is_archived=True)
+
+    is_today_saturday = date.today().weekday() == 5
+
+    new_hours_added = []
+
+    for recurring_hour in all_recurring_hours:
+        if recurring_hour.is_recurring_date_today():
+
+            new_hours = DailyHoursInput.objects.create(
+                hours=recurring_hour.hours,
+                date_tracked=date.today(),
+                invoice=recurring_hour.invoice,
+                recurring_logic=recurring_hour.recurring_logic,
+            )
+            new_hours_added.append(new_hours)
+
+            # Prevent double stacking of hours, instead just update new hours to have the recurring logic
+            recurring_hour.cancel_recurring_hour()
+
+            if is_today_saturday:
+                new_hours.update_recurring_starting_weeks()
+
+        if is_today_saturday:
+            recurring_hour.update_recurring_starting_weeks()
+
+    return f"{len(new_hours_added)} hours added."
 
 
 def gather_invoices():

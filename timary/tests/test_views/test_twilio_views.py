@@ -77,7 +77,7 @@ class TestTwilioSendReminderSMS(TestCase):
 
         InvoiceFactory(user__phone_number=None)
         InvoiceFactory(user__phone_number="")
-        InvoiceFactory(next_date=None)
+        InvoiceFactory(is_paused=True)
         InvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()

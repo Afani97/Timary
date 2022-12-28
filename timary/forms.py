@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import DailyHoursInput, Invoice, User
+from timary.utils import get_starting_week_from_date
 
 
 class DateInput(forms.DateInput):
@@ -13,6 +14,28 @@ class DateInput(forms.DateInput):
 
 
 class DailyHoursForm(forms.ModelForm):
+    repeating = forms.BooleanField(required=False, initial=False)
+    recurring = forms.BooleanField(required=False, initial=False)
+    repeat_end_date = forms.DateField(
+        required=False,
+    )
+    repeat_interval_schedule = forms.ChoiceField(
+        required=False,
+        choices=[("d", "Daily"), ("w", "Weekly"), ("b", "Biweekly")],
+    )
+    repeat_interval_days = forms.MultipleChoiceField(
+        required=False,
+        choices=[
+            ("sun", "Sunday"),
+            ("mon", "Monday"),
+            ("tue", "Tuesday"),
+            ("wed", "Wednesday"),
+            ("thu", "Thursday"),
+            ("fri", "Friday"),
+            ("sat", "Saturday"),
+        ],
+    )
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
 
@@ -91,6 +114,38 @@ class DailyHoursForm(forms.ModelForm):
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
                 )
+
+        repeating = validated_data.get("repeating")
+        recurring = validated_data.get("recurring")
+        repeat_end_date = validated_data.get("repeat_end_date")
+        interval_schedule = validated_data.get("repeat_interval_schedule")
+        interval_days = validated_data.get("repeat_interval_days")
+
+        if repeating and recurring:
+            raise ValidationError("Cannot set repeating and recurring both to true.")
+        if repeating and not repeat_end_date:
+            raise ValidationError("Cannot have a repeating hour without an end date.")
+        if repeating and repeat_end_date and repeat_end_date < datetime.date.today():
+            raise ValidationError("Cannot set repeat end date less than today.")
+        if recurring and repeat_end_date:
+            validated_data.pop("repeat_end_date")
+        if interval_schedule in ["w", "b"] and not interval_days:
+            raise ValidationError("Need specific days which to add hours to.")
+
+        if repeating or recurring:
+            recurring_logic = {
+                "type": "recurring",
+                "interval": interval_schedule,
+                "interval_days": interval_days,
+                "starting_week": get_starting_week_from_date(
+                    datetime.date.today()
+                ).isoformat(),
+            }
+            if repeating:
+                recurring_logic.update(
+                    {"type": "repeating", "end_date": repeat_end_date.isoformat()}
+                )
+            validated_data["recurring_logic"] = recurring_logic
 
         return validated_data
 

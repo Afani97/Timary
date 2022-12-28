@@ -16,7 +16,10 @@ from timary.utils import show_alert_message
 def create_daily_hours(request):
     hours_form = DailyHoursForm(request.POST, user=request.user)
     if hours_form.is_valid():
-        hours_form.save()
+        hours_saved = hours_form.save()
+        if "recurring_logic" in hours_form.cleaned_data:
+            hours_saved.recurring_logic = hours_form.cleaned_data.get("recurring_logic")
+            hours_saved.save()
         hours = DailyHoursInput.all_hours.current_month(request.user)
         show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
         show_most_frequent_options = request.user.show_most_frequent_options(hours)
@@ -105,6 +108,11 @@ def update_hours(request, hours_id):
     hours_form = DailyHoursForm(put_params, instance=hours, user=request.user)
     if hours_form.is_valid():
         updated_hours = hours_form.save()
+        if "recurring_logic" in hours_form.cleaned_data:
+            updated_hours.recurring_logic = hours_form.cleaned_data.get(
+                "recurring_logic"
+            )
+            updated_hours.save()
         response = render(request, "partials/_hour.html", {"hour": updated_hours})
         # "newHours" - To trigger dashboard stats refresh
         show_alert_message(response, "success", "Hours updated", "newHours")

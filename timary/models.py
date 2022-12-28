@@ -22,6 +22,7 @@ from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
+from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
 def create_new_ref_number():
@@ -69,6 +70,7 @@ class DailyHoursInput(BaseModel):
     all_hours = HoursQuerySet.as_manager()
 
     sent_invoice_id = models.CharField(max_length=200, null=True, blank=True)
+    recurring_logic = models.JSONField(blank=True, null=True, default=dict)
 
     def __str__(self):
         return f"{self.invoice.title} - {self.date_tracked} - {self.hours}"
@@ -87,6 +89,60 @@ class DailyHoursInput(BaseModel):
     @property
     def slug_id(self):
         return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"
+
+    def is_recurring_date_today(self):
+        """
+        Checks if recurring_logic has a 'type' either 'recurring' or 'repeating'
+
+        - If 'repeating': Check if today is end_date, then cancel recurring
+        - Otherwise the rest are the same logic.
+            - If daily, return true
+            - If weekly or bi-weekly, check if the current week is valid,
+                - If so, then check if current day is chosen
+
+        - Return false otherwise
+        """
+        today = date.today()
+        if (
+            not self.recurring_logic
+            or "type" not in self.recurring_logic
+            or self.recurring_logic["type"]
+            not in [
+                "repeating",
+                "recurring",
+            ]
+        ):
+            return False
+        if self.recurring_logic["type"] == "repeating":
+            if datetime.date.fromisoformat(self.recurring_logic["end_date"]) <= today:
+                self.cancel_recurring_hour()
+                return False
+
+        if self.recurring_logic["interval"] == "d":
+            return True
+
+        if self.recurring_logic["interval"] in ["w", "b"]:
+            starting_week = date.fromisoformat(self.recurring_logic["starting_week"])
+            if starting_week == get_starting_week_from_date(today):
+                if get_date_parsed(today) in self.recurring_logic["interval_days"]:
+                    return True
+
+        return False
+
+    def update_recurring_starting_weeks(self):
+        """When on a saturday, after hours have been recorded,
+        update starting weeks for new week
+        """
+        if "starting_week" in self.recurring_logic:
+            num_weeks = 1 if self.recurring_logic["interval"] != "b" else 2
+            self.recurring_logic["starting_week"] = date.fromisoformat(
+                self.recurring_logic["starting_week"]
+            ) + datetime.timedelta(weeks=num_weeks)
+            self.save()
+
+    def cancel_recurring_hour(self):
+        self.recurring_logic = None
+        self.save()
 
 
 class Invoice(BaseModel):

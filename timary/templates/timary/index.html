@@ -36,6 +36,18 @@
             }
             htmx.find("#id_hours").value = 1;
             htmx.find("#id_date_tracked").value = new Date().toISOString().split('T')[0];
+            let today = new Date();
+            let weekLater = today.setDate(today.getDate() + 7);
+            htmx.find("#id_repeat_end_date").value = (new Date(weekLater)).toISOString().split("T")[0];
+            htmx.find("#id_repeating").checked = false;
+            htmx.find("#id_recurring").checked = false;
+            htmx.find("#id_repeat_interval_schedule").value = "d"
+            htmx.removeClass(htmx.find("#repeating-wrapper"), "hidden");
+            htmx.removeClass(htmx.find("#recurring-wrapper"), "hidden");
+            htmx.addClass(htmx.find("#repeat-end-date"), "hidden");
+            htmx.addClass(htmx.find("#schedule-selection"), "hidden");
+            htmx.addClass(htmx.find("#custom-interval-days"), "hidden");
+
         }
         htmx.on("clearHoursModal", function(){
             htmx.find("#close-hours-modal").click();

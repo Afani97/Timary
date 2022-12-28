@@ -17,6 +17,7 @@ from timary.forms import (
     UserForm,
 )
 from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.utils import get_starting_week_from_date
 
 
 class TestLogin(TestCase):
@@ -515,6 +516,166 @@ class TestDailyHours(TestCase):
         )
         self.assertEqual(
             form.errors, {"date_tracked": ["Cannot set date into the future!"]}
+        )
+
+    def test_hours_repeating_daily(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_interval_schedule": "d",
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "repeating",
+                "interval": "d",
+                "interval_days": [],
+                "starting_week": "2022-12-25",
+                "end_date": "2023-01-05",
+            },
+        )
+
+    def test_hours_repeating_weekly(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_interval_schedule": "w",
+                "repeat_interval_days": ["mon", "tue"],
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "repeating",
+                "interval": "w",
+                "interval_days": ["mon", "tue"],
+                "starting_week": "2022-12-25",
+                "end_date": "2023-01-05",
+            },
+        )
+
+    def test_hours_recurring_daily(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "recurring": True,
+                "repeat_interval_schedule": "d",
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "recurring",
+                "interval": "d",
+                "interval_days": [],
+                "starting_week": "2022-12-25",
+            },
+        )
+
+    def test_hours_recurring_weekly(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "recurring": True,
+                "repeat_interval_schedule": "w",
+                "repeat_interval_days": ["thu", "fri"],
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "recurring",
+                "interval": "w",
+                "interval_days": ["thu", "fri"],
+                "starting_week": "2022-12-25",
+            },
+        )
+
+    def test_repeating_hours_cannot_set_both_true(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "recurring": True,
+                "repeating": True,
+                "repeat_interval_schedule": "w",
+                "repeat_interval_days": ["mon", "tue"],
+            }
+        )
+        self.assertIn(
+            "Cannot set repeating and recurring both to true.", str(form.errors)
+        )
+
+    def test_repeating_hours_needs_end_date(self):
+        """Recurring goes on until invoice is archived"""
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "repeating": True,
+            }
+        )
+        self.assertIn(
+            "Cannot have a repeating hour without an end date.", str(form.errors)
+        )
+
+    def test_repeating_hours_needs_end_date_greater_than_today(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() - datetime.timedelta(weeks=1),
+            }
+        )
+        self.assertIn("Cannot set repeat end date less than today.", str(form.errors))
+
+    def test_repeating_weekly_or_biweekly_need_days_set(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "recurring": True,
+                "repeat_interval_schedule": "w",
+            }
+        )
+        self.assertIn("Need specific days which to add hours to.", str(form.errors))
+
+    def test_repeating_has_valid_starting_week(self):
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+                "recurring": True,
+                "repeat_interval_schedule": "d",
+            }
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(
+            form.cleaned_data.get("recurring_logic")["starting_week"],
+            get_starting_week_from_date(datetime.date.today()).isoformat(),
         )
 
 

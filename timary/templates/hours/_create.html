@@ -1,3 +1,4 @@
+{% load filters %}
 <form class=""
     hx-post="{% url 'timary:create_hours' %}"
     hx-swap="outerHTML"
@@ -9,7 +10,7 @@
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
     {% endif %}
 
-    <div class="card-body -mx-5 sm:mx-0">
+    <div class="card-body -mx-5">
         <div class="flex flex-row space-x-2 w-full">
             <div class="w-32 sm:w-full">
                 <label class="label">
@@ -30,7 +31,57 @@
             </label>
             <div>{{ form.invoice }}</div>
         </div>
-
+        <div>
+            <div class="form-control w-full" id="repeating-wrapper">
+                <label class="cursor-pointer label">
+                    <span class="label-text">Repeating?</span>
+                    <input type="checkbox" name="repeating" id="id_repeating" class="toggle toggle-primary"
+                        _="on change toggle .hidden on #recurring-wrapper then toggle .hidden on #schedule-selection then toggle .hidden on #repeat-end-date" />
+                </label>
+                <div class="hidden flex justify-between items-baseline w-full" id="repeat-end-date">
+                    <label class="label">
+                        <span class="label-text">End on:</span>
+                    </label>
+                    {% now "Y-m-d" as today %}
+                    <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input h-8" min="{% now "Y-m-d" %}" value="{{today|adddays:"7"|date:"Y-m-d"}}"/>
+                </div>
+            </div>
+            <div class="form-control w-full" id="recurring-wrapper">
+                <label class="cursor-pointer label">
+                    <span class="label-text">Recurring?</span>
+                    <input type="checkbox" name="recurring" id="id_recurring" class="toggle toggle-primary" _="on change toggle .hidden on #repeating-wrapper then toggle .hidden on #schedule-selection" />
+                </label>
+            </div>
+            <div class="flex justify-between space-x-3 hidden" id="schedule-selection">
+                <div class="form-control w-full" >
+                    <label class="label">
+                        <span class="label-text">Select an interval</span>
+                    </label>
+                    <select class="select w-full max-w-xs"
+                        name="repeat_interval_schedule" id="id_repeat_interval_schedule"
+                        _="on change if my.value == 'w' or my.value == 'b' then remove .hidden from #custom-interval-days else add .hidden to #custom-interval-days"
+                    >
+                        <option value="d" selected>Daily</option>
+                        <option value="w">Weekly</option>
+                        <option value="b">Every other week</option>
+                    </select>
+                </div>
+                <div class="form-control w-full hidden" id="custom-interval-days">
+                    <label class="label">
+                        <span class="label-text">Which days?</span>
+                    </label>
+                    <select class="select w-full max-w-xs" name="repeat_interval_days" id="id_repeat_interval_days" multiple>
+                        <option value="sun">Sunday</option>
+                        <option value="mon" selected>Monday</option>
+                        <option value="tue">Tuesday</option>
+                        <option value="wed">Wednesday</option>
+                        <option value="thu">Thursday</option>
+                        <option value="fri">Friday</option>
+                        <option value="sat">Saturday</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="card-actions flex justify-center">
         <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Add new hours</button>

@@ -23,3 +23,8 @@ def nextmonday(field):
 @register.filter(name="addf")
 def addfloats(val, arg):
     return float(val) + float(arg)
+
+
+@register.filter(name="adddays")
+def adddays(value, days):
+    return datetime.date.fromisoformat(value) + datetime.timedelta(days=int(days))

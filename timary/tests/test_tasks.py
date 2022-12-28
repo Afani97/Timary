@@ -9,9 +9,10 @@ from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
 
-from timary.models import SentInvoice
+from timary.models import DailyHoursInput, SentInvoice
 from timary.tasks import (
     gather_invoices,
+    gather_recurring_hours,
     send_invoice,
     send_invoice_preview,
     send_weekly_updates,
@@ -22,6 +23,7 @@ from timary.tests.factories import (
     SentInvoiceFactory,
     UserFactory,
 )
+from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
 class TestGatherInvoices(TestCase):
@@ -175,6 +177,140 @@ class TestGatherInvoices(TestCase):
             mail.outbox[0].subject,
             "Sent out 0 invoices",
         )
+
+
+class TestGatherHours(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        cls.next_week = get_starting_week_from_date(
+            datetime.date.today() + datetime.timedelta(weeks=1)
+        ).isoformat()
+
+    def test_gather_0_hours(self):
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 0)
+
+    def test_gather_0_hours_with_archived_invoice(self):
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+            invoice__is_archived=True,
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+
+    def test_gather_1_hour(self):
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("1 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 2)
+
+    def test_gather_2_hour(self):
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            }
+        )
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "w",
+                "interval_days": [get_date_parsed(date.today())],
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("2 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 4)
+
+    def test_passing_recurring_logic(self):
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("1 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 2)
+
+        hours.refresh_from_db()
+        self.assertIsNone(hours.recurring_logic)
+
+    def test_hours_not_scheduled_do_not_get_created(self):
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "w",
+                "interval_days": [
+                    get_date_parsed(date.today() - datetime.timedelta(days=1))
+                ],
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 1)
+
+        hours.refresh_from_db()
+        self.assertIsNotNone(hours.recurring_logic)
+
+    @patch("timary.models.DailyHoursInput.update_recurring_starting_weeks")
+    @patch("timary.tasks.date")
+    def test_refresh_starting_weeks_on_saturday(self, date_mock, update_weeks_mock):
+        date_mock.today.return_value = datetime.date(2022, 12, 31)
+        date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        update_weeks_mock.return_value = None
+
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "starting_week": self.start_week,
+                "interval_days": ["mon", "tue"],
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 1)
+        self.assertTrue(update_weeks_mock.assert_called_once)
+
+    @patch("timary.models.DailyHoursInput.cancel_recurring_hour")
+    def test_cancel_previous_recurring_logic(self, cancel_hours_mock):
+        """Prevent double stacking of hours, have one recurring instance at a time"""
+        cancel_hours_mock.return_value = None
+
+        DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "d",
+                "starting_week": self.start_week,
+            }
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("1 hours added.", hours_added)
+        self.assertEquals(DailyHoursInput.objects.count(), 2)
+        self.assertTrue(cancel_hours_mock.assert_called_once)
 
 
 class TestSendInvoice(TestCase):

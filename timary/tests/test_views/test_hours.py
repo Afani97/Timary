@@ -262,3 +262,71 @@ class TestDailyHours(BaseTest):
             DailyHoursInput.objects.count(),
             5,
         )
+
+    def test_create_repeating_hours(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "hours": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": invoice.id,
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_interval_schedule": "d",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        hours = DailyHoursInput.objects.first()
+        self.assertIsNotNone(hours.recurring_logic)
+
+    def test_create_repeating_hours_error(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "hours": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": invoice.id,
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() - datetime.timedelta(weeks=1),
+                "repeat_interval_schedule": "d",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(DailyHoursInput.objects.first())
+
+    def test_create_recurring_hours(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "hours": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": invoice.id,
+                "recurring": True,
+                "repeat_interval_schedule": "d",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        hours = DailyHoursInput.objects.first()
+        self.assertIsNotNone(hours.recurring_logic)
+
+    def test_create_recurring_hours_error(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "hours": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": invoice.id,
+                "recurring": True,
+                "repeat_interval_schedule": "m",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(DailyHoursInput.objects.first())

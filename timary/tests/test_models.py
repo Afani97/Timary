@@ -15,6 +15,7 @@ from timary.tests.factories import (
     SentInvoiceFactory,
     UserFactory,
 )
+from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
 class TestDailyHours(TestCase):
@@ -288,6 +289,93 @@ class TestInvoice(TestCase):
         self.assertEqual(last_six[1][-2], 2000.0)
         self.assertEqual(last_six[1][-3], 3000.0)
         self.assertEqual(last_six[1][-4], 4000.0)
+
+    def test_is_recurring_date_error(self):
+        hours = DailyHoursFactory()
+        self.assertFalse(hours.is_recurring_date_today())
+
+        hours = DailyHoursFactory(recurring_logic={})
+        self.assertFalse(hours.is_recurring_date_today())
+
+        hours = DailyHoursFactory(recurring_logic={"type": "Some other type"})
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_daily_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "d",
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_repeating_daily_hours_end_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "end_date": datetime.date.today().isoformat(),
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_weekly_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "w",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_recurring_biweekly_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_recurring_biweekly_hours_date_today_not_valid_week(self):
+        """Not the valid biweekly starting week iteration, either one week ago or ahead is fine"""
+        start_week = get_starting_week_from_date(
+            datetime.date.today() - datetime.timedelta(weeks=1)
+        ).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_weekly_hours_date_today_not_valid_day(self):
+        """Not the valid weekly interval day"""
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = DailyHoursFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "w",
+                "interval_days": [
+                    get_date_parsed(datetime.date.today() - datetime.timedelta(days=1))
+                ],
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
 
 
 class TestSentInvoice(TestCase):

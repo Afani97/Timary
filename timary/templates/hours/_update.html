@@ -31,6 +31,56 @@
             {{ form.invoice }}
         </div>
 
+        <div>
+            {% if hour.recurring_logic.type == "repeating" %}
+                <div class="form-control w-full mb-2">
+                    <div class="flex flex-col w-full">
+                        <label class="label">
+                            <span class="label-text">Repeating end date: </span>
+                        </label>
+                        <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input h-8" min="{% now "Y-m-d" %}" value="{{hour.recurring_logic.end_date}}"/>
+                    </div>
+                </div>
+            {% endif %}
+            {% if hour.recurring_logic %}
+                {% if hour.recurring_logic.type == "repeating" %}
+                    <input type="hidden" name="repeating" value="true" />
+                {% elif hour.recurring_logic.type == "recurring" %}
+                    <input type="hidden" name="recurring" value="true" />
+                {% endif %}
+                <div class="flex flex-col space-y-3">
+                    <div class="form-control w-full" >
+                        <label class="label">
+                            <span class="label-text">Select an interval</span>
+                        </label>
+                        <select class="select w-full max-w-xs"
+                            name="repeat_interval_schedule" id="id_repeat_interval_schedule"
+                            _="on change if my.value == 'w' or my.value == 'b' then remove .hidden from #{{ hour.slug_id }}_custom_interval_days else add .hidden to #{{ hour.slug_id }}_custom_interval_days"
+                        >
+                            <option value="d" {% if hour.recurring_logic.interval == "d" %} selected {% endif %}>Daily</option>
+                            <option value="w" {% if hour.recurring_logic.interval == "w" %} selected {% endif %}>Weekly</option>
+                            <option value="b" {% if hour.recurring_logic.interval == "b" %} selected {% endif %}>Every other week</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full {% if hour.recurring_logic.interval == 'd' %}hidden {% endif %}"
+                        id="{{ hour.slug_id }}_custom_interval_days">
+                        <label class="label">
+                            <span class="label-text">Which days?</span>
+                        </label>
+                        <select class="select w-full max-w-xs" name="repeat_interval_days" id="id_repeat_interval_days" multiple
+                            <option value="sun" {% if "sun" in hour.recurring_logic.interval_days %} selected {% endif %}>Sunday</option>
+                        <option value="mon" {% if "mon" in hour.recurring_logic.interval_days %} selected {% endif %}>Monday</option>
+                        <option value="tue" {% if "tue" in hour.recurring_logic.interval_days %} selected {% endif %}>Tuesday</option>
+                        <option value="wed" {% if "wed" in hour.recurring_logic.interval_days %} selected {% endif %}>Wednesday</option>
+                        <option value="thu" {% if "thu" in hour.recurring_logic.interval_days %} selected {% endif %}>Thursday</option>
+                        <option value="fri" {% if "fri" in hour.recurring_logic.interval_days %} selected {% endif %}>Friday</option>
+                        <option value="sat" {% if "sat" in hour.recurring_logic.interval_days %} selected {% endif %}>Saturday</option>
+                    </select>
+                </div>
+                </div>
+            {% endif %}
+        </div>
+
     </div>
     <div class="card-actions mb-5 flex justify-center space-x-10 sm:space-x-2">
         <a class="btn btn-ghost btn-sm md:btn-md" hx-get="{% url 'timary:get_single_hours' hours_id=hour.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>

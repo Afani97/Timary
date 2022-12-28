@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 
 from requests import Response
 
@@ -48,3 +49,11 @@ def convert_hours_to_decimal_hours(time):
     if not dec_time:
         raise ValueError()
     return dec_time
+
+
+def get_starting_week_from_date(date):
+    return date - timedelta(days=datetime.today().isoweekday() % 7)
+
+
+def get_date_parsed(date):
+    return datetime.strftime(date, "%a").lower()

@@ -23,6 +23,7 @@ class UserFactory(DjangoModelFactory):
         ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"]
     )
     phone_number_repeat_sms = False
+    stripe_subscription_status = 2
 
 
 def get_next_date():
