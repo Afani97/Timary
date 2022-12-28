@@ -3,6 +3,7 @@ from .auth import *  # noqa
 from .hours import *  # noqa
 from .invoices import *  # noqa
 from .main import *  # noqa
+from .other import *  # noqa
 from .profile import *  # noqa
 from .settings import *  # noqa
 from .stripe_views import *  # noqa
