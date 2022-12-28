@@ -84,6 +84,7 @@ urlpatterns += [
 # HOURS URLS
 urlpatterns += [
     path("hours/", views.create_daily_hours, name="create_hours"),
+    path("hours/quick/", views.quick_hours, name="quick_hours"),
     path("hours/repeat/", views.repeat_hours, name="repeat_hours"),
     path("hours/<uuid:hours_id>/", views.get_hours, name="get_single_hours"),
     path("hours/<uuid:hours_id>/edit/", views.edit_hours, name="edit_hours"),

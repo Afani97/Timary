@@ -1,4 +1,21 @@
 <ul id="hours-list" class="px-0 md:px-5 mt-10 md:mt-0 col-span-3 md:col-span-4 space-y-5">
+    {% if frequent_options|length > 0 %}
+        <h1>Quick hours</h1>
+        <div class="flex flex-row items-center gap-1 md:gap-3 flex-wrap">
+            {% for hour in frequent_options %}
+                <button class="btn gap-2 flex flex-col md:flex-row">
+                    {{ hour.hours }}hr for {{ hour.invoice_name }}
+                    <div class="badge badge-secondary"
+                        hx-get="{% url 'timary:quick_hours' %}?hours_ref_id={{ hour.invoice_reference_id }}"
+                        hx-swap="outerHTML"
+                        hx-target="#hours-list">
+                        + add
+                    </div>
+                </button>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% if show_repeat == 1 %}
         <div class="repeat-day"></div>
         <div class="text-3xl font-semibold tracking-wide">{% now "M. j, Y" %}</div>

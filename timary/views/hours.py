@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
-from timary.models import DailyHoursInput
+from timary.models import DailyHoursInput, Invoice
 from timary.utils import show_alert_message
 
 
@@ -19,11 +19,14 @@ def create_daily_hours(request):
         hours_form.save()
         hours = DailyHoursInput.all_hours.current_month(request.user)
         show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
+        show_most_frequent_options = request.user.show_most_frequent_options(hours)
 
         context = {
             "hours": hours,
             "show_repeat": show_repeat_option,
         }
+        if len(show_most_frequent_options) > 0:
+            context["frequent_options"] = show_most_frequent_options
         response = render(request, "partials/_hours_list.html", context=context)
         response[
             "HX-Trigger-After-Swap"
@@ -34,6 +37,42 @@ def create_daily_hours(request):
     else:
         response = render(request, "hours/_create.html", {"form": hours_form})
         response["HX-Retarget"] = "#new-hours-form"
+        return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def quick_hours(request):
+    try:
+        hours, invoice_id = request.GET.get("hours_ref_id").split("_")
+    except Exception:
+        response = HttpResponse(status=204)
+        show_alert_message(response, "warning", "Error adding hours")
+        return response
+    hours_form = DailyHoursForm(
+        data={
+            "hours": hours,
+            "date_tracked": datetime.date.today(),
+            "invoice": Invoice.objects.get(email_id=invoice_id),
+        },
+        user=request.user,
+    )
+    if hours_form.is_valid():
+        hours_form.save()
+        all_hours = DailyHoursInput.all_hours.current_month(request.user)
+        show_most_frequent_options = request.user.show_most_frequent_options(all_hours)
+        context = {
+            "hours": all_hours,
+        }
+        if len(show_most_frequent_options) > 0:
+            context["frequent_options"] = show_most_frequent_options
+        response = render(request, "partials/_hours_list.html", context=context)
+        # "newHours" - To trigger dashboard stats refresh
+        show_alert_message(response, "success", "New hours added!", "newHours")
+        return response
+    else:
+        response = HttpResponse(status=204)
+        show_alert_message(response, "warning", "Unable to add hours")
         return response
 
 

@@ -83,6 +83,30 @@ class TestDailyHours(BaseTest):
             response.content.decode("utf-8"),
         )
 
+    def test_create_quick_hours(self):
+        DailyHoursInput.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        hours_ref_id = f"{1.0}_{invoice.email_id}"
+        response = self.client.get(
+            f"{reverse('timary:quick_hours')}?hours_ref_id={hours_ref_id}"
+        )
+        self.assertEqual(response.status_code, 200)
+        hours = [DailyHoursInput.objects.first()]
+        rendered_template = self.setup_template(
+            "partials/_hours_list.html", {"hours": hours, "show_repeat": False}
+        )
+        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+
+    def test_create_quick_hours_error(self):
+        response = self.client.get(
+            f"{reverse('timary:quick_hours')}?hours_ref_id=abc123"
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertIn(
+            "Error adding hours",
+            response.headers["HX-Trigger"],
+        )
+
     def test_get_hours(self):
         rendered_template = self.setup_template(
             "partials/_hour.html", {"hour": self.hours}
