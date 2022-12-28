@@ -6,7 +6,7 @@
         <div class="stat-title">Hours logged this month</div>
         <div class="stat-value">{{ current_month.total_hours | floatformat:-2 }}</div>
         <div class="stat-desc">estimated earnings: ${{ current_month.total_amount | floatformat:-2 }}</div>
-        <div class="stat-actions flex flex-col space-y-3">
+        <div class="stat-actions flex flex-row md:flex-col space-x-4 md:space-y-3 md:space-x-0">
             <label for="hours-modal" id="log_hours_btn"  class="btn btn-sm md:btn-md btn-primary">Log hours</label>
             <button
                 id="start_timer"
