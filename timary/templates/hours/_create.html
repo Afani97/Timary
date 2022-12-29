@@ -43,7 +43,7 @@
                         <span class="label-text">End on:</span>
                     </label>
                     {% now "Y-m-d" as today %}
-                    <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input h-8" min="{% now "Y-m-d" %}" value="{{today|adddays:"7"|date:"Y-m-d"}}"/>
+                    <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered border-2 h-8" min="{% now "Y-m-d" %}" value="{{today|adddays:"7"|date:"Y-m-d"}}"/>
                 </div>
             </div>
             <div class="form-control w-full" id="recurring-wrapper">
@@ -57,7 +57,7 @@
                     <label class="label">
                         <span class="label-text">Select an interval</span>
                     </label>
-                    <select class="select w-full max-w-xs"
+                    <select class="select select-bordered border-2 w-full"
                         name="repeat_interval_schedule" id="id_repeat_interval_schedule"
                         _="on change if my.value == 'w' or my.value == 'b' then remove .hidden from #custom-interval-days else add .hidden to #custom-interval-days"
                     >
@@ -70,7 +70,7 @@
                     <label class="label">
                         <span class="label-text">Which days?</span>
                     </label>
-                    <select class="select w-full max-w-xs" name="repeat_interval_days" id="id_repeat_interval_days" multiple>
+                    <select class="select select-bordered border-2 w-full" name="repeat_interval_days" id="id_repeat_interval_days" multiple>
                         <option value="sun">Sunday</option>
                         <option value="mon" selected>Monday</option>
                         <option value="tue">Tuesday</option>

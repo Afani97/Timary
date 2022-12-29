@@ -38,7 +38,7 @@
                         <label class="label">
                             <span class="label-text">Repeating end date: </span>
                         </label>
-                        <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input h-8" min="{% now "Y-m-d" %}" value="{{hour.recurring_logic.end_date}}"/>
+                        <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered border-2 h-8" min="{% now "Y-m-d" %}" value="{{hour.recurring_logic.end_date}}"/>
                     </div>
                 </div>
             {% endif %}
@@ -53,7 +53,7 @@
                         <label class="label">
                             <span class="label-text">Select an interval</span>
                         </label>
-                        <select class="select w-full max-w-xs"
+                        <select class="select select-bordered border-2 w-full"
                             name="repeat_interval_schedule" id="id_repeat_interval_schedule"
                             _="on change if my.value == 'w' or my.value == 'b' then remove .hidden from #{{ hour.slug_id }}_custom_interval_days else add .hidden to #{{ hour.slug_id }}_custom_interval_days"
                         >
@@ -67,16 +67,16 @@
                         <label class="label">
                             <span class="label-text">Which days?</span>
                         </label>
-                        <select class="select w-full max-w-xs" name="repeat_interval_days" id="id_repeat_interval_days" multiple
+                        <select class="select select-bordered border-2 w-full" name="repeat_interval_days" id="id_repeat_interval_days" multiple>
                             <option value="sun" {% if "sun" in hour.recurring_logic.interval_days %} selected {% endif %}>Sunday</option>
-                        <option value="mon" {% if "mon" in hour.recurring_logic.interval_days %} selected {% endif %}>Monday</option>
-                        <option value="tue" {% if "tue" in hour.recurring_logic.interval_days %} selected {% endif %}>Tuesday</option>
-                        <option value="wed" {% if "wed" in hour.recurring_logic.interval_days %} selected {% endif %}>Wednesday</option>
-                        <option value="thu" {% if "thu" in hour.recurring_logic.interval_days %} selected {% endif %}>Thursday</option>
-                        <option value="fri" {% if "fri" in hour.recurring_logic.interval_days %} selected {% endif %}>Friday</option>
-                        <option value="sat" {% if "sat" in hour.recurring_logic.interval_days %} selected {% endif %}>Saturday</option>
-                    </select>
-                </div>
+                            <option value="mon" {% if "mon" in hour.recurring_logic.interval_days %} selected {% endif %}>Monday</option>
+                            <option value="tue" {% if "tue" in hour.recurring_logic.interval_days %} selected {% endif %}>Tuesday</option>
+                            <option value="wed" {% if "wed" in hour.recurring_logic.interval_days %} selected {% endif %}>Wednesday</option>
+                            <option value="thu" {% if "thu" in hour.recurring_logic.interval_days %} selected {% endif %}>Thursday</option>
+                            <option value="fri" {% if "fri" in hour.recurring_logic.interval_days %} selected {% endif %}>Friday</option>
+                            <option value="sat" {% if "sat" in hour.recurring_logic.interval_days %} selected {% endif %}>Saturday</option>
+                        </select>
+                    </div>
                 </div>
             {% endif %}
         </div>
