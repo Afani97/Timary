@@ -51,7 +51,7 @@
                 <div class="flex flex-col space-y-3">
                     <div class="form-control w-full" >
                         <label class="label">
-                            <span class="label-text">Select an interval</span>
+                            <span class="label-text">Interval</span>
                         </label>
                         <select class="select select-bordered border-2 w-full"
                             name="repeat_interval_schedule" id="id_repeat_interval_schedule"
@@ -65,7 +65,7 @@
                     <div class="form-control w-full {% if hour.recurring_logic.interval == 'd' %}hidden {% endif %}"
                         id="{{ hour.slug_id }}_custom_interval_days">
                         <label class="label">
-                            <span class="label-text">Which days?</span>
+                            <span class="label-text">Days selected</span>
                         </label>
                         <select class="select select-bordered border-2 w-full" name="repeat_interval_days" id="id_repeat_interval_days" multiple>
                             <option value="sun" {% if "sun" in hour.recurring_logic.interval_days %} selected {% endif %}>Sunday</option>

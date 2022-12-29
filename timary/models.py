@@ -674,7 +674,8 @@ class User(AbstractUser, BaseModel):
         """Get current months hours and get top 3 most frequent hours logged"""
         today = date.today()
         repeated_hours = (
-            hours.annotate(
+            hours.filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
+            .annotate(
                 repeat_hours=Concat(
                     Cast(
                         Cast(F("hours") * 100, output_field=models.IntegerField()),

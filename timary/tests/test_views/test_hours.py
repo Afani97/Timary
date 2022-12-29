@@ -49,7 +49,6 @@ class TestDailyHours(BaseTest):
         )
 
     def test_create_daily_hours(self):
-        DailyHoursInput.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -60,11 +59,6 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        hours = [DailyHoursInput.objects.first()]
-        rendered_template = self.setup_template(
-            "partials/_hours_list.html", {"hours": hours, "show_repeat": False}
-        )
-        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_create_daily_hours_error(self):
         DailyHoursInput.objects.all().delete()
@@ -84,18 +78,12 @@ class TestDailyHours(BaseTest):
         )
 
     def test_create_quick_hours(self):
-        DailyHoursInput.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         hours_ref_id = f"{1.0}_{invoice.email_id}"
         response = self.client.get(
             f"{reverse('timary:quick_hours')}?hours_ref_id={hours_ref_id}"
         )
         self.assertEqual(response.status_code, 200)
-        hours = [DailyHoursInput.objects.first()]
-        rendered_template = self.setup_template(
-            "partials/_hours_list.html", {"hours": hours, "show_repeat": False}
-        )
-        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_create_quick_hours_error(self):
         response = self.client.get(
