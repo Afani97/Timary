@@ -30,7 +30,7 @@ build:
 .PHONY: build
 
 test:
-	python manage.py test --failfast --exclude-tag=ui
+	python manage.py test --failfast --exclude-tag=ui --parallel 4
 .PHONY: test
 
 test-ui:

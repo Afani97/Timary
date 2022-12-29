@@ -38,7 +38,7 @@
                         <label class="label">
                             <span class="label-text">Repeating end date: </span>
                         </label>
-                        <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered border-2 h-8" min="{% now "Y-m-d" %}" value="{{hour.recurring_logic.end_date}}"/>
+                        <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered border-2" min="{% now "Y-m-d" %}" value="{{hour.recurring_logic.end_date}}"/>
                     </div>
                 </div>
             {% endif %}
