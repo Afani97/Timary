@@ -1,7 +1,7 @@
 <form class="card"
     hx-patch="{% url 'timary:patch_hours' hours_id=form.instance.id %}"
     {% if form.instance.recurring_logic %}
-        hx-confirm="Are you sure you want to updated these hours? You will be updating the repeating hours for future days."
+        hx-confirm="Are you sure you want to update these hours? You will be updating the repeating hours for future days."
     {% endif %}
     hx-swap="outerHTML"
     hx-target="this"
