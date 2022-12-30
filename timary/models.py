@@ -687,7 +687,7 @@ class User(AbstractUser, BaseModel):
             )
             .values("repeat_hours")
             .annotate(repeat_hours_count=Count("repeat_hours"))
-            .order_by("-repeat_hours_count")[:3]
+            .order_by("-repeat_hours_count")[:5]
             .values("hours", "invoice__email_id")
         )
         repeated_hours_set = {

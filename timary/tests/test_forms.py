@@ -536,8 +536,12 @@ class TestDailyHours(TestCase):
                 "type": "repeating",
                 "interval": "d",
                 "interval_days": [],
-                "starting_week": "2022-12-25",
-                "end_date": "2023-01-05",
+                "starting_week": get_starting_week_from_date(
+                    datetime.date.today()
+                ).isoformat(),
+                "end_date": (
+                    datetime.date.today() + datetime.timedelta(weeks=1)
+                ).isoformat(),
             },
         )
 
@@ -560,8 +564,12 @@ class TestDailyHours(TestCase):
                 "type": "repeating",
                 "interval": "w",
                 "interval_days": ["mon", "tue"],
-                "starting_week": "2022-12-25",
-                "end_date": "2023-01-05",
+                "starting_week": get_starting_week_from_date(
+                    datetime.date.today()
+                ).isoformat(),
+                "end_date": (
+                    datetime.date.today() + datetime.timedelta(weeks=1)
+                ).isoformat(),
             },
         )
 
@@ -582,7 +590,9 @@ class TestDailyHours(TestCase):
                 "type": "recurring",
                 "interval": "d",
                 "interval_days": [],
-                "starting_week": "2022-12-25",
+                "starting_week": get_starting_week_from_date(
+                    datetime.date.today()
+                ).isoformat(),
             },
         )
 
@@ -604,7 +614,9 @@ class TestDailyHours(TestCase):
                 "type": "recurring",
                 "interval": "w",
                 "interval_days": ["thu", "fri"],
-                "starting_week": "2022-12-25",
+                "starting_week": get_starting_week_from_date(
+                    datetime.date.today()
+                ).isoformat(),
             },
         )
 
