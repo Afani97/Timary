@@ -200,6 +200,8 @@ class StripeService:
 
     @classmethod
     def create_new_subscription(cls, user):
+        from timary.models import User
+
         stripe.api_key = cls.stripe_api_key
 
         subscription = stripe.Subscription.create(
@@ -211,6 +213,11 @@ class StripeService:
         )
         user.stripe_subscription_id = subscription["id"]
         user.save()
+
+        if user.referrer_id:
+            referred_user = User.objects.get(referral_id=user.referral_id)
+            if referred_user:
+                referred_user.add_referral_discount()
 
         # Send trial reminders for 14, 7, 2, 1 days left
         days_of_notice = [16, 23, 28, 29]
@@ -262,6 +269,10 @@ ari@usetimary.com
         user.stripe_subscription_id = subscription["id"]
         user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
         user.save()
+        if user.referrer_id:
+            referred_user = User.objects.get(referral_id=user.referral_id)
+            if referred_user:
+                referred_user.add_referral_discount()
         return True
 
     @classmethod
