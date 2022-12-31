@@ -300,6 +300,7 @@ ari@usetimary.com
             return False
         user.stripe_subscription_status = User.StripeSubscriptionStatus.INACTIVE
         user.stripe_subscription_id = None
+        user.stripe_subscription_recurring_price = 29
         user.save()
 
         EmailService.send_plain(
