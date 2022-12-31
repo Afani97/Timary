@@ -135,9 +135,10 @@ class DailyHoursInput(BaseModel):
         """
         if "starting_week" in self.recurring_logic:
             num_weeks = 1 if self.recurring_logic["interval"] != "b" else 2
-            self.recurring_logic["starting_week"] = date.fromisoformat(
-                self.recurring_logic["starting_week"]
-            ) + datetime.timedelta(weeks=num_weeks)
+            self.recurring_logic["starting_week"] = (
+                date.fromisoformat(self.recurring_logic["starting_week"])
+                + datetime.timedelta(weeks=num_weeks)
+            ).isoformat()
             self.save()
 
     def cancel_recurring_hour(self):

@@ -296,8 +296,11 @@ class TestGatherHours(TestCase):
         self.assertTrue(update_weeks_mock.assert_called_once)
 
     @patch("timary.models.DailyHoursInput.cancel_recurring_hour")
-    def test_cancel_previous_recurring_logic(self, cancel_hours_mock):
+    @patch("timary.tasks.date")
+    def test_cancel_previous_recurring_logic(self, date_mock, cancel_hours_mock):
         """Prevent double stacking of hours, have one recurring instance at a time"""
+        date_mock.today.return_value = datetime.date(2022, 12, 31)
+        date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         cancel_hours_mock.return_value = None
 
         DailyHoursFactory(

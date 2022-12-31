@@ -40,7 +40,7 @@ def gather_recurring_hours():
             if is_today_saturday:
                 new_hours.update_recurring_starting_weeks()
 
-        if is_today_saturday:
+        if is_today_saturday and recurring_hour.recurring_logic:
             recurring_hour.update_recurring_starting_weeks()
 
     return f"{len(new_hours_added)} hours added."
