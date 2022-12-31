@@ -433,13 +433,15 @@ class TestStripeViews(BaseTest):
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.FAILED)
         self.assertEqual(mail.outbox[0].subject, html_subject)
 
+    @patch("timary.models.User.add_referral_discount")
     @patch("stripe.Webhook.construct_event")
-    def test_stripe_webhook_trial_success(self, stripe_webhook_mock):
+    def test_stripe_webhook_trial_success(self, stripe_webhook_mock, referral_mock):
         user = UserFactory(stripe_subscription_id="abc123")
         stripe_webhook_mock.return_value = {
             "type": "invoice.created",
             "data": {"object": {"id": "abc123"}},
         }
+        referral_mock.return_value = None
 
         self.client.force_login(user)
         response = self.client.post(

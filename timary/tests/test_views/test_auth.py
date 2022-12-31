@@ -52,17 +52,14 @@ class TestAuthViews(TestCase):
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
     @patch("timary.services.stripe_service.StripeService.create_new_account")
-    @patch("timary.models.User.user_referred")
     @patch("timary.models.User.onboard_user")
     def test_signup_with_referred_id(
         self,
         user_onboard_mock,
-        user_referrer_mock,
         stripe_create_mock,
         stripe_intent_mock,
     ):
         user_onboard_mock.return_value = None
-        user_referrer_mock.return_value = None
         stripe_create_mock.return_value = "abc123", "abc123"
         stripe_intent_mock.return_value = "abc123"
         response = self.client.post(
@@ -78,7 +75,6 @@ class TestAuthViews(TestCase):
         )
         self.assertEquals(response.status_code, 302)
         self.assertEquals(response.url, reverse("timary:manage_invoices"))
-        self.assertTrue(user_referrer_mock.assert_called_once)
         self.assertTrue(user_onboard_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")

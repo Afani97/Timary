@@ -552,6 +552,7 @@ class User(AbstractUser, BaseModel):
     stripe_subscription_status = models.IntegerField(
         default=StripeSubscriptionStatus.TRIAL, choices=StripeSubscriptionStatus.choices
     )
+    stripe_subscription_recurring_price = models.IntegerField(blank=True, null=True)
 
     WEEK_DAYS = (
         ("Mon", "Mon"),
@@ -579,9 +580,10 @@ class User(AbstractUser, BaseModel):
     invoice_branding = models.JSONField(blank=True, null=True, default=dict)
 
     # Invite referral id
-    referrer_id = models.CharField(
+    referral_id = models.CharField(
         max_length=10, unique=True, default=create_new_ref_number
     )
+    referrer_id = models.CharField(max_length=10, blank=True, null=True)
 
     # Keep track of active timer
     timer_is_active = models.CharField(max_length=50, blank=True, null=True)
@@ -637,7 +639,7 @@ class User(AbstractUser, BaseModel):
     def can_accept_payments(self):
         return self.stripe_payouts_enabled and self.settings["subscription_active"]
 
-    def user_referred(self):
+    def add_referral_discount(self):
         if not self.settings["subscription_active"]:
             return
         subscription = StripeService.get_subscription(self.stripe_subscription_id)
@@ -645,7 +647,6 @@ class User(AbstractUser, BaseModel):
         if subscription["discount"]:
             # If a biz already has a discount applied to their account, max out the coupon to $10
             if subscription["discount"]["coupon"]["amount_off"] == amount:
-                amount = 1000
                 return StripeService.create_subscription_discount(
                     self, amount, subscription["id"]
                 )

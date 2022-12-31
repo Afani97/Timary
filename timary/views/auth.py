@@ -52,9 +52,10 @@ def register_user(request):
                         user.onboard_user()
 
                         if referrer_id:
-                            user_referred_by = User.objects.get(referrer_id=referrer_id)
+                            user_referred_by = User.objects.get(referral_id=referrer_id)
                             if user_referred_by:
-                                user_referred_by.user_referred()
+                                user.referrer_id = user_referred_by.referral_id
+                                user.save()
                         return redirect(reverse("timary:manage_invoices"))
                     else:
                         form.add_error(

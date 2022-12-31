@@ -1,6 +1,6 @@
 <div class="wrapper flex justify-between">
     <div class="text-left">Subscription</div>
-    <div class="text-center">$29/m</div>
+    <div class="text-center">${{ profile.stripe_subscription_recurring_price }}/m</div>
     <a class="btn btn-sm text-right"
         hx-get="{% url 'timary:update_subscription' %}?action=cancel"
         hx-target="closest .wrapper"

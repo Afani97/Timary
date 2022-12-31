@@ -88,6 +88,8 @@ class StripeService:
             stripe_connect_id,
             external_account=second_token,
         )
+        user.stripe_subscription_recurring_price = 29
+        user.save()
         return stripe_connect_id, stripe_customer_id
 
     @classmethod
@@ -347,9 +349,9 @@ ari@usetimary.com
             coupon=coupon["id"],
         )
 
-        # TODO: Move this to a settings constant
-        new_sub_cost = 29 - (amount / 100)
-
+        new_sub_cost = user.stripe_subscription_recurring_price - (amount / 100)
+        user.stripe_subscription_recurring_price = new_sub_cost
+        user.save()
         EmailService.send_plain(
             "Good news! You're saving money!",
             f"""

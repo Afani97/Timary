@@ -255,6 +255,11 @@ def stripe_webhook(request, stripe_secret):
             user.stripe_subscription_status = User.StripeSubscriptionStatus.ACTIVE
             user.save()
 
+            if user.referrer_id:
+                referred_user = User.objects.get(referral_id=user.referral_id)
+                if referred_user:
+                    referred_user.add_referral_discount()
+
     elif event["type"] in [
         "invoice.finalization_failed",
         "invoice.payment_action_required",

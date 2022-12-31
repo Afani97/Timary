@@ -533,35 +533,49 @@ class TestUser(TestCase):
             )
             self.assertEqual(user.can_repeat_previous_hours_logged(qs), 0)
 
+    @patch("stripe.Coupon.create")
+    @patch("stripe.Subscription.modify")
     @patch("timary.services.stripe_service.StripeService.get_subscription")
-    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
     def test_user_referred_create_coupon(
-        self, create_subscription_mock, get_subscription_mock
+        self, get_subscription_mock, stripe_modify_mock, stripe_coupon_mock
     ):
-        create_subscription_mock.return_value = "abc123"
+        stripe_modify_mock.return_value = {"id": "abc123"}
+        stripe_coupon_mock.return_value = {"id": "abc123"}
         get_subscription_mock.return_value = {
             "discount": None,
             "id": "123",
         }
-        user = UserFactory()
-        self.assertEqual(user.user_referred(), "abc123")
+        user = UserFactory(stripe_subscription_recurring_price=29)
+        self.assertEqual(user.add_referral_discount(), "abc123")
+        user.refresh_from_db()
+        self.assertEqual(user.stripe_subscription_recurring_price, 24)
 
+    @patch("stripe.Coupon.create")
+    @patch("stripe.Subscription.modify")
+    @patch("stripe.Subscription.delete_discount")
     @patch("timary.services.stripe_service.StripeService.get_subscription")
-    @patch("timary.services.stripe_service.StripeService.create_subscription_discount")
     def test_user_referred_has_discount_and_allowed_another(
-        self, create_subscription_mock, get_subscription_mock
+        self,
+        get_subscription_mock,
+        delete_discount_mock,
+        stripe_modify_mock,
+        stripe_coupon_mock,
     ):
-        create_subscription_mock.return_value = "abc123"
+        stripe_modify_mock.return_value = {"id": "abc123"}
+        stripe_coupon_mock.return_value = {"id": "abc123"}
+        delete_discount_mock.return_value = None
         get_subscription_mock.return_value = {
             "discount": {"coupon": {"amount_off": 500}},
             "id": "123",
         }
-        user = UserFactory()
+        user = UserFactory(stripe_subscription_recurring_price=24)
         # Business accounts are allowed one more coupon, which is modified to $10
-        self.assertEqual(user.user_referred(), "abc123")
+        self.assertEqual(user.add_referral_discount(), "abc123")
+        user.refresh_from_db()
+        self.assertEqual(user.stripe_subscription_recurring_price, 19)
 
     def test_user_referred_dont_add_coupon_if_no_active_subscription(self):
         user = UserFactory()
         user.stripe_subscription_status = 3
         user.save()
-        self.assertIsNone(user.user_referred())
+        self.assertIsNone(user.add_referral_discount())
