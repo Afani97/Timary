@@ -173,7 +173,7 @@ class Invoice(BaseModel):
         "timary.User", on_delete=models.CASCADE, related_name="invoices", null=True
     )
     invoice_rate = models.DecimalField(
-        default=50,
+        default=100,
         max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(1)],
