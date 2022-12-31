@@ -296,7 +296,7 @@ class TestInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertIn(
-            f"Hourly ${self.invoice.invoice_rate}",
+            f"Hourly ${floatformat(self.invoice.invoice_rate, -2)}",
             response.content.decode("utf-8"),
         )
         self.assertIn(

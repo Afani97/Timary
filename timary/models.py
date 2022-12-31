@@ -172,8 +172,11 @@ class Invoice(BaseModel):
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="invoices", null=True
     )
-    invoice_rate = models.IntegerField(
-        default=50, null=False, blank=False, validators=[MinValueValidator(1)]
+    invoice_rate = models.DecimalField(
+        default=50,
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(1)],
     )
     email_recipient_name = models.CharField(max_length=200, null=False, blank=False)
     email_recipient = models.EmailField(null=False, blank=False)

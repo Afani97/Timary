@@ -180,6 +180,7 @@ class InvoiceForm(forms.ModelForm):
                     "value": 50,
                     "min": 1,
                     "max": 1000,
+                    "step": "0.01",
                     "class": "input input-bordered border-2 text-lg w-full",
                 },
             ),
