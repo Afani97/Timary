@@ -230,7 +230,7 @@ class StripeService:
                 f"""
 Hello {user.first_name.capitalize()},
 
-Just wanted to give you a heads up that the free trial for Timary ends in {days_left} days{'s' if day > 1 else ''}.
+Just wanted to give you a heads up that the free trial for Timary ends in {days_left} day{'s' if day > 1 else ''}.
 
 If you feel that Timary isn't a good fit, we're sorry to hear that.
 Please go to your account and cancel the subscription if you don't need Timary's services any longer.
