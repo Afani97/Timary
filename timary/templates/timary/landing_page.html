@@ -17,26 +17,33 @@
     </head>
     <body>
         <div class="text-gray-400 bg-gray-900 body-font">
-            <header>
-                <div class="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center md:justify-between">
-                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white mb-4 md:mb-0">
+            <header class="navbar mb-2 md:px-12 shadow-lg bg-neutral text-neutral-content w-full md:px-5">
+                <div class="flex w-full py-5 px-3 md:px-3 flex-col md:flex-row items-center md:justify-between">
+                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white mb-5 md:mb-0">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                         </svg>
                         <span class="ml-3 text-xl">Timary</span>
                     </a>
-                    <div class="flex flex-wrap justify-center space-x-3 items-center">
-                        <a href="#features">Features</a>
-                        <a href="#benefits">Benefits</a>
-                        <a href="#timary-for-me">Is Timary for me?</a>
-                        <a href="#pricing">Pricing</a>
-                        <a href="{% url 'timary:login' %}" class="inline-flex text-white items-center bg-gray-500 border-0 py-1 px-3 focus:outline-none hover:bg-gray-700 rounded text-base mt-4 md:mt-0">Login
-                        </a>
-                        <a href="{% url 'timary:register' %}" class="inline-flex items-center bg-indigo-500 border-0 py-1 px-3 focus:outline-none hover:bg-indigo-700 rounded text-white mt-4 md:mt-0">Start Free Trial
-                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
-                                <path d="M5 12h14M12 5l7 7-7 7"></path>
-                            </svg>
-                        </a>
+                    <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-5 mx-3 items-center justify-end">
+                        <div class="flex flex-row space-x-3 w-full min-w-fit justify-end md:mr-5 mb-3 md:mb-0">
+                            <a href="#features">Features</a>
+                            <a href="#benefits">Benefits</a>
+                            <a href="#timary-for-me">Is Timary for me?</a>
+                            <a href="#pricing">Pricing</a>
+                        </div>
+
+                        <div class="flex flex-row space-x-5 w-full items-center justify-center">
+                            <a href="{% url 'timary:login' %}" class="inline-flex items-center btn btn-outline btn-sm">
+                                Login
+                            </a>
+                            <a href="{% url 'timary:register' %}" class="inline-flex items-center btn btn-primary btn-sm">
+                                Start Free Trial
+                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
+                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
 
                 </div>
