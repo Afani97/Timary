@@ -2,12 +2,14 @@ import datetime
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.models import DailyHoursInput, Invoice
+from timary.tasks import gather_recurring_hours
 from timary.utils import show_alert_message
 
 
@@ -171,7 +173,7 @@ def repeat_hours(request):
         date_tracked=yesterday,
         invoice__is_archived=False,
         hours__gt=0,
-    )
+    ).filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
     hours = []
     for hour in yesterday_hours:
         hours.append(
@@ -181,6 +183,9 @@ def repeat_hours(request):
                 invoice=hour.invoice,
             )
         )
+
+    # Add recurring hours if scheduled for today or daily
+    gather_recurring_hours()
 
     all_hours = DailyHoursInput.all_hours.current_month(request.user)
     show_most_frequent_options = request.user.show_most_frequent_options(all_hours)

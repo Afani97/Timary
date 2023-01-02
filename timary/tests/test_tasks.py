@@ -286,7 +286,9 @@ class TestGatherHours(TestCase):
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "starting_week": self.start_week,
+                "starting_week": get_starting_week_from_date(
+                    date_mock.today()
+                ).isoformat(),
                 "interval_days": ["mon", "tue"],
             }
         )

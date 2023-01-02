@@ -14,6 +14,7 @@ from timary.tests.factories import (
     UserFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
+from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
 class TestDailyHours(BaseTest):
@@ -250,6 +251,78 @@ class TestDailyHours(BaseTest):
             DailyHoursInput.objects.count(),
             5,
         )
+
+    def test_repeat_hours_including_repeating(self):
+        DailyHoursInput.objects.all().delete()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            },
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 3)
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(DailyHoursInput.objects.count(), 6)
+
+    def test_repeat_hours_including_repeating_not_including_hours_if_not_scheduled(
+        self,
+    ):
+        DailyHoursInput.objects.all().delete()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            },
+        )
+        # Biweekly shouldn't be added since not correct week
+        bi_weekly_start_week = get_starting_week_from_date(
+            datetime.date.today() + datetime.timedelta(weeks=+1)
+        ).isoformat()
+        DailyHoursFactory(
+            invoice=InvoiceFactory(user=self.user),
+            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": bi_weekly_start_week,
+            },
+        )
+        self.assertEqual(DailyHoursInput.objects.count(), 4)
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(DailyHoursInput.objects.count(), 7)
 
     def test_create_repeating_hours(self):
         DailyHoursInput.objects.all().delete()
