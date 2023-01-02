@@ -7,13 +7,13 @@
     <div class="flex-none hidden md:flex">
         <div class="flex items-stretch">
             {% if request.user.is_authenticated %}
-                <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:index' %}">
+                <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
                     Home
                 </a>
-                <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:manage_invoices' %}">
+                <a class="btn btn-ghost btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
                     Invoices
                 </a>
-                <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:user_profile' %}">
+                <a class="btn btn-ghost btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
                     Profile
                 </a>
                 <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
@@ -37,17 +37,17 @@
             <ul tabindex="0" class="p-2 shadow menu dropdown-content bg-base-200 rounded-box w-52">
                 {% if request.user.is_authenticated %}
                     <li>
-                        <a href="{% url 'timary:index' %}">
+                        <a href="{% url 'timary:index' %}" class="{% if "main" in request.path %} font-bold bg-base-100 {% endif %}">
                             Home
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'timary:manage_invoices' %}">
+                        <a href="{% url 'timary:manage_invoices' %}" class="{% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}">
                             Invoices
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'timary:user_profile' %}">
+                        <a href="{% url 'timary:user_profile' %}" class="{% if "profile" in request.path %} font-bold bg-base-100 {% endif %}">
                             Profile
                         </a>
                     </li>
