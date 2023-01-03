@@ -6,9 +6,9 @@
 {% block content %}
 
     <div class="max-w-xl mx-auto mt-6">
-        <h1 class="text-3xl mb-4 text-center">Login</h1>
-        <div class="card md:p-5 bg-neutral text-neutral-content">
-            <div class="card-body">
+        <h1 class="text-3xl mb-4 text-left font-bold">Login to Timary</h1>
+        <div class="">
+            <div class="">
                 {% if form.errors %}
                     {% include "partials/_form_errors.html" with form_errors=form.errors %}
                 {% endif %}
@@ -24,20 +24,23 @@
                         </div>
                     {% endfor %}
 
-                    <div class="my-2">
+                    <div class="my-2 pl-2">
                         <a href="{% url "password_reset" %}" class="link ">Forgot password?</a>
                     </div>
 
                     <div class="card-actions flex justify-center mt-8">
-                        <button class="btn btn-primary" type="submit"> Login </button>
+                        <button class="btn btn-primary" type="submit"> Continue </button>
                     </div>
                 </form>
             </div>
 
         </div>
 
-        <p class="flex justify-center mt-6">
-            <a class="text-sm link link-hover" href="{% url 'timary:register' %}">Register?</a>
+        <p class="flex justify-center mt-10">
+            <a class="text-sm link link-hover" href="{% url 'timary:register' %}">
+                Don't have an account?
+                <span class="font-bold pl-2">Create one now</span>
+            </a>
         </p>
     </div>
 

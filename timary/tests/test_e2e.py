@@ -37,7 +37,7 @@ class BaseUITest(StaticLiveServerTestCase):
         page.goto(f'{cls.live_server_url}{reverse("timary:login")}')
         page.fill("#id_email", user.email)
         page.fill("#id_password", "Apple101!")
-        page.click('button:has-text("Login")')
+        page.click('button:has-text("Continue")')
         try:
             yield page
         finally:
@@ -66,7 +66,7 @@ class TestUI(BaseUITest):
 
         page.wait_for_timeout(100)
 
-        page.click('button:has-text("Start Free Trial")')
+        page.click('button:has-text("Start Your Free Trial")')
 
         page.wait_for_timeout(1000)
 
@@ -229,5 +229,5 @@ class TestUI(BaseUITest):
             page.goto(f'{self.live_server_url}{reverse("timary:index")}')
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.click('a:has-text("Logout")')
-            page.wait_for_selector('button:has-text("Login")', timeout=2000)
-            self.assertEqual(page.inner_text("h1"), "Login")
+            page.wait_for_selector('button:has-text("Continue")', timeout=2000)
+            self.assertEqual(page.inner_text("h1"), "Login to Timary")

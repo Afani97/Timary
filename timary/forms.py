@@ -527,7 +527,8 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered border-2 text-lg w-full mb-4",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
     )
@@ -537,7 +538,8 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John Appleseed",
-                "class": "input input-bordered border-2 text-lg w-full mb-4",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
     )
@@ -547,7 +549,8 @@ class RegisterForm(forms.ModelForm):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 text-lg w-full mb-4",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
             },
         ),
         help_text="Please provide at least 5 characters including 1 uppercase, 1 number, 1 special character.",
@@ -597,7 +600,8 @@ class LoginForm(forms.Form):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "johns@awesomeemail.com",
-                "class": "input input-bordered border-2 text-lg w-full mb-4",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7 mb-2",
             }
         ),
     )
@@ -607,7 +611,8 @@ class LoginForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 text-lg w-full",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
         required=True,
