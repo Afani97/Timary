@@ -43,7 +43,10 @@ class StripeService:
                     "color": "#ff5724",
                 },
             },
-            "classes": {"base": "input input-bordered border-2 text-lg px-2 py-3"},
+            "classes": {
+                "base": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7 px-2 py-3"
+            },
         }
 
     @classmethod

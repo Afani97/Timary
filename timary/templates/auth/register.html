@@ -4,10 +4,10 @@
 {% block title %} Signup {% endblock %}
 
 {% block content %}
-    <div class="mt-6 px-2">
-        <h1 class="text-3xl mb-4 text-center">Register</h1>
+    <div class="mt-6 px-2 md:mx-10">
+        <h1 class="text-3xl font-bold mb-10 text-left">Register with Timary</h1>
 
-        <div class="flex flex-col space-y-3 sm:space-y-0 sm:space-x-3 sm:flex-row justify-between mx-auto max-w-6xl">
+        <div class="flex flex-col space-y-3 sm:space-y-0 sm:space-x-10 sm:flex-row justify-between">
             <section class="text-gray-400 body-font overflow-hidden">
                 <div class="container mx-auto max-w-lg mx-auto">
                     <div class="flex flex-wrap justify-center max-w-3xl mx-auto">
@@ -77,57 +77,60 @@
                             </div>
                         </div>
                     </div>
-                    <p class="flex justify-center mt-6">
-                        <a class="text-sm link link-hover" href="{% url 'timary:login' %}">Already registered?</a>
+                    <p class="flex justify-center mt-10">
+                        <a class="text-sm link link-hover" href="{% url 'timary:login' %}">
+                            Already have an account?
+                            <span class="font-bold pl-2">Login in here</span>
+                        </a>
                     </p>
                 </div>
             </section>
             <div class="">
-                <div class="card md:px-5 bg-neutral text-neutral-content">
-                    <div class="card-body">
-                        {% if form.errors %}
-                            {% include "partials/_form_errors.html" with form_errors=form.errors %}
-                        {% endif %}
-                        <form action="{% url 'timary:register' %}{% if referrer_id %}?referrer_id={{ referrer_id }}{% endif %}" method="post">
-                            {% csrf_token %}
+                {% if form.errors %}
+                    {% include "partials/_form_errors.html" with form_errors=form.errors %}
+                {% endif %}
+                <form action="{% url 'timary:register' %}{% if referrer_id %}?referrer_id={{ referrer_id }}{% endif %}" method="post">
+                    {% csrf_token %}
 
-                            {% for field in form.visible_fields %}
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">{{ field.label}}</span>
-                                    </label>
-                                    {{ field | addclass:field.field.widget.attrs.class}}
-                                    <span class="label-text-alt -mt-2">{{ field.help_text }}</span>
-                                    {% for error in field.errors %}
-                                        <div class="text-red-600">
-                                            <strong>{{ error|escape }}</strong>
-                                        </div>
-                                    {% endfor %}
+                    {% for field in form.visible_fields %}
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">{{ field.label}}</span>
+                            </label>
+                            {{ field | addclass:field.field.widget.attrs.class}}
+                            {% if field.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ field.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-red-600">
+                                    <strong>{{ error|escape }}</strong>
                                 </div>
                             {% endfor %}
+                        </div>
+                    {% endfor %}
 
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Debit card</span> </label>
-                                <div id="card-element"></div>
-                                <label class="label">
-                                    <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
-                                        bank account.</span>
-                                </label>
-                                <div id="payment-message" class="hidden text-red-600"></div>
-                            </div>
-
-                            <div class="card-actions flex justify-center mt-8">
-                                <button class="btn btn-disabled" type="submit" id="register-btn"> Start Free Trial </button>
-                            </div>
-                            <div class="flex justify-center hidden" id="loader">
-                                <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </div>
-                        </form>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Debit card</span> </label>
+                        <div id="card-element"></div>
+                        <label class="label">
+                            <span class="label-text-alt">Stripe requires a debit card to process your invoices into your
+                                bank account.</span>
+                        </label>
+                        <div id="payment-message" class="hidden text-red-600"></div>
                     </div>
-                </div>
+
+                    <div class="card-actions flex justify-center mt-8">
+                        <button class="btn btn-disabled" type="submit" id="register-btn"> Start Your Free Trial </button>
+                    </div>
+                    <div class="flex justify-center hidden" id="loader">
+                        <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </form>
             </div>
         </div>
 
