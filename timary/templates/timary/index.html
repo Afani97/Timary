@@ -70,6 +70,9 @@
             pause_timer_btn.classList.remove("hidden");
             stop_timer_btn.classList.remove("hidden");
             reset_timer_btn.classList.remove("hidden");
+            setTimeout(function () {
+                htmx.addClass(htmx.find("#timer_alert"), "hidden");
+            }, 15000);
         }
 
         function resume() {

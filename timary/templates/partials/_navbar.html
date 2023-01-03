@@ -149,7 +149,7 @@
 {# Timer #}
 {% if request.user.is_authenticated %}
     <div class="my-10 hidden max-w-xl mx-auto px-3 md:px-0 " id="timer_container">
-        <div class="alert alert-info shadow-lg alert-msg">
+        <div class="alert alert-info shadow-lg alert-msg" id="timer_alert">
             <div class="flex flex-row justify-between w-full px-3">
                 <span>Don't close this tab! The timer will stop.</span>
                 <span>
@@ -198,6 +198,9 @@
                     // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
                     if (activeTimerMS) {
                         timer_container.classList.remove("hidden");
+                        setTimeout(function () {
+                            htmx.addClass(htmx.find("#timer_alert"), "hidden");
+                        }, 15000);
                         hoursTimer.overallTime =  parseInt(activeTimerMS);
                         update_timer(hoursTimer.overallTime);
 
