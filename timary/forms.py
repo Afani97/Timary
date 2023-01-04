@@ -652,7 +652,8 @@ class ReferralInviteForm(forms.Form):
         required=False,
         widget=forms.EmailInput(
             attrs={
-                "class": "input input-bordered border-2 w-full",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
                 "placeholder": "Enter email here",
             }
         ),
@@ -662,7 +663,8 @@ class ReferralInviteForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
-                "class": "input input-bordered border-2 text-lg w-full",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
     )
@@ -686,7 +688,8 @@ class UpdatePasswordForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 text-lg w-full",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-700/100",
             }
         ),
         required=True,
@@ -697,7 +700,8 @@ class UpdatePasswordForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 text-lg w-full",
+                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "w-full placeholder-gray-500 placeholder-opacity-700/100",
             }
         ),
         required=True,

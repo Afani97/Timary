@@ -16,7 +16,7 @@
         <div id="payment-message" class="hidden text-red-600"></div>
     </div>
 
-    <div class="flex justify-center space-x-4">
+    <div class="flex justify-center space-x-10 mt-4">
         <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="#update-payment-element" hx-swap="outerHTML" class="btn btn-ghost"  _="on click add .loading to me">
             Cancel
         </a>
