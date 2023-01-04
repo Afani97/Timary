@@ -368,7 +368,7 @@ def invite_new_user(request):
         form = ReferralInviteForm(request.POST)
         if form.is_valid():
             referrer_email_link = request.build_absolute_uri(
-                f"{reverse('timary:register')}?referrer_id={request.user.referrer_id}"
+                f"{reverse('timary:register')}?referrer_id={request.user.referral_id}"
             )
             if form.cleaned_data.get("email", None):
                 EmailService.send_plain(
