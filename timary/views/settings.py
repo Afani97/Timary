@@ -368,33 +368,33 @@ def invite_new_user(request):
         form = ReferralInviteForm(request.POST)
         if form.is_valid():
             referrer_email_link = request.build_absolute_uri(
-                f"{reverse('timary:register')}?referrer_id={request.user.referrer_id}"
+                f"{reverse('timary:register')}?referrer_id={request.user.referral_id}"
             )
             if form.cleaned_data.get("email", None):
                 EmailService.send_plain(
                     "You've been invited to try Timary!",
                     f"""
-    Hello!
+Hello!
 
-    {request.user.first_name} has invited you to give Timary a try.
+{request.user.first_name} has invited you to give Timary a try.
 
-    They believe Timary might be a good fit for your needs.
+They believe Timary might be a good fit for your needs.
 
-    What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
+What is Timary? Timary is a service helping folks get paid easily when they are completing their projects.
 
-    We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
+We help with time tracking, invoicing, and syncing to your accounting service so tax season is a breeze.
 
-    If you'd like to read more about us, visit: https://www.usetimary.com
-
-
-    To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
-    {referrer_email_link}
+If you'd like to read more about us, visit: https://www.usetimary.com
 
 
-    I hope Timary is right for you,
+To sign up with {request.user.first_name}'s referral code, click on this link to get you registered with Timary:
+{referrer_email_link}
 
-    Aristotel F
-    Timary LLC
+
+I hope Timary is right for you,
+
+Aristotel F
+Timary LLC
 
                     """,
                     form.cleaned_data.get("email"),
