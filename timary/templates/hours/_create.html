@@ -84,6 +84,8 @@
         </div>
     </div>
     <div class="card-actions flex justify-center">
-        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Add new hours</button>
+        <button
+            _="on click call convertHoursInput(htmx.find('#id_hours')) then send submit to #new-hours-form"
+            class="btn btn-primary submit-btn"> Add new hours</button>
     </div>
 </form>
