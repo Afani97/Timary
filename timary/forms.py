@@ -56,6 +56,7 @@ class DailyHoursForm(forms.ModelForm):
             self.fields["date_tracked"].widget.attrs[
                 "min"
             ] = self.instance.invoice.last_date
+            self.fields["hours"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
 
     class Meta:
         model = DailyHoursInput

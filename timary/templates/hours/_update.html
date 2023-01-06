@@ -2,7 +2,7 @@
     hx-put="{% url 'timary:update_hours' hours_id=hour.id %}"
     hx-swap="outerHTML"
     hx-target="this"
-    id="update-hours-form"
+    id="update-hours-form-{{ hour.slug_id }}"
     _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
 >
     {% if form.errors %}
@@ -84,6 +84,8 @@
     </div>
     <div class="card-actions mb-5 flex justify-center space-x-10 sm:space-x-2">
         <a class="btn btn-ghost btn-sm md:btn-md" hx-get="{% url 'timary:get_single_hours' hours_id=hour.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
-        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit"> Update </button>
+        <button
+            _="on click call convertHoursInput(htmx.find('#id_{{ hour.slug_id }}')) then send submit to #update-hours-form-{{ hour.slug_id }}"
+            class="btn btn-primary btn-sm md:btn-md submit-btn"> Update </button>
     </div>
 </form>

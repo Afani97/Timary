@@ -646,7 +646,8 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours1.hours, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
-            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
+            required id="id_{hours1.slug_id}">
             """,
             response.content.decode("utf-8"),
         )
@@ -654,7 +655,8 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours2.hours, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
-            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
+            required id="id_{hours2.slug_id}">
             """,
             response.content.decode("utf-8"),
         )
@@ -662,7 +664,8 @@ class TestInvoices(BaseTest):
             f"""
             <input type="text" name="hours" value="{str(round(hours3.hours, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
-            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end" required id="id_hours">
+            _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
+            required id="id_{hours3.slug_id}">
             """,
             response.content.decode("utf-8"),
         )

@@ -160,7 +160,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.wait_for_selector(".edit-hours", timeout=2000).click()
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
-            page.fill("#hours-list #id_hours", "2")
+            page.fill(f"#hours-list #id_{hours.slug_id}", "2")
             page.click('button:has-text("Update")')
             page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2")
@@ -187,7 +187,7 @@ class TestUI(BaseUITest):
         invoice = InvoiceFactory(
             next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
-        DailyHoursFactory(
+        hours = DailyHoursFactory(
             invoice=invoice,
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
@@ -200,7 +200,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector(
                 'h3:has-text("Update hours for this invoice period")', timeout=3000
             )
-            page.fill("#id_hours", ":30")
+            page.fill(f"#id_{hours.slug_id}", ":30")
             page.click('button:has-text("Update")')
             page.wait_for_selector(".text-success", timeout=2000)
             self.assertEqual(
