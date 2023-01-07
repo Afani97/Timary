@@ -7,7 +7,14 @@ from django.template.response import TemplateResponse
 from django.urls import path
 from django_otp.admin import OTPAdminSite
 
-from timary.models import Contract, DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import (
+    Contract,
+    DailyHoursInput,
+    Invoice,
+    SentInvoice,
+    User,
+    SingleInvoice,
+)
 
 # Register your models here.
 from timary.services.email_service import EmailService
@@ -16,6 +23,7 @@ admin.site.register(User)
 admin.site.register(Invoice)
 admin.site.register(SentInvoice)
 admin.site.register(DailyHoursInput)
+admin.site.register(SingleInvoice)
 
 
 class SendEmailForm(forms.Form):
