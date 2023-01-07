@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from phonenumber_field.formfields import PhoneNumberField
 
-from timary.models import DailyHoursInput, Invoice, User
+from timary.models import DailyHoursInput, Invoice, SingleInvoice, User
 from timary.utils import get_starting_week_from_date
 
 
@@ -214,6 +214,20 @@ class InvoiceForm(forms.ModelForm):
             and self.user.get_invoices.filter(title=title).exists()
         ):
             raise ValidationError("Duplicate invoice title not allowed.")
+        if title[0].isdigit():
+            raise ValidationError("Title cannot start with a number.")
+        return title
+
+
+class SingleInvoiceForm(forms.ModelForm):
+    client_second_email = forms.CharField(required=False)
+
+    class Meta:
+        model = SingleInvoice
+        fields = "__all__"
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title")
         if title[0].isdigit():
             raise ValidationError("Title cannot start with a number.")
         return title

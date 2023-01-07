@@ -15,6 +15,7 @@ from timary.forms import (
     CreateWeeklyForm,
     DailyHoursForm,
     InvoiceForm,
+    SingleInvoiceForm,
     UpdateIntervalForm,
     UpdateMilestoneForm,
     UpdateWeeklyForm,
@@ -490,3 +491,20 @@ def sync_sent_invoice(request, sent_invoice_id):
             persist=True,
         )
     return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def single_invoice(request):
+    if request.method == "GET":
+        return render(
+            request, "invoices/single_invoice.html", {"form": SingleInvoiceForm()}
+        )
+    elif request.method == "POST":
+        form = SingleInvoiceForm(request.POST)
+        if form.is_valid():
+            return reverse("timary:manage_invoices")
+        else:
+            return render(request, "invoices/_single_invoice.html", {"form": form})
+
+    return HttpResponse("Hi")

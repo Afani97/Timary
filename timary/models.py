@@ -377,6 +377,7 @@ class SingleInvoice(BaseModel):
         SEVEN = 7, "SEVEN"
         EIGHT = 8, "EIGHT"
 
+    title = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="single_invoices"
     )
@@ -429,7 +430,8 @@ class SingleInvoice(BaseModel):
         constraints = [
             # Either an interval is selected or installments are, don't allow both for now.
             models.CheckConstraint(
-                violation_error_message="Cannot set both interval and installments for same invoice, please select either one.",
+                violation_error_message="Cannot set both interval and installments for same invoice, "
+                "please select either one.",
                 name="%(app_label)s_%(class)s_either_interval_or_installments",
                 check=(
                     models.Q(
