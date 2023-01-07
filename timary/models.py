@@ -350,11 +350,11 @@ class Invoice(BaseModel):
 
 
 class SingleInvoice(BaseModel):
-    class Interval(models.TextChoices):
-        NONE = "N", "NONE"
-        WEEKLY = "W", "WEEKLY"
-        BIWEEKLY = "B", "BIWEEKLY"
-        MONTHLY = "M", "MONTHLY"
+    class Interval(models.IntegerChoices):
+        NONE = 0, "NONE"
+        WEEKLY = 1, "WEEKLY"
+        BIWEEKLY = 2, "BIWEEKLY"
+        MONTHLY = 3, "MONTHLY"
 
     class PaidStatus(models.IntegerChoices):
         NOT_STARTED = 0, "NOT_STARTED"
@@ -377,19 +377,18 @@ class SingleInvoice(BaseModel):
         SEVEN = 7, "SEVEN"
         EIGHT = 8, "EIGHT"
 
-    title = models.CharField(max_length=200, null=True, blank=True)
+    title = models.CharField(max_length=200)
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="single_invoices"
     )
-    invoice_interval = models.CharField(
-        max_length=1,
-        choices=Interval.choices,
+    invoice_interval = models.PositiveSmallIntegerField(
         default=Interval.NONE,
+        choices=Interval.choices,
         blank=True,
         null=True,
     )
-    next_date = models.DateField(null=False, blank=True)
-    end_interval_date = models.DateField(null=False, blank=True)
+    next_date = models.DateField(null=True, blank=True)
+    end_interval_date = models.DateField(null=True, blank=True)
     email_id = models.CharField(
         max_length=10, null=False, unique=True, default=create_new_ref_number
     )
@@ -405,22 +404,29 @@ class SingleInvoice(BaseModel):
     client_stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
 
     total_price = models.DecimalField(
-        default=0,
-        max_digits=9,
-        decimal_places=2,
+        default=0, max_digits=9, decimal_places=2, blank=True
     )
-    discount_amount = models.DecimalField(default=0, max_digits=5, decimal_places=2)
-    tax_amount = models.DecimalField(default=0, max_digits=4, decimal_places=2)
+    discount_amount = models.DecimalField(
+        default=0, max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    tax_amount = models.DecimalField(
+        default=0, max_digits=4, decimal_places=2, null=True, blank=True
+    )
     installments = models.PositiveSmallIntegerField(
-        default=Installments.NONE, choices=Installments.choices
+        default=Installments.NONE, choices=Installments.choices, null=True, blank=True
     )
     paid_status = models.PositiveSmallIntegerField(
-        default=PaidStatus.NOT_STARTED, choices=PaidStatus.choices
+        default=PaidStatus.NOT_STARTED,
+        choices=PaidStatus.choices,
+        null=True,
+        blank=True,
     )
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
 
     late_penalty = models.BooleanField(default=False, null=True, blank=True)
-    late_penalty_amount = models.DecimalField(default=0, max_digits=5, decimal_places=2)
+    late_penalty_amount = models.DecimalField(
+        default=0, max_digits=5, decimal_places=2, null=True, blank=True
+    )
 
     # Accounting
     accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
@@ -434,14 +440,16 @@ class SingleInvoice(BaseModel):
                 "please select either one.",
                 name="%(app_label)s_%(class)s_either_interval_or_installments",
                 check=(
-                    models.Q(
-                        invoice_interval__gt=0,
-                        end_interval_date__isnull=False,
+                    Q(
+                        invoice_interval__exact=0,
                         installments__exact=0,
                     )
-                    | models.Q(
+                    | Q(
+                        invoice_interval__gt=0,
+                        installments__exact=0,
+                    )
+                    | Q(
                         invoice_interval__exact=0,
-                        end_interval_date__isnull=True,
                         installments__gt=0,
                     )
                 ),
