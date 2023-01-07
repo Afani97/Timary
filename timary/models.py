@@ -394,8 +394,8 @@ class SingleInvoice(BaseModel):
     )
     save_for_reuse = models.BooleanField(default=False, null=True, blank=True)
 
-    date_sent = models.DateField(null=False, blank=True)
-    due_date = models.DateField(null=False, blank=True)
+    date_sent = models.DateField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
     send_reminder = models.BooleanField(default=False, null=True, blank=True)
 
     client_name = models.CharField(max_length=200, null=False, blank=False)

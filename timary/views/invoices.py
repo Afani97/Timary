@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
@@ -14,7 +15,6 @@ from timary.forms import (
     CreateMilestoneForm,
     CreateWeeklyForm,
     DailyHoursForm,
-    InvoiceForm,
     SingleInvoiceForm,
     UpdateIntervalForm,
     UpdateMilestoneForm,
@@ -46,7 +46,7 @@ def manage_invoices(request):
 
     context = {
         "invoices": invoices,
-        "new_invoice": InvoiceForm(user=request.user),
+        "single_invoices": request.user.single_invoices.order_by("title"),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True),
@@ -503,8 +503,16 @@ def single_invoice(request):
     elif request.method == "POST":
         form = SingleInvoiceForm(request.POST)
         if form.is_valid():
-            return reverse("timary:manage_invoices")
+            saved_single_invoice = form.save(commit=False)
+            saved_single_invoice.user = request.user
+            saved_single_invoice.save()
+            messages.success(
+                request,
+                f"Successfully created {saved_single_invoice.title}",
+                extra_tags="new-single-invoice",
+            )
+            return redirect(reverse("timary:manage_invoices"))
         else:
-            return render(request, "invoices/_single_invoice.html", {"form": form})
+            return render(request, "invoices/single_invoice.html", {"form": form})
 
     return HttpResponse("Hi")

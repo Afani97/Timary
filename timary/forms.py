@@ -224,7 +224,20 @@ class SingleInvoiceForm(forms.ModelForm):
 
     class Meta:
         model = SingleInvoice
-        fields = "__all__"
+        fields = [
+            "title",
+            "client_name",
+            "client_email",
+            "client_second_email",
+            "invoice_interval",
+            "end_interval_date",
+            "save_for_reuse",
+            "due_date",
+            "discount_amount",
+            "tax_amount",
+            "late_penalty",
+            "late_penalty_amount",
+        ]
 
     def clean_title(self):
         title = self.cleaned_data.get("title")

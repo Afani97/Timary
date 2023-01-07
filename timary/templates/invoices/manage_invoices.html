@@ -101,6 +101,9 @@
                     </div>
                 </div>
             {% endfor %}
+            {% for invoice in single_invoices %}
+                <div>{{ invoice.title }}</div>
+            {% endfor %}
         </ul>
     </div>
 
