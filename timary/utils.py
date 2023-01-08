@@ -52,7 +52,9 @@ def convert_hours_to_decimal_hours(time):
 
 
 def get_starting_week_from_date(date):
-    return date - timedelta(days=datetime.today().isoweekday() % 7)
+    if date.weekday() == 6:
+        return date
+    return date - timedelta(days=datetime.today().weekday() % 7)
 
 
 def get_date_parsed(date):

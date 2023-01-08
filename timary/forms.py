@@ -134,12 +134,16 @@ class DailyHoursForm(forms.ModelForm):
             raise ValidationError("Need specific days which to add hours to.")
 
         if repeating or recurring:
+            starting_week_date = date_tracked
+            if date_tracked.weekday() == 5:
+                # If date is saturday, set it to sunday to update start_week
+                starting_week_date = starting_week_date + datetime.timedelta(days=1)
             recurring_logic = {
                 "type": "recurring",
                 "interval": interval_schedule,
                 "interval_days": interval_days,
                 "starting_week": get_starting_week_from_date(
-                    datetime.date.today()
+                    starting_week_date
                 ).isoformat(),
             }
             if repeating:

@@ -519,11 +519,13 @@ class TestDailyHours(TestCase):
         )
 
     def test_hours_repeating_daily(self):
+        date_tracked = datetime.date(2022, 1, 5)
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = DailyHoursForm(
             data={
                 "hours": 1,
-                "invoice": self.invoice.id,
-                "date_tracked": self.today,
+                "invoice": invoice.id,
+                "date_tracked": date_tracked,
                 "repeating": True,
                 "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
@@ -536,9 +538,7 @@ class TestDailyHours(TestCase):
                 "type": "repeating",
                 "interval": "d",
                 "interval_days": [],
-                "starting_week": get_starting_week_from_date(
-                    datetime.date.today()
-                ).isoformat(),
+                "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
                 "end_date": (
                     datetime.date.today() + datetime.timedelta(weeks=1)
                 ).isoformat(),
@@ -546,11 +546,13 @@ class TestDailyHours(TestCase):
         )
 
     def test_hours_repeating_weekly(self):
+        date_tracked = datetime.date(2022, 1, 5)
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = DailyHoursForm(
             data={
                 "hours": 1,
-                "invoice": self.invoice.id,
-                "date_tracked": self.today,
+                "invoice": invoice.id,
+                "date_tracked": date_tracked,
                 "repeating": True,
                 "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
                 "repeat_interval_schedule": "w",
@@ -564,9 +566,7 @@ class TestDailyHours(TestCase):
                 "type": "repeating",
                 "interval": "w",
                 "interval_days": ["mon", "tue"],
-                "starting_week": get_starting_week_from_date(
-                    datetime.date.today()
-                ).isoformat(),
+                "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
                 "end_date": (
                     datetime.date.today() + datetime.timedelta(weeks=1)
                 ).isoformat(),
@@ -574,11 +574,13 @@ class TestDailyHours(TestCase):
         )
 
     def test_hours_recurring_daily(self):
+        date_tracked = datetime.date(2022, 1, 5)
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = DailyHoursForm(
             data={
                 "hours": 1,
-                "invoice": self.invoice.id,
-                "date_tracked": self.today,
+                "invoice": invoice.id,
+                "date_tracked": date_tracked,
                 "recurring": True,
                 "repeat_interval_schedule": "d",
             }
@@ -590,18 +592,18 @@ class TestDailyHours(TestCase):
                 "type": "recurring",
                 "interval": "d",
                 "interval_days": [],
-                "starting_week": get_starting_week_from_date(
-                    datetime.date.today()
-                ).isoformat(),
+                "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
             },
         )
 
     def test_hours_recurring_weekly(self):
+        date_tracked = datetime.date(2022, 1, 5)
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = DailyHoursForm(
             data={
                 "hours": 1,
-                "invoice": self.invoice.id,
-                "date_tracked": self.today,
+                "invoice": invoice.id,
+                "date_tracked": date_tracked,
                 "recurring": True,
                 "repeat_interval_schedule": "w",
                 "repeat_interval_days": ["thu", "fri"],
@@ -614,9 +616,7 @@ class TestDailyHours(TestCase):
                 "type": "recurring",
                 "interval": "w",
                 "interval_days": ["thu", "fri"],
-                "starting_week": get_starting_week_from_date(
-                    datetime.date.today()
-                ).isoformat(),
+                "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
             },
         )
 
@@ -675,11 +675,13 @@ class TestDailyHours(TestCase):
         self.assertIn("Need specific days which to add hours to.", str(form.errors))
 
     def test_repeating_has_valid_starting_week(self):
+        date_tracked = datetime.date(2022, 1, 5)
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = DailyHoursForm(
             data={
                 "hours": 1,
-                "invoice": self.invoice.id,
-                "date_tracked": self.today,
+                "invoice": invoice.id,
+                "date_tracked": date_tracked,
                 "recurring": True,
                 "repeat_interval_schedule": "d",
             }
@@ -687,7 +689,31 @@ class TestDailyHours(TestCase):
         self.assertTrue(form.is_valid())
         self.assertEqual(
             form.cleaned_data.get("recurring_logic")["starting_week"],
-            get_starting_week_from_date(datetime.date.today()).isoformat(),
+            get_starting_week_from_date(date_tracked).isoformat(),
+        )
+
+    def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": invoice.id,
+                "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
+                "recurring": True,
+                "repeat_interval_schedule": "d",
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "recurring",
+                "interval": "d",
+                "interval_days": [],
+                "starting_week": get_starting_week_from_date(
+                    datetime.date(2022, 1, 9)  # Sun Jan 8, 2022
+                ).isoformat(),
+            },
         )
 
 
