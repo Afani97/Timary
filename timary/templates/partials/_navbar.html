@@ -5,7 +5,7 @@
         </a>
     </div>
     <div class="flex-none hidden md:flex">
-        <div class="flex items-stretch">
+        <div class="flex space-x-1">
             {% if request.user.is_authenticated %}
                 <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
                     Home
