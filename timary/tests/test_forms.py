@@ -716,6 +716,31 @@ class TestDailyHours(TestCase):
             },
         )
 
+    def test_hours_repeating_biweekly_update_starting_week_if_created_saturday(self):
+        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        form = DailyHoursForm(
+            data={
+                "hours": 1,
+                "invoice": invoice.id,
+                "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
+                "recurring": True,
+                "repeat_interval_schedule": "b",
+                "repeat_interval_days": ["mon", "tue"],
+            }
+        )
+        self.assertEqual(form.errors, {})
+        self.assertDictEqual(
+            form.cleaned_data.get("recurring_logic"),
+            {
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": ["mon", "tue"],
+                "starting_week": get_starting_week_from_date(
+                    datetime.date(2022, 1, 16)  # Sun Jan 15, 2022
+                ).isoformat(),
+            },
+        )
+
 
 class TestUser(TestCase):
     @classmethod
