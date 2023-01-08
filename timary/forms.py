@@ -5,7 +5,13 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from phonenumber_field.formfields import PhoneNumberField
 
-from timary.models import DailyHoursInput, Invoice, SingleInvoice, User
+from timary.models import (
+    DailyHoursInput,
+    Invoice,
+    SingleInvoice,
+    SingleInvoiceLineItem,
+    User,
+)
 from timary.utils import get_starting_week_from_date
 
 
@@ -227,33 +233,6 @@ class InvoiceForm(forms.ModelForm):
         return title
 
 
-class SingleInvoiceForm(forms.ModelForm):
-    client_second_email = forms.CharField(required=False)
-
-    class Meta:
-        model = SingleInvoice
-        fields = [
-            "title",
-            "client_name",
-            "client_email",
-            "client_second_email",
-            "invoice_interval",
-            "end_interval_date",
-            "save_for_reuse",
-            "due_date",
-            "discount_amount",
-            "tax_amount",
-            "late_penalty",
-            "late_penalty_amount",
-        ]
-
-    def clean_title(self):
-        title = self.cleaned_data.get("title")
-        if title[0].isdigit():
-            raise ValidationError("Title cannot start with a number.")
-        return title
-
-
 class CreateInvoiceForm(InvoiceForm):
     contacts = forms.ChoiceField(
         required=False,
@@ -397,6 +376,39 @@ def create_invoice_weekly(superclass):
 
 CreateWeeklyForm = create_invoice_weekly(CreateInvoiceForm)
 UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
+
+
+class SingleInvoiceForm(forms.ModelForm):
+    client_second_email = forms.CharField(required=False)
+
+    class Meta:
+        model = SingleInvoice
+        fields = [
+            "title",
+            "client_name",
+            "client_email",
+            "client_second_email",
+            "invoice_interval",
+            "end_interval_date",
+            "save_for_reuse",
+            "due_date",
+            "discount_amount",
+            "tax_amount",
+            "late_penalty",
+            "late_penalty_amount",
+        ]
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title")
+        if title[0].isdigit():
+            raise ValidationError("Title cannot start with a number.")
+        return title
+
+
+class SingleInvoiceLineItemForm(forms.ModelForm):
+    class Meta:
+        model = SingleInvoiceLineItem
+        fields = ["description", "quantity", "price"]
 
 
 class PayInvoiceForm(forms.Form):

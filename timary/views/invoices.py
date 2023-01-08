@@ -16,6 +16,7 @@ from timary.forms import (
     CreateWeeklyForm,
     DailyHoursForm,
     SingleInvoiceForm,
+    SingleInvoiceLineItemForm,
     UpdateIntervalForm,
     UpdateMilestoneForm,
     UpdateWeeklyForm,
@@ -498,14 +499,36 @@ def sync_sent_invoice(request, sent_invoice_id):
 def single_invoice(request):
     if request.method == "GET":
         return render(
-            request, "invoices/single_invoice.html", {"form": SingleInvoiceForm()}
+            request,
+            "invoices/single_invoice.html",
+            {
+                "invoice_form": SingleInvoiceForm(),
+                "line_item_forms": [SingleInvoiceLineItemForm()],
+            },
         )
     elif request.method == "POST":
-        form = SingleInvoiceForm(request.POST)
-        if form.is_valid():
-            saved_single_invoice = form.save(commit=False)
+        invoice_form = SingleInvoiceForm(request.POST)
+        if invoice_form.is_valid():
+            saved_single_invoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
             saved_single_invoice.save()
+            # Save line items to the invoice if valid
+            for description, quantity, price in zip(
+                request.POST.getlist("description"),
+                request.POST.getlist("quantity"),
+                request.POST.getlist("price"),
+            ):
+                line_form = SingleInvoiceLineItemForm(
+                    data={
+                        "description": description,
+                        "quantity": quantity,
+                        "price": price,
+                    }
+                )
+                if line_form.is_valid():
+                    line_item_saved = line_form.save(commit=False)
+                    line_item_saved.invoice = saved_single_invoice
+                    line_item_saved.save()
             messages.success(
                 request,
                 f"Successfully created {saved_single_invoice.title}",
@@ -513,6 +536,25 @@ def single_invoice(request):
             )
             return redirect(reverse("timary:manage_invoices"))
         else:
-            return render(request, "invoices/single_invoice.html", {"form": form})
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "invoice_form": invoice_form,
+                    "line_item_forms": [SingleInvoiceLineItemForm()],
+                },
+            )
 
     return HttpResponse("Hi")
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def single_invoice_line_item(request):
+    return render(
+        request,
+        "partials/_single_invoice_line_item.html",
+        {
+            "line_item_form": SingleInvoiceLineItemForm(),
+        },
+    )

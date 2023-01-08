@@ -1,0 +1,40 @@
+{% load filters %}
+<div class="line-item-wrapper">
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">{{ line_item_form.description.label_tag }}</span>
+        </label>
+        <div class="flex flex-row w-full items-center">
+            <div class="w-full">{{ line_item_form.description|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+        </div>
+        {% if line_item_form.description.errors %}
+            <div class="text-error pl-2">{{ line_item_form.description.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="flex justify-between space-x-2">
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ line_item_form.quantity.label_tag }}</span>
+            </label>
+            <div class="flex flex-row w-full items-center">
+                <div class="w-full">{{ line_item_form.quantity|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+            </div>
+            {% if line_item_form.quantity.errors %}
+                <div class="text-error pl-2">{{ line_item_form.quantity.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ line_item_form.price.label_tag }}</span>
+            </label>
+            <div class="flex flex-row w-full items-center">
+                <div class="w-full">{{ line_item_form.price|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+            </div>
+            {% if line_item_form.price.errors %}
+                <div class="text-error pl-2">{{ line_item_form.price.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <button class="btn btn-error btn-sm my-4" type="button" _="on click remove closest .line-item-wrapper">Remove</button>
+    <div class="divider"></div>
+</div>

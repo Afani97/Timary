@@ -8,37 +8,37 @@
 
         <form class="my-10" action="{% url 'timary:single_invoice' %}" method="post">
 
-            {% if form.errors %}
-                {% include "partials/_form_errors.html" with form_errors=form.errors %}
+            {% if invoice_form.errors %}
+                {% include "partials/_form_errors.html" with form_errors=invoice_form.errors %}
             {% endif %}
 
             {% csrf_token %}
 
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ form.title.label_tag }}</span>
+                    <span class="label-text">{{ invoice_form.title.label_tag }}</span>
                 </label>
-                <div>{{ form.title|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7"}}</div>
-                {% if form.title.errors %}
-                    <div class="text-error pl-2">{{ form.title.errors }}</div>
+                <div>{{ invoice_form.title|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7"}}</div>
+                {% if invoice_form.title.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.title.errors }}</div>
                 {% endif %}
             </div>
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ form.client_name.label_tag }}</span>
+                    <span class="label-text">{{ invoice_form.client_name.label_tag }}</span>
                 </label>
-                <div>{{ form.client_name|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
-                {% if form.client_name.errors %}
-                    <div class="text-error pl-2">{{ form.client_name.errors }}</div>
+                <div>{{ invoice_form.client_name|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                {% if invoice_form.client_name.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.client_name.errors }}</div>
                 {% endif %}
             </div>
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ form.client_email.label_tag }}</span>
+                    <span class="label-text">{{ invoice_form.client_email.label_tag }}</span>
                 </label>
-                <div>{{ form.client_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
-                {% if form.client_email.errors %}
-                    <div class="text-error pl-2">{{ form.client_email.errors }}</div>
+                <div>{{ invoice_form.client_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                {% if invoice_form.client_email.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.client_email.errors }}</div>
                 {% endif %}
             </div>
             <div _="on click remove .hidden from #client-second-email then add .hidden to me"
@@ -53,20 +53,33 @@
             <div class="hidden w-full" id="client-second-email">
                 <div class="form-control w-full">
                     <label class="label">
-                        <span class="label-text">{{ form.client_second_email.label_tag }}</span>
+                        <span class="label-text">{{ invoice_form.client_second_email.label_tag }}</span>
                     </label>
                     <div class="flex flex-row w-full items-center">
-                        <div class="w-full">{{ form.client_second_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                        <div class="w-full">{{ invoice_form.client_second_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
                         <svg _="on click add .hidden to #client-second-email then remove .hidden from #add-second-email"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 ml-5 cursor-pointer">
                             <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
                         </svg>
                     </div>
-                    {% if form.client_second_email.errors %}
-                        <div class="text-error pl-2">{{ form.client_second_email.errors }}</div>
+                    {% if invoice_form.client_second_email.errors %}
+                        <div class="text-error pl-2">{{ invoice_form.client_second_email.errors }}</div>
                     {% endif %}
                 </div>
             </div>
+            <h1 class="text-3xl md:text-4xl font-bold my-10">Line Items</h1>
+
+            {% for line_item_form in line_item_forms %}
+                {% include "partials/_single_invoice_line_item.html" with line_item_form=line_item_form %}
+            {% endfor %}
+            <button class="btn btn-outline"
+                type="button"
+                hx-get="{% url 'timary:single_invoice_line_item' %}"
+                hx-swap="beforebegin"
+                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+            >
+                Add another line item
+            </button>
 
             <div class="flex justify-center mt-10">
                 <button class="btn btn-primary" type="submit">Create</button>

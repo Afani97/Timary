@@ -102,7 +102,7 @@
                 </div>
             {% endfor %}
             {% for invoice in single_invoices %}
-                <div>{{ invoice.title }}</div>
+                <div>{{ invoice.title }} - {{ invoice.line_items.count }}</div>
             {% endfor %}
         </ul>
     </div>
