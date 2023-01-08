@@ -428,6 +428,8 @@ class SingleInvoice(BaseModel):
         default=0, max_digits=5, decimal_places=2, null=True, blank=True
     )
 
+    is_archived = models.BooleanField(default=False, blank=True, null=True)
+
     # Accounting
     accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
     accounting_invoice_id = models.CharField(max_length=200, blank=True, null=True)
