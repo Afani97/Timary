@@ -514,10 +514,21 @@ def single_invoice(request):
         )
     elif request.method == "POST":
         invoice_form = SingleInvoiceForm(request.POST)
+        if len(request.POST.getlist("description")) == 0:
+            invoice_form.add_error(None, "Invoice needs at least one line item")
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "invoice_form": invoice_form,
+                    "line_item_forms": [SingleInvoiceLineItemForm()],
+                },
+            )
         if invoice_form.is_valid():
             saved_single_invoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
             saved_single_invoice.save()
+
             # Save line items to the invoice if valid
             for description, quantity, price in zip(
                 request.POST.getlist("description"),
@@ -540,7 +551,12 @@ def single_invoice(request):
                 f"Successfully created {saved_single_invoice.title}",
                 extra_tags="new-single-invoice",
             )
-            return redirect(reverse("timary:manage_invoices"))
+            return redirect(
+                reverse(
+                    "timary:update_single_invoice",
+                    kwargs={"single_invoice_id": saved_single_invoice.id},
+                )
+            )
         else:
             return render(
                 request,
@@ -558,25 +574,16 @@ def single_invoice(request):
 @require_http_methods(["GET", "POST"])
 def update_single_invoice(request, single_invoice_id):
     single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
-    if request.method == "GET":
-        return render(
-            request,
-            "invoices/single_invoice.html",
-            {
-                "invoice_form": SingleInvoiceForm(instance=single_invoice_obj),
-                "line_item_forms": [
-                    SingleInvoiceLineItemForm(instance=line_item)
-                    for line_item in single_invoice_obj.line_items.all()
-                ],
-            },
-        )
-    elif request.method == "POST":
-        invoice_form = SingleInvoiceForm(request.POST, instance=single_invoice_obj)
+    invoice_form = SingleInvoiceForm(request.POST or None, instance=single_invoice_obj)
+    line_item_forms = [
+        SingleInvoiceLineItemForm(instance=line_item)
+        for line_item in single_invoice_obj.line_items.all()
+    ]
+    if request.method == "POST":
         if invoice_form.is_valid():
             saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
             saved_single_invoice.save()
-            print(request.POST)
             # Save line items to the invoice if valid
             for line_item_id, description, quantity, price in zip(
                 request.POST.getlist("id"),
@@ -606,21 +613,18 @@ def update_single_invoice(request, single_invoice_id):
                     line_item_saved.save()
             messages.success(
                 request,
-                f"Successfully created {saved_single_invoice.title}",
-                extra_tags="new-single-invoice",
+                f"Updated {saved_single_invoice.title}",
+                extra_tags="update-single-invoice",
             )
-            return redirect(reverse("timary:manage_invoices"))
-        else:
-            return render(
-                request,
-                "invoices/single_invoice.html",
-                {
-                    "invoice_form": invoice_form,
-                    "line_item_forms": [SingleInvoiceLineItemForm()],
-                },
-            )
-
-    raise Http404()
+    return render(
+        request,
+        "invoices/single_invoice.html",
+        {
+            "single_invoice": single_invoice_obj,
+            "invoice_form": invoice_form,
+            "line_item_forms": line_item_forms,
+        },
+    )
 
 
 @login_required()

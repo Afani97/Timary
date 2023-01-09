@@ -1,5 +1,6 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -378,8 +379,15 @@ CreateWeeklyForm = create_invoice_weekly(CreateInvoiceForm)
 UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
 
 
+def next_month():
+    return datetime.date.today() + relativedelta(months=1)
+
+
 class SingleInvoiceForm(forms.ModelForm):
     client_second_email = forms.CharField(required=False)
+    late_penalty = forms.BooleanField(required=False)
+    send_reminder = forms.BooleanField(required=False)
+    save_for_reuse = forms.BooleanField(required=False, label="Save as template")
 
     class Meta:
         model = SingleInvoice
@@ -390,13 +398,43 @@ class SingleInvoiceForm(forms.ModelForm):
             "client_second_email",
             "invoice_interval",
             "end_interval_date",
+            "installments",
             "save_for_reuse",
             "due_date",
             "discount_amount",
             "tax_amount",
             "late_penalty",
             "late_penalty_amount",
+            "send_reminder",
         ]
+        labels = {
+            "discount_amount": "Discount",
+            "tax_amount": "Tax",
+        }
+        widgets = {
+            "due_date": DateInput(
+                attrs={
+                    "value": next_month(),
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+            "invoice_interval": forms.Select(
+                attrs={
+                    "class": "select select-bordered bg-neutral border-2 text-lg w-full",
+                }
+            ),
+            "end_interval_date": DateInput(
+                attrs={
+                    "value": next_month(),
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+            "installments": forms.Select(
+                attrs={
+                    "class": "select select-bordered bg-neutral border-2 text-lg w-full",
+                }
+            ),
+        }
 
     def clean_title(self):
         title = self.cleaned_data.get("title")
@@ -409,6 +447,7 @@ class SingleInvoiceLineItemForm(forms.ModelForm):
     class Meta:
         model = SingleInvoiceLineItem
         fields = ["description", "quantity", "price"]
+        labels = {"price": "Unit price"}
 
 
 class PayInvoiceForm(forms.Form):

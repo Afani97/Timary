@@ -20,15 +20,15 @@
             {% endif %}
             method="post">
 
-            {% if invoice_form.errors %}
-                {% include "partials/_form_errors.html" with form_errors=invoice_form.errors %}
+            {% if invoice_form.non_field_errors %}
+                {% include "partials/_form_errors.html" with form_errors=invoice_form.non_field_errors %}
             {% endif %}
 
             {% csrf_token %}
 
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ invoice_form.title.label_tag }}</span>
+                    <span class="label-text font-bold text-xl">{{ invoice_form.title.label_tag }}</span>
                 </label>
                 <div>{{ invoice_form.title|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7"}}</div>
                 {% if invoice_form.title.errors %}
@@ -37,7 +37,7 @@
             </div>
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ invoice_form.client_name.label_tag }}</span>
+                    <span class="label-text font-bold text-xl">{{ invoice_form.client_name.label_tag }}</span>
                 </label>
                 <div>{{ invoice_form.client_name|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
                 {% if invoice_form.client_name.errors %}
@@ -46,7 +46,7 @@
             </div>
             <div class="form-control w-full">
                 <label class="label">
-                    <span class="label-text">{{ invoice_form.client_email.label_tag }}</span>
+                    <span class="label-text font-bold text-xl">{{ invoice_form.client_email.label_tag }}</span>
                 </label>
                 <div>{{ invoice_form.client_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
                 {% if invoice_form.client_email.errors %}
@@ -61,11 +61,10 @@
                 </svg>
                 Add a second email
             </div>
-
             <div class="hidden w-full" id="client-second-email">
                 <div class="form-control w-full">
                     <label class="label">
-                        <span class="label-text">{{ invoice_form.client_second_email.label_tag }}</span>
+                        <span class="label-text font-bold text-xl">{{ invoice_form.client_second_email.label_tag }}</span>
                     </label>
                     <div class="flex flex-row w-full items-center">
                         <div class="w-full">{{ invoice_form.client_second_email|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
@@ -79,8 +78,19 @@
                     {% endif %}
                 </div>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold my-10">Line Items</h1>
 
+            <div class="divider"></div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.due_date.label_tag }}</span>
+                </label>
+                <div>{{ invoice_form.due_date|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                {% if invoice_form.due_date.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.due_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <h1 class="text-3xl md:text-4xl font-bold my-10">Line Items</h1>
             {% for line_item_form in line_item_forms %}
                 {% include "partials/_single_invoice_line_item.html" with line_item_form=line_item_form %}
             {% endfor %}
@@ -92,6 +102,136 @@
             >
                 Add another line item
             </button>
+
+            <div class="divider"></div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.discount_amount.label_tag }}</span>
+                </label>
+                <div>{{ invoice_form.discount_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div class="label"><span class="label-text-alt">Optional</span></div>
+                {% if invoice_form.discount_amount.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.discount_amount.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.tax_amount.label_tag }}</span>
+                </label>
+                <div>{{ invoice_form.tax_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div class="label"><span class="label-text-alt">Optional</span></div>
+                {% if invoice_form.tax_amount.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.tax_amount.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="divider"></div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.late_penalty.label_tag }}</span>
+                    <input type="checkbox" name="late_penalty" class="toggle toggle-primary" id="id_late_penalty"
+                        {% if single_invoice.late_penalty %} checked {% endif %}
+                        _="on load if {{ single_invoice.late_penalty|yesno:"true,false" }} remove .hidden from #late-penalty-wrapper else add .hidden to #late-penalty-wrapper end
+                            on change toggle .hidden on #late-penalty-wrapper end"
+                    />
+                </label>
+                <span class="label-text-alt pl-1">Add an amount if invoice is not paid by due date.</span>
+                {% if invoice_form.late_penalty.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.late_penalty.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-control w-full hidden mt-4 mb-6" id="late-penalty-wrapper">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.late_penalty_amount.label_tag }}</span>
+                </label>
+                <div>{{ invoice_form.late_penalty_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                {% if invoice_form.late_penalty_amount.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.late_penalty_amount.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-control w-full mt-4">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.send_reminder.label_tag }}</span>
+                    <input type="checkbox" name="send_reminder" class="toggle toggle-primary" id="id_send_reminder"
+                        {% if single_invoice.send_reminder %} checked {% endif %}
+                    />
+                </label>
+                <span class="label-text-alt pl-1">If invoice isn't paid in 2 weeks, send it again.</span>
+                {% if invoice_form.send_reminder.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.send_reminder.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-control w-full mt-4">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.save_for_reuse.label_tag }}</span>
+
+                    <input type="checkbox" name="save_for_reuse" class="toggle toggle-primary" id="id_save_for_reuse"
+                        {% if single_invoice.save_for_reuse %} checked {% endif %}
+                    />
+                </label>
+                <span class="label-text-alt pl-1">Start with these line items and choices for other clients.</span>
+                {% if invoice_form.save_for_reuse.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.save_for_reuse.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="divider"></div>
+            <div id="interval-container"
+                {% if single_invoice and single_invoice.invoice_interval == 0 %} class="hidden" {% endif %}>
+                <div class="form-control w-full mt-4 {% if single_invoice and single_invoice.invoice_interval != 0 %}hidden {% endif %}">
+                    <label class="label">
+                        <span class="label-text font-bold text-xl">Repeat this invoice?</span>
+                        <input type="checkbox" class="toggle toggle-primary" _="on change toggle .hidden on #invoice-interval-wrapper then toggle .hidden on #installments-container"/>
+                    </label>
+                    <span class="label-text-alt pl-1">Repeat this invoice for this client until the end date you've chosen</span>
+                </div>
+                <div class="flex justify-between space-x-5 mt-4
+                    {% if single_invoice and single_invoice.invoice_interval != 0 %} '' {% else %} hidden {% endif %}" id="invoice-interval-wrapper">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-xl">{{ invoice_form.invoice_interval.label_tag }}</span>
+                        </label>
+                        {{ invoice_form.invoice_interval }}
+                        {% if invoice_form.send_reminder.errors %}
+                            <div class="text-error pl-2">{{ invoice_form.invoice_interval.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-xl">{{ invoice_form.end_interval_date.label_tag }}</span>
+                        </label>
+                        <div>{{ invoice_form.end_interval_date|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                        {% if invoice_form.end_interval_date.errors %}
+                            <div class="text-error pl-2">{{ invoice_form.end_interval_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="divider"></div>
+            </div>
+
+            <div id="installments-container"
+                {% if single_invoice and single_invoice.installments == 0 %} class="hidden" {% endif %}>
+                <div class="form-control w-full mt-4 {% if single_invoice and single_invoice.installments != 0 %}hidden {% endif %}">
+                    <label class="label">
+                        <span class="label-text font-bold text-xl">Break into installments?</span>
+                        <input type="checkbox" class="toggle toggle-primary" _="on change toggle .hidden on #installments-wrapper then toggle .hidden on #interval-container"/>
+                    </label>
+                    <span class="label-text-alt pl-1">Allow the client to pay this invoice in installments up to 8 weeks.</span>
+                </div>
+                <div class="form-control w-full {% if single_invoice and single_invoice.installments != 0 %} ''  {% else %} hidden {% endif %}"
+                    id="installments-wrapper">
+                    <label class="label">
+                        <span class="label-text font-bold text-xl">{{ invoice_form.installments.label_tag }}</span>
+                    </label>
+                    {{ invoice_form.installments }}
+                    {% if invoice_form.installments.errors %}
+                        <div class="text-error pl-2">{{ invoice_form.installments.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="divider"></div>
+            </div>
+
+
 
             <div class="flex justify-center mt-10">
                 <button class="btn btn-primary" type="submit">
