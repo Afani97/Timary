@@ -473,18 +473,34 @@ class SingleInvoice(BaseModel):
         self.total_price = total
         self.save()
 
+    def send_invoice(self):
+        today = date.today()
+        current_month = date.strftime(today, "%m/%Y")
+        msg_subject = f"{self.title }'s Invoice from { self.user.first_name } for { current_month }"
+
+        msg_body = render_to_string(
+            "email/single_invoice.html",
+            {
+                "single_invoice": self,
+                "user_name": self.user.invoice_branding_properties()["user_name"],
+                "todays_date": today,
+            },
+        )
+
+        EmailService.send_html(msg_subject, msg_body, self.client_email)
+
     @property
     def balance(self):
         total_price = self.total_price
 
         if self.discount_amount:
-            total_price = total_price * self.discount_amount
+            total_price -= self.discount_amount
 
         if self.tax_amount:
-            total_price = total_price * self.tax_amount
+            total_price += total_price * (self.tax_amount / 100)
 
         if self.late_penalty:
-            total_price = total_price + self.late_penalty_amount
+            total_price += self.late_penalty_amount
 
         return total_price
 

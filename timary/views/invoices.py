@@ -53,7 +53,9 @@ def manage_invoices(request):
 
     context = {
         "invoices": invoices,
-        "single_invoices": request.user.single_invoices.order_by("title"),
+        "single_invoices": request.user.single_invoices.exclude(
+            is_archived=True
+        ).order_by("title"),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True),
@@ -572,7 +574,7 @@ def single_invoice(request):
 
 
 @login_required()
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "DELETE"])
 def update_single_invoice(request, single_invoice_id):
     single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
     invoice_form = SingleInvoiceForm(request.POST or None, instance=single_invoice_obj)
@@ -580,7 +582,25 @@ def update_single_invoice(request, single_invoice_id):
         SingleInvoiceLineItemForm(instance=line_item)
         for line_item in single_invoice_obj.line_items.all()
     ]
+    if request.method == "DELETE":
+        single_invoice_obj.is_archived = True
+        single_invoice_obj.save()
+        response = HttpResponse()
+        response["HX-Redirect"] = "/invoices/manage/"
+        return response
     if request.method == "POST":
+        # Check that invoice has at least 1 line item before proceeding
+        if len(request.POST.getlist("description")) == 0:
+            invoice_form.add_error(None, "Invoice needs at least one line item")
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "single_invoice": single_invoice_obj,
+                    "invoice_form": invoice_form,
+                    "line_item_forms": [SingleInvoiceLineItemForm()],
+                },
+            )
         if invoice_form.is_valid():
             saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user

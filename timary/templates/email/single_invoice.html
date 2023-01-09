@@ -1,0 +1,81 @@
+{% extends "email/base_invoice.html" %}
+{% load filters %}
+
+{% block preheader %}
+    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ single_invoice.due_date }}</span>
+{% endblock %}
+
+{% block main %}
+    <div class="mb-6">
+        <div class="mt-0 mb-4  text-3xl font-semibold text-left">Hi {{ single_invoice.client_name }},</div>
+        <div class="my-2 text-xl leading-7">Thanks for using Timary. This is an invoice for {{ user_name }}'s services.</div>
+    </div>
+
+    <div class="text-xl font-medium my-4 p-6 tracking-wide bg-base-300">
+        <div class="mb-1">
+            <strong>Amount Due: ${{ single_invoice.balance|addf:"5"|floatformat:-2 }}</strong>
+        </div>
+        <div>
+            <strong>Due By:</strong> {{ single_invoice.due_date }}
+        </div>
+    </div>
+
+    {% if single_invoice.user.can_accept_payments %}
+        <div class="flex justify-center my-12">
+            <a class="btn btn-lg btn-success" href="{{ site_url }}{% url 'timary:pay_invoice' sent_invoice_id=single_invoice.id %}">
+                Pay Invoice
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="mx-1">
+        <div class="flex justify-between mt-6 text-xl font-medium">
+            <div>Invoice #{{ single_invoice.email_id }}</div>
+            <strong>{{ todays_date }}</strong>
+        </div>
+        <div class="flex justify-between pb-3 border-b border-gray-200">
+            <div>Description</div>
+            <div>Amount</div>
+        </div>
+        <div class="border-b border-gray-200 pb-2">
+            {% for line_item in single_invoice.line_items.all %}
+                <div class="flex justify-between py-3 text-xl">
+                    <div>{{ line_item.description }}</div>
+                    <div>${{ line_item.total_amount | floatformat:-2 }}</div>
+                </div>
+            {% endfor %}
+            <div class="flex justify-between py-3 text-xl">
+                <div>Stripe ACH Fee</div>
+                <div>$5</div>
+            </div>
+            {% if single_invoice.late_penalty %}
+                <div class="flex justify-between py-3 text-xl">
+                    <div>Late Penalty Fee</div>
+                    <div>${{single_invoice.late_penalty_amount|floatformat:-2 }}</div>
+                </div>
+            {% endif %}
+            {% if single_invoice.discount_amount %}
+                <div class="flex justify-between py-3 text-xl">
+                    <div>Discount</div>
+                    <div>${{ single_invoice.discount_amount | floatformat:-2 }}</div>
+                </div>
+            {% endif %}
+            {% if single_invoice.tax_amount %}
+                <div class="flex justify-between py-3 text-xl">
+                    <div>Tax</div>
+                    <div>{{ single_invoice.tax_amount | floatformat:-2 }}%</div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="flex justify-end text-xl font-semibold  mt-6 mb-10">
+            <div>Total</div>
+            <div class="ml-24">${{ single_invoice.balance|addf:"5"|floatformat:-2 }}</div>
+        </div>
+
+        <div class="my-6">
+            <div class="text-lg">If you have any questions about this invoice, reach out to our <a href="support_url">support team</a> for help.</div>
+            <p class="text-lg">Cheers,<br>The Timary Team</p>
+        </div>
+    </div>
+
+{% endblock %}
