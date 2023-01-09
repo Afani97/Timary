@@ -4,9 +4,21 @@
 {% block content %}
 
     <div class="max-w-3xl mx-auto mt-10">
-        <h1 class="text-3xl md:text-4xl font-bold">New Invoice</h1>
+        <h1 class="text-3xl md:text-4xl font-bold">
+            {% if invoice_form.initial %}
+                Update Invoice
+            {% else %}
+                New Invoice
+            {% endif %}
+        </h1>
 
-        <form class="my-10" action="{% url 'timary:single_invoice' %}" method="post">
+        <form class="my-10"
+            {% if invoice_form.initial %}
+                action="{% url 'timary:update_single_invoice' single_invoice_id=invoice_form.instance.id %}"
+            {% else %}
+                action="{% url 'timary:single_invoice' %}"
+            {% endif %}
+            method="post">
 
             {% if invoice_form.errors %}
                 {% include "partials/_form_errors.html" with form_errors=invoice_form.errors %}
@@ -82,7 +94,13 @@
             </button>
 
             <div class="flex justify-center mt-10">
-                <button class="btn btn-primary" type="submit">Create</button>
+                <button class="btn btn-primary" type="submit">
+                    {% if invoice_form.initial %}
+                        Update
+                    {% else %}
+                        Create
+                    {% endif %}
+                </button>
             </div>
         </form>
     </div>

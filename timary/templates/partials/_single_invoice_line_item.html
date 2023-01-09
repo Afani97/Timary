@@ -1,5 +1,10 @@
 {% load filters %}
 <div class="line-item-wrapper">
+    {% if line_item_form.initial %}
+        <input hidden name="id" id="id" value="{{ line_item_form.instance.id }}" />
+    {% else %}
+        <input hidden name="id" id="id" value="" />
+    {% endif %}
     <div class="form-control w-full">
         <label class="label">
             <span class="label-text">{{ line_item_form.description.label_tag }}</span>
@@ -35,6 +40,14 @@
             {% endif %}
         </div>
     </div>
-    <button class="btn btn-error btn-sm my-4" type="button" _="on click remove closest .line-item-wrapper">Remove</button>
+    <button class="btn btn-error btn-sm my-4" type="button"
+        {% if line_item_form.initial %}
+            hx-delete="{% url 'timary:single_invoice_line_item'%}?line_item_id={{ line_item_form.instance.id }}"
+            hx-target="closest .line-item-wrapper"
+        {% else %}
+            _="on click remove closest .line-item-wrapper" {% endif %}
+    >
+        Remove
+    </button>
     <div class="divider"></div>
 </div>

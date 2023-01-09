@@ -100,6 +100,11 @@ urlpatterns += [
     path("invoices/manage/", views.manage_invoices, name="manage_invoices"),
     path("invoices/single/", views.single_invoice, name="single_invoice"),
     path(
+        "invoices/single/<uuid:single_invoice_id>/",
+        views.update_single_invoice,
+        name="update_single_invoice",
+    ),
+    path(
         "invoices/single-line-item/",
         views.single_invoice_line_item,
         name="single_invoice_line_item",

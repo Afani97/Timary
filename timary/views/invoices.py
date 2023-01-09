@@ -21,7 +21,13 @@ from timary.forms import (
     UpdateMilestoneForm,
     UpdateWeeklyForm,
 )
-from timary.models import Invoice, SentInvoice, User
+from timary.models import (
+    Invoice,
+    SentInvoice,
+    SingleInvoice,
+    SingleInvoiceLineItem,
+    User,
+)
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import show_active_timer, show_alert_message
@@ -545,16 +551,92 @@ def single_invoice(request):
                 },
             )
 
-    return HttpResponse("Hi")
+    raise Http404()
 
 
 @login_required()
 @require_http_methods(["GET", "POST"])
+def update_single_invoice(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if request.method == "GET":
+        return render(
+            request,
+            "invoices/single_invoice.html",
+            {
+                "invoice_form": SingleInvoiceForm(instance=single_invoice_obj),
+                "line_item_forms": [
+                    SingleInvoiceLineItemForm(instance=line_item)
+                    for line_item in single_invoice_obj.line_items.all()
+                ],
+            },
+        )
+    elif request.method == "POST":
+        invoice_form = SingleInvoiceForm(request.POST, instance=single_invoice_obj)
+        if invoice_form.is_valid():
+            saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
+            saved_single_invoice.user = request.user
+            saved_single_invoice.save()
+            print(request.POST)
+            # Save line items to the invoice if valid
+            for line_item_id, description, quantity, price in zip(
+                request.POST.getlist("id"),
+                request.POST.getlist("description"),
+                request.POST.getlist("quantity"),
+                request.POST.getlist("price"),
+            ):
+                line_item = None
+                if len(line_item_id) > 0:
+                    try:
+                        line_item = SingleInvoiceLineItem.objects.get(id=line_item_id)
+                    except SingleInvoiceLineItem.DoesNotExist:
+                        pass
+                form_args = {
+                    "data": {
+                        "description": description,
+                        "quantity": quantity,
+                        "price": price,
+                    }
+                }
+                if line_item:
+                    form_args.update({"instance": line_item})
+                line_form = SingleInvoiceLineItemForm(**form_args)
+                if line_form.is_valid():
+                    line_item_saved = line_form.save(commit=False)
+                    line_item_saved.invoice = saved_single_invoice
+                    line_item_saved.save()
+            messages.success(
+                request,
+                f"Successfully created {saved_single_invoice.title}",
+                extra_tags="new-single-invoice",
+            )
+            return redirect(reverse("timary:manage_invoices"))
+        else:
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "invoice_form": invoice_form,
+                    "line_item_forms": [SingleInvoiceLineItemForm()],
+                },
+            )
+
+    raise Http404()
+
+
+@login_required()
+@require_http_methods(["GET", "DELETE"])
 def single_invoice_line_item(request):
-    return render(
-        request,
-        "partials/_single_invoice_line_item.html",
-        {
-            "line_item_form": SingleInvoiceLineItemForm(),
-        },
-    )
+    if request.method == "GET":
+        return render(
+            request,
+            "partials/_single_invoice_line_item.html",
+            {
+                "line_item_form": SingleInvoiceLineItemForm(),
+            },
+        )
+    if request.method == "DELETE":
+        line_item_id = request.GET.get("line_item_id")
+        line_item = get_object_or_404(SingleInvoiceLineItem, id=line_item_id)
+        line_item.delete()
+        return HttpResponse("")
+    raise Http404
