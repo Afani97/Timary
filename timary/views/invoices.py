@@ -546,6 +546,7 @@ def single_invoice(request):
                     line_item_saved = line_form.save(commit=False)
                     line_item_saved.invoice = saved_single_invoice
                     line_item_saved.save()
+            saved_single_invoice.update_total_price()
             messages.success(
                 request,
                 f"Successfully created {saved_single_invoice.title}",
@@ -611,6 +612,13 @@ def update_single_invoice(request, single_invoice_id):
                     line_item_saved = line_form.save(commit=False)
                     line_item_saved.invoice = saved_single_invoice
                     line_item_saved.save()
+
+            saved_single_invoice.update_total_price()
+            single_invoice_obj = saved_single_invoice
+            line_item_forms = [
+                SingleInvoiceLineItemForm(instance=line_item)
+                for line_item in saved_single_invoice.line_items.all()
+            ]
             messages.success(
                 request,
                 f"Updated {saved_single_invoice.title}",

@@ -20,6 +20,8 @@
             {% endif %}
             method="post">
 
+            {{ invoice_form.errors }}
+
             {% if invoice_form.non_field_errors %}
                 {% include "partials/_form_errors.html" with form_errors=invoice_form.non_field_errors %}
             {% endif %}

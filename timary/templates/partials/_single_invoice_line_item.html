@@ -1,5 +1,6 @@
 {% load filters %}
 <div class="line-item-wrapper">
+    {{ line_item_form.errors }}
     {% if line_item_form.initial %}
         <input hidden name="id" id="id" value="{{ line_item_form.instance.id }}" />
     {% else %}

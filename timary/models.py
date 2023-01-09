@@ -2,6 +2,7 @@ import datetime
 import random
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser
@@ -465,6 +466,13 @@ class SingleInvoice(BaseModel):
         self.full_clean()
         return super().save(*args, **kwargs)
 
+    def update_total_price(self):
+        total = 0.0
+        for line_item in self.line_items.all():
+            total += float(line_item.total_amount())
+        self.total_price = total
+        self.save()
+
     @property
     def balance(self):
         total_price = self.total_price
@@ -493,6 +501,9 @@ class SingleInvoiceLineItem(BaseModel):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    def total_amount(self):
+        return Decimal(self.quantity) * self.price
 
 
 class SingleInvoiceInstallment(BaseModel):
