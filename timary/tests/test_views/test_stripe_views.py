@@ -301,7 +301,7 @@ class TestStripeViews(BaseTest):
             )
         )
         self.assertRedirects(
-            response, reverse("timary:landing_page"), target_status_code=302
+            response, reverse("timary:landing_page"), target_status_code=200
         )
 
     def test_invoice_payment_success_invalid_invoice_id(self):

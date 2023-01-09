@@ -18,8 +18,6 @@ from timary.services.stripe_service import StripeService
 
 
 def landing_page(request):
-    if request.user.is_authenticated:
-        return redirect(reverse("timary:index"))
     return render(request, "timary/landing_page.html", {})
 
 
