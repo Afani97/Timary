@@ -129,7 +129,7 @@ def send_invoice(invoice_id):
             "next_weeks_date": invoice.user.invoice_branding_properties()[
                 "next_weeks_date"
             ],
-            "recipient_name": invoice.email_recipient_name,
+            "recipient_name": invoice.client_name,
             "total_amount": total_amount,
             "sent_invoice": sent_invoice,
             "invoice": invoice,
@@ -138,7 +138,7 @@ def send_invoice(invoice_id):
             "invoice_branding": invoice.user.invoice_branding_properties(),
         },
     )
-    EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
+    EmailService.send_html(msg_subject, msg_body, invoice.client_email)
     invoice.calculate_next_date()
     invoice.increase_milestone_step()
 
@@ -157,7 +157,7 @@ def send_invoice_preview(invoice_id):
             "next_weeks_date": invoice.user.invoice_branding_properties().get(
                 "next_weeks_date"
             ),
-            "recipient_name": invoice.email_recipient_name,
+            "recipient_name": invoice.client_name,
             "total_amount": total_amount,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
@@ -240,7 +240,7 @@ def send_weekly_updates():
                     "user_name": invoice.user.invoice_branding_properties().get(
                         "user_name"
                     ),
-                    "recipient_name": invoice.email_recipient_name,
+                    "recipient_name": invoice.client_name,
                     "invoice": invoice,
                     "hours_tracked": hours_tracked_this_week,
                     "week_starting_date": week_start,
@@ -252,7 +252,7 @@ def send_weekly_updates():
             EmailService.send_html(
                 f"Here is a weekly progress update for {invoice.title}",
                 msg_body,
-                invoice.email_recipient,
+                invoice.client_email,
             )
 
 

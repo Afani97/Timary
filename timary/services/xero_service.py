@@ -124,8 +124,8 @@ class XeroService:
             xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
 
         data = {
-            "Name": invoice.email_recipient_name,
-            "EmailAddress": invoice.email_recipient,
+            "Name": invoice.client_name,
+            "EmailAddress": invoice.client_email,
         }
 
         try:

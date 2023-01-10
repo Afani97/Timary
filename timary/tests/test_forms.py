@@ -126,8 +126,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
         self.assertTrue(form.is_valid())
@@ -139,8 +139,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
         self.assertEqual(form.errors, {"title": ["This field is required."]})
@@ -151,8 +151,8 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
 
@@ -165,8 +165,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 0,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
 
@@ -181,8 +181,8 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
 
@@ -195,8 +195,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "I",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
         self.assertEqual(
@@ -214,8 +214,8 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 2,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
 
@@ -233,8 +233,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 2,
                 "milestone_total_steps": 3,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             },
         )
 
@@ -247,14 +247,14 @@ class TestInvoices(TestCase):
             },
         )
 
-    def test_invoice_error_missing_email_recipient_name(self):
+    def test_invoice_error_missing_client_name(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient": "user@test.com",
+                "client_email": "user@test.com",
             }
         )
 
@@ -262,28 +262,28 @@ class TestInvoices(TestCase):
             "A client needs be entered or selected from list", str(form.errors)
         )
 
-    def test_invoice_error_invalid_email_recipient_name(self):
+    def test_invoice_error_invalid_client_name(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "12345",
-                "email_recipient": "user@test.com",
+                "client_name": "12345",
+                "client_email": "user@test.com",
             }
         )
 
         self.assertIn("Only valid names allowed.", str(form.errors))
 
-    def test_invoice_error_missing_email_recipient(self):
+    def test_invoice_error_missing_client_email(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
+                "client_name": "John Smith",
             }
         )
 
@@ -291,15 +291,15 @@ class TestInvoices(TestCase):
             "A client needs be entered or selected from list", str(form.errors)
         )
 
-    def test_invoice_error_invalid_email_recipient(self):
+    def test_invoice_error_invalid_client_email(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test",
+                "client_name": "John Smith",
+                "client_email": "user@test",
             }
         )
 
@@ -315,8 +315,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             },
         )
 
@@ -331,8 +331,8 @@ class TestInvoices(TestCase):
                 "invoice_rate": 100,
                 "invoice_type": 1,
                 "invoice_interval": "M",
-                "email_recipient_name": "User Test",
-                "email_recipient": "user@test.com",
+                "client_name": "User Test",
+                "client_email": "user@test.com",
             }
         )
 
@@ -343,8 +343,8 @@ class TestInvoices(TestCase):
             data={
                 "title": "Some title",
                 "invoice_type": 3,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "user@test.com",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
             }
         )
 
@@ -357,8 +357,8 @@ class TestPayInvoice(TestCase):
         form = PayInvoiceForm(
             sent_invoice=sent_invoice,
             data={
-                "email": sent_invoice.invoice.email_recipient,
-                "first_name": sent_invoice.invoice.email_recipient_name,
+                "email": sent_invoice.invoice.client_email,
+                "first_name": sent_invoice.invoice.client_name,
             },
         )
         self.assertTrue(form.is_valid())
@@ -370,7 +370,7 @@ class TestPayInvoice(TestCase):
             sent_invoice=sent_invoice,
             data={
                 "email": "test@test.com",
-                "first_name": sent_invoice.invoice.email_recipient_name,
+                "first_name": sent_invoice.invoice.client_name,
             },
         )
         self.assertEqual(
@@ -383,7 +383,7 @@ class TestPayInvoice(TestCase):
         form = PayInvoiceForm(
             sent_invoice=sent_invoice,
             data={
-                "email": sent_invoice.invoice.email_recipient,
+                "email": sent_invoice.invoice.client_email,
                 "first_name": "User User",
             },
         )

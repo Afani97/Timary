@@ -120,15 +120,15 @@ class ZohoService:
         else:
             zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
 
-        recipient_name = invoice.email_recipient_name.split(" ")
+        recipient_name = invoice.client_name.split(" ")
         data = {
-            "contact_name": invoice.email_recipient_name,
-            "email": invoice.email_recipient,
+            "contact_name": invoice.client_name,
+            "email": invoice.client_email,
             "contact_persons": [
                 {
                     "first_name": recipient_name[0],
                     "last_name": recipient_name[1],
-                    "email": invoice.email_recipient,
+                    "email": invoice.client_email,
                     "is_primary_contact": True,
                 }
             ],

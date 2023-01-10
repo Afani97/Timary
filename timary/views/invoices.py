@@ -83,13 +83,11 @@ def create_invoice(request):
         # If user selects from list of contacts, get that contact's info
         if contact_id := invoice_form.cleaned_data.get("contacts"):
             contact = Invoice.objects.filter(
-                email_recipient_stripe_customer_id=contact_id
+                client_stripe_customer_id=contact_id
             ).first()
-            invoice.email_recipient = contact.email_recipient
-            invoice.email_recipient_name = contact.email_recipient_name
-            invoice.email_recipient_stripe_customer_id = (
-                contact.email_recipient_stripe_customer_id
-            )
+            invoice.client_email = contact.client_email
+            invoice.client_name = contact.client_name
+            invoice.client_stripe_customer_id = contact.client_stripe_customer_id
             invoice.accounting_customer_id = contact.accounting_customer_id
             invoice.save()
         invoice.calculate_next_date()
@@ -290,7 +288,7 @@ def resend_invoice_email(request, sent_invoice_id):
             "next_weeks_date": invoice.user.invoice_branding_properties()[
                 "next_weeks_date"
             ],
-            "recipient_name": invoice.email_recipient_name,
+            "recipient_name": invoice.client_name,
             "total_amount": total_amount,
             "sent_invoice": sent_invoice,
             "invoice": invoice,
@@ -299,7 +297,7 @@ def resend_invoice_email(request, sent_invoice_id):
             "invoice_branding": invoice.user.invoice_branding_properties(),
         },
     )
-    EmailService.send_html(msg_subject, msg_body, invoice.email_recipient)
+    EmailService.send_html(msg_subject, msg_body, invoice.client_email)
 
     response = render(
         request,
@@ -358,7 +356,7 @@ def generate_invoice(request, invoice_id):
     show_alert_message(
         response,
         "success",
-        f"Invoice for {invoice.title} has been sent to {invoice.email_recipient_name}",
+        f"Invoice for {invoice.title} has been sent to {invoice.client_name}",
     )
     return response
 

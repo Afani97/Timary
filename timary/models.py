@@ -179,11 +179,9 @@ class Invoice(BaseModel):
         decimal_places=2,
         validators=[MinValueValidator(1)],
     )
-    email_recipient_name = models.CharField(max_length=200, null=False, blank=False)
-    email_recipient = models.EmailField(null=False, blank=False)
-    email_recipient_stripe_customer_id = models.CharField(
-        max_length=200, null=True, blank=True
-    )
+    client_name = models.CharField(max_length=200, null=False, blank=False)
+    client_email = models.EmailField(null=False, blank=False)
+    client_stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
 
     invoice_interval = models.CharField(
         max_length=1,
@@ -212,7 +210,7 @@ class Invoice(BaseModel):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.invoice_rate}, "
-            f"email_recipient={self.email_recipient}, "
+            f"client_email={self.client_email}, "
             f"invoice_interval={self.invoice_interval}, "
             f"next_date={self.next_date}, "
             f"last_date={self.last_date}, "
@@ -336,7 +334,7 @@ class Invoice(BaseModel):
         return hours_tracked, total_cost_amount
 
     def sync_customer(self):
-        if not self.email_recipient_stripe_customer_id:
+        if not self.client_stripe_customer_id:
             StripeService.create_customer_for_invoice(self)
 
         if not self.user.accounting_org_id:
@@ -347,6 +345,9 @@ class Invoice(BaseModel):
             error_reason = ae.log()
             return False, error_reason  # Failed to sync customer
         return True, None  # Customer synced
+
+
+2
 
 
 class SentInvoice(BaseModel):
@@ -471,7 +472,7 @@ class SentInvoice(BaseModel):
         EmailService.send_html(
             f"Here is a receipt for {self.invoice.user.first_name}'s services for {self.invoice.title}",
             msg_body,
-            self.invoice.email_recipient,
+            self.invoice.client_email,
         )
         EmailService.send_plain(
             "Success! Your getting paid!",

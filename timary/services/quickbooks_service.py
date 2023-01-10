@@ -119,9 +119,9 @@ class QuickbooksService:
             f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
         )
         data = {
-            "DisplayName": invoice.email_recipient_name,
-            "FullyQualifiedName": invoice.email_recipient_name,
-            "PrimaryEmailAddr": {"Address": invoice.email_recipient},
+            "DisplayName": invoice.client_name,
+            "FullyQualifiedName": invoice.client_name,
+            "PrimaryEmailAddr": {"Address": invoice.client_email},
         }
         try:
             response = QuickbooksService.create_request(

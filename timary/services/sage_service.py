@@ -112,11 +112,11 @@ class SageService:
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
-                "name": invoice.email_recipient_name,
+                "name": invoice.client_name,
                 "main_contact_person": {
                     "contact_person_type_ids": ["CUSTOMER"],
-                    "name": invoice.email_recipient_name,
-                    "email": invoice.email_recipient,
+                    "name": invoice.client_name,
+                    "email": invoice.client_email,
                     "is_main_contact": True,
                     "is_preferred_contact": True,
                 },
@@ -199,7 +199,7 @@ class SageService:
                 "date": today_formatted,
                 "invoice_lines": [
                     {
-                        "description": f"Invoice for {sent_invoice.invoice.email_recipient_name}",
+                        "description": f"Invoice for {sent_invoice.invoice.client_name}",
                         "ledger_account_id": ledger_account_id,
                         "quantity": "1",
                         "tax_rate_id": no_tax_id,

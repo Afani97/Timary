@@ -147,9 +147,9 @@ class FreshbooksService:
             freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(invoice.user)
         data = {
             "client": {
-                "email": invoice.email_recipient,
-                "fname": invoice.email_recipient_name.split(" ")[0],
-                "lname": invoice.email_recipient_name.split(" ")[1],
+                "email": invoice.client_email,
+                "fname": invoice.client_name.split(" ")[0],
+                "lname": invoice.client_name.split(" ")[1],
             }
         }
         endpoint = f"accounting/account/{invoice.user.accounting_org_id}/users/clients"

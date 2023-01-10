@@ -44,9 +44,9 @@ def pay_invoice(request, sent_invoice_id):
 
         saved_payment_method = False
         last_4_bank = ""
-        if sent_invoice.invoice.email_recipient_stripe_customer_id:
+        if sent_invoice.invoice.client_stripe_customer_id:
             invoicee_payment_method = StripeService.retrieve_customer_payment_method(
-                sent_invoice.invoice.email_recipient_stripe_customer_id
+                sent_invoice.invoice.client_stripe_customer_id
             )
             if invoicee_payment_method:
                 saved_payment_method = True
@@ -194,7 +194,7 @@ def stripe_webhook(request, stripe_secret):
                     "next_weeks_date": sent_invoice.user.invoice_branding_properties()[
                         "next_weeks_date"
                     ],
-                    "recipient_name": sent_invoice.invoice.email_recipient_name,
+                    "recipient_name": sent_invoice.invoice.client_name,
                     "total_amount": sent_invoice.total_price,
                     "sent_invoice": sent_invoice,
                     "hours_tracked": hours_tracked,
@@ -207,7 +207,7 @@ def stripe_webhook(request, stripe_secret):
                 f"An error occurred while trying to "
                 f"transfer the funds for this invoice. Please give it another try.",
                 msg_body,
-                sent_invoice.invoice.email_recipient,
+                sent_invoice.invoice.client_email,
             )
         else:
             # Other stripe webhook event
