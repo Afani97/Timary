@@ -392,6 +392,12 @@ class SingleInvoice(BaseModel):
         max_length=10, null=False, unique=True, default=create_new_ref_number
     )
     save_for_reuse = models.BooleanField(default=False, null=True, blank=True)
+    status = models.PositiveSmallIntegerField(
+        default=InvoiceStatus.DRAFT,
+        choices=InvoiceStatus.choices,
+        null=True,
+        blank=True,
+    )
 
     date_sent = models.DateField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
@@ -426,9 +432,6 @@ class SingleInvoice(BaseModel):
     late_penalty_amount = models.DecimalField(
         default=0, max_digits=5, decimal_places=2, null=True, blank=True
     )
-
-    is_archived = models.BooleanField(default=False, blank=True, null=True)
-
     # Accounting
     accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
     accounting_invoice_id = models.CharField(max_length=200, blank=True, null=True)
@@ -510,7 +513,7 @@ class SingleInvoice(BaseModel):
         if self.tax_amount:
             total_price += total_price * (self.tax_amount / 100)
 
-        if self.late_penalty:
+        if self.late_penalty and self.due_date < datetime.date.today():
             total_price += self.late_penalty_amount
 
         return total_price

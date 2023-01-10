@@ -435,6 +435,12 @@ class SingleInvoiceForm(forms.ModelForm):
             ),
         }
 
+    def clean_due_date(self):
+        due_date = self.cleaned_data.get("due_date")
+        if due_date <= datetime.date.today():
+            raise ValidationError("Due date cannot be set prior to today.")
+        return due_date
+
     def clean_title(self):
         title = self.cleaned_data.get("title")
         if title[0].isdigit():
@@ -488,6 +494,7 @@ class PayInvoiceForm(forms.Form):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
             )
+        return cleaned_email
 
     def clean_first_name(self):
         cleaned_name = self.cleaned_data.get("first_name")
@@ -498,6 +505,7 @@ class PayInvoiceForm(forms.Form):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
             )
+        return cleaned_name
 
 
 phone_number_regex = RegexValidator(

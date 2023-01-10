@@ -54,7 +54,7 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "single_invoices": request.user.single_invoices.exclude(
-            is_archived=True
+            status=SingleInvoice.InvoiceStatus.ARCHIVE
         ).order_by("title"),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
@@ -581,7 +581,7 @@ def update_single_invoice(request, single_invoice_id):
         for line_item in single_invoice_obj.line_items.all()
     ]
     if request.method == "DELETE":
-        single_invoice_obj.is_archived = True
+        single_invoice_obj.status = SingleInvoice.InvoiceStatus.ARCHIVE
         single_invoice_obj.save()
         response = HttpResponse()
         response["HX-Redirect"] = "/invoices/manage/"
@@ -680,7 +680,7 @@ def sync_single_invoice(request, single_invoice_id):
         raise Http404
 
     customer_synced, error_raised = single_invoice_obj.sync_customer()
-    if single_invoice_obj.is_archived:
+    if single_invoice_obj.status < 3:
         response = render(
             request,
             "partials/_archive_single_invoice.html",
