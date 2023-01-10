@@ -12,7 +12,7 @@ import timary.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("timary", "0025_rename_email_recipient_invoice_client_email_and_more"),
+        ("timary", "0026_remove_sentinvoice_hours_end_date_and_more"),
     ]
 
     operations = [
