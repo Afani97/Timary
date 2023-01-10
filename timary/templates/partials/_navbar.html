@@ -1,8 +1,14 @@
 <div class="navbar mb-2 md:px-12 shadow-lg bg-neutral text-neutral-content">
     <div class="invisible md:visible flex-1 mx-2 px-1 md:px-0 md:mx-0">
-        <a class="text-lg font-bold" href="{% url 'timary:landing_page' %}">
-            Timary
-        </a>
+        {% if request.user.is_authenticated %}
+            <a class="text-lg font-bold" href="{% url 'timary:index' %}">
+                Timary
+            </a>
+        {% else %}
+            <a class="text-lg font-bold" href="{% url 'timary:landing_page' %}">
+                Timary
+            </a>
+        {% endif %}
     </div>
     <div class="flex-none hidden md:flex">
         <div class="flex space-x-1">

@@ -177,12 +177,12 @@ class InvoiceForm(forms.ModelForm):
             "title",
             "invoice_type",
             "invoice_rate",
-            "email_recipient_name",
-            "email_recipient",
+            "client_name",
+            "client_email",
         ]
         labels = {
-            "email_recipient_name": "Client's name",
-            "email_recipient": "Client's email",
+            "client_name": "Client's name",
+            "client_email": "Client's email",
         }
         widgets = {
             "title": forms.TextInput(
@@ -200,13 +200,13 @@ class InvoiceForm(forms.ModelForm):
                     "class": "input input-bordered border-2 text-lg w-full",
                 },
             ),
-            "email_recipient_name": forms.TextInput(
+            "client_name": forms.TextInput(
                 attrs={
                     "placeholder": "John Smith",
                     "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
-            "email_recipient": forms.EmailInput(
+            "client_email": forms.EmailInput(
                 attrs={
                     "placeholder": "john@company.com",
                     "class": "input input-bordered border-2 text-lg w-full",
@@ -214,11 +214,11 @@ class InvoiceForm(forms.ModelForm):
             ),
         }
 
-    def clean_email_recipient_name(self):
-        email_recipient_name = self.cleaned_data.get("email_recipient_name")
-        if not all(x.isalpha() or x.isspace() for x in email_recipient_name):
+    def clean_client_name(self):
+        client_name = self.cleaned_data.get("client_name")
+        if not all(x.isalpha() or x.isspace() for x in client_name):
             raise ValidationError("Only valid names allowed.")
-        return email_recipient_name
+        return client_name
 
     def clean_title(self):
         title = self.cleaned_data.get("title")
@@ -249,15 +249,15 @@ class CreateInvoiceForm(InvoiceForm):
         super().__init__(*args, **kwargs)
         self.fields["contacts"].choices = {
             (
-                inv.email_recipient_stripe_customer_id,
-                f"{inv.email_recipient_name} - {inv.email_recipient}",
+                inv.client_stripe_customer_id,
+                f"{inv.client_name} - {inv.client_email}",
             )
             for inv in Invoice.objects.filter(user=self.user)
         }
         self.fields["contacts"].choices.insert(0, ("", "Select a client"))
         # For the contacts logic
-        self.fields["email_recipient_name"].required = False
-        self.fields["email_recipient"].required = False
+        self.fields["client_name"].required = False
+        self.fields["client_email"].required = False
 
     class Meta(InvoiceForm.Meta):
         fields = InvoiceForm.Meta.fields + [
@@ -268,8 +268,7 @@ class CreateInvoiceForm(InvoiceForm):
         validated_data = super().clean()
 
         if validated_data.get("contacts") or (
-            validated_data.get("email_recipient")
-            and validated_data.get("email_recipient_name")
+            validated_data.get("client_email") and validated_data.get("client_name")
         ):
             # No missing client info
             pass
@@ -484,7 +483,7 @@ class PayInvoiceForm(forms.Form):
         cleaned_email = self.cleaned_data.get("email")
         if (
             cleaned_email.lower().strip()
-            != self.sent_invoice.invoice.email_recipient.lower()
+            != self.sent_invoice.invoice.client_email.lower()
         ):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
@@ -494,7 +493,7 @@ class PayInvoiceForm(forms.Form):
         cleaned_name = self.cleaned_data.get("first_name")
         if (
             cleaned_name.lower().strip()
-            not in self.sent_invoice.invoice.email_recipient_name.lower()
+            not in self.sent_invoice.invoice.client_name.lower()
         ):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."

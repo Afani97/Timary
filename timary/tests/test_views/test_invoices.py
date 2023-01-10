@@ -50,14 +50,14 @@ class TestInvoices(BaseTest):
                 "invoice_rate": 50,
                 "invoice_type": 1,
                 "invoice_interval": "D",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "john@test.com",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
             },
         )
 
         invoice = Invoice.objects.first()
-        inv_name = invoice.email_recipient_name
-        inv_email = invoice.email_recipient
+        inv_name = invoice.client_name
+        inv_email = invoice.client_email
         self.assertInHTML(
             f"""
             <h2 class="text-3xl font-bold mr-4">{invoice.title}</h2>
@@ -76,7 +76,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_create_invoice_from_client_list(self):
-        InvoiceFactory(user=self.user, email_recipient_stripe_customer_id="abc123")
+        InvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
@@ -89,7 +89,7 @@ class TestInvoices(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Invoice.objects.filter(email_recipient_stripe_customer_id="abc123").count(),
+            Invoice.objects.filter(client_stripe_customer_id="abc123").count(),
             2,
         )
 
@@ -106,8 +106,8 @@ class TestInvoices(BaseTest):
                 "invoice_rate": 50,
                 "invoice_type": 2,
                 "milestone_total_steps": 3,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "john@test.com",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
             },
         )
         invoice = Invoice.objects.first()
@@ -142,13 +142,13 @@ class TestInvoices(BaseTest):
                 "title": "Some title",
                 "invoice_type": 3,
                 "invoice_rate": 1200,
-                "email_recipient_name": "John Smith",
-                "email_recipient": "john@test.com",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
             },
         )
         invoice = Invoice.objects.first()
-        inv_name = invoice.email_recipient_name
-        inv_email = invoice.email_recipient
+        inv_name = invoice.client_name
+        inv_email = invoice.client_email
         self.assertIn(
             f"{inv_name} - {inv_email}",
             response.content.decode("utf-8"),
@@ -203,8 +203,8 @@ class TestInvoices(BaseTest):
                 "invoice_rate": 50,
                 "invoice_type": 1,
                 "invoice_interval": "D",
-                "email_recipient_name": "John Smith",
-                "email_recipient": "john@test.com",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
             },
         )
         self.assertInHTML(
@@ -279,16 +279,16 @@ class TestInvoices(BaseTest):
             "title": "Some title",
             "invoice_rate": 100,
             "invoice_interval": "D",
-            "email_recipient_name": "John Smith",
-            "email_recipient": "john@test.com",
+            "client_name": "John Smith",
+            "client_email": "john@test.com",
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
             data=urlencode(url_params),  # HTML PUT FORM
         )
         self.invoice.refresh_from_db()
-        inv_name = self.invoice.email_recipient_name
-        inv_email = self.invoice.email_recipient
+        inv_name = self.invoice.client_name
+        inv_email = self.invoice.client_email
         self.assertInHTML(
             f"""
             <h2 class="text-3xl font-bold mr-4">{self.invoice.title}</h2>
@@ -316,8 +316,8 @@ class TestInvoices(BaseTest):
             "title": "Some title",
             "invoice_rate": 100,
             "milestone_total_steps": 5,
-            "email_recipient_name": "John Smith",
-            "email_recipient": "john@test.com",
+            "client_name": "John Smith",
+            "client_email": "john@test.com",
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
@@ -352,8 +352,8 @@ class TestInvoices(BaseTest):
         url_params = {
             "title": "Some title",
             "invoice_rate": 100,
-            "email_recipient_name": "John Smith",
-            "email_recipient": "john@test.com",
+            "client_name": "John Smith",
+            "client_email": "john@test.com",
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
@@ -369,8 +369,8 @@ class TestInvoices(BaseTest):
             "title": "Some title",
             "invoice_rate": 100,
             "invoice_interval": "D",
-            "email_recipient_name": "John Smith",
-            "email_recipient": "john@test.com",
+            "client_name": "John Smith",
+            "client_email": "john@test.com",
         }
         self.invoice.invoice_interval = "W"
         self.invoice.calculate_next_date()

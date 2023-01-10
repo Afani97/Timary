@@ -99,10 +99,10 @@ class StripeService:
     def create_customer_for_invoice(cls, invoice):
         stripe.api_key = cls.stripe_api_key
         stripe_customer = stripe.Customer.create(
-            email=invoice.email_recipient,
-            name=invoice.email_recipient_name,
+            email=invoice.client_email,
+            name=invoice.client_name,
         )
-        invoice.email_recipient_stripe_customer_id = stripe_customer["id"]
+        invoice.client_stripe_customer_id = stripe_customer["id"]
         invoice.save()
 
     @classmethod
@@ -174,7 +174,7 @@ class StripeService:
         )
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
-            customer=sent_invoice.invoice.email_recipient_stripe_customer_id,
+            customer=sent_invoice.invoice.client_stripe_customer_id,
             amount=invoice_amount,
             setup_future_usage="off_session",
             currency="usd",
@@ -194,13 +194,13 @@ class StripeService:
 
         # Retrieve the first bank account for invoicee and confirm the payment.
         invoicee_payment_method = StripeService.retrieve_customer_payment_method(
-            sent_invoice.invoice.email_recipient_stripe_customer_id
+            sent_invoice.invoice.client_stripe_customer_id
         )
 
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
             payment_method=invoicee_payment_method["id"],
-            customer=sent_invoice.invoice.email_recipient_stripe_customer_id,
+            customer=sent_invoice.invoice.client_stripe_customer_id,
             amount=invoice_amount,
             confirm=True,
             currency="usd",

@@ -66,8 +66,8 @@ class TestInvoice(TestCase):
             title="Some title",
             user=user,
             invoice_rate=100,
-            email_recipient_name="User",
-            email_recipient="user@test.com",
+            client_name="User",
+            client_email="user@test.com",
             invoice_interval="W",
             next_date=next_date,
             last_date=datetime.date.today(),
@@ -77,8 +77,8 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.title, "Some title")
         self.assertEqual(invoice.user, user)
         self.assertEqual(invoice.invoice_rate, 100)
-        self.assertEqual(invoice.email_recipient_name, "User")
-        self.assertEqual(invoice.email_recipient, "user@test.com")
+        self.assertEqual(invoice.client_name, "User")
+        self.assertEqual(invoice.client_email, "user@test.com")
         self.assertEqual(invoice.next_date, next_date)
         self.assertEqual(invoice.last_date, datetime.date.today())
         self.assertEqual(invoice.slug_title, slugify(invoice.title))
@@ -90,8 +90,8 @@ class TestInvoice(TestCase):
                 title="Some title",
                 user=user,
                 invoice_rate=-10,
-                email_recipient_name="User",
-                email_recipient="user@test.com",
+                client_name="User",
+                client_email="user@test.com",
             )
 
     def test_error_creating_invoice_without_user(self):
@@ -99,28 +99,28 @@ class TestInvoice(TestCase):
             Invoice.objects.create(
                 title="Some title",
                 invoice_rate=-10,
-                email_recipient_name="User",
-                email_recipient="user@test.com",
+                client_name="User",
+                client_email="user@test.com",
             )
 
-    def test_error_creating_invoice_without_email_recipient_name(self):
+    def test_error_creating_invoice_without_client_name(self):
         user = UserFactory()
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
                 user=user,
                 invoice_rate=-10,
-                email_recipient="user@test.com",
+                client_email="user@test.com",
             )
 
-    def test_error_creating_invoice_without_email_recipient(self):
+    def test_error_creating_invoice_without_client_email(self):
         user = UserFactory()
         with self.assertRaises(ValidationError):
             Invoice.objects.create(
                 title="Some title",
                 user=user,
                 invoice_rate=-10,
-                email_recipient_name="User",
+                client_name="User",
             )
 
     def test_invoice_calculate_next_date(self):
