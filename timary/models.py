@@ -436,29 +436,29 @@ class SingleInvoice(BaseModel):
     accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
     accounting_invoice_id = models.CharField(max_length=200, blank=True, null=True)
 
-    class Meta:
-        constraints = [
-            # Either an interval is selected or installments are, don't allow both for now.
-            models.CheckConstraint(
-                violation_error_message="Cannot set both interval and installments for same invoice, "
-                "please select either one.",
-                name="%(app_label)s_%(class)s_either_interval_or_installments",
-                check=(
-                    Q(
-                        invoice_interval__exact=0,
-                        installments__exact=0,
-                    )
-                    | Q(
-                        invoice_interval__gt=0,
-                        installments__exact=0,
-                    )
-                    | Q(
-                        invoice_interval__exact=0,
-                        installments__gt=0,
-                    )
-                ),
-            )
-        ]
+    # class Meta:
+    # constraints = [
+    #     # Either an interval is selected or installments are, don't allow both for now.
+    #     models.CheckConstraint(
+    #         violation_error_message="Cannot set both interval and installments for same invoice, "
+    #         "please select either one.",
+    #         name="%(app_label)s_%(class)s_either_interval_or_installments",
+    #         check=(
+    #             Q(
+    #                 invoice_interval__exact=0,
+    #                 installments__exact=0,
+    #             )
+    #             | Q(
+    #                 invoice_interval__gt=0,
+    #                 installments__exact=0,
+    #             )
+    #             | Q(
+    #                 invoice_interval__exact=0,
+    #                 installments__gt=0,
+    #             )
+    #         ),
+    #     )
+    # ]
 
     def __str__(self):
         return f"<SingleInvoice({self.id=}, {self.title=}, {self.total_price=}, {self.late_penalty=})"
