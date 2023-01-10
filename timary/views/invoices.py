@@ -59,6 +59,9 @@ def manage_invoices(request):
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True),
+        "archived_single_invoices": request.user.single_invoices.filter(
+            status=SingleInvoice.InvoiceStatus.ARCHIVE
+        ),
     }
     context.update(show_active_timer(request.user))
     return render(
@@ -683,8 +686,8 @@ def sync_single_invoice(request, single_invoice_id):
     if single_invoice_obj.status < 3:
         response = render(
             request,
-            "partials/_archive_single_invoice.html",
-            {"archive_invoice": single_invoice_obj},
+            "partials/_archived_single_invoice.html",
+            {"single_invoice": single_invoice_obj},
         )
     else:
         response = render(

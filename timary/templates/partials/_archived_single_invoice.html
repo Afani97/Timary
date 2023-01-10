@@ -1,0 +1,33 @@
+<li class="card shadow-lg bordered mb-2 bg-base-200">
+    <div class="card-body">
+        <div>
+            <div class="flex justify-between">
+                <div class="card-title">
+                    {{ single_invoice.title }}
+                    {% if single_invoice.user.accounting_org_id and single_invoice.accounting_customer_id %}
+                        <div class="tooltip" data-tip="Synced with your accounting service.">
+                            {% include 'partials/_check_svg.html' %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% if single_invoice.user.accounting_org_id and not single_invoice.accounting_customer_id and single_invoice.user.settings.subscription_active %}
+                    <div class="dropdown dropdown-left rounded-box">
+                        <label tabindex="0" class="btn btn-ghost btn-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                        </label>
+                        <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-64 md:w-80 z-auto">
+                            <li>
+                                <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
+                                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
+                                    Sync with {{ single_invoice.user.accounting_org }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+            <p class="text-xl">Recipient: {{ single_invoice.client_name }} ({{ single_invoice.client_email }})</p>
+            <p class="text-lg">Amount: ${{ single_invoice.total_price|floatformat:-2 }}</p>
+        </div>
+    </div>
+</li>

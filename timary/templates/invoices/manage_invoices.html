@@ -120,6 +120,13 @@
                     {% endfor %}
                 </ul>
             {% endif %}
+            {% if archived_single_invoices.count > 0 %}
+                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for archive_invoice in archived_single_invoices %}
+                        {% include "partials/_archived_single_invoice.html" with single_invoice=archive_invoice %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
 
     {% endif %}
