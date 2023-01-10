@@ -7,6 +7,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from timary.custom_errors import AccountingError
+from timary.models import SentInvoice, SingleInvoice
 
 
 class ZohoService:
@@ -166,9 +167,20 @@ class ZohoService:
 
         # Generate item
         data = {
-            "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
             "rate": float(sent_invoice.total_price),
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data.update(
+                {
+                    "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.invoice.title}",
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data.update(
+                {
+                    "name": f"{sent_invoice.user.first_name} services on {today_formatted} for {sent_invoice.title}"
+                }
+            )
         try:
             item_request = ZohoService.create_request(
                 zoho_auth_token,
@@ -201,7 +213,6 @@ class ZohoService:
 
         # Generate invoice
         data = {
-            "customer_id": sent_invoice.invoice.accounting_customer_id,
             "date": today_formatted,
             "line_items": [
                 {
@@ -212,6 +223,18 @@ class ZohoService:
                 }
             ],
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data.update(
+                {
+                    "customer_id": sent_invoice.invoice.accounting_customer_id,
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data.update(
+                {
+                    "customer_id": sent_invoice.accounting_customer_id,
+                }
+            )
         try:
             response = ZohoService.create_request(
                 zoho_auth_token,
@@ -235,7 +258,6 @@ class ZohoService:
 
         # Generate payment for invoice
         data = {
-            "customer_id": sent_invoice.invoice.accounting_customer_id,
             "payment_mode": "creditcard",
             "amount": int(float(sent_invoice.total_price)),
             "date": today_formatted,
@@ -246,6 +268,18 @@ class ZohoService:
                 }
             ],
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data.update(
+                {
+                    "customer_id": sent_invoice.invoice.accounting_customer_id,
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data.update(
+                {
+                    "customer_id": sent_invoice.accounting_customer_id,
+                }
+            )
         try:
             ZohoService.create_request(
                 zoho_auth_token,

@@ -7,6 +7,7 @@ from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
+from timary.models import SentInvoice, SingleInvoice
 from timary.utils import simulate_requests_response
 
 
@@ -162,7 +163,6 @@ class XeroService:
         today_formatted = today.strftime("%Y-%m-%d")
         data = {
             "Type": "ACCREC",
-            "Contact": {"ContactID": sent_invoice.invoice.accounting_customer_id},
             "DueDate": today_formatted,
             "LineAmountTypes": "Exclusive",
             "Status": "AUTHORISED",
@@ -176,6 +176,16 @@ class XeroService:
                 }
             ],
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data.update(
+                {
+                    "Contact": {
+                        "ContactID": sent_invoice.invoice.accounting_customer_id
+                    },
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data.update({"Contact": {"ContactID": sent_invoice.accounting_customer_id}})
         try:
             response = XeroService.create_request(
                 xero_auth_token,

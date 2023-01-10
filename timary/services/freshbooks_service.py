@@ -6,6 +6,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from timary.custom_errors import AccountingError
+from timary.models import SentInvoice, SingleInvoice
 
 
 class FreshbooksService:
@@ -179,7 +180,6 @@ class FreshbooksService:
 
         data = {
             "invoice": {
-                "customerid": sent_invoice.invoice.accounting_customer_id,
                 "create_date": today_formatted,
                 "status": 2,
                 "lines": [
@@ -196,6 +196,14 @@ class FreshbooksService:
                 ],
             }
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data["invoice"].update(
+                {
+                    "customerid": sent_invoice.invoice.accounting_customer_id,
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data["invoice"].update({"customerid": sent_invoice.accounting_customer_id})
         endpoint = f"accounting/account/{sent_invoice.user.accounting_org_id}/invoices/invoices"
         try:
             response = FreshbooksService.create_request(

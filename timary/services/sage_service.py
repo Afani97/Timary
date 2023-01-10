@@ -6,6 +6,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from timary.custom_errors import AccountingError
+from timary.models import SentInvoice, SingleInvoice
 
 
 class SageService:
@@ -195,11 +196,9 @@ class SageService:
         # Generate invoice
         data = {
             "sales_invoice": {
-                "contact_id": sent_invoice.invoice.accounting_customer_id,
                 "date": today_formatted,
                 "invoice_lines": [
                     {
-                        "description": f"Invoice for {sent_invoice.invoice.client_name}",
                         "ledger_account_id": ledger_account_id,
                         "quantity": "1",
                         "tax_rate_id": no_tax_id,
@@ -208,6 +207,24 @@ class SageService:
                 ],
             }
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data["sales_invoice"].update(
+                {
+                    "contact_id": sent_invoice.invoice.accounting_customer_id,
+                }
+            )
+            data["sales_invoice"]["invoice_lines"][0].update(
+                {"description": f"Invoice for {sent_invoice.invoice.client_name}"}
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data["sales_invoice"].update(
+                {
+                    "contact_id": sent_invoice.accounting_customer_id,
+                }
+            )
+            data["sales_invoice"]["invoice_lines"][0].update(
+                {"description": f"Invoice for {sent_invoice.client_name}"}
+            )
 
         try:
             response = SageService.create_request(
@@ -229,7 +246,6 @@ class SageService:
             "contact_payment": {
                 "transaction_type_id": "CUSTOMER_RECEIPT",
                 "payment_method_id": "CREDIT_DEBIT",
-                "contact_id": sent_invoice.invoice.accounting_customer_id,
                 "bank_account_id": bank_account_id,
                 "date": today_formatted,
                 "total_amount": str(float(sent_invoice.total_price)),
@@ -241,6 +257,18 @@ class SageService:
                 ],
             }
         }
+        if isinstance(sent_invoice, SentInvoice):
+            data["contact_payment"].update(
+                {
+                    "contact_id": sent_invoice.invoice.accounting_customer_id,
+                }
+            )
+        elif isinstance(sent_invoice, SingleInvoice):
+            data["sales_invoice"].update(
+                {
+                    "contact_id": sent_invoice.accounting_customer_id,
+                }
+            )
 
         try:
             SageService.create_request(

@@ -6,7 +6,7 @@ from django.urls import reverse
 from requests.auth import HTTPBasicAuth
 
 from timary.custom_errors import AccountingError
-from timary.models import SentInvoice
+from timary.models import SentInvoice, SingleInvoice
 from timary.utils import simulate_requests_response
 
 
@@ -164,7 +164,7 @@ class QuickbooksService:
             data.update(
                 {"CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id}}
             )
-        elif isinstance(sent_invoice, SentInvoice):
+        elif isinstance(sent_invoice, SingleInvoice):
             data.update({"CustomerRef": {"value": sent_invoice.accounting_customer_id}})
         try:
             response = QuickbooksService.create_request(
