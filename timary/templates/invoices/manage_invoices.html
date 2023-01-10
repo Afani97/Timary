@@ -102,7 +102,7 @@
                 </div>
             {% endfor %}
             {% for invoice in single_invoices %}
-                <a href="{% url 'timary:update_single_invoice' single_invoice_id=invoice.id %}">{{ invoice.title }} - {{ invoice.line_items.count }}</a>
+                {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
             {% endfor %}
         </ul>
     </div>

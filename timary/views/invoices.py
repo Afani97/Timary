@@ -672,3 +672,38 @@ def single_invoice_line_item(request):
         line_item.delete()
         return HttpResponse("")
     raise Http404
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_single_invoice(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if request.user != single_invoice_obj.user:
+        raise Http404
+
+    customer_synced, error_raised = single_invoice_obj.sync_customer()
+    if single_invoice_obj.is_archived:
+        response = render(
+            request,
+            "partials/_archive_single_invoice.html",
+            {"archive_invoice": single_invoice_obj},
+        )
+    else:
+        response = render(
+            request, "partials/_single_invoice.html", {"invoice": single_invoice_obj}
+        )
+
+    if customer_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"We had trouble syncing {single_invoice_obj.title}. {error_raised}",
+            persist=True,
+        )
+    return response

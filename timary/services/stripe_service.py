@@ -106,6 +106,16 @@ class StripeService:
         invoice.save()
 
     @classmethod
+    def create_customer_for_single_invoice(cls, single_invoice):
+        stripe.api_key = cls.stripe_api_key
+        stripe_customer = stripe.Customer.create(
+            email=single_invoice.client_email,
+            name=single_invoice.client_name,
+        )
+        single_invoice.email_recipient_stripe_customer_id = stripe_customer["id"]
+        single_invoice.save()
+
+    @classmethod
     def retrieve_customer(cls, customer_id):
         stripe.api_key = cls.stripe_api_key
         stripe_customer = stripe.Customer.retrieve(customer_id)

@@ -160,6 +160,11 @@ urlpatterns += [
         name="sync_invoice",
     ),
     path(
+        "invoices/single/<uuid:single_invoice_id>/sync",
+        views.sync_single_invoice,
+        name="sync_single_invoice",
+    ),
+    path(
         "invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
         views.sync_sent_invoice,
         name="sync_sent_invoice",

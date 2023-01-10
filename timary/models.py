@@ -466,6 +466,19 @@ class SingleInvoice(BaseModel):
         self.full_clean()
         return super().save(*args, **kwargs)
 
+    def sync_customer(self):
+        if not self.client_stripe_customer_id:
+            StripeService.create_customer_for_invoice(self)
+
+        if not self.user.accounting_org_id:
+            return None, None
+        try:
+            AccountingService({"user": self.user, "invoice": self}).create_customer()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason  # Failed to sync customer
+        return True, None  # Customer synced
+
     def update_total_price(self):
         total = 0.0
         for line_item in self.line_items.all():
