@@ -1,4 +1,3 @@
-import datetime
 import random
 import uuid
 from datetime import date, timedelta
@@ -115,7 +114,7 @@ class DailyHoursInput(BaseModel):
         ):
             return False
         if self.recurring_logic["type"] == "repeating":
-            if datetime.date.fromisoformat(self.recurring_logic["end_date"]) <= today:
+            if date.fromisoformat(self.recurring_logic["end_date"]) <= today:
                 self.cancel_recurring_hour()
                 return False
 
@@ -138,7 +137,7 @@ class DailyHoursInput(BaseModel):
             num_weeks = 1 if self.recurring_logic["interval"] != "b" else 2
             self.recurring_logic["starting_week"] = (
                 date.fromisoformat(self.recurring_logic["starting_week"])
-                + datetime.timedelta(weeks=num_weeks)
+                + timedelta(weeks=num_weeks)
             ).isoformat()
             self.save()
 
@@ -255,7 +254,7 @@ class Invoice(BaseModel):
                 return 0
 
         total_hours = self.hours_tracked.filter(
-            date_tracked__lte=datetime.date.today()
+            date_tracked__lte=date.today()
         ).aggregate(total_hours=Sum("hours"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
@@ -264,7 +263,7 @@ class Invoice(BaseModel):
         return round((total_cost_amount / self.total_budget), ndigits=2) * 100
 
     def get_last_six_months(self):
-        today = datetime.date.today()
+        today = date.today()
         date_times = [
             (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
         ]
@@ -492,7 +491,7 @@ class SingleInvoice(BaseModel):
         if self.tax_amount:
             total_price += total_price * float(self.tax_amount / 100)
 
-        if self.late_penalty and self.due_date < datetime.date.today():
+        if self.late_penalty and self.due_date < date.today():
             total_price += float(self.late_penalty_amount)
 
         self.total_price = round(Decimal.from_float(total_price), 2)
@@ -646,7 +645,7 @@ class SentInvoice(BaseModel):
         return SentInvoice.objects.create(
             hours_start_date=first_date_tracked,
             hours_end_date=last_date_tracked,
-            date_sent=datetime.date.today(),
+            date_sent=date.today(),
             invoice=invoice,
             user=invoice.user,
             total_price=total_cost,
@@ -896,11 +895,9 @@ class User(AbstractUser, BaseModel):
         latest_date_tracked = (
             latest_hour_tracked.date_tracked if latest_hour_tracked else None
         )
-        if latest_date_tracked == datetime.date.today():
+        if latest_date_tracked == date.today():
             show_repeat = 0
-        elif latest_date_tracked == (
-            datetime.date.today() - datetime.timedelta(days=1)
-        ):
+        elif latest_date_tracked == (date.today() - timedelta(days=1)):
             show_repeat = 1
         return show_repeat
 
@@ -946,8 +943,8 @@ class User(AbstractUser, BaseModel):
     def invoice_branding_properties(self):
         return {
             "due_date_selected": self.invoice_branding.get("due_date"),
-            "next_weeks_date": datetime.date.today()
-            + datetime.timedelta(weeks=int(self.invoice_branding.get("due_date") or 1)),
+            "next_weeks_date": date.today()
+            + timedelta(weeks=int(self.invoice_branding.get("due_date") or 1)),
             "user_name": self.invoice_branding.get("company_name") or self.first_name,
             "hide_timary": self.invoice_branding.get("hide_timary") or False,
             "show_profile_pic": self.invoice_branding.get("show_profile_pic"),
