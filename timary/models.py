@@ -533,49 +533,50 @@ class SingleInvoiceLineItem(BaseModel):
         return Decimal(self.quantity) * self.price
 
 
-class SingleInvoiceInstallment(BaseModel):
-    invoice = models.ForeignKey(
-        "timary.SingleInvoice",
-        on_delete=models.CASCADE,
-        related_name="installment_invoices",
-    )
-    paid_status = models.PositiveSmallIntegerField(
-        default=SingleInvoice.PaidStatus.NOT_STARTED,
-        choices=SingleInvoice.PaidStatus.choices,
-    )
-    stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
-
-    date_sent = models.DateField(null=False, blank=False)
-    due_date = models.DateField(null=False, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
-
-    def price(self):
-        if self.invoice.installments > 0:
-            return self.invoice.balance / self.invoice.installments
-        raise ValueError("Cannot send installment for for non installment invoices")
-
-
-class SingleInvoiceInterval(BaseModel):
-    invoice = models.ForeignKey(
-        "timary.SingleInvoice",
-        on_delete=models.CASCADE,
-        related_name="interval_invoices",
-    )
-    paid_status = models.PositiveSmallIntegerField(
-        default=SingleInvoice.PaidStatus.NOT_STARTED,
-        choices=SingleInvoice.PaidStatus.choices,
-    )
-    stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
-
-    date_sent = models.DateField(null=False, blank=False)
-    due_date = models.DateField(null=False, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+# TODO: Uncomment when implementing logic
+# class SingleInvoiceInstallment(BaseModel):
+#     invoice = models.ForeignKey(
+#         "timary.SingleInvoice",
+#         on_delete=models.CASCADE,
+#         related_name="installment_invoices",
+#     )
+#     paid_status = models.PositiveSmallIntegerField(
+#         default=SingleInvoice.PaidStatus.NOT_STARTED,
+#         choices=SingleInvoice.PaidStatus.choices,
+#     )
+#     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
+#
+#     date_sent = models.DateField(null=False, blank=False)
+#     due_date = models.DateField(null=False, blank=True)
+#
+#     def save(self, *args, **kwargs):
+#         self.full_clean()
+#         return super().save(*args, **kwargs)
+#
+#     def price(self):
+#         if self.invoice.installments > 0:
+#             return self.invoice.balance / self.invoice.installments
+#         raise ValueError("Cannot send installment for for non installment invoices")
+#
+#
+# class SingleInvoiceInterval(BaseModel):
+#     invoice = models.ForeignKey(
+#         "timary.SingleInvoice",
+#         on_delete=models.CASCADE,
+#         related_name="interval_invoices",
+#     )
+#     paid_status = models.PositiveSmallIntegerField(
+#         default=SingleInvoice.PaidStatus.NOT_STARTED,
+#         choices=SingleInvoice.PaidStatus.choices,
+#     )
+#     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
+#
+#     date_sent = models.DateField(null=False, blank=False)
+#     due_date = models.DateField(null=False, blank=True)
+#
+#     def save(self, *args, **kwargs):
+#         self.full_clean()
+#         return super().save(*args, **kwargs)
 
 
 class SentInvoice(BaseModel):
