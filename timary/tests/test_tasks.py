@@ -356,8 +356,6 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 1)
 
         sent_invoice = SentInvoice.objects.first()
-        self.assertEquals(sent_invoice.hours_start_date, two_days_ago)
-        self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
             (h1.hours + h2.hours + h3.hours) * invoice.invoice_rate,
@@ -379,8 +377,6 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 1)
 
         sent_invoice = SentInvoice.objects.first()
-        self.assertEquals(sent_invoice.hours_start_date, yesterday)
-        self.assertEquals(sent_invoice.hours_end_date, self.todays_date)
         self.assertEquals(
             sent_invoice.total_price,
             (h2.hours + h3.hours) * invoice.invoice_rate,

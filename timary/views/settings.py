@@ -310,20 +310,13 @@ def audit(request):
 
     # add sent invoice data per row
     for sent_invoice in sent_invoices:
-        total_hours = sent_invoice.invoice.hours_tracked.filter(
-            date_tracked__range=[
-                sent_invoice.hours_start_date,
-                sent_invoice.hours_end_date,
-            ]
-        ).aggregate(hours=Sum("hours"))
+        total_hours = sent_invoice.invoice.hours_tracked.aggregate(hours=Sum("hours"))
         ws.append(
             [
                 sent_invoice.date_sent.strftime("%Y-%m-%d"),
                 str(sent_invoice.invoice.id),
                 sent_invoice.invoice.title,
                 str(sent_invoice.user.id),
-                sent_invoice.hours_start_date.strftime("%Y-%m-%d"),
-                sent_invoice.hours_end_date.strftime("%Y-%m-%d"),
                 total_hours["hours"],
                 str(sent_invoice.total_price),
                 sent_invoice.get_paid_status_display(),
