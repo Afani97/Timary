@@ -68,8 +68,6 @@ class SentInvoiceFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     invoice = factory.SubFactory(InvoiceFactory)
-    hours_start_date = factory.LazyFunction(get_last_date)
-    hours_end_date = factory.LazyFunction(datetime.date.today)
     date_sent = factory.LazyFunction(datetime.date.today)
     total_price = FuzzyDecimal(100, 10_000)
     paid_status = SentInvoice.PaidStatus.NOT_STARTED
