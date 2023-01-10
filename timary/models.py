@@ -481,10 +481,20 @@ class SingleInvoice(BaseModel):
         return True, None  # Customer synced
 
     def update_total_price(self):
-        total = 0.0
+        total_price = 0.0
         for line_item in self.line_items.all():
-            total += float(line_item.total_amount())
-        self.total_price = total
+            total_price += float(line_item.total_amount())
+
+        if self.discount_amount:
+            total_price -= float(self.discount_amount)
+
+        if self.tax_amount:
+            total_price += total_price * float(self.tax_amount / 100)
+
+        if self.late_penalty and self.due_date < datetime.date.today():
+            total_price += float(self.late_penalty_amount)
+
+        self.total_price = round(Decimal.from_float(total_price), 2)
         self.save()
 
     def send_invoice(self):
@@ -502,21 +512,6 @@ class SingleInvoice(BaseModel):
         )
 
         EmailService.send_html(msg_subject, msg_body, self.client_email)
-
-    @property
-    def balance(self):
-        total_price = self.total_price
-
-        if self.discount_amount:
-            total_price -= self.discount_amount
-
-        if self.tax_amount:
-            total_price += total_price * (self.tax_amount / 100)
-
-        if self.late_penalty and self.due_date < datetime.date.today():
-            total_price += self.late_penalty_amount
-
-        return total_price
 
 
 class SingleInvoiceLineItem(BaseModel):
@@ -558,7 +553,7 @@ class SingleInvoiceLineItem(BaseModel):
 #
 #     def price(self):
 #         if self.invoice.installments > 0:
-#             return self.invoice.balance / self.invoice.installments
+#             return self.invoice.total_price / self.invoice.installments
 #         raise ValueError("Cannot send installment for for non installment invoices")
 #
 #
