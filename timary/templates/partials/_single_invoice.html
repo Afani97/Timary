@@ -4,7 +4,7 @@
         <div class="flex justify-between">
             <div class="flex items-center mb-4">
                 <h2 class="text-3xl font-bold mr-4">{{ single_invoice.title }}</h2>
-                {% if single_invoice.user.accounting_org_id and single_invoice.accounting_customer_id %}
+                {% if single_invoice.is_synced %}
                     <div class="tooltip" data-tip="Synced with your accounting service.">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
                             <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
@@ -19,11 +19,11 @@
                 </label>
                 <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-64 md:w-80 z-auto">
                     <li>
-                        <a class="btn btn-sm" href="{% url 'timary:update_single_invoice' single_invoice_id=invoice.id %}">
+                        <a class="btn btn-sm" href="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}">
                             Edit
                         </a>
                     </li>
-                    {% if single_invoice.user.accounting_org_id and not single_invoice.accounting_customer_id and single_invoice.user.settings.subscription_active %}
+                    {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
@@ -82,5 +82,22 @@
                 </div>
             {% endif %}
         </div>
+        {% if single_invoice.user.settings.subscription_active %}
+            {% if single_invoice.paid_status == 0 or single_invoice.paid_status == 3 %}
+                <a hx-get="{% url 'timary:resend_single_invoice_email' single_invoice_id=single_invoice.id %}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    class="btn btn-secondary md:w-1/4"
+                    _="on htmx:beforeRequest add .loading to me"
+                    {% if invoice_resent %} disabled="disabled" {% endif %}
+                >
+                    {% if invoice_resent %}
+                        Invoice resent
+                    {% else %}
+                        Resend invoice
+                    {% endif %}
+                </a>
+            {% endif %}
+        {% endif %}
     </div>
 </li>

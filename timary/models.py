@@ -467,6 +467,14 @@ class SingleInvoice(BaseModel):
         self.full_clean()
         return super().save(*args, **kwargs)
 
+    @property
+    def is_synced(self):
+        return (
+            self.paid_status == SentInvoice.PaidStatus.PAID
+            and self.accounting_invoice_id is not None
+            and self.accounting_customer_id is not None
+        )
+
     def sync_customer(self):
         if not self.client_stripe_customer_id:
             StripeService.create_customer_for_invoice(self)
@@ -479,6 +487,22 @@ class SingleInvoice(BaseModel):
             error_reason = ae.log()
             return False, error_reason  # Failed to sync customer
         return True, None  # Customer synced
+
+    def sync_invoice(self):
+        if self.paid_status != SentInvoice.PaidStatus.PAID:
+            return None, "Invoice isn't paid"
+
+        if not self.user.accounting_org_id:
+            return None, "No accounting service found"
+
+        try:
+            AccountingService(
+                {"user": self.user, "sent_invoice": self}
+            ).create_invoice()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason
+        return True, None
 
     def update_total_price(self):
         total_price = 0.0

@@ -555,6 +555,8 @@ def single_invoice(request):
                     line_item_saved.invoice = saved_single_invoice
                     line_item_saved.save()
             saved_single_invoice.update_total_price()
+            if saved_single_invoice.status == SingleInvoice.InvoiceStatus.SENT:
+                saved_single_invoice.send_invoice()
             messages.success(
                 request,
                 f"Successfully created {saved_single_invoice.title}",
@@ -645,6 +647,8 @@ def update_single_invoice(request, single_invoice_id):
                     line_item_saved.save()
 
             saved_single_invoice.update_total_price()
+            if saved_single_invoice.status == SingleInvoice.InvoiceStatus.SENT:
+                saved_single_invoice.send_invoice()
             single_invoice_obj = saved_single_invoice
             line_item_forms = [
                 SingleInvoiceLineItemForm(instance=line_item)
@@ -696,27 +700,66 @@ def sync_single_invoice(request, single_invoice_id):
     if single_invoice_obj.status < 3:
         response = render(
             request,
-            "partials/_archived_single_invoice.html",
+            "partials/_single_invoice.html",
             {"single_invoice": single_invoice_obj},
         )
     else:
         response = render(
             request,
-            "partials/_single_invoice.html",
+            "partials/_archived_single_invoice.html",
             {"single_invoice": single_invoice_obj},
         )
 
     if customer_synced:
-        show_alert_message(
-            response,
-            "success",
-            f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+        invoice_synced, error_raised = single_invoice_obj.sync_invoice()
+
+        if invoice_synced:
+            show_alert_message(
+                response,
+                "success",
+                f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+            )
+            return response
+    show_alert_message(
+        response,
+        "error",
+        f"We had trouble syncing {single_invoice_obj.title}. {error_raised}",
+        persist=True,
+    )
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def resend_single_invoice_email(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if single_invoice_obj.paid_status == SingleInvoice.PaidStatus.PAID:
+        return redirect(reverse("timary:manage_invoices"))
+    if not request.user.settings["subscription_active"]:
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj},
         )
-    else:
         show_alert_message(
             response,
-            "error",
-            f"We had trouble syncing {single_invoice_obj.title}. {error_raised}",
+            "warning",
+            "Your account is in-active. Please re-activate to resend an invoice.",
             persist=True,
         )
+        return response
+    if request.user != single_invoice_obj.user:
+        raise Http404
+    single_invoice_obj.send_invoice()
+
+    response = render(
+        request,
+        "partials/_single_invoice.html",
+        {"single_invoice": single_invoice_obj, "invoice_resent": True},
+    )
+    show_alert_message(
+        response,
+        "success",
+        f"Invoice for {single_invoice_obj.title} has been resent",
+    )
     return response

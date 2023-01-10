@@ -4,7 +4,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
     <div class="max-w-5xl mx-auto md:px-5">
-        {% if invoices|length != 0 and single_invoices|length != 0%}
+        {% if invoices|length != 0 or single_invoices|length != 0%}
             <div class="flex flex-row justify-between my-8 md:m-8 items-baseline">
                 <h1 class="text-3xl text-center font-bold" id="current-invoices">Invoices</h1>
                 <div class="flex justify-center">

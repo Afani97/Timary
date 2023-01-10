@@ -105,6 +105,11 @@ urlpatterns += [
         name="update_single_invoice",
     ),
     path(
+        "invoices/single/<uuid:single_invoice_id>/resend/",
+        views.resend_single_invoice_email,
+        name="resend_single_invoice_email",
+    ),
+    path(
         "invoices/single-line-item/",
         views.single_invoice_line_item,
         name="single_invoice_line_item",
