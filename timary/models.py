@@ -356,7 +356,7 @@ class SingleInvoice(BaseModel):
         MONTHLY = 3, "MONTHLY"
 
     class PaidStatus(models.IntegerChoices):
-        NOT_STARTED = 0, "NOT_STARTED"
+        NOT_STARTED = 0, "NOT STARTED"
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
         FAILED = 3, "FAILED"
