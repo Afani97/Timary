@@ -43,7 +43,6 @@ class InvoiceFactory(DjangoModelFactory):
     invoice_type = Invoice.InvoiceType.INTERVAL
     invoice_interval = factory.Iterator(
         [
-            Invoice.Interval.DAILY,
             Invoice.Interval.WEEKLY,
             Invoice.Interval.BIWEEKLY,
             Invoice.Interval.MONTHLY,

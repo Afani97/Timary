@@ -125,11 +125,7 @@ class TestInvoice(TestCase):
 
     def test_invoice_calculate_next_date(self):
         today = datetime.date.today()
-        invoice = InvoiceFactory(invoice_interval="D")
-        invoice.calculate_next_date()
-        self.assertEqual(invoice.next_date, today + datetime.timedelta(days=1))
-
-        invoice.invoice_interval = "W"
+        invoice = InvoiceFactory(invoice_interval="W")
         invoice.calculate_next_date()
         self.assertEqual(invoice.next_date, today + datetime.timedelta(weeks=1))
 
