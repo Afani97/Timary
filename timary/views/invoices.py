@@ -530,6 +530,11 @@ def single_invoice(request):
         if invoice_form.is_valid():
             saved_single_invoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
+            if invoice_status := request.GET.get("status"):
+                if invoice_status == "draft":
+                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.DRAFT
+                elif invoice_status == "send":
+                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.SENT
             saved_single_invoice.save()
 
             # Save line items to the invoice if valid
@@ -605,6 +610,11 @@ def update_single_invoice(request, single_invoice_id):
         if invoice_form.is_valid():
             saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
+            if invoice_status := request.GET.get("status"):
+                if invoice_status == "draft":
+                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.DRAFT
+                elif invoice_status == "send":
+                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.SENT
             saved_single_invoice.save()
             # Save line items to the invoice if valid
             for line_item_id, description, quantity, price in zip(
