@@ -160,19 +160,20 @@
                     <div class="text-error pl-2">{{ invoice_form.send_reminder.errors }}</div>
                 {% endif %}
             </div>
-            <div class="form-control w-full mt-4">
-                <label class="label">
-                    <span class="label-text font-bold text-xl">{{ invoice_form.save_for_reuse.label_tag }}</span>
-
-                    <input type="checkbox" name="save_for_reuse" class="toggle toggle-primary" id="id_save_for_reuse"
-                        {% if single_invoice.save_for_reuse %} checked {% endif %}
-                    />
-                </label>
-                <span class="label-text-alt pl-1">Start with these line items and choices for other clients.</span>
-                {% if invoice_form.save_for_reuse.errors %}
-                    <div class="text-error pl-2">{{ invoice_form.save_for_reuse.errors }}</div>
-                {% endif %}
-            </div>
+            {# Uncomment when adding starter templates #}
+            {#            <div class="form-control w-full mt-4">#}
+            {#                <label class="label">#}
+            {#                    <span class="label-text font-bold text-xl">{{ invoice_form.save_for_reuse.label_tag }}</span>#}
+            {##}
+            {#                    <input type="checkbox" name="save_for_reuse" class="toggle toggle-primary" id="id_save_for_reuse"#}
+            {#                        {% if single_invoice.save_for_reuse %} checked {% endif %}#}
+            {#                    />#}
+            {#                </label>#}
+            {#                <span class="label-text-alt pl-1">Start with these line items and choices for other clients.</span>#}
+            {#                {% if invoice_form.save_for_reuse.errors %}#}
+            {#                    <div class="text-error pl-2">{{ invoice_form.save_for_reuse.errors }}</div>#}
+            {#                {% endif %}#}
+            {#            </div>#}
 
             <div class="divider"></div>
             {# Uncomment when adding logic #}

@@ -391,7 +391,8 @@ class SingleInvoice(BaseModel):
     email_id = models.CharField(
         max_length=10, null=False, unique=True, default=create_new_ref_number
     )
-    save_for_reuse = models.BooleanField(default=False, null=True, blank=True)
+    # TODO: Uncomment when creating starter templates
+    # save_for_reuse = models.BooleanField(default=False, null=True, blank=True)
     status = models.PositiveSmallIntegerField(
         default=InvoiceStatus.DRAFT,
         choices=InvoiceStatus.choices,
