@@ -168,13 +168,19 @@ class StripeService:
 
     @classmethod
     def create_payment_intent_for_payout(cls, sent_invoice):
+        from timary.models import SentInvoice, SingleInvoice
+
         stripe.api_key = cls.stripe_api_key
         application_fee, invoice_amount = StripeService.calculate_application_fee(
             sent_invoice
         )
+        if isinstance(sent_invoice, SentInvoice):
+            customer_id = sent_invoice.invoice.client_stripe_customer_id
+        elif isinstance(sent_invoice, SingleInvoice):
+            customer_id = sent_invoice.client_stripe_customer_id
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
-            customer=sent_invoice.invoice.client_stripe_customer_id,
+            customer=customer_id,
             amount=invoice_amount,
             setup_future_usage="off_session",
             currency="usd",
@@ -192,6 +198,13 @@ class StripeService:
             sent_invoice
         )
 
+        from timary.models import SentInvoice, SingleInvoice
+
+        if isinstance(sent_invoice, SentInvoice):
+            customer_id = sent_invoice.invoice.client_stripe_customer_id
+        elif isinstance(sent_invoice, SingleInvoice):
+            customer_id = sent_invoice.client_stripe_customer_id
+
         # Retrieve the first bank account for invoicee and confirm the payment.
         invoicee_payment_method = StripeService.retrieve_customer_payment_method(
             sent_invoice.invoice.client_stripe_customer_id
@@ -200,7 +213,7 @@ class StripeService:
         intent = stripe.PaymentIntent.create(
             payment_method_types=["us_bank_account"],
             payment_method=invoicee_payment_method["id"],
-            customer=sent_invoice.invoice.client_stripe_customer_id,
+            customer=customer_id,
             amount=invoice_amount,
             confirm=True,
             currency="usd",

@@ -9,6 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 from timary.models import (
     DailyHoursInput,
     Invoice,
+    SentInvoice,
     SingleInvoice,
     SingleInvoiceLineItem,
     User,
@@ -486,22 +487,24 @@ class PayInvoiceForm(forms.Form):
         super(PayInvoiceForm, self).__init__(*args, **kwargs)
 
     def clean_email(self):
-        cleaned_email = self.cleaned_data.get("email")
-        if (
-            cleaned_email.lower().strip()
-            != self.sent_invoice.invoice.client_email.lower()
-        ):
+        cleaned_email = self.cleaned_data.get("email").lower().strip()
+        if isinstance(self.sent_invoice, SentInvoice):
+            client_email = self.sent_invoice.invoice.client_email
+        if isinstance(self.sent_invoice, SingleInvoice):
+            client_email = self.sent_invoice.client_email
+        if cleaned_email != client_email.lower():
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
             )
         return cleaned_email
 
     def clean_first_name(self):
-        cleaned_name = self.cleaned_data.get("first_name")
-        if (
-            cleaned_name.lower().strip()
-            not in self.sent_invoice.invoice.client_name.lower()
-        ):
+        cleaned_name = self.cleaned_data.get("first_name").lower().strip()
+        if isinstance(self.sent_invoice, SentInvoice):
+            client_name = self.sent_invoice.invoice.client_name
+        if isinstance(self.sent_invoice, SingleInvoice):
+            client_name = self.sent_invoice.client_name
+        if cleaned_name not in client_name.lower():
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
             )

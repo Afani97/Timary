@@ -125,7 +125,7 @@
         <div class="col-span-3 mx-5 mt-5">
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
-                <p class="mb-4">This is an invoice for {{ invoice.user.first_name }}'s services.</p>
+                <p class="mb-4">This is an invoice for {{ sent_invoice.user.first_name }}'s services.</p>
                 <p>Total Amount Due: ${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
             </div>
             <div class="overflow-y-auto mt-10">
@@ -138,18 +138,52 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for hour in hours_tracked %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
-                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
-                            </tr>
-                        {% endfor %}
+                        {% if hours_tracked %}
+                            {% for hour in hours_tracked %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
+                                    <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if line_items %}
+                            {% for line_item in single_invoice.line_items.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td> {{ line_item.description }}</td>
+                                    <td>${{ line_item.total_amount | floatformat:-2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
                             <td width="80%" class="purchase_item"><span class="f-fallback">Stripe ACH Fee</span></td>
                             <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$5</span></td>
                         </tr>
+                        {% if line_items %}
+                            {% if single_invoice.late_penalty %}
+                                <tr>
+                                    <td></td>
+                                    <td>Late Penalty Fee</td>
+                                    <td>${{single_invoice.late_penalty_amount|floatformat:-2 }}</td>
+                                </tr>
+                            {% endif %}
+                            {% if single_invoice.discount_amount %}
+                                <tr>
+                                    <td></td>
+                                    <td>Discount</td>
+                                    <td>${{ single_invoice.discount_amount | floatformat:-2 }}</td>
+                                </tr>
+                            {% endif %}
+                            {% if single_invoice.tax_amount %}
+                                <tr>
+                                    <td></td>
+                                    <td>Tax</td>
+                                    <td>{{ single_invoice.tax_amount | floatformat:-2 }}%</td>
+                                </tr>
+                            {% endif %}
+                        {% endif %}
                         <tr>
                             <td></td>
                             <td width="80%" class="purchase_footer" valign="middle">
@@ -250,7 +284,10 @@
                 method: "POST",
                 body: data,
             });
+            console.log(response)
             let { valid, errors } = await response.json();
+            console.log(valid);
+            console.log(errors);
 
             // Remove previous error messages
             const errorMessages = document.getElementsByClassName("error-messages");
@@ -273,6 +310,7 @@
             setLoading(true);
 
             const formIsValid = await checkInvoicingDetailsValid();
+            console.log(formIsValid)
             if (!formIsValid) {
                 setLoading(false);
                 showMessage("Form details are not valid");

@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -526,6 +527,7 @@ class SingleInvoice(BaseModel):
         msg_body = render_to_string(
             "email/single_invoice.html",
             {
+                "site_url": settings.SITE_URL,
                 "single_invoice": self,
                 "user_name": self.user.invoice_branding_properties()["user_name"],
                 "todays_date": today,

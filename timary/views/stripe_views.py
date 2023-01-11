@@ -7,22 +7,28 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
-from timary.models import SentInvoice, User
+from timary.models import SentInvoice, SingleInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
 
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["OPTIONS", "GET", "POST"])
 @csrf_exempt
 def pay_invoice(request, sent_invoice_id):
-    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    try:
+        sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
+    except SentInvoice.DoesNotExist:
+        try:
+            sent_invoice = SingleInvoice.objects.get(id=sent_invoice_id)
+        except SingleInvoice.DoesNotExist:
+            return redirect(reverse("timary:landing_page"))
     if not sent_invoice.user.settings["subscription_active"]:
         return redirect(reverse("timary:landing_page"))
     if (
@@ -44,19 +50,30 @@ def pay_invoice(request, sent_invoice_id):
 
         saved_payment_method = False
         last_4_bank = ""
-        if sent_invoice.invoice.client_stripe_customer_id:
+        invoice = None
+        if isinstance(sent_invoice, SentInvoice):
+            invoice = sent_invoice.invoice
+        elif isinstance(sent_invoice, SingleInvoice):
+            invoice = sent_invoice
+        if invoice.client_stripe_customer_id:
             invoicee_payment_method = StripeService.retrieve_customer_payment_method(
-                sent_invoice.invoice.client_stripe_customer_id
+                invoice.client_stripe_customer_id
             )
             if invoicee_payment_method:
                 saved_payment_method = True
                 last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
-        hours, total = sent_invoice.get_hours_tracked()
+        ctx = {}
+        if isinstance(sent_invoice, SentInvoice):
+            hours, total = sent_invoice.get_hours_tracked()
+            ctx = {"sent_invoice": sent_invoice, "hours_tracked": hours}
+        elif isinstance(sent_invoice, SingleInvoice):
+            ctx = {
+                "sent_invoice": sent_invoice,
+                "single_invoice": sent_invoice,
+                "line_items": True,
+            }
         context = {
-            "invoice": sent_invoice.invoice,
-            "sent_invoice": sent_invoice,
-            "hours_tracked": hours,
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
             "client_secret": intent["client_secret"],
@@ -69,12 +86,19 @@ def pay_invoice(request, sent_invoice_id):
                 )
             ),
         }
+        context.update(ctx)
         return render(request, "invoices/pay_invoice.html", context)
 
 
 @require_http_methods(["GET"])
 def quick_pay_invoice(request, sent_invoice_id):
-    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    try:
+        sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
+    except SentInvoice.DoesNotExist:
+        try:
+            sent_invoice = SingleInvoice.objects.get(id=sent_invoice_id)
+        except SingleInvoice.DoesNotExist:
+            return redirect(reverse("timary:landing_page"))
     if not sent_invoice.user.settings["subscription_active"]:
         return redirect(reverse("timary:landing_page"))
     if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
@@ -104,7 +128,13 @@ def quick_pay_invoice(request, sent_invoice_id):
 
 @require_http_methods(["GET"])
 def invoice_payment_success(request, sent_invoice_id):
-    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    try:
+        sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
+    except SentInvoice.DoesNotExist:
+        try:
+            sent_invoice = SingleInvoice.objects.get(id=sent_invoice_id)
+        except SingleInvoice.DoesNotExist:
+            return redirect(reverse("timary:landing_page"))
     if sent_invoice.paid_status != SentInvoice.PaidStatus.NOT_STARTED:
         return redirect(reverse("timary:login"))
     sent_invoice.paid_status = SentInvoice.PaidStatus.PENDING
@@ -150,7 +180,7 @@ def completed_connect_account(request):
 
 def stripe_webhook(request, stripe_secret):
     """
-    Test locally => stripe listen --forward-to localhost:8000/stripe-stardard-webhook/
+    Test locally => stripe listen --forward-to localhost:8000/stripe-standard-webhook/
     Copy webhook secret into STRIPE_STANDARD_WEBHOOK_SECRET
     """
     payload = request.body
@@ -168,46 +198,65 @@ def stripe_webhook(request, stripe_secret):
     # Handle the event
     if event["type"] == "payment_intent.payment_failed":
         payment_intent = event["data"]["object"]
+        payment_id = payment_intent["id"]
 
-        if SentInvoice.objects.filter(
-            stripe_payment_intent_id=payment_intent["id"]
-        ).exists():
-            sent_invoice = SentInvoice.objects.get(
-                stripe_payment_intent_id=payment_intent["id"]
-            )
+        try:
+            sent_invoice = SentInvoice.objects.get(stripe_payment_intent_id=payment_id)
+        except SentInvoice.DoesNotExist:
+            try:
+                sent_invoice = SingleInvoice.objects.get(
+                    stripe_payment_intent_id=payment_id
+                )
+            except SingleInvoice.DoesNotExist:
+                return redirect(reverse("timary:landing_page"))
 
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
-
-            hours_tracked, _ = sent_invoice.get_hours_tracked()
             today = datetime.date.today()
 
-            # Notify client that payment failed
-            msg_body = render_to_string(
-                "email/sent_invoice_email.html",
-                {
-                    "can_accept_payments": sent_invoice.user.can_accept_payments,
-                    "site_url": settings.SITE_URL,
-                    "user_name": sent_invoice.user.invoice_branding_properties()[
-                        "user_name"
-                    ],
-                    "next_weeks_date": sent_invoice.user.invoice_branding_properties()[
-                        "next_weeks_date"
-                    ],
-                    "recipient_name": sent_invoice.invoice.client_name,
-                    "total_amount": sent_invoice.total_price,
-                    "sent_invoice": sent_invoice,
-                    "hours_tracked": hours_tracked,
-                    "tomorrows_date": today + timedelta(days=1),
-                    "invoice_branding": sent_invoice.user.invoice_branding_properties(),
-                },
-            )
+            if isinstance(sent_invoice, SentInvoice):
+                client_email = sent_invoice.invoice.client_email
+                hours_tracked, _ = sent_invoice.get_hours_tracked()
+
+                # Notify client that payment failed
+                msg_body = render_to_string(
+                    "email/sent_invoice_email.html",
+                    {
+                        "site_url": settings.SITE_URL,
+                        "user_name": sent_invoice.user.invoice_branding_properties()[
+                            "user_name"
+                        ],
+                        "next_weeks_date": sent_invoice.user.invoice_branding_properties()[
+                            "next_weeks_date"
+                        ],
+                        "total_amount": sent_invoice.total_price,
+                        "sent_invoice": sent_invoice,
+                        "hours_tracked": hours_tracked,
+                        "tomorrows_date": today + timedelta(days=1),
+                        "invoice_branding": sent_invoice.user.invoice_branding_properties(),
+                    },
+                )
+
+            elif isinstance(sent_invoice, SingleInvoice):
+                client_email = sent_invoice.client_email
+
+                msg_body = render_to_string(
+                    "email/single_invoice.html",
+                    {
+                        "single_invoice": sent_invoice,
+                        "user_name": sent_invoice.user.invoice_branding_properties()[
+                            "user_name"
+                        ],
+                        "todays_date": today,
+                    },
+                )
+
             EmailService.send_html(
-                f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. "
+                f"Unable to process {sent_invoice.user.first_name}'s invoice. "
                 f"An error occurred while trying to "
                 f"transfer the funds for this invoice. Please give it another try.",
                 msg_body,
-                sent_invoice.invoice.client_email,
+                client_email,
             )
         else:
             # Other stripe webhook event
@@ -220,19 +269,32 @@ def stripe_webhook(request, stripe_secret):
     ]:
         # Handle a successful payment
         payment_intent = event["data"]["object"]
-        if SentInvoice.objects.filter(
-            stripe_payment_intent_id=payment_intent["id"]
-        ).exists():
-            sent_invoice = SentInvoice.objects.get(
-                stripe_payment_intent_id=payment_intent["id"]
-            )
-            if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
-                return JsonResponse({"success": True})
+        payment_id = payment_intent["id"]
 
-            sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-            sent_invoice.date_sent = datetime.date.today()
-            sent_invoice.save()
-            sent_invoice.success_notification()
+        try:
+            sent_invoice = SentInvoice.objects.get(stripe_payment_intent_id=payment_id)
+        except SentInvoice.DoesNotExist:
+            try:
+                sent_invoice = SingleInvoice.objects.get(
+                    stripe_payment_intent_id=payment_id
+                )
+            except SingleInvoice.DoesNotExist:
+                return redirect(reverse("timary:landing_page"))
+        if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+            return JsonResponse({"success": True})
+
+        if sent_invoice:
+            if isinstance(sent_invoice, SentInvoice):
+                sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
+                sent_invoice.date_sent = datetime.date.today()
+                sent_invoice.save()
+                sent_invoice.success_notification()
+            elif isinstance(sent_invoice, SingleInvoice):
+                sent_invoice.paid_status = SingleInvoice.PaidStatus.PAID
+                sent_invoice.date_sent = datetime.date.today()
+                sent_invoice.save()
+                # TODO: Sent success invoice for single invoice paid
+                pass
         else:
             # Other stripe webhook event
             pass
