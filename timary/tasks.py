@@ -6,9 +6,9 @@ import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
-from django.template.loader import render_to_string
 from django_q.tasks import async_task, schedule
 
+from timary.invoice_builder import InvoiceBuilder
 from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
@@ -120,25 +120,18 @@ def send_invoice(invoice_id):
         hour.sent_invoice_id = sent_invoice.id
         hour.save(update_fields=["sent_invoice_id"])
 
-    msg_body = render_to_string(
-        "email/sent_invoice_email.html",
+    hours_tracked, _ = sent_invoice.get_hours_tracked()
+    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
         {
-            "can_accept_payments": invoice.user.can_accept_payments,
-            "site_url": settings.SITE_URL,
-            "user_name": invoice.user.invoice_branding_properties()["user_name"],
-            "next_weeks_date": invoice.user.invoice_branding_properties()[
-                "next_weeks_date"
-            ],
-            "recipient_name": invoice.client_name,
-            "total_amount": total_amount,
             "sent_invoice": sent_invoice,
-            "invoice": invoice,
             "hours_tracked": hours_tracked,
-            "todays_date": today,
-            "invoice_branding": invoice.user.invoice_branding_properties(),
-        },
+        }
     )
-    EmailService.send_html(msg_subject, msg_body, invoice.client_email)
+    EmailService.send_html(
+        msg_subject,
+        msg_body,
+        invoice.client_email,
+    )
     invoice.calculate_next_date()
     invoice.increase_milestone_step()
 
@@ -148,23 +141,12 @@ def send_invoice_preview(invoice_id):
     if not invoice.user.settings["subscription_active"]:
         return
     hours_tracked, total_amount = invoice.get_hours_stats()
-    today = date.today()
-
-    msg_body = render_to_string(
-        "email/sneak_peak_invoice_email.html",
+    msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
         {
-            "user_name": invoice.user.invoice_branding_properties().get("user_name"),
-            "next_weeks_date": invoice.user.invoice_branding_properties().get(
-                "next_weeks_date"
-            ),
-            "recipient_name": invoice.client_name,
-            "total_amount": total_amount,
             "invoice": invoice,
             "hours_tracked": hours_tracked,
-            "tomorrows_date": today + timedelta(days=1),
-            "site_url": settings.SITE_URL,
-            "invoice_branding": invoice.user.invoice_branding_properties(),
-        },
+            "total_amount": total_amount,
+        }
     )
     EmailService.send_html(
         "Pssst! Here is a sneak peek of the invoice going out tomorrow. Make any modifications before it's sent "
@@ -222,38 +204,30 @@ def send_weekly_updates():
         if not invoice.user.settings["subscription_active"]:
             continue
         hours = invoice.get_hours_tracked()
-        if hours:
-            hours_tracked_this_week = hours.filter(
-                date_tracked__range=(week_start, today)
-            ).annotate(cost=invoice.invoice_rate * Sum("hours"))
-            if not hours:
-                continue
+        if not hours:
+            continue
+        hours_tracked_this_week = hours.filter(
+            date_tracked__range=(week_start, today)
+        ).annotate(cost=invoice.invoice_rate * Sum("hours"))
+        if not hours:
+            continue
 
-            total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
-            total_cost_amount = 0
-            if total_hours["total_hours"]:
-                total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
-            msg_body = render_to_string(
-                "email/weekly_update_email.html",
-                {
-                    "site_url": settings.SITE_URL,
-                    "user_name": invoice.user.invoice_branding_properties().get(
-                        "user_name"
-                    ),
-                    "recipient_name": invoice.client_name,
-                    "invoice": invoice,
-                    "hours_tracked": hours_tracked_this_week,
-                    "week_starting_date": week_start,
-                    "todays_date": today,
-                    "total_amount": total_cost_amount,
-                    "invoice_branding": invoice.user.invoice_branding_properties(),
-                },
-            )
-            EmailService.send_html(
-                f"Here is a weekly progress update for {invoice.title}",
-                msg_body,
-                invoice.client_email,
-            )
+        total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
+        msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
+            {
+                "invoice": invoice,
+                "hours_tracked": hours_tracked_this_week,
+                "total_amount": total_cost_amount,
+            }
+        )
+        EmailService.send_html(
+            f"Here is a weekly progress update for {invoice.title}",
+            msg_body,
+            invoice.client_email,
+        )
 
 
 def backup_db_file():

@@ -1,11 +1,9 @@
 from datetime import date, datetime
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
@@ -19,6 +17,7 @@ from timary.forms import (
     UpdateMilestoneForm,
     UpdateWeeklyForm,
 )
+from timary.invoice_builder import InvoiceBuilder
 from timary.models import Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
@@ -272,32 +271,20 @@ def resend_invoice_email(request, sent_invoice_id):
     invoice = sent_invoice.invoice
     if request.user != invoice.user:
         raise Http404
+
     month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
-    hours_tracked, total_amount = sent_invoice.get_hours_tracked()
-
-    msg_subject = (
-        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}"
-    )
-
-    msg_body = render_to_string(
-        "email/sent_invoice_email.html",
+    hours_tracked, _ = sent_invoice.get_hours_tracked()
+    msg_body = InvoiceBuilder(invoice.user).send_invoice(
         {
-            "can_accept_payments": invoice.user.can_accept_payments,
-            "site_url": settings.SITE_URL,
-            "user_name": invoice.user.invoice_branding_properties()["user_name"],
-            "next_weeks_date": invoice.user.invoice_branding_properties()[
-                "next_weeks_date"
-            ],
-            "recipient_name": invoice.client_name,
-            "total_amount": total_amount,
             "sent_invoice": sent_invoice,
-            "invoice": invoice,
             "hours_tracked": hours_tracked,
-            "todays_date": sent_invoice.date_sent,
-            "invoice_branding": invoice.user.invoice_branding_properties(),
-        },
+        }
     )
-    EmailService.send_html(msg_subject, msg_body, invoice.client_email)
+    EmailService.send_html(
+        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}",
+        msg_body,
+        invoice.client_email,
+    )
 
     response = render(
         request,

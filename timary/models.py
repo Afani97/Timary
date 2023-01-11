@@ -9,13 +9,13 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Count, F, Q, QuerySet, Sum, Value
 from django.db.models.functions import Cast, Concat, TruncMonth
-from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from timary.custom_errors import AccountingError
+from timary.invoice_builder import InvoiceBuilder
 from timary.querysets import HoursQuerySet
 from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
@@ -430,19 +430,11 @@ class SentInvoice(BaseModel):
         TwilioClient.sent_payment_success(self)
 
         hours_tracked, _ = self.get_hours_tracked()
-
-        msg_body = render_to_string(
-            "email/sent_invoice_email.html",
+        msg_body = InvoiceBuilder(self.user).send_invoice_receipt(
             {
-                "can_accept_payments": False,
-                "user_name": self.user.invoice_branding_properties()["user_name"],
-                "total_amount": self.total_price,
-                "sent_invoice_id": self.id,
-                "invoice": self.invoice,
+                "sent_invoice": self,
                 "hours_tracked": hours_tracked,
-                "todays_date": self.date_sent,
-                "invoice_branding": self.user.invoice_branding_properties(),
-            },
+            }
         )
         EmailService.send_html(
             f"Here is a receipt for {self.invoice.user.first_name}'s services for {self.invoice.title}",

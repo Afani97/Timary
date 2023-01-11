@@ -1,6 +1,5 @@
 import datetime
 import sys
-from datetime import timedelta
 
 import stripe
 from django.conf import settings
@@ -8,12 +7,12 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
+from timary.invoice_builder import InvoiceBuilder
 from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
@@ -180,27 +179,11 @@ def stripe_webhook(request, stripe_secret):
             sent_invoice.save()
 
             hours_tracked, _ = sent_invoice.get_hours_tracked()
-            today = datetime.date.today()
-
-            # Notify client that payment failed
-            msg_body = render_to_string(
-                "email/sent_invoice_email.html",
+            msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
                 {
-                    "can_accept_payments": sent_invoice.user.can_accept_payments,
-                    "site_url": settings.SITE_URL,
-                    "user_name": sent_invoice.user.invoice_branding_properties()[
-                        "user_name"
-                    ],
-                    "next_weeks_date": sent_invoice.user.invoice_branding_properties()[
-                        "next_weeks_date"
-                    ],
-                    "recipient_name": sent_invoice.invoice.client_name,
-                    "total_amount": sent_invoice.total_price,
                     "sent_invoice": sent_invoice,
                     "hours_tracked": hours_tracked,
-                    "tomorrows_date": today + timedelta(days=1),
-                    "invoice_branding": sent_invoice.user.invoice_branding_properties(),
-                },
+                }
             )
             EmailService.send_html(
                 f"Unable to process {sent_invoice.invoice.user.first_name}'s invoice. "

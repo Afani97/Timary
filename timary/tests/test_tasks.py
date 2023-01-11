@@ -570,7 +570,7 @@ class TestSendInvoice(TestCase):
             msg = f"""
             <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
-            This is a copy of the invoice paid for Bob's services on {template_date(date.today())}.
+            This is a copy of the invoice paid for Bob's services on {template_date(sent_invoice.date_sent)}.
             </div>
             """
             self.assertInHTML(msg, html_message)
