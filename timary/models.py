@@ -153,7 +153,6 @@ class Invoice(BaseModel):
         WEEKLY = 3, "WEEKLY"
 
     class Interval(models.TextChoices):
-        DAILY = "D", "DAILY"
         WEEKLY = "W", "WEEKLY"
         BIWEEKLY = "B", "BIWEEKLY"
         MONTHLY = "M", "MONTHLY"
@@ -285,9 +284,7 @@ class Invoice(BaseModel):
         return months, totals
 
     def get_next_date(self):
-        if self.invoice_interval == Invoice.Interval.DAILY:
-            return timedelta(days=1)
-        elif self.invoice_interval == Invoice.Interval.WEEKLY:
+        if self.invoice_interval == Invoice.Interval.WEEKLY:
             return timedelta(weeks=1)
         elif self.invoice_interval == Invoice.Interval.BIWEEKLY:
             return timedelta(weeks=2)

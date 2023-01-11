@@ -49,7 +49,7 @@ class TestInvoices(BaseTest):
                 "title": "Some title",
                 "invoice_rate": 50,
                 "invoice_type": 1,
-                "invoice_interval": "D",
+                "invoice_interval": "W",
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
             },
@@ -83,7 +83,7 @@ class TestInvoices(BaseTest):
                 "title": "Some title",
                 "invoice_rate": 50,
                 "invoice_type": 1,
-                "invoice_interval": "D",
+                "invoice_interval": "W",
                 "contacts": "abc123",
             },
         )
@@ -202,7 +202,7 @@ class TestInvoices(BaseTest):
                 "title": invoice.title,
                 "invoice_rate": 50,
                 "invoice_type": 1,
-                "invoice_interval": "D",
+                "invoice_interval": "W",
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
             },
@@ -278,7 +278,7 @@ class TestInvoices(BaseTest):
         url_params = {
             "title": "Some title",
             "invoice_rate": 100,
-            "invoice_interval": "D",
+            "invoice_interval": "W",
             "client_name": "John Smith",
             "client_email": "john@test.com",
         }
@@ -368,11 +368,11 @@ class TestInvoices(BaseTest):
         url_params = {
             "title": "Some title",
             "invoice_rate": 100,
-            "invoice_interval": "D",
+            "invoice_interval": "W",
             "client_name": "John Smith",
             "client_email": "john@test.com",
         }
-        self.invoice.invoice_interval = "W"
+        self.invoice.invoice_interval = "B"
         self.invoice.calculate_next_date()
         next_date = copy.copy(self.invoice.next_date)
         self.invoice.is_paused = True
