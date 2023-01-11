@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
+from timary.hours_manager import HoursManager
 from timary.models import DailyHoursInput, Invoice
 from timary.tasks import gather_recurring_hours
 from timary.utils import show_alert_message
@@ -22,12 +23,12 @@ def create_daily_hours(request):
         if "recurring_logic" in hours_form.cleaned_data:
             hours_saved.recurring_logic = hours_form.cleaned_data.get("recurring_logic")
             hours_saved.save()
-        hours = DailyHoursInput.all_hours.current_month(request.user)
-        show_repeat_option = request.user.can_repeat_previous_hours_logged(hours)
-        show_most_frequent_options = request.user.show_most_frequent_options(hours)
+        hours_manager = HoursManager(request.user)
+        show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
+        show_most_frequent_options = hours_manager.show_most_frequent_options()
 
         context = {
-            "hours": hours,
+            "hours": hours_manager.hours,
             "show_repeat": show_repeat_option,
         }
         if len(show_most_frequent_options) > 0:
@@ -64,10 +65,10 @@ def quick_hours(request):
     )
     if hours_form.is_valid():
         hours_form.save()
-        all_hours = DailyHoursInput.all_hours.current_month(request.user)
-        show_most_frequent_options = request.user.show_most_frequent_options(all_hours)
+        hours_manager = HoursManager(request.user)
+        show_most_frequent_options = hours_manager.show_most_frequent_options()
         context = {
-            "hours": all_hours,
+            "hours": hours_manager.hours,
         }
         if len(show_most_frequent_options) > 0:
             context["frequent_options"] = show_most_frequent_options
@@ -187,10 +188,10 @@ def repeat_hours(request):
     # Add recurring hours if scheduled for today or daily
     gather_recurring_hours()
 
-    all_hours = DailyHoursInput.all_hours.current_month(request.user)
-    show_most_frequent_options = request.user.show_most_frequent_options(all_hours)
+    hours_manager = HoursManager(request.user)
+    show_most_frequent_options = hours_manager.show_most_frequent_options()
     context = {
-        "hours": all_hours,
+        "hours": hours_manager.hours,
     }
     if len(show_most_frequent_options) > 0:
         context["frequent_options"] = show_most_frequent_options

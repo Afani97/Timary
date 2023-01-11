@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
-from django.db.models import QuerySet
 from django.test import TestCase
 from django.utils.text import slugify
 
+from timary.hours_manager import HoursManager
 from timary.models import DailyHoursInput, Invoice, SentInvoice, User
 from timary.tests.factories import (
     DailyHoursFactory,
@@ -505,29 +505,24 @@ class TestUser(TestCase):
             self.assertFalse(user.can_accept_payments)
 
     def test_can_repeat_logged_days(self):
+        user = UserFactory()
+        hours_manager = HoursManager(user)
         with self.subTest("No previous day with logged hours"):
-            user = UserFactory()
-            self.assertEqual(
-                user.can_repeat_previous_hours_logged(QuerySet(DailyHoursInput)), 2
-            )
+            self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 2)
 
         with self.subTest("Show repeat button"):
-            qs = QuerySet(
-                DailyHoursFactory(
-                    invoice=InvoiceFactory(user=user),
-                    date_tracked=datetime.date.today() - datetime.timedelta(days=1),
-                )
+            DailyHoursFactory(
+                invoice=InvoiceFactory(user=user),
+                date_tracked=datetime.date.today() - datetime.timedelta(days=1),
             )
-            self.assertEqual(user.can_repeat_previous_hours_logged(qs), 1)
+            self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 1)
 
         with self.subTest("Don't show any message"):
-            qs = QuerySet(
-                DailyHoursFactory(
-                    invoice=InvoiceFactory(user=user),
-                    date_tracked=datetime.date.today(),
-                )
+            DailyHoursFactory(
+                invoice=InvoiceFactory(user=user),
+                date_tracked=datetime.date.today(),
             )
-            self.assertEqual(user.can_repeat_previous_hours_logged(qs), 0)
+            self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 0)
 
     @patch("stripe.Coupon.create")
     @patch("stripe.Subscription.modify")

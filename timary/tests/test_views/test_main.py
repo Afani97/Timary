@@ -6,10 +6,10 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from timary.forms import DailyHoursForm
+from timary.hours_manager import HoursManager
 from timary.models import Invoice, User
 from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
-from timary.views import get_hours_tracked
 
 
 class TestMain(BaseTest):
@@ -53,7 +53,9 @@ class TestMain(BaseTest):
         )
         response = self.client.get(reverse("timary:dashboard_stats"))
 
-        context = get_hours_tracked(self.user)
+        hours = HoursManager(self.user)
+
+        context = hours.get_hours_tracked()
         context["new_hour_form"] = DailyHoursForm()
 
         rendered_template = self.setup_template(
