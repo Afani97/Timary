@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("timary", "0027_singleinvoice_singleinvoicelineitem_and_more"),
+        ("timary", "0028_singleinvoice_singleinvoicelineitem_and_more"),
     ]
 
     operations = [
