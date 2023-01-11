@@ -120,11 +120,12 @@ def send_invoice(invoice_id):
         hour.sent_invoice_id = sent_invoice.id
         hour.save(update_fields=["sent_invoice_id"])
 
-    hours_tracked, _ = sent_invoice.get_hours_tracked()
+    hours_tracked, line_items = sent_invoice.get_hours_tracked()
     msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,
             "hours_tracked": hours_tracked,
+            "line_items": line_items,
         }
     )
     EmailService.send_html(

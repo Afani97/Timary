@@ -273,11 +273,12 @@ def resend_invoice_email(request, sent_invoice_id):
         raise Http404
 
     month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
-    hours_tracked, _ = sent_invoice.get_hours_tracked()
+    hours_tracked, line_items = sent_invoice.get_hours_tracked()
     msg_body = InvoiceBuilder(invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,
             "hours_tracked": hours_tracked,
+            "line_items": line_items,
         }
     )
     EmailService.send_html(

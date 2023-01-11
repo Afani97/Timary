@@ -9,6 +9,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q, Sum
 from django.db.models.functions import TruncMonth
+from django.template.defaultfilters import date as template_date
+from django.template.defaultfilters import floatformat
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
@@ -409,17 +411,32 @@ class SentInvoice(BaseModel):
             .exclude(hours=0)
             .order_by("date_tracked")
         )
+
         if self.invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-            return hours_tracked, self.total_price
+            line_items = f"""
+            <div class="flex justify-between py-3 text-xl">
+                <div>Week of { template_date(self.date_sent, "M j, Y")}</div>
+                <div>${floatformat(self.total_price,-2 )}</div>
+            </div>
+            """
+            return hours_tracked, "".join(line_items)
 
         total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
-        total_cost_amount = 0
         if total_hours["total_hours"]:
             invoice_rate = round(self.total_price / total_hours["total_hours"], 1)
-            total_cost_amount = total_hours["total_hours"] * invoice_rate
             hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("hours"))
 
-        return hours_tracked, total_cost_amount
+        line_items = (
+            f"""
+            <div class="flex justify-between py-3 text-xl">
+                <div>{floatformat(line_item.hours,-2)} hours on {template_date(line_item.date_tracked, "M j")}</div>
+                <div>${floatformat(line_item.cost, -2 )}</div>
+            </div>
+            """
+            for line_item in hours_tracked.all()
+        )
+
+        return hours_tracked, "".join(line_items)
 
     def success_notification(self):
         """

@@ -51,7 +51,7 @@ def pay_invoice(request, sent_invoice_id):
                 saved_payment_method = True
                 last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
-        hours, total = sent_invoice.get_hours_tracked()
+        hours, line_items = sent_invoice.get_hours_tracked()
         context = {
             "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
@@ -178,11 +178,12 @@ def stripe_webhook(request, stripe_secret):
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
 
-            hours_tracked, _ = sent_invoice.get_hours_tracked()
+            hours_tracked, line_items = sent_invoice.get_hours_tracked()
             msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
                 {
                     "sent_invoice": sent_invoice,
                     "hours_tracked": hours_tracked,
+                    "line_items": line_items,
                 }
             )
             EmailService.send_html(

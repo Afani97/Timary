@@ -396,10 +396,9 @@ class TestSentInvoice(TestCase):
         invoice.invoice_rate = 25
         invoice.save()
 
-        hours_tracked, total_cost = sent_invoice.get_hours_tracked()
+        hours_tracked, _ = sent_invoice.get_hours_tracked()
         self.assertIn(hours1, hours_tracked)
         self.assertIn(hours2, hours_tracked)
-        self.assertEqual(total_cost, 150.0)
 
     def test_get_hours_tracked_not_including_skipped(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
@@ -422,10 +421,9 @@ class TestSentInvoice(TestCase):
         invoice.invoice_rate = 25
         invoice.save()
 
-        hours_tracked, total_cost = sent_invoice.get_hours_tracked()
+        hours_tracked, _ = sent_invoice.get_hours_tracked()
         self.assertNotIn(hours1, hours_tracked)
         self.assertIn(hours2, hours_tracked)
-        self.assertEqual(total_cost, 100.0)
 
 
 class TestUser(TestCase):
