@@ -22,6 +22,7 @@ from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
     InvoiceFactory,
+    MilestoneInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
     WeeklyInvoiceFactory,
@@ -409,6 +410,45 @@ class TestSentInvoice(TestCase):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
+        hours1 = HoursLineItemFactory(
+            quantity=1, invoice=invoice, date_tracked=yesterday
+        )
+        hours2 = HoursLineItemFactory(quantity=2, invoice=invoice)
+
+        invoice.refresh_from_db()
+
+        sent_invoice = SentInvoice.create(invoice=invoice)
+
+        hours1.sent_invoice_id = sent_invoice.id
+        hours1.save()
+        hours2.sent_invoice_id = sent_invoice.id
+        hours2.save()
+
+        # If invoice's invoice_rate changes, make sure the sent invoice calculates the correct
+        # hourly rate from total cost / sum(hours_tracked)
+        invoice.rate = 25
+        invoice.save()
+
+        line_items = sent_invoice.get_rendered_line_items()
+        self.assertInHTML(
+            f"""
+            <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+            <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+        """,
+            line_items,
+        )
+        self.assertInHTML(
+            f"""
+                    <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+                    <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+                """,
+            line_items,
+        )
+
+    def test_get_rendered_milestone_line_items(self):
+        three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        invoice = MilestoneInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
         )

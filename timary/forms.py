@@ -173,19 +173,6 @@ class HoursLineItemForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
-    rate = forms.DecimalField(
-        required=True,
-        widget=forms.NumberInput(
-            attrs={
-                "value": 50,
-                "min": 1,
-                "max": 1000,
-                "step": "0.01",
-                "class": "input input-bordered border-2 text-lg w-full",
-            },
-        ),
-    )
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
@@ -306,6 +293,19 @@ class UpdateInvoiceForm(InvoiceForm):
 
 def create_invoice_interval(superclass):
     class IntervalForm(superclass):
+        rate = forms.DecimalField(
+            required=True,
+            widget=forms.NumberInput(
+                attrs={
+                    "value": 50,
+                    "min": 1,
+                    "max": 1000,
+                    "step": "0.01",
+                    "class": "input input-bordered border-2 text-lg w-full",
+                },
+            ),
+        )
+
         def __init__(self, *args, **kwargs):
             super(IntervalForm, self).__init__(*args, **kwargs)
             self.fields["invoice_interval"].required = True
@@ -332,6 +332,18 @@ UpdateIntervalForm = create_invoice_interval(UpdateInvoiceForm)
 
 def create_invoice_milestone(superclass):
     class MilestoneForm(superclass):
+        rate = forms.DecimalField(
+            required=True,
+            widget=forms.NumberInput(
+                attrs={
+                    "value": 50,
+                    "min": 1,
+                    "max": 1000,
+                    "step": "0.01",
+                    "class": "input input-bordered border-2 text-lg w-full",
+                },
+            ),
+        )
         milestone_total_steps = forms.IntegerField(
             widget=forms.NumberInput(
                 attrs={
@@ -370,18 +382,19 @@ UpdateMilestoneForm = create_invoice_milestone(UpdateInvoiceForm)
 
 def create_invoice_weekly(superclass):
     class WeeklyForm(superclass):
+        rate = forms.DecimalField(
+            required=True,
+            widget=forms.NumberInput(
+                attrs={
+                    "label": "Weekly rate",
+                    "class": "input input-bordered border-2 text-lg w-full",
+                    "max": 1_000_000,
+                }
+            ),
+        )
+
         class Meta(superclass.Meta):
             model = WeeklyInvoice
-            widgets = {
-                **superclass.Meta.widgets,
-                "rate": forms.NumberInput(
-                    attrs={
-                        "label": "Weekly rate",
-                        "class": "input input-bordered border-2 text-lg w-full",
-                        "max": 1_000_000,
-                    }
-                ),
-            }
 
     return WeeklyForm
 

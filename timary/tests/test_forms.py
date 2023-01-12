@@ -341,6 +341,18 @@ class TestInvoices(TestCase):
 
         self.assertEqual(form.errors, {"rate": ["This field is required."]})
 
+    def test_weekly_invoice_over_2000_a_week(self):
+        form = CreateWeeklyForm(
+            data={
+                "title": "Some title",
+                "rate": 2500,
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
+            }
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
+
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):

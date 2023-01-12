@@ -478,18 +478,6 @@ class MilestoneInvoice(RecurringInvoice):
 
         return CreateMilestoneForm if action == "create" else UpdateMilestoneForm
 
-    def render_line_items(self, send_invoice_id):
-        return (
-            f"""
-            <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(line_item.quantity, -2)} hours on
-                {template_date(line_item.date_tracked, "M j")}</div>
-                <div>${floatformat(line_item.cost, -2)}</div>
-            </div>
-            """
-            for line_item in self.get_hours_sent(send_invoice_id).all()
-        )
-
 
 class InvoiceManager:
     def __init__(self, invoice_id):
