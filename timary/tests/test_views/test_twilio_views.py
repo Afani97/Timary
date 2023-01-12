@@ -11,7 +11,7 @@ from django_twilio.decorators import twilio_view
 
 from timary.models import HoursLineItem
 from timary.tasks import send_reminder_sms
-from timary.tests.factories import InvoiceFactory, UserFactory
+from timary.tests.factories import IntervalInvoiceFactory, InvoiceFactory, UserFactory
 from timary.views.twilio_views import twilio_reply
 
 
@@ -409,8 +409,8 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_skip_invoice(self, message_list_mock, message_response_mock):
         """Since we hide hours logged with '0' hours, this is a hack to 'skip'"""
-        invoice = InvoiceFactory(title="Invoice1", user=self.user)
-        invoice2 = InvoiceFactory(title="Invoice2", user=self.user)
+        invoice = IntervalInvoiceFactory(title="Invoice1", user=self.user)
+        invoice2 = IntervalInvoiceFactory(title="Invoice2", user=self.user)
         self.data["Body"] = "S"
 
         # FIRST INVOICE SMS SENT

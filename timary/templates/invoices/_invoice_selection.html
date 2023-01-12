@@ -12,7 +12,7 @@
             <div class="stat-desc text-white">A recurring invoice sent out on a schedule</div>
             <div class="stat-actions">
                 <button class="btn btn-sm btn-primary" id="new-interval"
-                    hx-get="{% url 'timary:create_invoice' %}?type=1"
+                    hx-get="{% url 'timary:create_invoice' %}?type=interval"
                     hx-target="#invoice-form"
                     hx-trigger="click"
                     hx-swap="innerHTML"
@@ -33,7 +33,7 @@
             <div class="stat-desc text-white">Break up your invoice into steps</div>
             <div class="stat-actions">
                 <button class="btn btn-sm btn-primary" id="new-milestone"
-                    hx-get="{% url 'timary:create_invoice' %}?type=2"
+                    hx-get="{% url 'timary:create_invoice' %}?type=milestone"
                     hx-target="#invoice-form"
                     hx-trigger="click"
                     hx-swap="innerHTML"
@@ -54,7 +54,7 @@
             <div class="stat-desc text-white">Flat rate bill sent out Mondays</div>
             <div class="stat-actions">
                 <button class="btn btn-sm btn-primary" id="new-weekly"
-                    hx-get="{% url 'timary:create_invoice' %}?type=3"
+                    hx-get="{% url 'timary:create_invoice' %}?type=weekly"
                     hx-target="#invoice-form"
                     hx-trigger="click"
                     hx-swap="innerHTML"

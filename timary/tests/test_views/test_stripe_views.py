@@ -12,7 +12,7 @@ from django.urls import reverse
 from timary.models import SentInvoice, User
 from timary.tests.factories import (
     HoursLineItemFactory,
-    InvoiceFactory,
+    IntervalInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
 )
@@ -25,7 +25,7 @@ class TestStripeViews(BaseTest):
 
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.invoice = InvoiceFactory(user=self.user)
+        self.invoice = IntervalInvoiceFactory(user=self.user)
 
     @classmethod
     def extract_html(cls, html):
@@ -114,6 +114,7 @@ class TestStripeViews(BaseTest):
             HoursLineItemFactory(
                 invoice=sent_invoice.invoice,
                 date_tracked=today - datetime.timedelta(days=i),
+                sent_invoice_id=sent_invoice.id,
             )
         sent_invoice.refresh_from_db()
         response = self.client.get(
@@ -127,7 +128,7 @@ class TestStripeViews(BaseTest):
             msg = f"""
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
-                <p class="mb-4">This is an invoice for {sent_invoice.invoice.user.first_name}'s services.</p>
+                <p class="mb-4">This is an invoice for {sent_invoice.user.first_name}'s services.</p>
                 <p>Total Amount Due: ${sent_invoice.total_price + 5}</p>
             </div>
             """
@@ -162,16 +163,17 @@ class TestStripeViews(BaseTest):
             self.assertInHTML(msg, html_body)
 
         with self.subTest("Testing hours table renders all hours for invoice"):
-            hours_tracked, _ = sent_invoice.get_hours_tracked()
+            hours_tracked = sent_invoice.get_hours_tracked()
             msg = ""
             for i, hour in enumerate(hours_tracked, start=1):
                 msg += f"""
                 <tr>
                     <td>{i}</td>
-                    <td width="80%" class="purchase_item"><span class="f-fallback">{ hour.quantity } hours on
-                    { hour.date_tracked.strftime("%b %-d") }</span></td>
+                    <td width="80%" class="purchase_item"><span class="f-fallback">
+                    { floatformat(hour.quantity, -2) } hours on
+                    { template_date(hour.date_tracked, "M j") }</span></td>
                     <td class="align-right" width="20%" class="purchase_item">
-                    <span class="f-fallback">${ int(hour.cost)}</span>
+                    <span class="f-fallback">${ floatformat(hour.cost, -2)}</span>
                     </td>
                 </tr>
                 """
@@ -461,7 +463,7 @@ class TestStripeViews(BaseTest):
             f"""
             <div class="flex justify-between py-3 text-xl">
                 <div>{floatformat(hours.quantity, -2)} hours on {template_date(hours.date_tracked, "M j")}</div>
-                <div>${floatformat(hours.quantity * self.invoice.invoice_rate, -2)}</div>
+                <div>${floatformat(hours.quantity * self.invoice.rate, -2)}</div>
             </div>
             """,
             self.extract_html_body().encode().decode("utf-8"),

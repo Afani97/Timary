@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.db.models import CharField, Count, F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 
-from timary.models import HoursLineItem, Invoice
+from timary.models import HoursLineItem, Invoice, InvoiceManager
 from timary.querysets import HourStats
 
 
@@ -66,7 +66,9 @@ class HoursManager:
         return [
             {
                 "quantity": hour[0],
-                "invoice_name": Invoice.objects.get(email_id=hour[1]).title,
+                "invoice_name": InvoiceManager.fetch_by_email_id(
+                    email_id=hour[1]
+                ).title,
                 "invoice_reference_id": f"{hour[0]}_{hour[1]}",
             }
             for hour in hour_forms_to_offer

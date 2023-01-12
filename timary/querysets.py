@@ -61,11 +61,9 @@ class HourStats:
         )
 
         total_hours_sum = qs.aggregate(total_hours=Sum("quantity"))["total_hours"]
-        total_amount_sum_non_weekly_invoice = (
-            qs.filter(invoice__invoice_type__lt=3)
-            .annotate(total_amount=F("quantity") * F("invoice__invoice_rate"))
-            .aggregate(total=Sum("total_amount"))["total"]
-        )
+        total_amount_sum_non_weekly_invoice = qs.annotate(
+            total_amount=F("quantity") * F("invoice__rate")
+        ).aggregate(total=Sum("total_amount"))["total"]
 
         return total_hours_sum or 0, total_amount_sum_non_weekly_invoice or 0
 

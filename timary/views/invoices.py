@@ -7,18 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import (
-    CreateIntervalForm,
-    CreateMilestoneForm,
-    CreateWeeklyForm,
-    HoursLineItemForm,
-    InvoiceForm,
-    UpdateIntervalForm,
-    UpdateMilestoneForm,
-    UpdateWeeklyForm,
-)
+from timary.forms import HoursLineItemForm, InvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import Invoice, SentInvoice, User
+from timary.models import Invoice, InvoiceManager, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import show_active_timer, show_alert_message
@@ -41,7 +32,6 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
-
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
@@ -61,8 +51,8 @@ def manage_invoices(request):
 @require_http_methods(["GET", "POST"])
 def create_invoice(request):
     if request.method == "GET":
-        invoice_form_class, template = get_invoice_form_class(
-            Invoice.InvoiceType(int(request.GET.get("type")))
+        invoice_form_class, template = InvoiceManager.get_invoice_form_class(
+            request.GET.get("type")
         )
         invoice_form = invoice_form_class(user=request.user)
         return render(
@@ -70,8 +60,9 @@ def create_invoice(request):
         )
     user: User = request.user
     request_data = request.POST.copy()
-    invoice_form_class, template = get_invoice_form_class(
-        Invoice.InvoiceType(int(request_data.get("invoice_type")))
+    request_data.get("invoice_type")
+    invoice_form_class, template = InvoiceManager.get_invoice_form_class(
+        request_data.get("invoice_type")
     )
     invoice_form = invoice_form_class(request_data, user=user)
 
@@ -89,7 +80,7 @@ def create_invoice(request):
             invoice.client_stripe_customer_id = contact.client_stripe_customer_id
             invoice.accounting_customer_id = contact.accounting_customer_id
             invoice.save()
-        invoice.calculate_next_date()
+        invoice.update()
         invoice.save()
         invoice.sync_customer()
 
@@ -125,7 +116,7 @@ def get_invoice(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def pause_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     invoice.is_paused = not invoice.is_paused
@@ -144,7 +135,7 @@ def pause_invoice(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def archive_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     invoice.is_archived = True
@@ -160,56 +151,36 @@ def archive_invoice(request, invoice_id):
     return response
 
 
-def get_invoice_form_class(type, action="create"):
-    if type == Invoice.InvoiceType.INTERVAL:
-        invoice_form = CreateIntervalForm if action == "create" else UpdateIntervalForm
-        template = "interval"
-    elif type == Invoice.InvoiceType.MILESTONE:
-        invoice_form = (
-            CreateMilestoneForm if action == "create" else UpdateMilestoneForm
-        )
-        template = "milestone"
-    else:
-        invoice_form = CreateWeeklyForm if action == "create" else UpdateWeeklyForm
-        template = "weekly"
-    return invoice_form, template
-
-
 @login_required()
 @require_http_methods(["GET"])
 def edit_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
-    invoice_form_class, template = get_invoice_form_class(
-        invoice.invoice_type, action="update"
+    form = invoice.form_class("update")(instance=invoice, user=request.user)
+    return render(
+        request, f"invoices/{invoice.invoice_type()}/_update.html", {"form": form}
     )
-    form = invoice_form_class(instance=invoice, user=request.user)
-    return render(request, f"invoices/{template}/_update.html", {"form": form})
 
 
 @login_required()
 @require_http_methods(["PUT"])
 def update_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body).copy()
-    put_params.update({"invoice_type": invoice.invoice_type})
-    invoice_form_class, template = get_invoice_form_class(
-        invoice.invoice_type, action="update"
-    )
     prev_invoice_interval_type = (
-        invoice.invoice_interval
-        if invoice.invoice_type == Invoice.InvoiceType.INTERVAL
-        else None
+        invoice.invoice_interval if invoice.invoice_type() == "internal" else None
     )
-    invoice_form = invoice_form_class(put_params, instance=invoice, user=request.user)
+    invoice_form = invoice.form_class("update")(
+        put_params, instance=invoice, user=request.user
+    )
     if invoice_form.is_valid():
         saved_invoice = invoice_form.save()
         if (
             prev_invoice_interval_type
-            and invoice.invoice_type == Invoice.InvoiceType.INTERVAL
+            and invoice.invoice_type() == "internal"
             and prev_invoice_interval_type != saved_invoice.invoice_interval
             and not invoice.is_paused
         ):
@@ -219,14 +190,16 @@ def update_invoice(request, invoice_id):
         return response
     else:
         return render(
-            request, f"invoices/{template}/_update.html", {"form": invoice_form}
+            request,
+            f"invoices/{invoice.invoice_type()}/_update.html",
+            {"form": invoice_form},
         )
 
 
 @login_required()
 @require_http_methods(["PUT"])
 def update_invoice_next_date(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body).copy()
@@ -273,12 +246,10 @@ def resend_invoice_email(request, sent_invoice_id):
         raise Http404
 
     month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
-    hours_tracked, line_items = sent_invoice.get_hours_tracked()
     msg_body = InvoiceBuilder(invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,
-            "hours_tracked": hours_tracked,
-            "line_items": line_items,
+            "line_items": sent_invoice.get_rendered_line_items(),
         }
     )
     EmailService.send_html(
@@ -303,7 +274,7 @@ def resend_invoice_email(request, sent_invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def generate_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     if not request.user.settings["subscription_active"]:
@@ -316,7 +287,7 @@ def generate_invoice(request, invoice_id):
         )
         return response
     if (
-        invoice.invoice_type == Invoice.InvoiceType.MILESTONE
+        invoice.invoice_type() == "milestone"
         and invoice.milestone_step > invoice.milestone_total_steps
     ):
         response = render(request, "partials/_invoice.html", {"invoice": invoice})
@@ -352,7 +323,7 @@ def generate_invoice(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def edit_invoice_hours(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     hours = invoice.get_hours_tracked()
@@ -363,7 +334,7 @@ def edit_invoice_hours(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def invoice_hour_stats(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     return render(request, "partials/_invoice_period_hours.html", {"invoice": invoice})
@@ -372,7 +343,7 @@ def invoice_hour_stats(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def sent_invoices_list(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
     sent_invoices = SentInvoice.objects.filter(invoice=invoice).order_by("-date_sent")
@@ -400,7 +371,7 @@ def sent_invoices_list(request, invoice_id):
         return_message = (
             "Looks like you haven't generated an invoice yet, log hours to do so."
         )
-        if invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
+        if invoice.invoice_type() == "weekly":
             return_message = "Looks like there haven't been any invoices sent yet."
         if invoice.is_archived:
             return_message = "There weren't any invoices sent."
@@ -410,7 +381,7 @@ def sent_invoices_list(request, invoice_id):
 @login_required()
 @require_http_methods(["GET"])
 def sync_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
 

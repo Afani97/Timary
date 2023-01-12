@@ -3,9 +3,9 @@
 {% block invoice_type %}
     <div class="form-control w-full">
         <label class="label">
-            <span class="label-text">{{ form.invoice_rate.label_tag }}</span>
+            <span class="label-text">{{ form.rate.label_tag }}</span>
         </label>
-        <div>{{ form.invoice_rate }}</div>
+        <div>{{ form.rate }}</div>
     </div>
     <div class="form-control w-full">
         <label class="label">
@@ -15,5 +15,5 @@
     </div>
 {% endblock %}
 {% block hidden_invoice_type %}
-    <input value="1" name="invoice_type" id="id_invoice_type" type="number" />
+    <input value="interval" name="invoice_type" id="id_invoice_type" type="text" />
 {% endblock %}

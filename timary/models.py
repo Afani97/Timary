@@ -7,14 +7,17 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Q, Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import TruncMonth
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
+from polymorphic.models import PolymorphicModel
 
 from timary.custom_errors import AccountingError
 from timary.invoice_builder import InvoiceBuilder
@@ -163,53 +166,35 @@ class HoursLineItem(LineItem):
         self.save()
 
 
-class Invoice(BaseModel):
-    class InvoiceType(models.IntegerChoices):
-        INTERVAL = 1, "INTERVAL"
-        MILESTONE = 2, "MILESTONE"
-        WEEKLY = 3, "WEEKLY"
-
-    class Interval(models.TextChoices):
-        WEEKLY = "W", "WEEKLY"
-        BIWEEKLY = "B", "BIWEEKLY"
-        MONTHLY = "M", "MONTHLY"
-        QUARTERLY = "Q", "QUARTERLY"
-        YEARLY = "Y", "YEARLY"
-
-    invoice_type = models.IntegerField(
-        default=InvoiceType.INTERVAL, choices=InvoiceType.choices
-    )
-
-    email_id = models.CharField(
-        max_length=10, null=False, unique=True, default=create_new_ref_number
-    )
-
+class Invoice(PolymorphicModel, BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="invoices", null=True
     )
-    invoice_rate = models.DecimalField(
+    rate = models.DecimalField(
         default=100,
         max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(1)],
+        null=True,
+        blank=True,
+    )
+    balance_due = models.DecimalField(
+        default=100,
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(1)],
+        null=True,
+        blank=True,
     )
     client_name = models.CharField(max_length=200, null=False, blank=False)
     client_email = models.EmailField(null=False, blank=False)
     client_stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
 
-    invoice_interval = models.CharField(
-        max_length=1,
-        choices=Interval.choices,
-        default=Interval.MONTHLY,
-        blank=True,
-        null=True,
+    email_id = models.CharField(
+        max_length=10, null=False, unique=True, default=create_new_ref_number
     )
-    milestone_total_steps = models.IntegerField(null=True, blank=True)
-    milestone_step = models.IntegerField(default=1, null=True, blank=True)
-    next_date = models.DateField(null=True, blank=True)
-    last_date = models.DateField(null=True, blank=True)
     is_paused = models.BooleanField(default=False, null=True, blank=True)
     is_archived = models.BooleanField(default=False, null=True, blank=True)
     total_budget = models.IntegerField(null=True, blank=True)
@@ -225,11 +210,8 @@ class Invoice(BaseModel):
             f"Invoice(title={self.title}, "
             f"email_id={self.email_id}, "
             f"user={self.user}, "
-            f"invoice_rate={self.invoice_rate}, "
+            f"invoice_rate={self.rate}, "
             f"client_email={self.client_email}, "
-            f"invoice_interval={self.invoice_interval}, "
-            f"next_date={self.next_date}, "
-            f"last_date={self.last_date}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -241,42 +223,67 @@ class Invoice(BaseModel):
     def slug_title(self):
         return f"{slugify(self.title)}"
 
+    def invoice_type(self):
+        raise NotImplementedError()
+
+    def get_hours_stats(self):
+        raise NotImplementedError()
+
+    def render_line_items(self, sent_invoice_id):
+        raise NotImplementedError()
+
+    def update(self):
+        raise NotImplementedError()
+
+    def form_class(self, action="create"):
+        raise NotImplementedError()
+
+    def sync_customer(self):
+        if not self.client_stripe_customer_id:
+            StripeService.create_customer_for_invoice(self)
+
+        if not self.user.accounting_org_id:
+            return None, None
+        try:
+            AccountingService({"user": self.user, "invoice": self}).create_customer()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason  # Failed to sync customer
+        return True, None  # Customer synced
+
+    def get_hours_sent(self, sent_invoice_id):
+        return (
+            self.line_items.filter(sent_invoice_id=sent_invoice_id)
+            .exclude(quantity=0)
+            .annotate(cost=self.rate * Sum("quantity"))
+            .order_by("date_tracked")
+        )
+
+
+class RecurringInvoice(Invoice):
+
+    next_date = models.DateField(null=True, blank=True)
+    last_date = models.DateField(null=True, blank=True)
+
+    def __repr__(self):
+        return (
+            f"RecurringInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
+
     def get_hours_tracked(self):
         return (
             self.line_items.filter(
                 date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
             )
             .exclude(quantity=0)
+            .annotate(cost=self.rate * Sum("quantity"))
             .order_by("date_tracked")
         )
-
-    def budget_percentage(self):
-        if not self.total_budget:
-            return 0
-
-        if self.invoice_type == Invoice.InvoiceType.WEEKLY and self.total_budget:
-            total_price = self.invoice_snapshots.filter(
-                paid_status=SentInvoice.PaidStatus.PAID
-            ).aggregate(total_cost=Sum("total_price"))
-            if total_cost := total_price["total_cost"]:
-                return (
-                    round(
-                        float(total_cost) / float(self.total_budget),
-                        ndigits=2,
-                    )
-                    * 100
-                )
-            else:
-                return 0
-
-        total_hours = self.line_items.filter(date_tracked__lte=date.today()).aggregate(
-            total_hours=Sum("quantity")
-        )
-        total_cost_amount = 0
-        if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * self.invoice_rate
-
-        return round((total_cost_amount / self.total_budget), ndigits=2) * 100
 
     def get_last_six_months(self):
         today = date.today()
@@ -300,14 +307,85 @@ class Invoice(BaseModel):
             totals.insert(0, total_count)
         return months, totals
 
+    def get_hours_stats(self):
+        hours_tracked = self.get_hours_tracked()
+        total_hours = hours_tracked.aggregate(total_hours=Sum("quantity"))
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * self.rate
+        return hours_tracked, total_cost_amount
+
+    def budget_percentage(self):
+        if not self.total_budget:
+            return 0
+
+        total_hours = self.line_items.filter(date_tracked__lte=date.today()).aggregate(
+            total_hours=Sum("quantity")
+        )
+        total_cost_amount = 0
+        if total_hours["total_hours"]:
+            total_cost_amount = total_hours["total_hours"] * self.rate
+
+        return round((total_cost_amount / self.total_budget), ndigits=2) * 100
+
+    def render_line_items(self, send_invoice_id):
+        return (
+            f"""
+            <div class="flex justify-between py-3 text-xl">
+                <div>{floatformat(line_item.quantity, -2)} hours on
+                {template_date(line_item.date_tracked, "M j")}</div>
+                <div>${floatformat(line_item.cost, -2)}</div>
+            </div>
+            """
+            for line_item in self.get_hours_sent(send_invoice_id).all()
+        )
+
+
+class IntervalInvoice(RecurringInvoice):
+    class Interval(models.TextChoices):
+        WEEKLY = "W", "WEEKLY"
+        BIWEEKLY = "B", "BIWEEKLY"
+        MONTHLY = "M", "MONTHLY"
+        QUARTERLY = "Q", "QUARTERLY"
+        YEARLY = "Y", "YEARLY"
+
+    invoice_interval = models.CharField(
+        max_length=1,
+        choices=Interval.choices,
+        default=Interval.MONTHLY,
+        blank=True,
+        null=True,
+    )
+
+    def __repr__(self):
+        return (
+            f"IntervalInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
+
+    def invoice_type(self):
+        return "interval"
+
+    def update(self):
+        self.calculate_next_date()
+
+    def form_class(self, action="create"):
+        from timary.forms import CreateIntervalForm, UpdateIntervalForm
+
+        return CreateIntervalForm if action == "create" else UpdateIntervalForm
+
     def get_next_date(self):
-        if self.invoice_interval == Invoice.Interval.WEEKLY:
+        if self.invoice_interval == IntervalInvoice.Interval.WEEKLY:
             return timedelta(weeks=1)
-        elif self.invoice_interval == Invoice.Interval.BIWEEKLY:
+        elif self.invoice_interval == IntervalInvoice.Interval.BIWEEKLY:
             return timedelta(weeks=2)
-        elif self.invoice_interval == Invoice.Interval.MONTHLY:
+        elif self.invoice_interval == IntervalInvoice.Interval.MONTHLY:
             return relativedelta(months=1)
-        elif self.invoice_interval == Invoice.Interval.QUARTERLY:
+        elif self.invoice_interval == IntervalInvoice.Interval.QUARTERLY:
             return relativedelta(months=3)
         else:
             return relativedelta(years=1)
@@ -319,46 +397,152 @@ class Invoice(BaseModel):
             self.last_date = todays_date
         self.save()
 
-    def increase_milestone_step(self):
-        if self.invoice_type == Invoice.InvoiceType.MILESTONE:
-            self.milestone_step += 1
-            self.save()
 
-    def get_hours_stats(self, date_range=None):
-        query = Q(date_tracked__gte=self.last_date)
-        if date_range:
-            query = Q(date_tracked__range=date_range)
-            pass
-        hours_tracked = (
-            self.line_items.filter(query & Q(sent_invoice_id__isnull=True))
-            .exclude(quantity=0)
-            .annotate(cost=self.invoice_rate * Sum("quantity"))
-            .order_by("date_tracked")
+class WeeklyInvoice(RecurringInvoice):
+    def __repr__(self):
+        return (
+            f"WeeklyInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
         )
-        total_hours = hours_tracked.aggregate(total_hours=Sum("quantity"))
-        total_cost_amount = 0
-        if (
-            total_hours["total_hours"]
-            and self.invoice_type != Invoice.InvoiceType.WEEKLY
-        ):
-            total_cost_amount = total_hours["total_hours"] * self.invoice_rate
-        elif self.invoice_type == Invoice.InvoiceType.WEEKLY:
-            total_cost_amount = self.invoice_rate
 
-        return hours_tracked, total_cost_amount
+    def invoice_type(self):
+        return "weekly"
 
-    def sync_customer(self):
-        if not self.client_stripe_customer_id:
-            StripeService.create_customer_for_invoice(self)
+    def update(self):
+        pass
 
-        if not self.user.accounting_org_id:
-            return None, None
+    def form_class(self, action="create"):
+        from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
+
+        return CreateWeeklyForm if action == "create" else UpdateWeeklyForm
+
+    def budget_percentage(self):
+        if not self.total_budget:
+            return 0
+
+        total_price = self.invoice_snapshots.filter(
+            paid_status=SentInvoice.PaidStatus.PAID
+        ).aggregate(total_cost=Sum("total_price"))
+        if total_cost := total_price["total_cost"]:
+            return (
+                round(
+                    float(total_cost) / float(self.total_budget),
+                    ndigits=2,
+                )
+                * 100
+            )
+        else:
+            return 0
+
+    def get_hours_stats(self):
+        return self.get_hours_tracked(), self.rate
+
+    def render_line_items(self, send_invoice_id):
+        sent_invoice = get_object_or_404(SentInvoice, id=send_invoice_id)
+        return f"""
+        <div class="flex justify-between py-3 text-xl">
+            <div>Week of { template_date(sent_invoice.date_sent, "M j, Y")}</div>
+            <div>${floatformat(sent_invoice.total_price,-2 )}</div>
+        </div>
+        """
+
+
+class MilestoneInvoice(RecurringInvoice):
+    milestone_total_steps = models.IntegerField(null=True, blank=True)
+    milestone_step = models.IntegerField(default=0, null=True, blank=True)
+
+    def __repr__(self):
+        return (
+            f"MilestoneInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
+
+    def invoice_type(self):
+        return "milestone"
+
+    def update(self):
+        self.milestone_step += 1
+        self.last_date = date.today()
+        self.save()
+
+    def form_class(self, action="create"):
+        from timary.forms import CreateMilestoneForm, UpdateMilestoneForm
+
+        return CreateMilestoneForm if action == "create" else UpdateMilestoneForm
+
+    def render_line_items(self, send_invoice_id):
+        return (
+            f"""
+            <div class="flex justify-between py-3 text-xl">
+                <div>{floatformat(line_item.quantity, -2)} hours on
+                {template_date(line_item.date_tracked, "M j")}</div>
+                <div>${floatformat(line_item.cost, -2)}</div>
+            </div>
+            """
+            for line_item in self.get_hours_sent(send_invoice_id).all()
+        )
+
+
+class InvoiceManager:
+    def __init__(self, invoice_id):
         try:
-            AccountingService({"user": self.user, "invoice": self}).create_customer()
-        except AccountingError as ae:
-            error_reason = ae.log()
-            return False, error_reason  # Failed to sync customer
-        return True, None  # Customer synced
+            invoice = IntervalInvoice.objects.get(id=invoice_id)
+        except IntervalInvoice.DoesNotExist:
+            try:
+                invoice = WeeklyInvoice.objects.get(id=invoice_id)
+            except WeeklyInvoice.DoesNotExist:
+                try:
+                    invoice = MilestoneInvoice.objects.get(id=invoice_id)
+                except MilestoneInvoice.DoesNotExist:
+                    raise Http404("Invoice does not exist")
+        self._invoice = invoice
+
+    @staticmethod
+    def fetch_by_email_id(email_id):
+        try:
+            invoice = IntervalInvoice.objects.get(email_id=email_id)
+        except IntervalInvoice.DoesNotExist:
+            try:
+                invoice = WeeklyInvoice.objects.get(email_id=email_id)
+            except WeeklyInvoice.DoesNotExist:
+                try:
+                    invoice = MilestoneInvoice.objects.get(email_id=email_id)
+                except MilestoneInvoice.DoesNotExist:
+                    raise Http404("Invoice does not exist")
+        return invoice
+
+    @property
+    def invoice(self):
+        return self._invoice
+
+    @staticmethod
+    def get_invoice_form_class(i_type, action="create"):
+        invoice_form = None
+        if i_type == "interval":
+            from timary.forms import CreateIntervalForm, UpdateIntervalForm
+
+            invoice_form = (
+                CreateIntervalForm if action == "create" else UpdateIntervalForm
+            )
+        elif i_type == "milestone":
+            from timary.forms import CreateMilestoneForm, UpdateMilestoneForm
+
+            invoice_form = (
+                CreateMilestoneForm if action == "create" else UpdateMilestoneForm
+            )
+        elif i_type == "weekly":
+            from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
+
+            invoice_form = CreateWeeklyForm if action == "create" else UpdateWeeklyForm
+        return invoice_form, i_type
 
 
 class SentInvoice(BaseModel):
@@ -422,37 +606,10 @@ class SentInvoice(BaseModel):
         return f"{str(self.id).split('-')[0]}"
 
     def get_hours_tracked(self):
-        hours_tracked = (
-            self.invoice.line_items.filter(sent_invoice_id=self.id)
-            .exclude(quantity=0)
-            .order_by("date_tracked")
-        )
+        return self.invoice.get_hours_sent(sent_invoice_id=self.id)
 
-        if self.invoice.invoice_type == Invoice.InvoiceType.WEEKLY:
-            line_items = f"""
-            <div class="flex justify-between py-3 text-xl">
-                <div>Week of { template_date(self.date_sent, "M j, Y")}</div>
-                <div>${floatformat(self.total_price,-2 )}</div>
-            </div>
-            """
-            return hours_tracked, "".join(line_items)
-
-        total_hours = hours_tracked.aggregate(total_hours=Sum("quantity"))
-        if total_hours["total_hours"]:
-            invoice_rate = round(self.total_price / total_hours["total_hours"], 1)
-            hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("quantity"))
-
-        line_items = (
-            f"""
-            <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(line_item.quantity,-2)} hours on {template_date(line_item.date_tracked, "M j")}</div>
-                <div>${floatformat(line_item.cost, -2 )}</div>
-            </div>
-            """
-            for line_item in hours_tracked.all()
-        )
-
-        return hours_tracked, "".join(line_items)
+    def get_rendered_line_items(self):
+        return "".join(self.invoice.render_line_items(self.id))
 
     def success_notification(self):
         """
@@ -462,12 +619,10 @@ class SentInvoice(BaseModel):
         """
         TwilioClient.sent_payment_success(self)
 
-        hours_tracked, line_items = self.get_hours_tracked()
         msg_body = InvoiceBuilder(self.user).send_invoice_receipt(
             {
                 "sent_invoice": self,
-                "hours_tracked": hours_tracked,
-                "line_items": line_items,
+                "line_items": self.get_rendered_line_items(),
             }
         )
         EmailService.send_html(

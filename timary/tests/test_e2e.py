@@ -10,7 +10,11 @@ from django.test import override_settings, tag
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
-from timary.tests.factories import HoursLineItemFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import (
+    HoursLineItemFactory,
+    IntervalInvoiceFactory,
+    UserFactory,
+)
 
 
 @override_settings(DEBUG=True)
@@ -89,7 +93,7 @@ class TestUI(BaseUITest):
             page.click("#new-interval")
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_invoice_rate", "100")
+            page.fill("#id_rate", "100")
             page.fill("#id_client_name", "John Smith")
             page.fill("#id_client_email", "john@smith.com")
             page.click('button:has-text("Add new invoice")')
@@ -105,7 +109,7 @@ class TestUI(BaseUITest):
             page.click("#new-milestone", timeout=2000)
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_invoice_rate", "100")
+            page.fill("#id_rate", "100")
             page.fill("#id_milestone_total_steps", "5")
             page.fill("#id_client_name", "John Smith")
             page.fill("#id_client_email", "john@smith.com")
@@ -122,7 +126,7 @@ class TestUI(BaseUITest):
             page.click("#new-weekly", timeout=2000)
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_invoice_rate", "100")
+            page.fill("#id_rate", "100")
             page.fill("#id_client_name", "John Smith")
             page.fill("#id_client_email", "john@smith.com")
             page.click('button:has-text("Add new invoice")')
@@ -131,7 +135,7 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_log_first_hours(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         with self.start_test(invoice.user) as page:
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.click("#log_hours_btn")
@@ -143,7 +147,7 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_log_first_hours_time_format(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         with self.start_test(invoice.user) as page:
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.click("#log_hours_btn")
@@ -167,7 +171,7 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_edit_invoice(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#current-invoices", timeout=2000)
@@ -175,7 +179,7 @@ class TestUI(BaseUITest):
             page.click('a:has-text("Edit")')
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
             page.fill("#id_title", "Timary 2")
-            page.fill("#id_invoice_rate", "100")
+            page.fill("#id_rate", "100")
             page.fill("#id_client_name", "John Smith")
             page.fill("#id_client_email", "john@smith.com")
             page.click('button:has-text("Update")')
@@ -184,7 +188,7 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_edit_hours_within_invoice(self):
-        invoice = InvoiceFactory(
+        invoice = IntervalInvoiceFactory(
             next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
         hours = HoursLineItemFactory(

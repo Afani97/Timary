@@ -51,11 +51,10 @@ def pay_invoice(request, sent_invoice_id):
                 saved_payment_method = True
                 last_4_bank = invoicee_payment_method["us_bank_account"]["last4"]
 
-        hours, line_items = sent_invoice.get_hours_tracked()
         context = {
-            "invoice": sent_invoice.invoice,
             "sent_invoice": sent_invoice,
-            "hours_tracked": hours,
+            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "user_name": sent_invoice.user.invoice_branding_properties()["user_name"],
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
             "client_secret": intent["client_secret"],
@@ -149,7 +148,7 @@ def completed_connect_account(request):
 
 def stripe_webhook(request, stripe_secret):
     """
-    Test locally => stripe listen --forward-to localhost:8000/stripe-stardard-webhook/
+    Test locally => stripe listen --forward-to localhost:8000/stripe-standard-webhook/
     Copy webhook secret into STRIPE_STANDARD_WEBHOOK_SECRET
     """
     payload = request.body
@@ -178,11 +177,10 @@ def stripe_webhook(request, stripe_secret):
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
 
-            hours_tracked, line_items = sent_invoice.get_hours_tracked()
+            line_items = sent_invoice.get_rendered_line_items()
             msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
                 {
                     "sent_invoice": sent_invoice,
-                    "hours_tracked": hours_tracked,
                     "line_items": line_items,
                 }
             )

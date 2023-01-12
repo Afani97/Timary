@@ -5,7 +5,15 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from phonenumber_field.formfields import PhoneNumberField
 
-from timary.models import HoursLineItem, Invoice, User
+from timary.models import (
+    HoursLineItem,
+    IntervalInvoice,
+    Invoice,
+    MilestoneInvoice,
+    RecurringInvoice,
+    User,
+    WeeklyInvoice,
+)
 from timary.utils import get_starting_week_from_date
 
 
@@ -47,12 +55,16 @@ class HoursLineItemForm(forms.ModelForm):
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
             else:
-                self.fields["invoice"].queryset = Invoice.objects.none()
+                self.fields["invoice"].queryset = RecurringInvoice.objects.none()
 
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
         self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
-        if self.initial and self.instance.invoice:
+        if (
+            self.initial
+            and self.instance.invoice
+            and hasattr(self.instance.invoice, "last_date")
+        ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
             ] = self.instance.invoice.last_date
@@ -111,7 +123,7 @@ class HoursLineItemForm(forms.ModelForm):
 
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
-        if date_tracked and invoice and invoice.last_date:
+        if date_tracked and invoice and hasattr(invoice, "last_date"):
             if date_tracked < invoice.last_date:
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
@@ -161,6 +173,19 @@ class HoursLineItemForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
+    rate = forms.DecimalField(
+        required=True,
+        widget=forms.NumberInput(
+            attrs={
+                "value": 50,
+                "min": 1,
+                "max": 1000,
+                "step": "0.01",
+                "class": "input input-bordered border-2 text-lg w-full",
+            },
+        ),
+    )
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
@@ -169,8 +194,7 @@ class InvoiceForm(forms.ModelForm):
         model = Invoice
         fields = [
             "title",
-            "invoice_type",
-            "invoice_rate",
+            "rate",
             "client_name",
             "client_email",
         ]
@@ -184,15 +208,6 @@ class InvoiceForm(forms.ModelForm):
                     "placeholder": "New Saas App...",
                     "class": "input input-bordered border-2 text-lg w-full",
                 }
-            ),
-            "invoice_rate": forms.NumberInput(
-                attrs={
-                    "value": 50,
-                    "min": 1,
-                    "max": 1000,
-                    "step": "0.01",
-                    "class": "input input-bordered border-2 text-lg w-full",
-                },
             ),
             "client_name": forms.TextInput(
                 attrs={
@@ -296,7 +311,8 @@ def create_invoice_interval(superclass):
             self.fields["invoice_interval"].required = True
 
         class Meta(superclass.Meta):
-            labels = {"invoice_rate": "Hourly rate", "invoice_interval": "Interval"}
+            model = IntervalInvoice
+            labels = {"rate": "Hourly rate", "invoice_interval": "Interval"}
             fields = superclass.Meta.fields + ["invoice_interval"]
             widgets = {
                 **superclass.Meta.widgets,
@@ -332,7 +348,8 @@ def create_invoice_milestone(superclass):
             self.fields["milestone_total_steps"].required = True
 
         class Meta(superclass.Meta):
-            labels = {"invoice_rate": "Hourly rate"}
+            model = MilestoneInvoice
+            labels = {"rate": "Hourly rate"}
             fields = superclass.Meta.fields + ["milestone_total_steps"]
 
         def clean_milestone_total_steps(self):
@@ -354,9 +371,10 @@ UpdateMilestoneForm = create_invoice_milestone(UpdateInvoiceForm)
 def create_invoice_weekly(superclass):
     class WeeklyForm(superclass):
         class Meta(superclass.Meta):
+            model = WeeklyInvoice
             widgets = {
                 **superclass.Meta.widgets,
-                "invoice_rate": forms.NumberInput(
+                "rate": forms.NumberInput(
                     attrs={
                         "label": "Weekly rate",
                         "class": "input input-bordered border-2 text-lg w-full",

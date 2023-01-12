@@ -9,7 +9,15 @@ from django.db.models import Q, Sum
 from django_q.tasks import async_task, schedule
 
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import HoursLineItem, Invoice, SentInvoice, User
+from timary.models import (
+    HoursLineItem,
+    IntervalInvoice,
+    Invoice,
+    MilestoneInvoice,
+    SentInvoice,
+    User,
+    WeeklyInvoice,
+)
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
 
@@ -56,11 +64,8 @@ def gather_invoices():
         next_date__month=today.month,
         next_date__year=today.year,
     )
-    invoices_sent_today = Invoice.objects.filter(
-        paused_query
-        & today_query
-        & archived_query
-        & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
+    invoices_sent_today = IntervalInvoice.objects.filter(
+        paused_query & today_query & archived_query
     )
     for invoice in invoices_sent_today:
         _ = async_task(send_invoice, invoice.id)
@@ -70,11 +75,8 @@ def gather_invoices():
         next_date__month=tomorrow.month,
         next_date__year=tomorrow.year,
     )
-    invoices_sent_tomorrow = Invoice.objects.filter(
-        paused_query
-        & tomorrow_query
-        & archived_query
-        & Q(invoice_type=Invoice.InvoiceType.INTERVAL)
+    invoices_sent_tomorrow = IntervalInvoice.objects.filter(
+        paused_query & tomorrow_query & archived_query
     )
     for invoice in invoices_sent_tomorrow:
         _ = async_task(send_invoice_preview, invoice.id)
@@ -82,9 +84,10 @@ def gather_invoices():
     invoices_sent = len(list(invoices_sent_today) + list(invoices_sent_tomorrow))
 
     if today.weekday() == 0:
-        invoices_sent_only_on_mondays = Invoice.objects.filter(
-            paused_query & archived_query & Q(invoice_type=Invoice.InvoiceType.WEEKLY)
+        invoices_sent_only_on_mondays = WeeklyInvoice.objects.filter(
+            paused_query & archived_query
         )
+
         for invoice in invoices_sent_only_on_mondays:
             _ = async_task(send_invoice, invoice.id)
         invoices_sent += len(list(invoices_sent_only_on_mondays))
@@ -103,12 +106,9 @@ def send_invoice(invoice_id):
     if not invoice.user.settings["subscription_active"]:
         return
     hours_tracked, total_amount = invoice.get_hours_stats()
-    if (
-        invoice.invoice_type != Invoice.InvoiceType.WEEKLY
-        and hours_tracked.count() <= 0
-    ):
+    if invoice.invoice_type() == "interval" and hours_tracked.count() <= 0:
         # There is nothing to invoice, update next date for invoice email.
-        invoice.calculate_next_date()
+        invoice.update()
         return
     today = date.today()
     current_month = date.strftime(today, "%m/%Y")
@@ -120,12 +120,10 @@ def send_invoice(invoice_id):
         hour.sent_invoice_id = sent_invoice.id
         hour.save(update_fields=["sent_invoice_id"])
 
-    hours_tracked, line_items = sent_invoice.get_hours_tracked()
     msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,
-            "hours_tracked": hours_tracked,
-            "line_items": line_items,
+            "line_items": sent_invoice.get_rendered_line_items(),
         }
     )
     EmailService.send_html(
@@ -133,8 +131,7 @@ def send_invoice(invoice_id):
         msg_body,
         invoice.client_email,
     )
-    invoice.calculate_next_date()
-    invoice.increase_milestone_step()
+    invoice.update()
 
 
 def send_invoice_preview(invoice_id):
@@ -198,10 +195,11 @@ def remind_sms_again(user_email):
 def send_weekly_updates():
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
-    all_invoices = Invoice.objects.filter(is_archived=False).exclude(
-        invoice_type=Invoice.InvoiceType.WEEKLY
-    )
-    for invoice in all_invoices:
+    all_recurring_invoices = Invoice.objects.instance_of(
+        IntervalInvoice
+    ) | Invoice.objects.instance_of(MilestoneInvoice)
+
+    for invoice in all_recurring_invoices:
         if not invoice.user.settings["subscription_active"]:
             continue
         hours = invoice.get_hours_tracked()
@@ -209,14 +207,14 @@ def send_weekly_updates():
             continue
         hours_tracked_this_week = hours.filter(
             date_tracked__range=(week_start, today)
-        ).annotate(cost=invoice.invoice_rate * Sum("quantity"))
+        ).annotate(cost=invoice.rate * Sum("quantity"))
         if not hours:
             continue
 
         total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
+            total_cost_amount = total_hours["total_hours"] * invoice.rate
         msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
             {
                 "invoice": invoice,
