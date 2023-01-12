@@ -7,7 +7,7 @@
                 <button class="btn gap-2 flex flex-col md:flex-row">
                     {{ hour.quantity }}hr for {{ hour.invoice_name }}
                     <div class="badge badge-secondary"
-                        _="on htmx:beforeRequest add .loading to the closest .btn end on htmx:afterRequest remove .loading from the closest .btn end"
+                        _="on htmx:beforeRequest add .loading to the closest .btn then add .hidden to me end on htmx:afterRequest remove .loading from the closest .btn end"
                         hx-get="{% url 'timary:quick_hours' %}?hours_ref_id={{ hour.invoice_reference_id }}"
                         hx-swap="outerHTML"
                         hx-target="#hours-list">
