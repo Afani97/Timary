@@ -4,16 +4,27 @@ from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.template.defaultfilters import date as template_date
+from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.utils.text import slugify
 
 from timary.hours_manager import HoursManager
-from timary.models import HoursLineItem, Invoice, SentInvoice, User
+from timary.models import (
+    HoursLineItem,
+    IntervalInvoice,
+    MilestoneInvoice,
+    SentInvoice,
+    User,
+    WeeklyInvoice,
+)
 from timary.tests.factories import (
     HoursLineItemFactory,
+    IntervalInvoiceFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
+    WeeklyInvoiceFactory,
 )
 from timary.utils import get_date_parsed, get_starting_week_from_date
 
@@ -61,44 +72,76 @@ class TestDailyHours(TestCase):
 class TestInvoice(TestCase):
     def test_invoice(self):
         user = UserFactory()
-        next_date = datetime.date.today() + datetime.timedelta(weeks=1)
-        invoice = Invoice.objects.create(
-            title="Some title",
-            user=user,
-            invoice_rate=100,
-            client_name="User",
-            client_email="user@test.com",
-            invoice_interval="W",
-            next_date=next_date,
-            last_date=datetime.date.today(),
-        )
-        self.assertIsNotNone(invoice)
-        self.assertIsNotNone(invoice.email_id)
-        self.assertEqual(invoice.title, "Some title")
-        self.assertEqual(invoice.user, user)
-        self.assertEqual(invoice.invoice_rate, 100)
-        self.assertEqual(invoice.client_name, "User")
-        self.assertEqual(invoice.client_email, "user@test.com")
-        self.assertEqual(invoice.next_date, next_date)
-        self.assertEqual(invoice.last_date, datetime.date.today())
-        self.assertEqual(invoice.slug_title, slugify(invoice.title))
+
+        def assert_valid(invoice):
+            self.assertIsNotNone(invoice)
+            self.assertIsNotNone(invoice.email_id)
+            self.assertEqual(invoice.title, "Some title")
+            self.assertEqual(invoice.user, user)
+            self.assertEqual(invoice.rate, 100)
+            self.assertEqual(invoice.client_name, "User")
+            self.assertEqual(invoice.client_email, "user@test.com")
+            self.assertEqual(invoice.next_date, next_date)
+            self.assertEqual(invoice.last_date, datetime.date.today())
+            self.assertEqual(invoice.slug_title, slugify(invoice.title))
+
+        with self.subTest("Interval"):
+            next_date = datetime.date.today() + datetime.timedelta(weeks=1)
+            invoice = IntervalInvoice.objects.create(
+                title="Some title",
+                user=user,
+                rate=100,
+                client_name="User",
+                client_email="user@test.com",
+                invoice_interval="W",
+                next_date=next_date,
+                last_date=datetime.date.today(),
+            )
+            assert_valid(invoice)
+
+        with self.subTest("Milestone"):
+            next_date = datetime.date.today() + datetime.timedelta(weeks=1)
+            invoice = MilestoneInvoice.objects.create(
+                title="Some title",
+                user=user,
+                rate=100,
+                client_name="User",
+                client_email="user@test.com",
+                milestone_total_steps="3",
+                next_date=next_date,
+                last_date=datetime.date.today(),
+            )
+            assert_valid(invoice)
+
+        with self.subTest("Weekly"):
+            next_date = datetime.date.today() + datetime.timedelta(weeks=1)
+            invoice = WeeklyInvoice.objects.create(
+                title="Some title",
+                user=user,
+                rate=100,
+                client_name="User",
+                client_email="user@test.com",
+                next_date=next_date,
+                last_date=datetime.date.today(),
+            )
+            assert_valid(invoice)
 
     def test_error_creating_invoice_rate_less_than_1(self):
         user = UserFactory()
         with self.assertRaises(ValidationError):
-            Invoice.objects.create(
+            IntervalInvoice.objects.create(
                 title="Some title",
                 user=user,
-                invoice_rate=-10,
+                rate=-10,
                 client_name="User",
                 client_email="user@test.com",
             )
 
     def test_error_creating_invoice_without_user(self):
         with self.assertRaises(ValidationError):
-            Invoice.objects.create(
+            IntervalInvoice.objects.create(
                 title="Some title",
-                invoice_rate=-10,
+                rate=-10,
                 client_name="User",
                 client_email="user@test.com",
             )
@@ -106,26 +149,26 @@ class TestInvoice(TestCase):
     def test_error_creating_invoice_without_client_name(self):
         user = UserFactory()
         with self.assertRaises(ValidationError):
-            Invoice.objects.create(
+            IntervalInvoice.objects.create(
                 title="Some title",
                 user=user,
-                invoice_rate=-10,
+                rate=-10,
                 client_email="user@test.com",
             )
 
     def test_error_creating_invoice_without_client_email(self):
         user = UserFactory()
         with self.assertRaises(ValidationError):
-            Invoice.objects.create(
+            IntervalInvoice.objects.create(
                 title="Some title",
                 user=user,
-                invoice_rate=-10,
+                rate=-10,
                 client_name="User",
             )
 
     def test_invoice_calculate_next_date(self):
         today = datetime.date.today()
-        invoice = InvoiceFactory(invoice_interval="W")
+        invoice = IntervalInvoiceFactory(invoice_interval="W")
         invoice.calculate_next_date()
         self.assertEqual(invoice.next_date, today + datetime.timedelta(weeks=1))
 
@@ -149,7 +192,7 @@ class TestInvoice(TestCase):
     def test_get_hours_stats(self):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
+        invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
@@ -157,26 +200,13 @@ class TestInvoice(TestCase):
         hours_tracked, total_hours = invoice.get_hours_stats()
         self.assertListEqual(list(hours_tracked), hours_list)
         self.assertEqual(
-            total_hours, (hours1.quantity + hours2.quantity) * invoice.invoice_rate
+            total_hours, (hours1.quantity + hours2.quantity) * invoice.rate
         )
-
-    def test_get_hours_stats_with_date_range(self):
-        two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=yesterday)
-        HoursLineItemFactory(invoice=invoice, date_tracked=two_days_ago)
-        hours2 = HoursLineItemFactory(invoice=invoice)
-
-        hours_tracked, total_hours = invoice.get_hours_stats(
-            (yesterday, datetime.date.today())
-        )
-        self.assertListEqual(list(hours_tracked), [hours2])
-        self.assertEqual(total_hours, hours2.quantity * invoice.invoice_rate)
 
     def test_get_hours_logged(self):
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
+        invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
         hours_list = sorted([hours1, hours2], key=lambda x: x.date_tracked)
@@ -188,7 +218,7 @@ class TestInvoice(TestCase):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=two_days_ago)
+        invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
         HoursLineItemFactory(invoice=invoice, date_tracked=three_days_ago)
@@ -199,7 +229,7 @@ class TestInvoice(TestCase):
 
     def test_get_hours_logged_mid_cycle(self):
         """invoice.get_hours_tracked should filter out already sent hours"""
-        invoice = InvoiceFactory(invoice_rate=50)
+        invoice = IntervalInvoiceFactory(rate=50)
         sent_invoice = SentInvoiceFactory(invoice=invoice)
         HoursLineItemFactory(invoice=invoice, sent_invoice_id=sent_invoice.id)
         HoursLineItemFactory(invoice=invoice)
@@ -211,8 +241,8 @@ class TestInvoice(TestCase):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         two_days_ago = datetime.date.today() - datetime.timedelta(days=2)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(
-            invoice_rate=50, last_date=two_days_ago, total_budget=1000
+        invoice = IntervalInvoiceFactory(
+            rate=50, last_date=two_days_ago, total_budget=1000
         )
         HoursLineItemFactory(quantity=3, invoice=invoice, date_tracked=three_days_ago)
         HoursLineItemFactory(quantity=1, invoice=invoice, date_tracked=yesterday)
@@ -221,7 +251,7 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.budget_percentage(), Decimal("30.0"))
 
     def test_get_last_six_months(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         hours1 = HoursLineItemFactory(invoice=invoice, quantity=1)
         sent_invoice_1 = SentInvoiceFactory(invoice=invoice, total_price=50)
         hours1.sent_invoice_id = sent_invoice_1.id
@@ -258,7 +288,7 @@ class TestInvoice(TestCase):
         self.assertEqual(last_six[1][-3], 100.0)
 
     def test_get_last_six_months_including_weekly(self):
-        invoice = InvoiceFactory(invoice_type=3, invoice_rate=1000)
+        invoice = WeeklyInvoiceFactory(rate=1000)
         SentInvoiceFactory(invoice=invoice, total_price=1000)
         SentInvoiceFactory(
             invoice=invoice,
@@ -375,10 +405,10 @@ class TestInvoice(TestCase):
 
 
 class TestSentInvoice(TestCase):
-    def test_get_hours_tracked(self):
+    def test_get_rendered_hourly_line_items(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=three_days_ago)
+        invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
         )
@@ -395,17 +425,43 @@ class TestSentInvoice(TestCase):
 
         # If invoice's invoice_rate changes, make sure the sent invoice calculates the correct
         # hourly rate from total cost / sum(hours_tracked)
-        invoice.invoice_rate = 25
+        invoice.rate = 25
         invoice.save()
 
-        hours_tracked, _ = sent_invoice.get_hours_tracked()
-        self.assertIn(hours1, hours_tracked)
-        self.assertIn(hours2, hours_tracked)
+        line_items = sent_invoice.get_rendered_line_items()
+        self.assertInHTML(
+            f"""
+            <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+            <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+        """,
+            line_items,
+        )
+        self.assertInHTML(
+            f"""
+                    <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+                    <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+                """,
+            line_items,
+        )
 
-    def test_get_hours_tracked_not_including_skipped(self):
+    def test_get_rendered_weekly_line_items(self):
+        invoice = WeeklyInvoiceFactory(rate=1000)
+        invoice.refresh_from_db()
+        sent_invoice = SentInvoice.create(invoice=invoice)
+
+        line_items = sent_invoice.get_rendered_line_items()
+        self.assertInHTML(
+            f"""
+                <div>Week of { template_date(sent_invoice.date_sent, "M j, Y")}</div>
+                <div>${floatformat(sent_invoice.total_price,-2 )}</div>
+            """,
+            line_items,
+        )
+
+    def test_get_rendered_line_items_not_including_skipped(self):
         three_days_ago = datetime.date.today() - datetime.timedelta(days=3)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        invoice = InvoiceFactory(invoice_rate=50, last_date=three_days_ago)
+        invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=0, invoice=invoice, date_tracked=yesterday
         )
@@ -422,12 +478,25 @@ class TestSentInvoice(TestCase):
 
         # If invoice's invoice_rate changes, make sure the sent invoice calculates the correct
         # hourly rate from total cost / sum(hours_tracked)
-        invoice.invoice_rate = 25
+        invoice.rate = 25
         invoice.save()
 
-        hours_tracked, _ = sent_invoice.get_hours_tracked()
-        self.assertNotIn(hours1, hours_tracked)
-        self.assertIn(hours2, hours_tracked)
+        line_items = sent_invoice.get_rendered_line_items()
+        with self.assertRaises(Exception):
+            self.assertInHTML(
+                f"""
+                <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+                <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+                """,
+                line_items,
+            )
+        self.assertInHTML(
+            f"""
+            <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+            <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+            """,
+            line_items,
+        )
 
 
 class TestUser(TestCase):

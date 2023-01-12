@@ -7,12 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import (
-    HoursLineItemForm,
-    InvoiceForm,
-)
+from timary.forms import HoursLineItemForm, InvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import Invoice, SentInvoice, User, InvoiceManager
+from timary.models import Invoice, InvoiceManager, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import show_active_timer, show_alert_message
@@ -35,7 +32,6 @@ def manage_invoices(request):
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
     )
-
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
@@ -84,7 +80,7 @@ def create_invoice(request):
             invoice.client_stripe_customer_id = contact.client_stripe_customer_id
             invoice.accounting_customer_id = contact.accounting_customer_id
             invoice.save()
-        invoice.calculate_next_date()
+        invoice.update()
         invoice.save()
         invoice.sync_customer()
 
@@ -161,11 +157,10 @@ def edit_invoice(request, invoice_id):
     invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
-    invoice_form_class, template = InvoiceManager.get_invoice_form_class(
-        invoice.invoice_type(), action="update"
+    form = invoice.form_class("update")(instance=invoice, user=request.user)
+    return render(
+        request, f"invoices/{invoice.invoice_type()}/_update.html", {"form": form}
     )
-    form = invoice_form_class(instance=invoice, user=request.user)
-    return render(request, f"invoices/{template}/_update.html", {"form": form})
 
 
 @login_required()
@@ -175,14 +170,12 @@ def update_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     put_params = QueryDict(request.body).copy()
-    put_params.update({"invoice_type": invoice.invoice_type})
-    invoice_form_class, template = InvoiceManager.get_invoice_form_class(
-        invoice.invoice_type(), action="update"
-    )
     prev_invoice_interval_type = (
         invoice.invoice_interval if invoice.invoice_type() == "internal" else None
     )
-    invoice_form = invoice_form_class(put_params, instance=invoice, user=request.user)
+    invoice_form = invoice.form_class("update")(
+        put_params, instance=invoice, user=request.user
+    )
     if invoice_form.is_valid():
         saved_invoice = invoice_form.save()
         if (
@@ -197,7 +190,9 @@ def update_invoice(request, invoice_id):
         return response
     else:
         return render(
-            request, f"invoices/{template}/_update.html", {"form": invoice_form}
+            request,
+            f"invoices/{invoice.invoice_type()}/_update.html",
+            {"form": invoice_form},
         )
 
 

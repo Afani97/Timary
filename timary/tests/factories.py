@@ -4,7 +4,15 @@ import factory
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
-from timary.models import HoursLineItem, Invoice, SentInvoice, User
+from timary.models import (
+    HoursLineItem,
+    IntervalInvoice,
+    Invoice,
+    MilestoneInvoice,
+    SentInvoice,
+    User,
+    WeeklyInvoice,
+)
 
 username_email = factory.Faker("email")
 
@@ -40,25 +48,42 @@ class InvoiceFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     title = factory.Faker("first_name")
-    invoice_type = Invoice.InvoiceType.INTERVAL
-    invoice_interval = factory.Iterator(
-        [
-            Invoice.Interval.WEEKLY,
-            Invoice.Interval.BIWEEKLY,
-            Invoice.Interval.MONTHLY,
-            Invoice.Interval.QUARTERLY,
-            Invoice.Interval.YEARLY,
-        ]
-    )
-    milestone_total_steps = factory.Faker("pyint", min_value=2, max_value=10)
-    milestone_step = factory.Faker("pyint", min_value=3, max_value=9)
     client_email = factory.Faker("email")
     client_name = factory.Faker("name")
-    next_date = factory.LazyFunction(datetime.date.today)
-    last_date = factory.LazyFunction(get_last_date)
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
     is_archived = False
     is_paused = False
+
+
+class WeeklyInvoiceFactory(InvoiceFactory):
+    class Meta:
+        model = WeeklyInvoice
+
+    next_date = factory.LazyFunction(datetime.date.today)
+    last_date = factory.LazyFunction(get_last_date)
+
+
+class IntervalInvoiceFactory(WeeklyInvoiceFactory):
+    class Meta:
+        model = IntervalInvoice
+
+    invoice_interval = factory.Iterator(
+        [
+            IntervalInvoice.Interval.WEEKLY,
+            IntervalInvoice.Interval.BIWEEKLY,
+            IntervalInvoice.Interval.MONTHLY,
+            IntervalInvoice.Interval.QUARTERLY,
+            IntervalInvoice.Interval.YEARLY,
+        ]
+    )
+
+
+class MilestoneInvoiceFactory(WeeklyInvoiceFactory):
+    class Meta:
+        model = MilestoneInvoice
+
+    milestone_total_steps = factory.Faker("pyint", min_value=2, max_value=10)
+    milestone_step = factory.Faker("pyint", min_value=3, max_value=9)
 
 
 class SentInvoiceFactory(DjangoModelFactory):
@@ -66,7 +91,7 @@ class SentInvoiceFactory(DjangoModelFactory):
         model = SentInvoice
 
     user = factory.SubFactory(UserFactory)
-    invoice = factory.SubFactory(InvoiceFactory)
+    invoice = factory.SubFactory(IntervalInvoiceFactory)
     date_sent = factory.LazyFunction(datetime.date.today)
     total_price = FuzzyDecimal(100, 10_000)
     paid_status = SentInvoice.PaidStatus.NOT_STARTED
@@ -76,6 +101,6 @@ class HoursLineItemFactory(DjangoModelFactory):
     class Meta:
         model = HoursLineItem
 
-    invoice = factory.SubFactory(InvoiceFactory)
+    invoice = factory.SubFactory(IntervalInvoiceFactory)
     quantity = FuzzyDecimal(1, 23, 1)
     date_tracked = factory.LazyFunction(datetime.date.today)

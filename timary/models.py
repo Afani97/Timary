@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Q, Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -17,6 +17,7 @@ from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
+from polymorphic.models import PolymorphicModel
 
 from timary.custom_errors import AccountingError
 from timary.invoice_builder import InvoiceBuilder
@@ -165,7 +166,7 @@ class HoursLineItem(LineItem):
         self.save()
 
 
-class Invoice(BaseModel):
+class Invoice(PolymorphicModel, BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)
     user = models.ForeignKey(
@@ -223,16 +224,19 @@ class Invoice(BaseModel):
         return f"{slugify(self.title)}"
 
     def invoice_type(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def get_hours_stats(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def render_line_items(self, sent_invoice_id):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def update(self):
-        raise NotImplemented()
+        raise NotImplementedError()
+
+    def form_class(self, action="create"):
+        raise NotImplementedError()
 
     def sync_customer(self):
         if not self.client_stripe_customer_id:
@@ -251,6 +255,7 @@ class Invoice(BaseModel):
         return (
             self.line_items.filter(sent_invoice_id=sent_invoice_id)
             .exclude(quantity=0)
+            .annotate(cost=self.rate * Sum("quantity"))
             .order_by("date_tracked")
         )
 
@@ -259,6 +264,16 @@ class RecurringInvoice(Invoice):
 
     next_date = models.DateField(null=True, blank=True)
     last_date = models.DateField(null=True, blank=True)
+
+    def __repr__(self):
+        return (
+            f"RecurringInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
 
     def get_hours_tracked(self):
         return (
@@ -316,11 +331,12 @@ class RecurringInvoice(Invoice):
     def render_line_items(self, send_invoice_id):
         return (
             f"""
-                    <div class="flex justify-between py-3 text-xl">
-                        <div>{floatformat(line_item.quantity, -2)} hours on {template_date(line_item.date_tracked, "M j")}</div>
-                        <div>${floatformat(line_item.cost, -2)}</div>
-                    </div>
-                    """
+            <div class="flex justify-between py-3 text-xl">
+                <div>{floatformat(line_item.quantity, -2)} hours on
+                {template_date(line_item.date_tracked, "M j")}</div>
+                <div>${floatformat(line_item.cost, -2)}</div>
+            </div>
+            """
             for line_item in self.get_hours_sent(send_invoice_id).all()
         )
 
@@ -341,11 +357,26 @@ class IntervalInvoice(RecurringInvoice):
         null=True,
     )
 
+    def __repr__(self):
+        return (
+            f"IntervalInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
+
     def invoice_type(self):
         return "interval"
 
     def update(self):
         self.calculate_next_date()
+
+    def form_class(self, action="create"):
+        from timary.forms import CreateIntervalForm, UpdateIntervalForm
+
+        return CreateIntervalForm if action == "create" else UpdateIntervalForm
 
     def get_next_date(self):
         if self.invoice_interval == IntervalInvoice.Interval.WEEKLY:
@@ -368,11 +399,26 @@ class IntervalInvoice(RecurringInvoice):
 
 
 class WeeklyInvoice(RecurringInvoice):
+    def __repr__(self):
+        return (
+            f"WeeklyInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
+
     def invoice_type(self):
         return "weekly"
 
     def update(self):
         pass
+
+    def form_class(self, action="create"):
+        from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
+
+        return CreateWeeklyForm if action == "create" else UpdateWeeklyForm
 
     def budget_percentage(self):
         if not self.total_budget:
@@ -407,7 +453,17 @@ class WeeklyInvoice(RecurringInvoice):
 
 class MilestoneInvoice(RecurringInvoice):
     milestone_total_steps = models.IntegerField(null=True, blank=True)
-    milestone_step = models.IntegerField(default=1, null=True, blank=True)
+    milestone_step = models.IntegerField(default=0, null=True, blank=True)
+
+    def __repr__(self):
+        return (
+            f"MilestoneInvoice(title={self.title}, "
+            f"email_id={self.email_id}, "
+            f"user={self.user}, "
+            f"invoice_rate={self.rate}, "
+            f"client_email={self.client_email}, "
+            f"is_archived={self.is_archived})"
+        )
 
     def invoice_type(self):
         return "milestone"
@@ -416,6 +472,23 @@ class MilestoneInvoice(RecurringInvoice):
         self.milestone_step += 1
         self.last_date = date.today()
         self.save()
+
+    def form_class(self, action="create"):
+        from timary.forms import CreateMilestoneForm, UpdateMilestoneForm
+
+        return CreateMilestoneForm if action == "create" else UpdateMilestoneForm
+
+    def render_line_items(self, send_invoice_id):
+        return (
+            f"""
+            <div class="flex justify-between py-3 text-xl">
+                <div>{floatformat(line_item.quantity, -2)} hours on
+                {template_date(line_item.date_tracked, "M j")}</div>
+                <div>${floatformat(line_item.cost, -2)}</div>
+            </div>
+            """
+            for line_item in self.get_hours_sent(send_invoice_id).all()
+        )
 
 
 class InvoiceManager:
@@ -448,29 +521,25 @@ class InvoiceManager:
 
     @property
     def invoice(self):
-        return self.invoice
+        return self._invoice
 
     @staticmethod
     def get_invoice_form_class(i_type, action="create"):
-        print(i_type)
         invoice_form = None
         if i_type == "interval":
-            from timary.forms import CreateIntervalForm
-            from timary.forms import UpdateIntervalForm
+            from timary.forms import CreateIntervalForm, UpdateIntervalForm
 
             invoice_form = (
                 CreateIntervalForm if action == "create" else UpdateIntervalForm
             )
         elif i_type == "milestone":
-            from timary.forms import CreateMilestoneForm
-            from timary.forms import UpdateMilestoneForm
+            from timary.forms import CreateMilestoneForm, UpdateMilestoneForm
 
             invoice_form = (
                 CreateMilestoneForm if action == "create" else UpdateMilestoneForm
             )
         elif i_type == "weekly":
-            from timary.forms import CreateWeeklyForm
-            from timary.forms import UpdateWeeklyForm
+            from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
 
             invoice_form = CreateWeeklyForm if action == "create" else UpdateWeeklyForm
         return invoice_form, i_type
@@ -536,8 +605,11 @@ class SentInvoice(BaseModel):
     def email_id(self):
         return f"{str(self.id).split('-')[0]}"
 
+    def get_hours_tracked(self):
+        return self.invoice.get_hours_sent(sent_invoice_id=self.id)
+
     def get_rendered_line_items(self):
-        return self.invoice.render_line_items(self.id)
+        return "".join(self.invoice.render_line_items(self.id))
 
     def success_notification(self):
         """

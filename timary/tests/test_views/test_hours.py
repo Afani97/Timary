@@ -17,7 +17,7 @@ from timary.tests.test_views.basetest import BaseTest
 from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
-class TestDailyHours(BaseTest):
+class TestHourLineItems(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 

@@ -16,7 +16,13 @@ from timary.forms import (
     SMSSettingsForm,
     UserForm,
 )
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    IntervalInvoiceFactory,
+    InvoiceFactory,
+    MilestoneInvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 from timary.utils import get_starting_week_from_date
 
 
@@ -123,8 +129,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -136,8 +141,7 @@ class TestInvoices(TestCase):
     def test_invoice_error_missing_title(self):
         form = CreateIntervalForm(
             data={
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -149,21 +153,19 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_type": 1,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
             }
         )
 
-        self.assertEqual(form.errors, {"invoice_rate": ["This field is required."]})
+        self.assertEqual(form.errors, {"rate": ["This field is required."]})
 
     def test_invoice_error_invoice_rate_min_value(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 0,
-                "invoice_type": 1,
+                "rate": 0,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -172,15 +174,14 @@ class TestInvoices(TestCase):
 
         self.assertEqual(
             form.errors,
-            {"invoice_rate": ["Ensure this value is greater than or equal to 1."]},
+            {"rate": ["Ensure this value is greater than or equal to 1."]},
         )
 
     def test_invoice_error_missing_invoice_interval(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
             }
@@ -192,8 +193,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "I",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -212,8 +212,7 @@ class TestInvoices(TestCase):
         form = CreateMilestoneForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 2,
+                "rate": 100,
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
             }
@@ -225,13 +224,12 @@ class TestInvoices(TestCase):
         )
 
     def test_invoice_error_milestone_total_step_less_than_current_step(self):
-        invoice = InvoiceFactory(invoice_type=2, milestone_step=5)
+        invoice = MilestoneInvoiceFactory(milestone_step=5)
         form = CreateMilestoneForm(
             instance=invoice,
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 2,
+                "rate": 100,
                 "milestone_total_steps": 3,
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -251,8 +249,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_email": "user@test.com",
             }
@@ -266,8 +263,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "12345",
                 "client_email": "user@test.com",
@@ -280,8 +276,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
             }
@@ -295,8 +290,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test",
@@ -312,8 +306,7 @@ class TestInvoices(TestCase):
             user=user,
             data={
                 "title": invoice.title,
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
@@ -328,8 +321,7 @@ class TestInvoices(TestCase):
         form = CreateIntervalForm(
             data={
                 "title": "1Password dev",
-                "invoice_rate": 100,
-                "invoice_type": 1,
+                "rate": 100,
                 "invoice_interval": "M",
                 "client_name": "User Test",
                 "client_email": "user@test.com",
@@ -342,13 +334,12 @@ class TestInvoices(TestCase):
         form = CreateWeeklyForm(
             data={
                 "title": "Some title",
-                "invoice_type": 3,
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
             }
         )
 
-        self.assertEqual(form.errors, {"invoice_rate": ["This field is required."]})
+        self.assertEqual(form.errors, {"rate": ["This field is required."]})
 
 
 class TestPayInvoice(TestCase):
@@ -401,7 +392,7 @@ class TestHoursLineItem(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.today = datetime.date.today()
-        cls.invoice = InvoiceFactory()
+        cls.invoice = IntervalInvoiceFactory()
 
     def test_hours_success(self):
         form = HoursLineItemForm(
@@ -528,7 +519,7 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_repeating_daily(self):
         date_tracked = datetime.date(2022, 1, 5)
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -555,7 +546,7 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_repeating_weekly(self):
         date_tracked = datetime.date(2022, 1, 5)
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -583,7 +574,7 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_recurring_daily(self):
         date_tracked = datetime.date(2022, 1, 5)
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -606,7 +597,7 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_recurring_weekly(self):
         date_tracked = datetime.date(2022, 1, 5)
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -684,7 +675,7 @@ class TestHoursLineItem(TestCase):
 
     def test_repeating_has_valid_starting_week(self):
         date_tracked = datetime.date(2022, 1, 5)
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -701,7 +692,7 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 6))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -725,7 +716,7 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_biweekly_update_starting_week_if_created_saturday(self):
-        invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 6))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,

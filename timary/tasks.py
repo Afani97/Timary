@@ -11,12 +11,12 @@ from django_q.tasks import async_task, schedule
 from timary.invoice_builder import InvoiceBuilder
 from timary.models import (
     HoursLineItem,
+    IntervalInvoice,
     Invoice,
+    MilestoneInvoice,
     SentInvoice,
     User,
-    IntervalInvoice,
     WeeklyInvoice,
-    MilestoneInvoice,
 )
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
@@ -123,7 +123,7 @@ def send_invoice(invoice_id):
     msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,
-            "line_items": sent_invoice.get_hours_tracked(),
+            "line_items": sent_invoice.get_rendered_line_items(),
         }
     )
     EmailService.send_html(
@@ -195,9 +195,10 @@ def remind_sms_again(user_email):
 def send_weekly_updates():
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
-    all_recurring_invoices = IntervalInvoice.objects.exclude(is_archived=True).union(
-        MilestoneInvoice.objects.exclude(is_archived=True)
-    )
+    all_recurring_invoices = Invoice.objects.instance_of(
+        IntervalInvoice
+    ) | Invoice.objects.instance_of(MilestoneInvoice)
+
     for invoice in all_recurring_invoices:
         if not invoice.user.settings["subscription_active"]:
             continue
@@ -206,14 +207,14 @@ def send_weekly_updates():
             continue
         hours_tracked_this_week = hours.filter(
             date_tracked__range=(week_start, today)
-        ).annotate(cost=invoice.invoice_rate * Sum("quantity"))
+        ).annotate(cost=invoice.rate * Sum("quantity"))
         if not hours:
             continue
 
         total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
-            total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate
+            total_cost_amount = total_hours["total_hours"] * invoice.rate
         msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
             {
                 "invoice": invoice,

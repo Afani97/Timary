@@ -9,13 +9,15 @@ from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.models import Invoice, SentInvoice
+from timary.models import Invoice, MilestoneInvoice, SentInvoice
 from timary.templatetags.filters import nextmonday
 from timary.tests.factories import (
     HoursLineItemFactory,
-    InvoiceFactory,
+    IntervalInvoiceFactory,
+    MilestoneInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
+    WeeklyInvoiceFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
 
@@ -26,8 +28,8 @@ class TestInvoices(BaseTest):
 
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.invoice = InvoiceFactory(user=self.user)
-        self.invoice_no_user = InvoiceFactory()
+        self.invoice = IntervalInvoiceFactory(user=self.user)
+        self.invoice_no_user = IntervalInvoiceFactory()
 
     @classmethod
     def extract_html(cls):
@@ -47,8 +49,8 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "invoice_rate": 50,
-                "invoice_type": 1,
+                "rate": 50,
+                "invoice_type": "interval",
                 "invoice_interval": "W",
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
@@ -76,13 +78,13 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_create_invoice_from_client_list(self):
-        InvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
+        IntervalInvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "invoice_rate": 50,
-                "invoice_type": 1,
+                "rate": 50,
+                "invoice_type": "interval",
                 "invoice_interval": "W",
                 "contacts": "abc123",
             },
@@ -103,14 +105,14 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "invoice_rate": 50,
-                "invoice_type": 2,
+                "rate": 50,
+                "invoice_type": "milestone",
                 "milestone_total_steps": 3,
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
             },
         )
-        invoice = Invoice.objects.first()
+        invoice = MilestoneInvoice.objects.first()
         self.assertInHTML(
             f"""
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-baseline my-5">
@@ -140,8 +142,8 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
-                "invoice_type": 3,
-                "invoice_rate": 1200,
+                "invoice_type": "weekly",
+                "rate": 1200,
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
             },
@@ -166,7 +168,7 @@ class TestInvoices(BaseTest):
             f'<h2 class="text-3xl font-bold mr-4">{self.invoice.title}</h2>',
             response.content.decode(),
         )
-        self.assertIn(f"Hourly ${self.invoice.invoice_rate}", response.content.decode())
+        self.assertIn(f"Hourly ${self.invoice.rate}", response.content.decode())
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
 
@@ -200,8 +202,8 @@ class TestInvoices(BaseTest):
             reverse("timary:create_invoice"),
             {
                 "title": invoice.title,
-                "invoice_rate": 50,
-                "invoice_type": 1,
+                "rate": 50,
+                "invoice_type": "interval",
                 "invoice_interval": "W",
                 "client_name": "John Smith",
                 "client_email": "john@test.com",
@@ -277,7 +279,7 @@ class TestInvoices(BaseTest):
     def test_update_invoice(self):
         url_params = {
             "title": "Some title",
-            "invoice_rate": 100,
+            "rate": 100,
             "invoice_interval": "W",
             "client_name": "John Smith",
             "client_email": "john@test.com",
@@ -296,7 +298,7 @@ class TestInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertIn(
-            f"Hourly ${floatformat(self.invoice.invoice_rate, -2)}",
+            f"Hourly ${floatformat(self.invoice.rate, -2)}",
             response.content.decode("utf-8"),
         )
         self.assertIn(
@@ -311,10 +313,10 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_update_invoice_milestone(self):
-        invoice = InvoiceFactory(invoice_type=2, user=self.user, milestone_step=3)
+        invoice = MilestoneInvoiceFactory(user=self.user, milestone_step=3)
         url_params = {
             "title": "Some title",
-            "invoice_rate": 100,
+            "rate": 100,
             "milestone_total_steps": 5,
             "client_name": "John Smith",
             "client_email": "john@test.com",
@@ -348,10 +350,10 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_update_weekly_invoice(self):
-        invoice = InvoiceFactory(invoice_type=3, user=self.user, invoice_rate=50)
+        invoice = WeeklyInvoiceFactory(user=self.user, rate=50)
         url_params = {
             "title": "Some title",
-            "invoice_rate": 100,
+            "rate": 100,
             "client_name": "John Smith",
             "client_email": "john@test.com",
         }
@@ -362,12 +364,12 @@ class TestInvoices(BaseTest):
         invoice.refresh_from_db()
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(invoice.invoice_rate, 100)
+        self.assertEqual(invoice.rate, 100)
 
     def test_update_invoice_dont_update_next_date_if_paused(self):
         url_params = {
             "title": "Some title",
-            "invoice_rate": 100,
+            "rate": 100,
             "invoice_interval": "W",
             "client_name": "John Smith",
             "client_email": "john@test.com",
@@ -396,7 +398,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 302)
 
     def test_pause_invoice(self):
-        invoice = InvoiceFactory(invoice_interval="M", user=self.user)
+        invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
@@ -424,7 +426,7 @@ class TestInvoices(BaseTest):
         """
 
         # Pause invoice
-        invoice = InvoiceFactory(invoice_interval="M", user=self.user)
+        invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
         hours1 = HoursLineItemFactory(invoice=invoice)
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
@@ -459,7 +461,7 @@ class TestInvoices(BaseTest):
 
     def test_archive_invoice(self):
         Invoice.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.get(
             reverse("timary:archive_invoice", kwargs={"invoice_id": invoice.id}),
         )
@@ -479,7 +481,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.status_code, 302)
 
     def test_resend_invoice_email(self):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(invoice=invoice)
 
         response = self.client.get(
@@ -496,7 +498,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(expected_response, response.content.decode("utf-8"))
 
     def test_dont_resend_invoice_email_if_not_active_subscription(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=invoice.user)
         invoice.user.stripe_subscription_status = 3
         invoice.user.save()
@@ -516,7 +518,7 @@ class TestInvoices(BaseTest):
         self.client.logout()
 
     def test_resend_invoice_email_already_paid(self):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(
             invoice=invoice, paid_status=SentInvoice.PaidStatus.PAID
         )
@@ -612,8 +614,7 @@ class TestInvoices(BaseTest):
         self.assertTemplateUsed(response, "partials/_invoice.html")
 
     def test_generate_invoice_milestone(self):
-        invoice = InvoiceFactory(
-            invoice_type=Invoice.InvoiceType.MILESTONE,
+        invoice = MilestoneInvoiceFactory(
             milestone_step=3,
             milestone_total_steps=6,
             user=self.user,

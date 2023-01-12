@@ -7,10 +7,11 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
     HoursLineItem,
-    Invoice,
-    User,
     IntervalInvoice,
+    Invoice,
     MilestoneInvoice,
+    RecurringInvoice,
+    User,
     WeeklyInvoice,
 )
 from timary.utils import get_starting_week_from_date
@@ -54,12 +55,16 @@ class HoursLineItemForm(forms.ModelForm):
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
             else:
-                self.fields["invoice"].queryset = Invoice.objects.none()
+                self.fields["invoice"].queryset = RecurringInvoice.objects.none()
 
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
         self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
-        if self.initial and self.instance.invoice:
+        if (
+            self.initial
+            and self.instance.invoice
+            and hasattr(self.instance.invoice, "last_date")
+        ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
             ] = self.instance.invoice.last_date
@@ -118,7 +123,7 @@ class HoursLineItemForm(forms.ModelForm):
 
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
-        if date_tracked and invoice and invoice.last_date:
+        if date_tracked and invoice and hasattr(invoice, "last_date"):
             if date_tracked < invoice.last_date:
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
@@ -168,7 +173,18 @@ class HoursLineItemForm(forms.ModelForm):
 
 
 class InvoiceForm(forms.ModelForm):
-    invoice_type = forms.CharField(required=False)
+    rate = forms.DecimalField(
+        required=True,
+        widget=forms.NumberInput(
+            attrs={
+                "value": 50,
+                "min": 1,
+                "max": 1000,
+                "step": "0.01",
+                "class": "input input-bordered border-2 text-lg w-full",
+            },
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
@@ -179,7 +195,6 @@ class InvoiceForm(forms.ModelForm):
         fields = [
             "title",
             "rate",
-            "invoice_type",
             "client_name",
             "client_email",
         ]
@@ -193,15 +208,6 @@ class InvoiceForm(forms.ModelForm):
                     "placeholder": "New Saas App...",
                     "class": "input input-bordered border-2 text-lg w-full",
                 }
-            ),
-            "rate": forms.NumberInput(
-                attrs={
-                    "value": 50,
-                    "min": 1,
-                    "max": 1000,
-                    "step": "0.01",
-                    "class": "input input-bordered border-2 text-lg w-full",
-                },
             ),
             "client_name": forms.TextInput(
                 attrs={
