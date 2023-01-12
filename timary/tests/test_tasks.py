@@ -9,7 +9,7 @@ from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
 
-from timary.models import DailyHoursInput, SentInvoice
+from timary.models import HoursLineItem, SentInvoice
 from timary.tasks import (
     gather_invoices,
     gather_recurring_hours,
@@ -190,7 +190,7 @@ class TestGatherHours(TestCase):
     def test_gather_0_hours(self):
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 0)
+        self.assertEquals(HoursLineItem.objects.count(), 0)
 
     def test_gather_0_hours_with_archived_invoice(self):
         DailyHoursFactory(
@@ -216,7 +216,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 2)
+        self.assertEquals(HoursLineItem.objects.count(), 2)
 
     def test_gather_2_hour(self):
         DailyHoursFactory(
@@ -238,7 +238,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("2 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 4)
+        self.assertEquals(HoursLineItem.objects.count(), 4)
 
     def test_passing_recurring_logic(self):
         hours = DailyHoursFactory(
@@ -251,7 +251,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 2)
+        self.assertEquals(HoursLineItem.objects.count(), 2)
 
         hours.refresh_from_db()
         self.assertIsNone(hours.recurring_logic)
@@ -270,12 +270,12 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 1)
+        self.assertEquals(HoursLineItem.objects.count(), 1)
 
         hours.refresh_from_db()
         self.assertIsNotNone(hours.recurring_logic)
 
-    @patch("timary.models.DailyHoursInput.update_recurring_starting_weeks")
+    @patch("timary.models.HoursLineItem.update_recurring_starting_weeks")
     @patch("timary.tasks.date")
     def test_refresh_starting_weeks_on_saturday(self, date_mock, update_weeks_mock):
         date_mock.today.return_value = datetime.date(2022, 12, 31)
@@ -294,10 +294,10 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 1)
+        self.assertEquals(HoursLineItem.objects.count(), 1)
         self.assertTrue(update_weeks_mock.assert_called_once)
 
-    @patch("timary.models.DailyHoursInput.cancel_recurring_hour")
+    @patch("timary.models.HoursLineItem.cancel_recurring_hour")
     @patch("timary.tasks.date")
     def test_cancel_previous_recurring_logic(self, date_mock, cancel_hours_mock):
         """Prevent double stacking of hours, have one recurring instance at a time"""
@@ -314,7 +314,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(DailyHoursInput.objects.count(), 2)
+        self.assertEquals(HoursLineItem.objects.count(), 2)
         self.assertTrue(cancel_hours_mock.assert_called_once)
 
 

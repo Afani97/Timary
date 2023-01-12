@@ -4,7 +4,7 @@ import factory
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
-from timary.models import DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import HoursLineItem, Invoice, SentInvoice, User
 
 username_email = factory.Faker("email")
 
@@ -74,7 +74,7 @@ class SentInvoiceFactory(DjangoModelFactory):
 
 class DailyHoursFactory(DjangoModelFactory):
     class Meta:
-        model = DailyHoursInput
+        model = HoursLineItem
 
     invoice = factory.SubFactory(InvoiceFactory)
     hours = FuzzyDecimal(1, 23, 1)

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from phonenumber_field.formfields import PhoneNumberField
 
-from timary.models import DailyHoursInput, Invoice, User
+from timary.models import HoursLineItem, Invoice, User
 from timary.utils import get_starting_week_from_date
 
 
@@ -59,7 +59,7 @@ class DailyHoursForm(forms.ModelForm):
             self.fields["hours"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
 
     class Meta:
-        model = DailyHoursInput
+        model = HoursLineItem
         fields = ["hours", "date_tracked", "invoice"]
         widgets = {
             "hours": forms.TextInput(

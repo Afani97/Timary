@@ -3,14 +3,14 @@ from datetime import date, timedelta
 from django.db.models import CharField, Count, F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 
-from timary.models import DailyHoursInput, Invoice
+from timary.models import HoursLineItem, Invoice
 from timary.querysets import HourStats
 
 
 class HoursManager:
     def __init__(self, user):
         self.user = user
-        self.hours = DailyHoursInput.all_hours.current_month(user)
+        self.hours = HoursLineItem.all_hours.current_month(user)
 
     def can_repeat_previous_hours_logged(self):
         """

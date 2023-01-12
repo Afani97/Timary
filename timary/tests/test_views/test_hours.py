@@ -6,7 +6,7 @@ from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.models import DailyHoursInput
+from timary.models import HoursLineItem
 from timary.tests.factories import (
     DailyHoursFactory,
     InvoiceFactory,
@@ -62,7 +62,7 @@ class TestDailyHours(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_create_daily_hours_error(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -198,7 +198,7 @@ class TestDailyHours(BaseTest):
         self.assertEqual(response.status_code, 302)
 
     def test_repeat_daily_hours(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         DailyHoursFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
@@ -207,15 +207,15 @@ class TestDailyHours(BaseTest):
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 2)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
 
         response = self.client.get(reverse("timary:repeat_hours"))
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(DailyHoursInput.objects.count(), 4)
+        self.assertEqual(HoursLineItem.objects.count(), 4)
 
     def test_repeat_daily_hours_excluding_skipped(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         DailyHoursFactory(
             hours=1,
             invoice=InvoiceFactory(user=self.user),
@@ -232,28 +232,28 @@ class TestDailyHours(BaseTest):
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
         self.assertEqual(
-            int(DailyHoursInput.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            int(HoursLineItem.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
             3,
         )
         self.assertEqual(
-            DailyHoursInput.objects.count(),
+            HoursLineItem.objects.count(),
             3,
         )
 
         response = self.client.get(reverse("timary:repeat_hours"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            int(DailyHoursInput.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            int(HoursLineItem.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
             6,
         )
         # Only two are created because 0 hours are skipped
         self.assertEqual(
-            DailyHoursInput.objects.count(),
+            HoursLineItem.objects.count(),
             5,
         )
 
     def test_repeat_hours_including_repeating(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         DailyHoursFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
@@ -273,17 +273,17 @@ class TestDailyHours(BaseTest):
                 "starting_week": start_week,
             },
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 3)
+        self.assertEqual(HoursLineItem.objects.count(), 3)
 
         response = self.client.get(reverse("timary:repeat_hours"))
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(DailyHoursInput.objects.count(), 6)
+        self.assertEqual(HoursLineItem.objects.count(), 6)
 
     def test_repeat_hours_including_repeating_not_including_hours_if_not_scheduled(
         self,
     ):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         DailyHoursFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
@@ -317,15 +317,15 @@ class TestDailyHours(BaseTest):
                 "starting_week": bi_weekly_start_week,
             },
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 4)
+        self.assertEqual(HoursLineItem.objects.count(), 4)
 
         response = self.client.get(reverse("timary:repeat_hours"))
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(DailyHoursInput.objects.count(), 7)
+        self.assertEqual(HoursLineItem.objects.count(), 7)
 
     def test_create_repeating_hours(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -339,11 +339,11 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        hours = DailyHoursInput.objects.first()
+        hours = HoursLineItem.objects.first()
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_create_repeating_hours_error(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -357,10 +357,10 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNone(DailyHoursInput.objects.first())
+        self.assertIsNone(HoursLineItem.objects.first())
 
     def test_create_recurring_hours(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -373,11 +373,11 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        hours = DailyHoursInput.objects.first()
+        hours = HoursLineItem.objects.first()
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_create_recurring_hours_error(self):
-        DailyHoursInput.objects.all().delete()
+        HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
@@ -390,4 +390,4 @@ class TestDailyHours(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNone(DailyHoursInput.objects.first())
+        self.assertIsNone(HoursLineItem.objects.first())

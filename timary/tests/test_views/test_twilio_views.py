@@ -9,7 +9,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django_twilio.decorators import twilio_view
 
-from timary.models import DailyHoursInput
+from timary.models import HoursLineItem
 from timary.tasks import send_reminder_sms
 from timary.tests.factories import InvoiceFactory, UserFactory
 from timary.views.twilio_views import twilio_reply
@@ -184,8 +184,8 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
-        self.assertEqual(DailyHoursInput.objects.first().hours, 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.first().hours, 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -208,7 +208,7 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertIn(f"How many hours to log for: {invoice2.title}", response.response)
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
         # SECOND INVOICE SMS SENT
         message_list_mock.return_value = [
@@ -224,9 +224,9 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 2)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
         self.assertEqual(
-            DailyHoursInput.objects.aggregate(total=Sum("hours"))["total"], 3
+            HoursLineItem.objects.aggregate(total=Sum("hours"))["total"], 3
         )
 
     @patch("timary.views.twilio_views.MessagingResponse")
@@ -257,7 +257,7 @@ class TestTwilioReplyWebhook(TestCase):
             f"Wrong input, allowed formats are '1.5' or '1:30'. "
             f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
     @patch("timary.services.twilio_service.TwilioClient.send_message")
     @patch("timary.services.twilio_service.TwilioClient.log_hours")
@@ -288,7 +288,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         # WAS NOT ABLE TO GET RECENT MESSAGES, THEREFORE NOTHING TO LOG FOR
         # RESEND LATEST MESSAGE
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
         # RESEND INVOICE SMS
         message_list_mock.return_value = [
@@ -305,7 +305,7 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertIn("All set for today. Keep it up!", response.response)
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -335,7 +335,7 @@ class TestTwilioReplyWebhook(TestCase):
             response.response,
             f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
         # SECOND INVOICE SENT, HOURS LOGGED MORE THAN 30 MINUTES
         message_list_mock.return_value = [
@@ -354,7 +354,7 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -384,7 +384,7 @@ class TestTwilioReplyWebhook(TestCase):
             response.response,
             f"Hours have to be between 0 and 24. How many hours to log for: {invoice.title}. Reply 'S' to skip",
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
         # SECOND INVOICE SENT, HOURS LOGGED MORE THAN 30 MINUTES
         message_list_mock.return_value = [
@@ -403,7 +403,7 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -449,7 +449,7 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertEqual(response.response, "All set for today. Keep it up!")
         self.assertEqual(invoice2.get_hours_tracked().count(), 1)
         self.assertEqual(
-            DailyHoursInput.objects.aggregate(total=Sum("hours"))["total"], 2
+            HoursLineItem.objects.aggregate(total=Sum("hours"))["total"], 2
         )
 
     @patch("timary.views.twilio_views.MessagingResponse")
@@ -476,7 +476,7 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertIn(
             f"Unable to track hours for {fake_invoice_title}.", response.response
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -500,7 +500,7 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -528,7 +528,7 @@ class TestTwilioReplyWebhook(TestCase):
             f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
             response.response,
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -557,7 +557,7 @@ class TestTwilioReplyWebhook(TestCase):
             f"How many hours to log for: {invoice.title}. Reply 'S' to skip",
             response.response,
         )
-        self.assertEqual(DailyHoursInput.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
         # SECOND INVOICE PARSED IT CORRECTLY DUE TO THE SECOND ':' IN BODY
         message_list_mock.return_value = [
@@ -577,4 +577,4 @@ class TestTwilioReplyWebhook(TestCase):
             response = twilio_view(twilio_reply(request))
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
-        self.assertEqual(DailyHoursInput.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)

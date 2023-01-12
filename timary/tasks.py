@@ -9,13 +9,13 @@ from django.db.models import Q, Sum
 from django_q.tasks import async_task, schedule
 
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import HoursLineItem, Invoice, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
 
 
 def gather_recurring_hours():
-    all_recurring_hours = DailyHoursInput.objects.exclude(
+    all_recurring_hours = HoursLineItem.objects.exclude(
         Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
     ).exclude(invoice__is_archived=True)
 
@@ -26,7 +26,7 @@ def gather_recurring_hours():
     for recurring_hour in all_recurring_hours:
         if recurring_hour.is_recurring_date_today():
 
-            new_hours = DailyHoursInput.objects.create(
+            new_hours = HoursLineItem.objects.create(
                 hours=recurring_hour.hours,
                 date_tracked=date.today(),
                 invoice=recurring_hour.invoice,

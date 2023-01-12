@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 from timary.hours_manager import HoursManager
-from timary.models import DailyHoursInput, Invoice, SentInvoice, User
+from timary.models import HoursLineItem, Invoice, SentInvoice, User
 from timary.tests.factories import (
     DailyHoursFactory,
     InvoiceFactory,
@@ -21,7 +21,7 @@ from timary.utils import get_date_parsed, get_starting_week_from_date
 class TestDailyHours(TestCase):
     def test_create_daily_hours(self):
         invoice = InvoiceFactory()
-        hours = DailyHoursInput.objects.create(
+        hours = HoursLineItem.objects.create(
             invoice=invoice, hours=1, date_tracked=datetime.date.today()
         )
         self.assertIsNotNone(hours)
@@ -35,27 +35,27 @@ class TestDailyHours(TestCase):
     def test_error_creating_hours_less_than_0(self):
         invoice = InvoiceFactory()
         with self.assertRaises(ValidationError):
-            DailyHoursInput.objects.create(
+            HoursLineItem.objects.create(
                 invoice=invoice, hours=-1, date_tracked=datetime.date.today()
             )
 
     def test_error_creating_hours_greater_than_24(self):
         invoice = InvoiceFactory()
         with self.assertRaises(ValidationError):
-            DailyHoursInput.objects.create(
+            HoursLineItem.objects.create(
                 invoice=invoice, hours=25, date_tracked=datetime.date.today()
             )
 
     def test_error_creating_hours_with_3_decimal_places(self):
         invoice = InvoiceFactory()
         with self.assertRaises(ValidationError):
-            DailyHoursInput.objects.create(
+            HoursLineItem.objects.create(
                 invoice=invoice, hours=2.556, date_tracked=datetime.date.today()
             )
 
     def test_error_creating_without_invoice(self):
         with self.assertRaises(ValidationError):
-            DailyHoursInput.objects.create(hours=1, date_tracked=datetime.date.today())
+            HoursLineItem.objects.create(hours=1, date_tracked=datetime.date.today())
 
 
 class TestInvoice(TestCase):

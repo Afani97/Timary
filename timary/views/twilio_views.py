@@ -5,7 +5,7 @@ from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
 from twilio.twiml.messaging_response import MessagingResponse
 
-from timary.models import DailyHoursInput, User
+from timary.models import HoursLineItem, User
 from timary.services.twilio_service import TwilioClient
 from timary.utils import convert_hours_to_decimal_hours
 
@@ -65,7 +65,7 @@ def twilio_reply(request):
                 return r
 
         if hours and 0 < hours <= 24:
-            DailyHoursInput.objects.create(
+            HoursLineItem.objects.create(
                 hours=hours,
                 date_tracked=datetime.date.today(),
                 invoice=invoice,
@@ -77,7 +77,7 @@ def twilio_reply(request):
             )
             return r
     else:
-        DailyHoursInput.objects.create(
+        HoursLineItem.objects.create(
             hours=0,
             date_tracked=datetime.date.today(),
             invoice=invoice,

@@ -31,13 +31,13 @@ class HourStats:
         self.first_month = datetime.today().replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
-        from timary.models import DailyHoursInput, SentInvoice
+        from timary.models import HoursLineItem, SentInvoice
 
         sent_invoices = self.user.sent_invoices.filter(
             date_sent__range=date_range
         ).exclude(paid_status=SentInvoice.PaidStatus.FAILED)
 
-        total_hours = DailyHoursInput.objects.filter(
+        total_hours = HoursLineItem.objects.filter(
             sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True))
         ).aggregate(total_hours=Sum("hours"))["total_hours"]
         total_amount = sent_invoices.aggregate(total_amount=Sum("total_price"))[
@@ -47,10 +47,10 @@ class HourStats:
         return total_hours or 0, total_amount or 0
 
     def get_untracked_hour_stats(self, date_range=None):
-        from timary.models import DailyHoursInput
+        from timary.models import HoursLineItem
 
         qs = (
-            DailyHoursInput.objects.filter(
+            HoursLineItem.objects.filter(
                 invoice__user=self.user,
                 sent_invoice_id__isnull=True,
                 date_tracked__range=date_range,

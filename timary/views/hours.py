@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import DailyHoursForm
 from timary.hours_manager import HoursManager
-from timary.models import DailyHoursInput, Invoice
+from timary.models import HoursLineItem, Invoice
 from timary.tasks import gather_recurring_hours
 from timary.utils import show_alert_message
 
@@ -85,7 +85,7 @@ def quick_hours(request):
 @login_required()
 @require_http_methods(["GET"])
 def get_hours(request, hours_id):
-    hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    hours = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
     return render(request, "partials/_hour.html", {"hour": hours})
@@ -94,7 +94,7 @@ def get_hours(request, hours_id):
 @login_required()
 @require_http_methods(["GET"])
 def edit_hours(request, hours_id):
-    hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    hours = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
     hours_form = DailyHoursForm(instance=hours, user=request.user)
@@ -104,7 +104,7 @@ def edit_hours(request, hours_id):
 @login_required()
 @require_http_methods(["PUT"])
 def update_hours(request, hours_id):
-    hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    hours = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
@@ -129,7 +129,7 @@ def update_hours(request, hours_id):
 @login_required()
 @require_http_methods(["PATCH"])
 def patch_hours(request, hours_id):
-    hour = get_object_or_404(DailyHoursInput, id=hours_id)
+    hour = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hour.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
@@ -154,7 +154,7 @@ def patch_hours(request, hours_id):
 @login_required()
 @require_http_methods(["DELETE"])
 def delete_hours(request, hours_id):
-    hours = get_object_or_404(DailyHoursInput, id=hours_id)
+    hours = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
     hours.delete()
@@ -169,7 +169,7 @@ def delete_hours(request, hours_id):
 @require_http_methods(["GET"])
 def repeat_hours(request):
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    yesterday_hours = DailyHoursInput.objects.filter(
+    yesterday_hours = HoursLineItem.objects.filter(
         invoice__user=request.user,
         date_tracked=yesterday,
         invoice__is_archived=False,
@@ -178,7 +178,7 @@ def repeat_hours(request):
     hours = []
     for hour in yesterday_hours:
         hours.append(
-            DailyHoursInput.objects.create(
+            HoursLineItem.objects.create(
                 date_tracked=datetime.date.today(),
                 hours=hour.hours,
                 invoice=hour.invoice,

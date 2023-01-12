@@ -54,7 +54,7 @@ class Contract(BaseModel):
     name = models.CharField(max_length=200, null=True, blank=True)
 
 
-class DailyHoursInput(BaseModel):
+class HoursLineItem(BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="hours_tracked"
     )
@@ -78,7 +78,7 @@ class DailyHoursInput(BaseModel):
 
     def __repr__(self):
         return (
-            f"DailyHoursInput(invoice={self.invoice}, "
+            f"HoursLineItem(invoice={self.invoice}, "
             f"hours={self.hours}, "
             f"date_tracked={self.date_tracked})"
         )
@@ -446,11 +446,12 @@ class SentInvoice(BaseModel):
         """
         TwilioClient.sent_payment_success(self)
 
-        hours_tracked, _ = self.get_hours_tracked()
+        hours_tracked, line_items = self.get_hours_tracked()
         msg_body = InvoiceBuilder(self.user).send_invoice_receipt(
             {
                 "sent_invoice": self,
                 "hours_tracked": hours_tracked,
+                "line_items": line_items,
             }
         )
         EmailService.send_html(
