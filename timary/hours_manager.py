@@ -65,7 +65,7 @@ class HoursManager:
         hour_forms_to_offer = repeated_hours_set - hours_today_set
         return [
             {
-                "hours": hour[0],
+                "quantity": hour[0],
                 "invoice_name": Invoice.objects.get(email_id=hour[1]).title,
                 "invoice_reference_id": f"{hour[0]}_{hour[1]}",
             }
