@@ -13,7 +13,7 @@
                         <div tabindex="0" class="dropdown-content">
                             <ul class="menu bg-neutral w-56 rounded-box">
                                 <li class="hover-bordered"
-                                    hx-get="{% url 'timary:create_invoice' %}?type=1"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=interval"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
                                     hx-swap="innerHTML"
@@ -24,7 +24,7 @@
                                     </label>
                                 </li>
                                 <li class="hover-bordered"
-                                    hx-get="{% url 'timary:create_invoice' %}?type=2"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=milestone"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
                                     hx-swap="innerHTML">
@@ -34,7 +34,7 @@
                                     </label>
                                 </li>
                                 <li class="hover-bordered"
-                                    hx-get="{% url 'timary:create_invoice' %}?type=3"
+                                    hx-get="{% url 'timary:create_invoice' %}?type=weekly"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
                                     hx-swap="innerHTML">
