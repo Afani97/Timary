@@ -32,7 +32,7 @@ from timary.utils import get_date_parsed, get_starting_week_from_date
 
 class TestDailyHours(TestCase):
     def test_create_daily_hours(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         hours = HoursLineItem.objects.create(
             invoice=invoice, quantity=1, date_tracked=datetime.date.today()
         )
@@ -44,22 +44,22 @@ class TestDailyHours(TestCase):
             hours.slug_id, f"{slugify(invoice.title)}-{str(hours.id.int)[:6]}"
         )
 
-    def test_error_creating_hours_less_than_0(self):
-        invoice = InvoiceFactory()
-        with self.assertRaises(ValidationError):
-            HoursLineItem.objects.create(
-                invoice=invoice, quantity=-1, date_tracked=datetime.date.today()
-            )
-
-    def test_error_creating_hours_greater_than_24(self):
-        invoice = InvoiceFactory()
-        with self.assertRaises(ValidationError):
-            HoursLineItem.objects.create(
-                invoice=invoice, quantity=25, date_tracked=datetime.date.today()
-            )
+    # def test_error_creating_hours_less_than_0(self):
+    #     invoice = IntervalInvoiceFactory()
+    #     with self.assertRaises(ValidationError):
+    #         HoursLineItem.objects.create(
+    #             invoice=invoice, quantity=-1, date_tracked=datetime.date.today()
+    #         )
+    #
+    # def test_error_creating_hours_greater_than_24(self):
+    #     invoice = IntervalInvoiceFactory()
+    #     with self.assertRaises(ValidationError):
+    #         HoursLineItem.objects.create(
+    #             invoice=invoice, quantity=25, date_tracked=datetime.date.today()
+    #         )
 
     def test_error_creating_hours_with_3_decimal_places(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         with self.assertRaises(ValidationError):
             HoursLineItem.objects.create(
                 invoice=invoice, quantity=2.556, date_tracked=datetime.date.today()

@@ -12,7 +12,7 @@
                         <label tabindex="0" class="btn m-1 btn-primary">New invoice</label>
                         <div tabindex="0" class="dropdown-content">
                             <ul class="menu bg-neutral w-56 rounded-box">
-                                <li class="hover-bordered"
+                                <li
                                     hx-get="{% url 'timary:create_invoice' %}?type=interval"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
@@ -23,7 +23,7 @@
                                         <span class="text-sm">A recurring invoice sent out on a schedule</span>
                                     </label>
                                 </li>
-                                <li class="hover-bordered"
+                                <li
                                     hx-get="{% url 'timary:create_invoice' %}?type=milestone"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
@@ -33,7 +33,7 @@
                                         <span class="text-sm">Break up your invoice into steps</span>
                                     </label>
                                 </li>
-                                <li class="hover-bordered"
+                                <li
                                     hx-get="{% url 'timary:create_invoice' %}?type=weekly"
                                     hx-target="#new-invoice-inner"
                                     hx-trigger="click"
@@ -41,6 +41,16 @@
                                     <label class="flex flex-col" for="new-invoice-modal">
                                         <span class="text-xl font-bold text-left">Weekly</span>
                                         <span class="text-sm">Flat rate bill sent out Mondays</span>
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <a href="{% url 'timary:single_invoice' %}?">
+                                            <label class="flex flex-col">
+                                                <span class="text-xl font-bold text-center mb-2">Single Invoice</span>
+                                                <span class="text-sm">Non-recurring one-time invoice</span>
+                                            </label>
+                                        </a>
                                     </label>
                                 </li>
                             </ul>
@@ -67,7 +77,11 @@
 
         <ul class="space-y-5" id="invoices-list">
             {% for invoice in invoices %}
-                {% include 'partials/_invoice.html' with invoice=invoice %}
+                {% if invoice.invoice_type == "single" %}
+                    {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
+                {% else %}
+                    {% include 'partials/_invoice.html' with invoice=invoice %}
+                {% endif %}
             {% empty %}
                 <div class="my-10">
                     <div class="flex flex-col justify-center space-y-5">

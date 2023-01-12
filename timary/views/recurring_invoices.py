@@ -55,9 +55,7 @@ def create_invoice(request):
             request.GET.get("type")
         )
         invoice_form = invoice_form_class(user=request.user)
-        return render(
-            request, f"invoices/{template}/_create.html", {"form": invoice_form}
-        )
+        return render(request, template, {"form": invoice_form})
     user: User = request.user
     request_data = request.POST.copy()
     request_data.get("invoice_type")
@@ -96,9 +94,7 @@ def create_invoice(request):
             ] = "/main/"  # To trigger refresh to remove empty state
         return response
     else:
-        response = render(
-            request, f"invoices/{template}/_create.html", {"form": invoice_form}
-        )
+        response = render(request, template, {"form": invoice_form})
         response["HX-Retarget"] = "#new-invoice-form"
         response["HX-Reswap"] = "outerHTML"
         return response

@@ -1,8 +1,10 @@
 import random
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -13,6 +15,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
+from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
@@ -57,25 +60,30 @@ class Contract(BaseModel):
     name = models.CharField(max_length=200, null=True, blank=True)
 
 
-class LineItem(BaseModel):
+class LineItem(PolymorphicModel, BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="line_items"
     )
-    date_tracked = models.DateField()
+    date_tracked = models.DateField(null=True, blank=True)
+    description = models.CharField(max_length=200, null=True, blank=True)
     quantity = models.DecimalField(
         default=1,
         max_digits=9,
         decimal_places=2,
     )
     unit_price = models.DecimalField(
-        default=1,
+        default=0,
         max_digits=9,
         decimal_places=2,
     )
     sent_invoice_id = models.CharField(max_length=200, null=True, blank=True)
 
-    class Meta:
-        abstract = True
+    @property
+    def slug_id(self):
+        return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"
+
+    def total_amount(self):
+        return Decimal(self.quantity) * self.unit_price
 
 
 class HoursLineItem(LineItem):
@@ -84,13 +92,13 @@ class HoursLineItem(LineItem):
 
     recurring_logic = models.JSONField(blank=True, null=True, default=dict)
 
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=(models.Q(quantity__gte=0) & models.Q(quantity__lt=24)),
-                name="between_0_and_24_hours",
-            )
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.CheckConstraint(
+    #             check=(models.Q(quantity__gte=0) & models.Q(quantity__lt=24)),
+    #             name="between_0_and_24_hours",
+    #         )
+    #     ]
 
     def __str__(self):
         return f"{self.invoice.title} - {self.date_tracked} - {self.quantity}"
@@ -105,10 +113,6 @@ class HoursLineItem(LineItem):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
-
-    @property
-    def slug_id(self):
-        return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"
 
     def is_recurring_date_today(self):
         """
@@ -258,6 +262,99 @@ class Invoice(PolymorphicModel, BaseModel):
             .annotate(cost=self.rate * Sum("quantity"))
             .order_by("date_tracked")
         )
+
+
+class SingleInvoice(Invoice):
+    class InvoiceStatus(models.IntegerChoices):
+        DRAFT = 0, "DRAFT"
+        SENT = 1, "SENT"
+
+    status = models.PositiveSmallIntegerField(
+        default=InvoiceStatus.DRAFT,
+        choices=InvoiceStatus.choices,
+        null=True,
+        blank=True,
+    )
+    due_date = models.DateField(null=True, blank=True)
+    send_reminder = models.BooleanField(default=False, null=True, blank=True)
+
+    late_penalty = models.BooleanField(default=False, null=True, blank=True)
+    late_penalty_amount = models.DecimalField(
+        default=0, max_digits=5, decimal_places=2, null=True, blank=True
+    )
+
+    discount_amount = models.DecimalField(
+        default=0, max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    tax_amount = models.DecimalField(
+        default=0, max_digits=4, decimal_places=2, null=True, blank=True
+    )
+
+    def get_sent_invoice(self):
+        return self.invoice_snapshots.first()
+
+    def invoice_type(self):
+        return "single"
+
+    def get_hours_stats(self):
+        raise NotImplementedError()
+
+    def render_line_items(self, sent_invoice_id):
+        raise NotImplementedError()
+
+    def update(self):
+        self.update_total_price()
+
+    def form_class(self, action="create"):
+        from timary.forms import SingleInvoiceForm
+
+        return SingleInvoiceForm
+
+    def update_total_price(self):
+        total_price = 0.0
+        for line_item in self.line_items.all():
+            total_price += float(line_item.total_amount())
+
+        if self.discount_amount:
+            total_price -= float(self.discount_amount)
+
+        if self.tax_amount:
+            total_price += total_price * float(self.tax_amount / 100)
+
+        if self.late_penalty and self.due_date < date.today():
+            total_price += float(self.late_penalty_amount)
+
+        self.balance_due = round(Decimal.from_float(total_price), 2)
+        self.save()
+
+    def send_invoice(self):
+        today = date.today()
+        current_month = date.strftime(today, "%m/%Y")
+        msg_subject = (
+            f"{self.title}'s Invoice from {self.user.first_name} for {current_month}"
+        )
+        line_items = self.line_items.all()
+        sent_invoice = SentInvoice.objects.create(
+            date_sent=date.today(),
+            invoice=self,
+            user=self.user,
+            total_price=self.balance_due,
+        )
+        for line_item in line_items:
+            line_item.sent_invoice_id = sent_invoice.id
+            line_item.save()
+
+        msg_body = render_to_string(
+            "email/single_invoice.html",
+            {
+                "site_url": settings.SITE_URL,
+                "single_invoice": self,
+                "user_name": self.user.invoice_branding_properties()["user_name"],
+                "todays_date": today,
+            },
+        )
+
+        EmailService.send_html(msg_subject, msg_body, self.client_email)
 
 
 class RecurringInvoice(Invoice):
@@ -530,12 +627,12 @@ class InvoiceManager:
             from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
 
             invoice_form = CreateWeeklyForm if action == "create" else UpdateWeeklyForm
-        return invoice_form, i_type
+        return invoice_form, f"invoices/{i_type}/_{action}.html"
 
 
 class SentInvoice(BaseModel):
     class PaidStatus(models.IntegerChoices):
-        NOT_STARTED = 0, "NOT_STARTED"
+        NOT_STARTED = 0, "NOT STARTED"
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
         FAILED = 3, "FAILED"

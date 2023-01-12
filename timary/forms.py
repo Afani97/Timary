@@ -1,16 +1,20 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.db.models import Q
 from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
     HoursLineItem,
     IntervalInvoice,
     Invoice,
+    LineItem,
     MilestoneInvoice,
     RecurringInvoice,
+    SingleInvoice,
     User,
     WeeklyInvoice,
 )
@@ -21,7 +25,21 @@ class DateInput(forms.DateInput):
     input_type = "date"
 
 
+class LineItemForm(forms.ModelForm):
+    class Meta:
+        model = LineItem
+        fields = ["description", "quantity", "unit_price"]
+
+
 class HoursLineItemForm(forms.ModelForm):
+    date_tracked = forms.DateField(
+        required=True,
+        widget=DateInput(
+            attrs={
+                "class": "input input-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
     repeating = forms.BooleanField(required=False, initial=False)
     recurring = forms.BooleanField(required=False, initial=False)
     repeat_end_date = forms.DateField(
@@ -50,7 +68,9 @@ class HoursLineItemForm(forms.ModelForm):
         super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
         if user:
-            invoice_qs = user.get_invoices.filter(is_paused=False)
+            invoice_qs = user.get_invoices.filter(is_paused=False).exclude(
+                Q(instance_of=SingleInvoice)
+            )
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
@@ -63,7 +83,7 @@ class HoursLineItemForm(forms.ModelForm):
         if (
             self.initial
             and self.instance.invoice
-            and hasattr(self.instance.invoice, "last_date")
+            and isinstance(self.instance.invoice, RecurringInvoice)
         ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
@@ -81,11 +101,6 @@ class HoursLineItemForm(forms.ModelForm):
                     "class": "input input-bordered border-2 text-lg hours-input w-full",
                     "_": "on input call filterHoursInput(me) end on blur call convertHoursInput(me) end",
                 },
-            ),
-            "date_tracked": DateInput(
-                attrs={
-                    "class": "input input-bordered border-2 text-lg w-full",
-                }
             ),
             "invoice": forms.Select(
                 attrs={
@@ -401,6 +416,76 @@ def create_invoice_weekly(superclass):
 
 CreateWeeklyForm = create_invoice_weekly(CreateInvoiceForm)
 UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
+
+
+def next_month():
+    return datetime.date.today() + relativedelta(months=1)
+
+
+class SingleInvoiceForm(InvoiceForm):
+    client_second_email = forms.CharField(required=False)
+    late_penalty = forms.BooleanField(required=False)
+    send_reminder = forms.BooleanField(required=False)
+    save_for_reuse = forms.BooleanField(required=False, label="Save as template")
+
+    class Meta(InvoiceForm.Meta):
+        model = SingleInvoice
+        fields = [
+            "title",
+            "client_name",
+            "client_email",
+            "client_second_email",
+            # "invoice_interval",
+            # "end_interval_date",
+            # "installments",
+            "save_for_reuse",
+            "due_date",
+            "discount_amount",
+            "tax_amount",
+            "late_penalty",
+            "late_penalty_amount",
+            "send_reminder",
+        ]
+        labels = {
+            "discount_amount": "Discount",
+            "tax_amount": "Tax",
+        }
+        widgets = {
+            "due_date": DateInput(
+                attrs={
+                    "value": next_month(),
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+            "invoice_interval": forms.Select(
+                attrs={
+                    "class": "select select-bordered bg-neutral border-2 text-lg w-full",
+                }
+            ),
+            "end_interval_date": DateInput(
+                attrs={
+                    "value": next_month(),
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+            "installments": forms.Select(
+                attrs={
+                    "class": "select select-bordered bg-neutral border-2 text-lg w-full",
+                }
+            ),
+        }
+
+    def clean_due_date(self):
+        due_date = self.cleaned_data.get("due_date")
+        if due_date <= datetime.date.today():
+            raise ValidationError("Due date cannot be set prior to today.")
+        return due_date
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title")
+        if title[0].isdigit():
+            raise ValidationError("Title cannot start with a number.")
+        return title
 
 
 class PayInvoiceForm(forms.Form):
