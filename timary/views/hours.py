@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import DailyHoursForm
+from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import HoursLineItem, Invoice
 from timary.tasks import gather_recurring_hours
@@ -17,7 +17,7 @@ from timary.utils import show_alert_message
 @login_required()
 @require_http_methods(["POST"])
 def create_daily_hours(request):
-    hours_form = DailyHoursForm(request.POST, user=request.user)
+    hours_form = HoursLineItemForm(request.POST, user=request.user)
     if hours_form.is_valid():
         hours_saved = hours_form.save()
         if "recurring_logic" in hours_form.cleaned_data:
@@ -55,9 +55,9 @@ def quick_hours(request):
         response = HttpResponse(status=204)
         show_alert_message(response, "warning", "Error adding hours")
         return response
-    hours_form = DailyHoursForm(
+    hours_form = HoursLineItemForm(
         data={
-            "hours": hours,
+            "quantity": hours,
             "date_tracked": datetime.date.today(),
             "invoice": Invoice.objects.get(email_id=invoice_id),
         },
@@ -97,7 +97,7 @@ def edit_hours(request, hours_id):
     hours = get_object_or_404(HoursLineItem, id=hours_id)
     if request.user != hours.invoice.user:
         raise Http404
-    hours_form = DailyHoursForm(instance=hours, user=request.user)
+    hours_form = HoursLineItemForm(instance=hours, user=request.user)
     return render(request, "hours/_update.html", {"hour": hours, "form": hours_form})
 
 
@@ -108,7 +108,7 @@ def update_hours(request, hours_id):
     if request.user != hours.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    hours_form = DailyHoursForm(put_params, instance=hours, user=request.user)
+    hours_form = HoursLineItemForm(put_params, instance=hours, user=request.user)
     if hours_form.is_valid():
         updated_hours = hours_form.save()
         if "recurring_logic" in hours_form.cleaned_data:
@@ -133,9 +133,9 @@ def patch_hours(request, hours_id):
     if request.user != hour.invoice.user:
         raise Http404
     put_params = QueryDict(request.body)
-    hours_form = DailyHoursForm(put_params, instance=hour, user=request.user)
+    hours_form = HoursLineItemForm(put_params, instance=hour, user=request.user)
     if hours_form.is_valid():
-        hour.hours = hours_form.cleaned_data.get("hours")
+        hour.quantity = hours_form.cleaned_data.get("quantity")
         hour.date_tracked = hours_form.cleaned_data.get("date_tracked")
         hour.save()
         response = render(
@@ -173,14 +173,14 @@ def repeat_hours(request):
         invoice__user=request.user,
         date_tracked=yesterday,
         invoice__is_archived=False,
-        hours__gt=0,
+        quantity__gt=0,
     ).filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
     hours = []
     for hour in yesterday_hours:
         hours.append(
             HoursLineItem.objects.create(
                 date_tracked=datetime.date.today(),
-                hours=hour.hours,
+                quantity=hour.quantity,
                 invoice=hour.invoice,
             )
         )

@@ -185,7 +185,7 @@ class TestTwilioReplyWebhook(TestCase):
 
         self.assertEqual(response.response, "All set for today. Keep it up!")
         self.assertEqual(HoursLineItem.objects.count(), 1)
-        self.assertEqual(HoursLineItem.objects.first().hours, 1)
+        self.assertEqual(HoursLineItem.objects.first().quantity, 1)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
@@ -226,7 +226,7 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertEqual(response.response, "All set for today. Keep it up!")
         self.assertEqual(HoursLineItem.objects.count(), 2)
         self.assertEqual(
-            HoursLineItem.objects.aggregate(total=Sum("hours"))["total"], 3
+            HoursLineItem.objects.aggregate(total=Sum("quantity"))["total"], 3
         )
 
     @patch("timary.views.twilio_views.MessagingResponse")
@@ -449,7 +449,7 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertEqual(response.response, "All set for today. Keep it up!")
         self.assertEqual(invoice2.get_hours_tracked().count(), 1)
         self.assertEqual(
-            HoursLineItem.objects.aggregate(total=Sum("hours"))["total"], 2
+            HoursLineItem.objects.aggregate(total=Sum("quantity"))["total"], 2
         )
 
     @patch("timary.views.twilio_views.MessagingResponse")

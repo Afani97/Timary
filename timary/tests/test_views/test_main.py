@@ -5,10 +5,10 @@ from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.forms import DailyHoursForm
+from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import Invoice, User
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import HoursLineItemFactory, InvoiceFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
 
 
@@ -20,8 +20,8 @@ class TestMain(BaseTest):
         self.client.force_login(self.user)
 
     def test_index(self):
-        hours_today = DailyHoursFactory(invoice__user=self.user)
-        hours_last_month = DailyHoursFactory(
+        hours_today = HoursLineItemFactory(invoice__user=self.user)
+        hours_last_month = HoursLineItemFactory(
             invoice__user=self.user,
             date_tracked=datetime.date.today() - relativedelta(months=1),
         )
@@ -46,8 +46,8 @@ class TestMain(BaseTest):
             )
 
     def test_dashboard_stats(self):
-        DailyHoursFactory(invoice__user=self.user)
-        DailyHoursFactory(
+        HoursLineItemFactory(invoice__user=self.user)
+        HoursLineItemFactory(
             invoice__user=self.user,
             date_tracked=datetime.date.today() - relativedelta(months=1),
         )
@@ -56,7 +56,7 @@ class TestMain(BaseTest):
         hours = HoursManager(self.user)
 
         context = hours.get_hours_tracked()
-        context["new_hour_form"] = DailyHoursForm()
+        context["new_hour_form"] = HoursLineItemForm()
 
         rendered_template = self.setup_template(
             "partials/_dashboard_stats.html",

@@ -5,7 +5,11 @@ from dateutil.relativedelta import relativedelta
 from django.core.management.base import BaseCommand
 
 from timary.models import SentInvoice, User
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, SentInvoiceFactory
+from timary.tests.factories import (
+    HoursLineItemFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+)
 
 
 class Command(BaseCommand):
@@ -21,7 +25,7 @@ class Command(BaseCommand):
             )
             for _ in range(0, 50):
                 random_int = random.randint(0, 3)
-                DailyHoursFactory(
+                HoursLineItemFactory(
                     invoice=invoice,
                     date_tracked=datetime.date.today() - relativedelta(months=i),
                 )

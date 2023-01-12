@@ -54,7 +54,7 @@ class TimaryAdminSite(OTPAdminSite):
         }
         overall_stats = {
             "hour_total": int(
-                HoursLineItem.objects.aggregate(total=Sum("hours"))["total"]
+                HoursLineItem.objects.aggregate(total=Sum("quantity"))["total"]
             ),
             "invoice_total": Invoice.objects.count(),
             "contracts_total": Contract.objects.count(),

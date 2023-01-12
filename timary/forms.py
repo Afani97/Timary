@@ -13,7 +13,7 @@ class DateInput(forms.DateInput):
     input_type = "date"
 
 
-class DailyHoursForm(forms.ModelForm):
+class HoursLineItemForm(forms.ModelForm):
     repeating = forms.BooleanField(required=False, initial=False)
     recurring = forms.BooleanField(required=False, initial=False)
     repeat_end_date = forms.DateField(
@@ -39,7 +39,7 @@ class DailyHoursForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user") if "user" in kwargs else None
 
-        super(DailyHoursForm, self).__init__(*args, **kwargs)
+        super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
         if user:
             invoice_qs = user.get_invoices.filter(is_paused=False)
@@ -56,13 +56,14 @@ class DailyHoursForm(forms.ModelForm):
             self.fields["date_tracked"].widget.attrs[
                 "min"
             ] = self.instance.invoice.last_date
-            self.fields["hours"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
+            self.fields["quantity"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
 
     class Meta:
         model = HoursLineItem
-        fields = ["hours", "date_tracked", "invoice"]
+        fields = ["quantity", "date_tracked", "invoice"]
+        labels = {"quantity": "Hours"}
         widgets = {
-            "hours": forms.TextInput(
+            "quantity": forms.TextInput(
                 attrs={
                     "value": 1.0,
                     "class": "input input-bordered border-2 text-lg hours-input w-full",
@@ -82,7 +83,7 @@ class DailyHoursForm(forms.ModelForm):
             ),
         }
 
-    field_order = ["hours", "date_tracked", "invoice"]
+    field_order = ["quantity", "date_tracked", "invoice"]
 
     def clean_date_tracked(self):
         date_tracked = self.cleaned_data.get("date_tracked")
@@ -90,8 +91,8 @@ class DailyHoursForm(forms.ModelForm):
             raise ValidationError("Cannot set date into the future!")
         return date_tracked
 
-    def clean_hours(self):
-        hours = self.cleaned_data.get("hours")
+    def clean_quantity(self):
+        hours = self.cleaned_data.get("quantity")
         try:
             hours_float = float(hours)
         except ValueError:

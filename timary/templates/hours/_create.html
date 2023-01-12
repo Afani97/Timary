@@ -14,9 +14,9 @@
         <div class="flex flex-row space-x-2 w-full">
             <div class="w-32 sm:w-full">
                 <label class="label">
-                    <span class="label-text">{{ form.hours.label_tag }}</span>
+                    <span class="label-text">{{ form.quantity.label_tag }}</span>
                 </label>
-                <div>{{ form.hours }}</div>
+                <div>{{ form.quantity }}</div>
             </div>
             <div class="w-full">
                 <label class="label">
@@ -85,7 +85,7 @@
     </div>
     <div class="card-actions flex justify-center">
         <button
-            _="on click call convertHoursInput(htmx.find('#id_hours')) then send submit to #new-hours-form"
+            _="on click call convertHoursInput(htmx.find('#id_quantity')) then send submit to #new-hours-form"
             class="btn btn-primary submit-btn"> Add new hours</button>
     </div>
 </form>

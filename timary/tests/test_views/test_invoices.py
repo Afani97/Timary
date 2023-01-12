@@ -12,7 +12,7 @@ from django.utils.http import urlencode
 from timary.models import Invoice, SentInvoice
 from timary.templatetags.filters import nextmonday
 from timary.tests.factories import (
-    DailyHoursFactory,
+    HoursLineItemFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -221,7 +221,7 @@ class TestInvoices(BaseTest):
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
     def test_get_invoice_with_hours_logged(self):
-        hour = DailyHoursFactory(invoice=self.invoice)
+        hour = HoursLineItemFactory(invoice=self.invoice)
 
         rendered_template = self.setup_template(
             "partials/_invoice.html", {"invoice": self.invoice}
@@ -233,14 +233,14 @@ class TestInvoices(BaseTest):
         self.assertInHTML(
             f"""
                 <li class="flex justify-between text-xl"><span>{date(hour.date_tracked, "M j")}</span>
-                <span>{floatformat(hour.hours, -2)} hrs </span></li>
+                <span>{floatformat(hour.quantity, -2)} hrs </span></li>
            """,
             response.content.decode("utf-8"),
         )
         self.client.force_login(self.user)
 
     def test_view_invoice_stats(self):
-        hour = DailyHoursFactory(invoice=self.invoice)
+        hour = HoursLineItemFactory(invoice=self.invoice)
         response = self.client.get(
             reverse("timary:get_single_invoice", kwargs={"invoice_id": hour.invoice.id})
         )
@@ -425,7 +425,7 @@ class TestInvoices(BaseTest):
 
         # Pause invoice
         invoice = InvoiceFactory(invoice_interval="M", user=self.user)
-        hours1 = DailyHoursFactory(invoice=invoice)
+        hours1 = HoursLineItemFactory(invoice=invoice)
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
@@ -542,8 +542,8 @@ class TestInvoices(BaseTest):
         self.client.logout()
         self.client.force_login(self.user)
 
-        hours1 = DailyHoursFactory(invoice__user=self.user)
-        hours2 = DailyHoursFactory(invoice__user=self.user)
+        hours1 = HoursLineItemFactory(invoice__user=self.user)
+        hours2 = HoursLineItemFactory(invoice__user=self.user)
         s1 = SentInvoiceFactory(
             invoice=hours1.invoice,
             user=self.user,
@@ -578,7 +578,7 @@ class TestInvoices(BaseTest):
         )
 
     def test_dont_generate_invoice_if_not_active_subscription(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         hours.invoice.user.stripe_subscription_status = 3
         hours.invoice.user.save()
         self.client.force_login(hours.invoice.user)
@@ -598,7 +598,7 @@ class TestInvoices(BaseTest):
     def test_generate_invoice(self):
         todays_date = datetime.date.today()
         current_month = datetime.date.strftime(todays_date, "%m/%Y")
-        hours = DailyHoursFactory(invoice=self.invoice)
+        hours = HoursLineItemFactory(invoice=self.invoice)
         self.client.force_login(self.user)
         response = self.client.get(
             reverse("timary:generate_invoice", kwargs={"invoice_id": self.invoice.id}),
@@ -618,7 +618,7 @@ class TestInvoices(BaseTest):
             milestone_total_steps=6,
             user=self.user,
         )
-        DailyHoursFactory(invoice=invoice)
+        HoursLineItemFactory(invoice=invoice)
         self.client.force_login(self.user)
         response = self.client.get(
             reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id}),
@@ -631,9 +631,9 @@ class TestInvoices(BaseTest):
     def test_get_hour_forms_for_invoice(self):
         """Only hours1 and hours2 show since its date_tracked
         is within invoice's last date and current date"""
-        hours1 = DailyHoursFactory(invoice=self.invoice)
-        hours2 = DailyHoursFactory(invoice=self.invoice)
-        hours3 = DailyHoursFactory(
+        hours1 = HoursLineItemFactory(invoice=self.invoice)
+        hours2 = HoursLineItemFactory(invoice=self.invoice)
+        hours3 = HoursLineItemFactory(
             invoice=self.invoice,
             date_tracked=datetime.date.today() - relativedelta(months=2),
         )
@@ -644,7 +644,7 @@ class TestInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_edit_hours.html")
         self.assertInHTML(
             f"""
-            <input type="text" name="hours" value="{str(round(hours1.hours, 2))}" value="1.0"
+            <input type="text" name="quantity" value="{str(round(hours1.quantity, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours1.slug_id}">
@@ -653,7 +653,7 @@ class TestInvoices(BaseTest):
         )
         self.assertInHTML(
             f"""
-            <input type="text" name="hours" value="{str(round(hours2.hours, 2))}" value="1.0"
+            <input type="text" name="quantity" value="{str(round(hours2.quantity, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours2.slug_id}">
@@ -662,7 +662,7 @@ class TestInvoices(BaseTest):
         )
         self.assertNotIn(
             f"""
-            <input type="text" name="hours" value="{str(round(hours3.hours, 2))}" value="1.0"
+            <input type="text" name="quantity" value="{str(round(hours3.quantity, 2))}" value="1.0"
             class="input input-bordered border-2 text-lg hours-input w-full"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours3.slug_id}">
@@ -671,7 +671,7 @@ class TestInvoices(BaseTest):
         )
 
     def test_dont_sync_sent_invoice_if_not_active_subscription(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         hours.invoice.user.stripe_subscription_status = 3
         hours.invoice.user.save()
         sent_invoice = SentInvoiceFactory(

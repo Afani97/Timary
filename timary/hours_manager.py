@@ -41,7 +41,7 @@ class HoursManager:
             .annotate(
                 repeat_hours=Concat(
                     Cast(
-                        Cast(F("hours") * 100, output_field=IntegerField()),
+                        Cast(F("quantity") * 100, output_field=IntegerField()),
                         output_field=CharField(),
                     ),
                     Value("_"),
@@ -51,15 +51,15 @@ class HoursManager:
             .values("repeat_hours")
             .annotate(repeat_hours_count=Count("repeat_hours"))
             .order_by("-repeat_hours_count")[:5]
-            .values("hours", "invoice__email_id")
+            .values("quantity", "invoice__email_id")
         )
         repeated_hours_set = {
-            (float(h["hours"]), h["invoice__email_id"]) for h in repeated_hours
+            (float(h["quantity"]), h["invoice__email_id"]) for h in repeated_hours
         }
         hours_today_set = {
-            (float(h["hours"]), h["invoice__email_id"])
+            (float(h["quantity"]), h["invoice__email_id"])
             for h in self.hours.filter(date_tracked=today).values(
-                "hours", "invoice__email_id"
+                "quantity", "invoice__email_id"
             )
         }
         hour_forms_to_offer = repeated_hours_set - hours_today_set

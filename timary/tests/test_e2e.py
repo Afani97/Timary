@@ -10,7 +10,7 @@ from django.test import override_settings, tag
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import HoursLineItemFactory, InvoiceFactory, UserFactory
 
 
 @override_settings(DEBUG=True)
@@ -136,7 +136,7 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.click("#log_hours_btn")
             page.wait_for_selector("#new-hours-form", timeout=2000)
-            page.fill("#id_hours", "2")
+            page.fill("#id_quantity", "2")
             page.click('button:has-text("Add new hours")')
             page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2")
@@ -148,14 +148,14 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.click("#log_hours_btn")
             page.wait_for_selector("#new-hours-form", timeout=2000)
-            page.fill("#id_hours", ":25")
+            page.fill("#id_quantity", ":25")
             page.click('button:has-text("Add new hours")')
             page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "0.41")
 
     @tag("ui")
     def test_edit_hours(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         with self.start_test(hours.invoice.user) as page:
             page.wait_for_selector("#dashboard-title", timeout=2000)
             page.wait_for_selector(".edit-hours", timeout=2000).click()
@@ -187,7 +187,7 @@ class TestUI(BaseUITest):
         invoice = InvoiceFactory(
             next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
-        hours = DailyHoursFactory(
+        hours = HoursLineItemFactory(
             invoice=invoice,
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
@@ -224,7 +224,7 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_logout(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         with self.start_test(hours.invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:index")}')
             page.wait_for_selector("#dashboard-title", timeout=2000)

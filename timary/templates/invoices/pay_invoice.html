@@ -141,7 +141,7 @@
                         {% for hour in hours_tracked %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.hours|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
+                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.quantity|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
                                 <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
                             </tr>
                         {% endfor %}

@@ -18,7 +18,7 @@ from timary.tasks import (
     send_weekly_updates,
 )
 from timary.tests.factories import (
-    DailyHoursFactory,
+    HoursLineItemFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -40,10 +40,10 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() - datetime.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
@@ -56,8 +56,8 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_with_next_date_null(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory(invoice__next_date=None)
-        DailyHoursFactory()
+        HoursLineItemFactory(invoice__next_date=None)
+        HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
         self.assertEquals(
@@ -68,10 +68,10 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
         )
-        DailyHoursFactory()
+        HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
         self.assertEquals(
@@ -82,9 +82,9 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_3_invoices_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory()
-        DailyHoursFactory()
-        DailyHoursFactory()
+        HoursLineItemFactory()
+        HoursLineItemFactory()
+        HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 3", invoices_sent)
         self.assertEquals(
@@ -95,7 +95,7 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_preview_for_tomorrow(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
@@ -108,13 +108,13 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_3_invoice_previews_for_tomorrow(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
@@ -127,11 +127,11 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_and_invoice_previews(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        DailyHoursFactory()
-        DailyHoursFactory(
+        HoursLineItemFactory()
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
         )
         invoices_sent = gather_invoices()
@@ -145,8 +145,8 @@ class TestGatherInvoices(TestCase):
     def test_gather_1_invoice_and_not_milestone_invoice(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         milestone_invoice = InvoiceFactory(invoice_type=2)
-        DailyHoursFactory(invoice=milestone_invoice)
-        DailyHoursFactory()
+        HoursLineItemFactory(invoice=milestone_invoice)
+        HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
         self.assertEquals(
@@ -193,7 +193,7 @@ class TestGatherHours(TestCase):
         self.assertEquals(HoursLineItem.objects.count(), 0)
 
     def test_gather_0_hours_with_archived_invoice(self):
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
@@ -206,7 +206,7 @@ class TestGatherHours(TestCase):
         self.assertEqual("0 hours added.", hours_added)
 
     def test_gather_1_hour(self):
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
@@ -219,7 +219,7 @@ class TestGatherHours(TestCase):
         self.assertEquals(HoursLineItem.objects.count(), 2)
 
     def test_gather_2_hour(self):
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
@@ -227,7 +227,7 @@ class TestGatherHours(TestCase):
                 "end_date": self.next_week,
             }
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
@@ -241,7 +241,7 @@ class TestGatherHours(TestCase):
         self.assertEquals(HoursLineItem.objects.count(), 4)
 
     def test_passing_recurring_logic(self):
-        hours = DailyHoursFactory(
+        hours = HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
@@ -257,7 +257,7 @@ class TestGatherHours(TestCase):
         self.assertIsNone(hours.recurring_logic)
 
     def test_hours_not_scheduled_do_not_get_created(self):
-        hours = DailyHoursFactory(
+        hours = HoursLineItemFactory(
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
@@ -282,7 +282,7 @@ class TestGatherHours(TestCase):
         date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         update_weeks_mock.return_value = None
 
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
@@ -305,7 +305,7 @@ class TestGatherHours(TestCase):
         date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
         cancel_hours_mock.return_value = None
 
-        DailyHoursFactory(
+        HoursLineItemFactory(
             recurring_logic={
                 "type": "recurring",
                 "interval": "d",
@@ -332,7 +332,7 @@ class TestSendInvoice(TestCase):
         return message
 
     def test_send_one_invoice(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         send_invoice(hours.invoice.id)
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(
@@ -347,9 +347,9 @@ class TestSendInvoice(TestCase):
         invoice = InvoiceFactory(
             last_date=self.todays_date - datetime.timedelta(days=3)
         )
-        h1 = DailyHoursFactory(date_tracked=two_days_ago, invoice=invoice)
-        h2 = DailyHoursFactory(date_tracked=yesterday, invoice=invoice)
-        h3 = DailyHoursFactory(date_tracked=self.todays_date, invoice=invoice)
+        h1 = HoursLineItemFactory(date_tracked=two_days_ago, invoice=invoice)
+        h2 = HoursLineItemFactory(date_tracked=yesterday, invoice=invoice)
+        h3 = HoursLineItemFactory(date_tracked=self.todays_date, invoice=invoice)
 
         send_invoice(invoice.id)
         self.assertEquals(len(mail.outbox), 1)
@@ -358,7 +358,7 @@ class TestSendInvoice(TestCase):
         sent_invoice = SentInvoice.objects.first()
         self.assertEquals(
             sent_invoice.total_price,
-            (h1.hours + h2.hours + h3.hours) * invoice.invoice_rate,
+            (h1.quantity + h2.quantity + h3.quantity) * invoice.invoice_rate,
         )
 
     def test_sent_invoices_only_2_hours(self):
@@ -366,11 +366,11 @@ class TestSendInvoice(TestCase):
         invoice = InvoiceFactory(
             last_date=self.todays_date - datetime.timedelta(days=1)
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             date_tracked=self.todays_date - datetime.timedelta(days=2), invoice=invoice
         )
-        h2 = DailyHoursFactory(date_tracked=yesterday, invoice=invoice)
-        h3 = DailyHoursFactory(date_tracked=self.todays_date, invoice=invoice)
+        h2 = HoursLineItemFactory(date_tracked=yesterday, invoice=invoice)
+        h3 = HoursLineItemFactory(date_tracked=self.todays_date, invoice=invoice)
 
         send_invoice(invoice.id)
         self.assertEquals(len(mail.outbox), 1)
@@ -379,11 +379,11 @@ class TestSendInvoice(TestCase):
         sent_invoice = SentInvoice.objects.first()
         self.assertEquals(
             sent_invoice.total_price,
-            (h2.hours + h3.hours) * invoice.invoice_rate,
+            (h2.quantity + h3.quantity) * invoice.invoice_rate,
         )
 
     def test_dont_send_invoice_if_no_tracked_hours(self):
-        hours = DailyHoursFactory(
+        hours = HoursLineItemFactory(
             date_tracked=(self.todays_date - datetime.timedelta(days=1))
         )
         hours.invoice.last_date = self.todays_date
@@ -400,7 +400,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 0)
 
     def test_dont_send_invoice_if_skipped_hours(self):
-        hours = DailyHoursFactory(hours=0)
+        hours = HoursLineItemFactory(quantity=0)
 
         send_invoice(hours.invoice.id)
 
@@ -412,8 +412,8 @@ class TestSendInvoice(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 0)
 
     def test_send_two_invoice_and_subjects(self):
-        hours1 = DailyHoursFactory()
-        hours2 = DailyHoursFactory()
+        hours1 = HoursLineItemFactory()
+        hours2 = HoursLineItemFactory()
         send_invoice(hours1.invoice.id)
         send_invoice(hours2.invoice.id)
         self.assertEquals(len(mail.outbox), 2)
@@ -430,9 +430,9 @@ class TestSendInvoice(TestCase):
     def test_invoice_context(self):
         invoice = InvoiceFactory(invoice_rate=25)
         # Save last date before it's updated in send_invoice method to test email contents below
-        hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
-        DailyHoursFactory(invoice=invoice, hours=2)
-        DailyHoursFactory(invoice=invoice, hours=3)
+        hours_1 = HoursLineItemFactory(invoice=invoice, quantity=1)
+        HoursLineItemFactory(invoice=invoice, quantity=2)
+        HoursLineItemFactory(invoice=invoice, quantity=3)
 
         send_invoice(invoice.id)
         invoice.refresh_from_db()
@@ -466,9 +466,9 @@ class TestSendInvoice(TestCase):
             next_date=datetime.date.today() - datetime.timedelta(days=1),
         )
         # Save last date before it's updated in send_invoice method to test email contents below
-        hours_1 = DailyHoursFactory(invoice=invoice, hours=1)
-        DailyHoursFactory(invoice=invoice, hours=2)
-        DailyHoursFactory(invoice=invoice, hours=3)
+        hours_1 = HoursLineItemFactory(invoice=invoice, quantity=1)
+        HoursLineItemFactory(invoice=invoice, quantity=2)
+        HoursLineItemFactory(invoice=invoice, quantity=3)
 
         send_invoice_preview(invoice.id)
         invoice.refresh_from_db()
@@ -501,7 +501,7 @@ class TestSendInvoice(TestCase):
 
     def test_invoice_cannot_accept_payments_without_stripe_enabled(self):
         invoice = InvoiceFactory(user__stripe_payouts_enabled=False)
-        DailyHoursFactory(invoice=invoice)
+        HoursLineItemFactory(invoice=invoice)
         send_invoice(invoice.id)
 
         sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
@@ -516,7 +516,7 @@ class TestSendInvoice(TestCase):
 
     def test_invoice_can_accept_payments_if_stripe_enabled(self):
         invoice = InvoiceFactory(user__stripe_payouts_enabled=True)
-        DailyHoursFactory(invoice=invoice)
+        HoursLineItemFactory(invoice=invoice)
         send_invoice(invoice.id)
 
         sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
@@ -535,7 +535,7 @@ class TestSendInvoice(TestCase):
             invoice_type=3,
             invoice_rate=1200,
         )
-        DailyHoursFactory(invoice=invoice)
+        HoursLineItemFactory(invoice=invoice)
         send_invoice(invoice.id)
 
         sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
@@ -556,7 +556,7 @@ class TestSendInvoice(TestCase):
             user__stripe_payouts_enabled=True, user__first_name="Bob"
         )
         # Save last date before it's updated in send_invoice method to test email contents below
-        hours = DailyHoursFactory(invoice=invoice, hours=1)
+        hours = HoursLineItemFactory(invoice=invoice, quantity=1)
         sent_invoice = SentInvoiceFactory(
             invoice=invoice, paid_status=SentInvoice.PaidStatus.PAID, user=invoice.user
         )
@@ -580,7 +580,7 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
     def test_dont_send_invoice_if_no_active_subscription(self):
-        hours = DailyHoursFactory()
+        hours = HoursLineItemFactory()
         hours.invoice.user.stripe_subscription_status = 3
         hours.invoice.user.save()
 
@@ -608,7 +608,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
         invoice = InvoiceFactory()
         invoice.user.stripe_subscription_status = 3
         invoice.user.save()
-        DailyHoursFactory(invoice=invoice)
+        HoursLineItemFactory(invoice=invoice)
 
         send_weekly_updates()
 
@@ -619,8 +619,8 @@ class TestWeeklyInvoiceUpdates(TestCase):
         invoice = InvoiceFactory(
             last_date=(self.todays_date - datetime.timedelta(days=3)), invoice_type=1
         )
-        hour = DailyHoursFactory(invoice=invoice)
-        DailyHoursFactory(
+        hour = HoursLineItemFactory(invoice=invoice)
+        HoursLineItemFactory(
             invoice=invoice,
             date_tracked=(self.todays_date - datetime.timedelta(days=8)),
         )
@@ -637,7 +637,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         with self.subTest("Testing hours line item"):
             msg = f"""
-                <div>{ floatformat(hour.hours, -2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
-                <div>${ floatformat(hour.hours * invoice.invoice_rate, -2) }</div>
+                <div>{ floatformat(hour.quantity, -2) }  hours on { template_date(hour.date_tracked, "M j")}</div>
+                <div>${ floatformat(hour.quantity * invoice.invoice_rate, -2) }</div>
                 """
             self.assertInHTML(msg, html_message)

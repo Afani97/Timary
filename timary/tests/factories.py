@@ -72,10 +72,10 @@ class SentInvoiceFactory(DjangoModelFactory):
     paid_status = SentInvoice.PaidStatus.NOT_STARTED
 
 
-class DailyHoursFactory(DjangoModelFactory):
+class HoursLineItemFactory(DjangoModelFactory):
     class Meta:
         model = HoursLineItem
 
     invoice = factory.SubFactory(InvoiceFactory)
-    hours = FuzzyDecimal(1, 23, 1)
+    quantity = FuzzyDecimal(1, 23, 1)
     date_tracked = factory.LazyFunction(datetime.date.today)

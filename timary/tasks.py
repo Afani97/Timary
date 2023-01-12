@@ -27,7 +27,7 @@ def gather_recurring_hours():
         if recurring_hour.is_recurring_date_today():
 
             new_hours = HoursLineItem.objects.create(
-                hours=recurring_hour.hours,
+                quantity=recurring_hour.quantity,
                 date_tracked=date.today(),
                 invoice=recurring_hour.invoice,
                 recurring_logic=recurring_hour.recurring_logic,
@@ -209,11 +209,11 @@ def send_weekly_updates():
             continue
         hours_tracked_this_week = hours.filter(
             date_tracked__range=(week_start, today)
-        ).annotate(cost=invoice.invoice_rate * Sum("hours"))
+        ).annotate(cost=invoice.invoice_rate * Sum("quantity"))
         if not hours:
             continue
 
-        total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("hours"))
+        total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * invoice.invoice_rate

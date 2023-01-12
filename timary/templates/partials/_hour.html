@@ -1,7 +1,7 @@
 <li class="card card-bordered border-neutral bg-base-200" id="{{hour.slug_id}}">
     <div class="card-body flex flex-row justify-between items-center px-6">
         <div class="flex flex-col w-full">
-            <h2 class="text-3xl font-bold">{{ hour.hours|floatformat:2 }}</h2>
+            <h2 class="text-3xl font-bold">{{ hour.quantity|floatformat:2 }}</h2>
             <p class="text-sm">{{ hour.invoice.title }} - {{ hour.updated_at|time:"g:i a"}}</p>
             {% if hour.recurring_logic %}
                 <div class="tooltip mt-2" data-tip="This hour is on a {{ hour.recurring_logic.type }} schedule.">

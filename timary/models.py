@@ -54,32 +54,48 @@ class Contract(BaseModel):
     name = models.CharField(max_length=200, null=True, blank=True)
 
 
-class HoursLineItem(BaseModel):
+class LineItem(BaseModel):
     invoice = models.ForeignKey(
-        "timary.Invoice", on_delete=models.CASCADE, related_name="hours_tracked"
+        "timary.Invoice", on_delete=models.CASCADE, related_name="line_items"
     )
-    hours = models.DecimalField(
-        default=1,
-        max_digits=4,
-        decimal_places=2,
-        validators=[validate_less_than_24_hours, validate_greater_than_zero_hours],
-    )
-    notes = models.CharField(max_length=2000, null=True, blank=True)
     date_tracked = models.DateField()
+    quantity = models.DecimalField(
+        default=1,
+        max_digits=9,
+        decimal_places=2,
+    )
+    unit_price = models.DecimalField(
+        default=1,
+        max_digits=9,
+        decimal_places=2,
+    )
+    sent_invoice_id = models.CharField(max_length=200, null=True, blank=True)
 
+    class Meta:
+        abstract = True
+
+
+class HoursLineItem(LineItem):
     objects = models.Manager()
     all_hours = HoursQuerySet.as_manager()
 
-    sent_invoice_id = models.CharField(max_length=200, null=True, blank=True)
     recurring_logic = models.JSONField(blank=True, null=True, default=dict)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(models.Q(quantity__gte=0) & models.Q(quantity__lt=24)),
+                name="between_0_and_24_hours",
+            )
+        ]
+
     def __str__(self):
-        return f"{self.invoice.title} - {self.date_tracked} - {self.hours}"
+        return f"{self.invoice.title} - {self.date_tracked} - {self.quantity}"
 
     def __repr__(self):
         return (
             f"HoursLineItem(invoice={self.invoice}, "
-            f"hours={self.hours}, "
+            f"hours={self.quantity}, "
             f"date_tracked={self.date_tracked})"
         )
 
@@ -227,10 +243,10 @@ class Invoice(BaseModel):
 
     def get_hours_tracked(self):
         return (
-            self.hours_tracked.filter(
+            self.line_items.filter(
                 date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
             )
-            .exclude(hours=0)
+            .exclude(quantity=0)
             .order_by("date_tracked")
         )
 
@@ -253,9 +269,9 @@ class Invoice(BaseModel):
             else:
                 return 0
 
-        total_hours = self.hours_tracked.filter(
-            date_tracked__lte=date.today()
-        ).aggregate(total_hours=Sum("hours"))
+        total_hours = self.line_items.filter(date_tracked__lte=date.today()).aggregate(
+            total_hours=Sum("quantity")
+        )
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * self.invoice_rate
@@ -314,12 +330,12 @@ class Invoice(BaseModel):
             query = Q(date_tracked__range=date_range)
             pass
         hours_tracked = (
-            self.hours_tracked.filter(query & Q(sent_invoice_id__isnull=True))
-            .exclude(hours=0)
-            .annotate(cost=self.invoice_rate * Sum("hours"))
+            self.line_items.filter(query & Q(sent_invoice_id__isnull=True))
+            .exclude(quantity=0)
+            .annotate(cost=self.invoice_rate * Sum("quantity"))
             .order_by("date_tracked")
         )
-        total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
+        total_hours = hours_tracked.aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if (
             total_hours["total_hours"]
@@ -407,8 +423,8 @@ class SentInvoice(BaseModel):
 
     def get_hours_tracked(self):
         hours_tracked = (
-            self.invoice.hours_tracked.filter(sent_invoice_id=self.id)
-            .exclude(hours=0)
+            self.invoice.line_items.filter(sent_invoice_id=self.id)
+            .exclude(quantity=0)
             .order_by("date_tracked")
         )
 
@@ -421,15 +437,15 @@ class SentInvoice(BaseModel):
             """
             return hours_tracked, "".join(line_items)
 
-        total_hours = hours_tracked.aggregate(total_hours=Sum("hours"))
+        total_hours = hours_tracked.aggregate(total_hours=Sum("quantity"))
         if total_hours["total_hours"]:
             invoice_rate = round(self.total_price / total_hours["total_hours"], 1)
-            hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("hours"))
+            hours_tracked = hours_tracked.annotate(cost=invoice_rate * F("quantity"))
 
         line_items = (
             f"""
             <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(line_item.hours,-2)} hours on {template_date(line_item.date_tracked, "M j")}</div>
+                <div>{floatformat(line_item.quantity,-2)} hours on {template_date(line_item.date_tracked, "M j")}</div>
                 <div>${floatformat(line_item.cost, -2 )}</div>
             </div>
             """
@@ -605,7 +621,7 @@ class User(AbstractUser, BaseModel):
     def invoices_not_logged(self):
         invoices = set(
             self.get_invoices.filter(
-                Q(is_paused=False) & Q(hours_tracked__date_tracked__exact=date.today())
+                Q(is_paused=False) & Q(line_items__date_tracked__exact=date.today())
             )
         )
         remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices

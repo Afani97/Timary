@@ -11,7 +11,7 @@ from timary.forms import (
     CreateIntervalForm,
     CreateMilestoneForm,
     CreateWeeklyForm,
-    DailyHoursForm,
+    HoursLineItemForm,
     InvoiceForm,
     UpdateIntervalForm,
     UpdateMilestoneForm,
@@ -356,7 +356,7 @@ def edit_invoice_hours(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     hours = invoice.get_hours_tracked()
-    hour_forms = [DailyHoursForm(instance=hour, user=request.user) for hour in hours]
+    hour_forms = [HoursLineItemForm(instance=hour, user=request.user) for hour in hours]
     return render(request, "partials/_edit_hours.html", {"hour_forms": hour_forms})
 
 

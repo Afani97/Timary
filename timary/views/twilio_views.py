@@ -66,7 +66,7 @@ def twilio_reply(request):
 
         if hours and 0 < hours <= 24:
             HoursLineItem.objects.create(
-                hours=hours,
+                quantity=hours,
                 date_tracked=datetime.date.today(),
                 invoice=invoice,
             )
@@ -78,7 +78,7 @@ def twilio_reply(request):
             return r
     else:
         HoursLineItem.objects.create(
-            hours=0,
+            quantity=0,
             date_tracked=datetime.date.today(),
             invoice=invoice,
         )

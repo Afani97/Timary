@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from timary.models import SentInvoice, User
 from timary.tests.factories import (
-    DailyHoursFactory,
+    HoursLineItemFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -111,7 +111,7 @@ class TestStripeViews(BaseTest):
         sent_invoice = SentInvoiceFactory()
         today = datetime.date.today()
         for i in range(10):
-            DailyHoursFactory(
+            HoursLineItemFactory(
                 invoice=sent_invoice.invoice,
                 date_tracked=today - datetime.timedelta(days=i),
             )
@@ -168,7 +168,7 @@ class TestStripeViews(BaseTest):
                 msg += f"""
                 <tr>
                     <td>{i}</td>
-                    <td width="80%" class="purchase_item"><span class="f-fallback">{ hour.hours } hours on
+                    <td width="80%" class="purchase_item"><span class="f-fallback">{ hour.quantity } hours on
                     { hour.date_tracked.strftime("%b %-d") }</span></td>
                     <td class="align-right" width="20%" class="purchase_item">
                     <span class="f-fallback">${ int(hour.cost)}</span>
@@ -195,7 +195,7 @@ class TestStripeViews(BaseTest):
         }
 
         sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
-        DailyHoursFactory(invoice=sent_invoice.invoice)
+        HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
         response = self.client.get(
             reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
@@ -229,7 +229,7 @@ class TestStripeViews(BaseTest):
         }
 
         sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
-        DailyHoursFactory(invoice=sent_invoice.invoice)
+        HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
         response = self.client.get(
             reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
@@ -264,7 +264,7 @@ class TestStripeViews(BaseTest):
         stripe_payment_mock.return_value = {"id": "12345"}
 
         sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
-        DailyHoursFactory(invoice=sent_invoice.invoice)
+        HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
 
         response = self.client.get(
@@ -282,7 +282,7 @@ class TestStripeViews(BaseTest):
         stripe_payment_mock.return_value = None
 
         sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
-        DailyHoursFactory(invoice=sent_invoice.invoice)
+        HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
 
         response = self.client.get(
@@ -441,8 +441,8 @@ class TestStripeViews(BaseTest):
             "type": "payment_intent.payment_failed",
             "data": {"object": {"id": "abc123"}},
         }
-        hours = DailyHoursFactory(
-            invoice=self.invoice, date_tracked=datetime.date.today(), hours=2
+        hours = HoursLineItemFactory(
+            invoice=self.invoice, date_tracked=datetime.date.today(), quantity=2
         )
         sent_invoice = SentInvoiceFactory(
             stripe_payment_intent_id="abc123", invoice=self.invoice, total_price=200.0
@@ -460,8 +460,8 @@ class TestStripeViews(BaseTest):
         self.assertInHTML(
             f"""
             <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(hours.hours, -2)} hours on {template_date(hours.date_tracked, "M j")}</div>
-                <div>${floatformat(hours.hours * self.invoice.invoice_rate, -2)}</div>
+                <div>{floatformat(hours.quantity, -2)} hours on {template_date(hours.date_tracked, "M j")}</div>
+                <div>${floatformat(hours.quantity * self.invoice.invoice_rate, -2)}</div>
             </div>
             """,
             self.extract_html_body().encode().decode("utf-8"),

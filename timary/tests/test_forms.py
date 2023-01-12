@@ -8,7 +8,7 @@ from timary.forms import (
     CreateIntervalForm,
     CreateMilestoneForm,
     CreateWeeklyForm,
-    DailyHoursForm,
+    HoursLineItemForm,
     InvoiceBrandingSettingsForm,
     LoginForm,
     PayInvoiceForm,
@@ -397,52 +397,60 @@ class TestPayInvoice(TestCase):
         )
 
 
-class TestDailyHours(TestCase):
+class TestHoursLineItem(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.today = datetime.date.today()
         cls.invoice = InvoiceFactory()
 
     def test_hours_success(self):
-        form = DailyHoursForm(
-            data={"hours": 1, "invoice": self.invoice.id, "date_tracked": self.today}
+        form = HoursLineItemForm(
+            data={"quantity": 1, "invoice": self.invoice.id, "date_tracked": self.today}
         )
         self.assertEqual(form.errors, {})
 
     def test_hours_error_missing_hours(self):
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={"invoice": self.invoice.id, "date_tracked": self.today}
         )
-        self.assertEqual(form.errors, {"hours": ["This field is required."]})
+        self.assertEqual(form.errors, {"quantity": ["This field is required."]})
 
     def test_hours_error_invalid_hours(self):
-        form = DailyHoursForm(
-            data={"hours": -1, "invoice": self.invoice.id, "date_tracked": self.today}
+        form = HoursLineItemForm(
+            data={
+                "quantity": -1,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+            }
         )
         self.assertEqual(
             form.errors,
-            {"hours": ["Invalid hours logged. Please log between 0 and 24 hours"]},
+            {"quantity": ["Invalid hours logged. Please log between 0 and 24 hours"]},
         )
 
-        form = DailyHoursForm(
-            data={"hours": 25, "invoice": self.invoice.id, "date_tracked": self.today},
+        form = HoursLineItemForm(
+            data={
+                "quantity": 25,
+                "invoice": self.invoice.id,
+                "date_tracked": self.today,
+            },
         )
         self.assertEqual(
             form.errors,
-            {"hours": ["Invalid hours logged. Please log between 0 and 24 hours"]},
+            {"quantity": ["Invalid hours logged. Please log between 0 and 24 hours"]},
         )
 
     def test_hours_error_missing_date_tracked(self):
-        form = DailyHoursForm(data={"hours": 1, "invoice": self.invoice.id})
+        form = HoursLineItemForm(data={"quantity": 1, "invoice": self.invoice.id})
         self.assertEqual(form.errors, {"date_tracked": ["This field is required."]})
 
     def test_hours_error_missing_invoice(self):
-        form = DailyHoursForm(data={"hours": 1, "date_tracked": self.today})
+        form = HoursLineItemForm(data={"quantity": 1, "date_tracked": self.today})
         self.assertEqual(form.errors, {"invoice": ["This field is required."]})
 
     def test_hours_error_invalid_invoice(self):
-        form = DailyHoursForm(
-            data={"hours": 1, "invoice": uuid.uuid4(), "date_tracked": self.today}
+        form = HoursLineItemForm(
+            data={"quantity": 1, "invoice": uuid.uuid4(), "date_tracked": self.today}
         )
         self.assertEqual(
             form.errors,
@@ -456,9 +464,9 @@ class TestDailyHours(TestCase):
     def test_hours_with_user_and_1_invoice(self):
         user = UserFactory()
         user.invoices.add(self.invoice)
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
             },
@@ -472,9 +480,9 @@ class TestDailyHours(TestCase):
         inv_1 = InvoiceFactory(user=user)
         inv_2 = InvoiceFactory(user=user)
 
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": inv_1.id,
                 "date_tracked": self.today,
             },
@@ -483,11 +491,11 @@ class TestDailyHours(TestCase):
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [inv_1, inv_2])
 
     def test_hours_all_empty_fields(self):
-        form = DailyHoursForm(data={})
+        form = HoursLineItemForm(data={})
         self.assertEqual(
             form.errors,
             {
-                "hours": ["This field is required."],
+                "quantity": ["This field is required."],
                 "invoice": ["This field is required."],
                 "date_tracked": ["This field is required."],
             },
@@ -495,9 +503,9 @@ class TestDailyHours(TestCase):
 
     def test_clean_date_tracked(self):
         """Hours should only be tracked after invoice's last date and up to current date"""
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today - relativedelta(months=2),
             }
@@ -507,9 +515,9 @@ class TestDailyHours(TestCase):
             {"__all__": ["Cannot set date since your last invoice's cutoff date."]},
         )
 
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today + datetime.timedelta(days=7),
             },
@@ -521,9 +529,9 @@ class TestDailyHours(TestCase):
     def test_hours_repeating_daily(self):
         date_tracked = datetime.date(2022, 1, 5)
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
@@ -548,9 +556,9 @@ class TestDailyHours(TestCase):
     def test_hours_repeating_weekly(self):
         date_tracked = datetime.date(2022, 1, 5)
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
@@ -576,9 +584,9 @@ class TestDailyHours(TestCase):
     def test_hours_recurring_daily(self):
         date_tracked = datetime.date(2022, 1, 5)
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "recurring": True,
@@ -599,9 +607,9 @@ class TestDailyHours(TestCase):
     def test_hours_recurring_weekly(self):
         date_tracked = datetime.date(2022, 1, 5)
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "recurring": True,
@@ -621,9 +629,9 @@ class TestDailyHours(TestCase):
         )
 
     def test_repeating_hours_cannot_set_both_true(self):
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
                 "recurring": True,
@@ -638,9 +646,9 @@ class TestDailyHours(TestCase):
 
     def test_repeating_hours_needs_end_date(self):
         """Recurring goes on until invoice is archived"""
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
                 "repeating": True,
@@ -651,9 +659,9 @@ class TestDailyHours(TestCase):
         )
 
     def test_repeating_hours_needs_end_date_greater_than_today(self):
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
                 "repeating": True,
@@ -663,9 +671,9 @@ class TestDailyHours(TestCase):
         self.assertIn("Cannot set repeat end date less than today.", str(form.errors))
 
     def test_repeating_weekly_or_biweekly_need_days_set(self):
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
                 "recurring": True,
@@ -677,9 +685,9 @@ class TestDailyHours(TestCase):
     def test_repeating_has_valid_starting_week(self):
         date_tracked = datetime.date(2022, 1, 5)
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 4))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "recurring": True,
@@ -694,9 +702,9 @@ class TestDailyHours(TestCase):
 
     def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
                 "recurring": True,
@@ -718,9 +726,9 @@ class TestDailyHours(TestCase):
 
     def test_hours_repeating_biweekly_update_starting_week_if_created_saturday(self):
         invoice = InvoiceFactory(last_date=datetime.date(2022, 1, 6))
-        form = DailyHoursForm(
+        form = HoursLineItemForm(
             data={
-                "hours": 1,
+                "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
                 "recurring": True,

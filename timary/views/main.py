@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import DailyHoursForm
+from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import User
 from timary.utils import show_active_timer
@@ -25,7 +25,7 @@ def index(request):
     show_most_frequent_options = hours_manager.show_most_frequent_options()
 
     context = {
-        "new_hour_form": DailyHoursForm(user=user),
+        "new_hour_form": HoursLineItemForm(user=user),
         "hours": hours_manager.hours,
         "show_repeat": show_repeat_option,
         "is_main_view": True,  # Needed to show timer controls, hidden for other views
@@ -42,7 +42,7 @@ def index(request):
 def dashboard_stats(request):
     hours_manager = HoursManager(request.user)
     context = hours_manager.get_hours_tracked()
-    context["new_hour_form"] = DailyHoursForm(user=request.user)
+    context["new_hour_form"] = HoursLineItemForm(user=request.user)
     context.update(show_active_timer(request.user))
     response = render(
         request,

@@ -3,7 +3,7 @@ import datetime
 from django.core.management.base import BaseCommand
 
 from timary.tasks import send_invoice_preview
-from timary.tests.factories import DailyHoursFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import HoursLineItemFactory, InvoiceFactory, UserFactory
 
 
 class Command(BaseCommand):
@@ -21,12 +21,12 @@ class Command(BaseCommand):
             last_date=datetime.date.today() - datetime.timedelta(days=3),
             accounting_customer_id="58",
         )
-        DailyHoursFactory(invoice=invoice)
-        DailyHoursFactory(
+        HoursLineItemFactory(invoice=invoice)
+        HoursLineItemFactory(
             invoice=invoice,
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=invoice,
             date_tracked=datetime.date.today() - datetime.timedelta(days=2),
         )

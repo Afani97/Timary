@@ -15,7 +15,7 @@ class HoursQuerySet(models.QuerySet):
                 date_tracked__month__gte=current_date.month,
                 date_tracked__year__gte=current_date.year,
             )
-            .exclude(hours=0)
+            .exclude(quantity=0)
             .select_related("invoice", "invoice__user")
             .order_by("-date_tracked")
         )
@@ -39,7 +39,7 @@ class HourStats:
 
         total_hours = HoursLineItem.objects.filter(
             sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True))
-        ).aggregate(total_hours=Sum("hours"))["total_hours"]
+        ).aggregate(total_hours=Sum("quantity"))["total_hours"]
         total_amount = sent_invoices.aggregate(total_amount=Sum("total_price"))[
             "total_amount"
         ]
@@ -55,15 +55,15 @@ class HourStats:
                 sent_invoice_id__isnull=True,
                 date_tracked__range=date_range,
             )
-            .exclude(hours=0)
+            .exclude(quantity=0)
             .select_related("invoice")
             .order_by("-date_tracked")
         )
 
-        total_hours_sum = qs.aggregate(total_hours=Sum("hours"))["total_hours"]
+        total_hours_sum = qs.aggregate(total_hours=Sum("quantity"))["total_hours"]
         total_amount_sum_non_weekly_invoice = (
             qs.filter(invoice__invoice_type__lt=3)
-            .annotate(total_amount=F("hours") * F("invoice__invoice_rate"))
+            .annotate(total_amount=F("quantity") * F("invoice__invoice_rate"))
             .aggregate(total=Sum("total_amount"))["total"]
         )
 

@@ -8,7 +8,7 @@ from django.utils.http import urlencode
 
 from timary.models import HoursLineItem
 from timary.tests.factories import (
-    DailyHoursFactory,
+    HoursLineItemFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -23,12 +23,12 @@ class TestDailyHours(BaseTest):
 
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.hours = DailyHoursFactory(invoice__user=self.user)
-        self.hours_no_user = DailyHoursFactory()
+        self.hours = HoursLineItemFactory(invoice__user=self.user)
+        self.hours_no_user = HoursLineItemFactory()
 
     def test_get_hours_not_invoiced_yet(self):
         sent_invoice = SentInvoiceFactory(invoice=self.hours.invoice)
-        hours_invoiced = DailyHoursFactory(
+        hours_invoiced = HoursLineItemFactory(
             invoice=self.hours.invoice, sent_invoice_id=sent_invoice.id
         )
 
@@ -54,7 +54,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": 1,
+                "quantity": 1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
             },
@@ -67,7 +67,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": -1,
+                "quantity": -1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
             },
@@ -133,7 +133,7 @@ class TestDailyHours(BaseTest):
 
     def test_update_daily_hours(self):
         url_params = {
-            "hours": random.randint(1, 23),
+            "quantity": random.randint(1, 23),
             "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
             "invoice": str(self.hours.invoice.id),
         }
@@ -144,7 +144,7 @@ class TestDailyHours(BaseTest):
         self.hours.refresh_from_db()
         self.assertInHTML(
             f"""
-            <h2 class="text-3xl font-bold">{floatformat(self.hours.hours, 2)}</h2>
+            <h2 class="text-3xl font-bold">{floatformat(self.hours.quantity, 2)}</h2>
             """,
             response.content.decode("utf-8"),
         )
@@ -161,7 +161,7 @@ class TestDailyHours(BaseTest):
     def test_patch_daily_hours(self):
         random_hours = random.randint(1, 23)
         url_params = {
-            "hours": random_hours,
+            "quantity": random_hours,
             "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
             "invoice": self.hours.invoice.id,
         }
@@ -199,11 +199,11 @@ class TestDailyHours(BaseTest):
 
     def test_repeat_daily_hours(self):
         HoursLineItem.objects.all().delete()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
@@ -216,23 +216,25 @@ class TestDailyHours(BaseTest):
 
     def test_repeat_daily_hours_excluding_skipped(self):
         HoursLineItem.objects.all().delete()
-        DailyHoursFactory(
-            hours=1,
+        HoursLineItemFactory(
+            quantity=1,
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
-            hours=0,
+        HoursLineItemFactory(
+            quantity=0,
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
-            hours=2,
+        HoursLineItemFactory(
+            quantity=2,
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
         self.assertEqual(
-            int(HoursLineItem.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            int(
+                HoursLineItem.objects.aggregate(hours_sum=Sum("quantity"))["hours_sum"]
+            ),
             3,
         )
         self.assertEqual(
@@ -243,7 +245,9 @@ class TestDailyHours(BaseTest):
         response = self.client.get(reverse("timary:repeat_hours"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            int(HoursLineItem.objects.aggregate(hours_sum=Sum("hours"))["hours_sum"]),
+            int(
+                HoursLineItem.objects.aggregate(hours_sum=Sum("quantity"))["hours_sum"]
+            ),
             6,
         )
         # Only two are created because 0 hours are skipped
@@ -254,16 +258,16 @@ class TestDailyHours(BaseTest):
 
     def test_repeat_hours_including_repeating(self):
         HoursLineItem.objects.all().delete()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
             recurring_logic={
@@ -284,16 +288,16 @@ class TestDailyHours(BaseTest):
         self,
     ):
         HoursLineItem.objects.all().delete()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
             recurring_logic={
@@ -307,7 +311,7 @@ class TestDailyHours(BaseTest):
         bi_weekly_start_week = get_starting_week_from_date(
             datetime.date.today() + datetime.timedelta(weeks=+1)
         ).isoformat()
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=datetime.date.today() - datetime.timedelta(days=1),
             recurring_logic={
@@ -330,7 +334,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": 1,
+                "quantity": 1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
                 "repeating": True,
@@ -348,7 +352,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": 1,
+                "quantity": 1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
                 "repeating": True,
@@ -365,7 +369,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": 1,
+                "quantity": 1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
                 "recurring": True,
@@ -382,7 +386,7 @@ class TestDailyHours(BaseTest):
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
-                "hours": 1,
+                "quantity": 1,
                 "date_tracked": datetime.date.today(),
                 "invoice": invoice.id,
                 "recurring": True,

@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from timary.querysets import HourStats
 from timary.tests.factories import (
-    DailyHoursFactory,
+    HoursLineItemFactory,
     InvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -27,15 +27,15 @@ class TestHourStats(TestCase):
         )
         sent_invoice.user = user
         sent_invoice.save()
-        DailyHoursFactory(
-            invoice=invoice, date_tracked=datetime.datetime(2022, 8, 25), hours=2
+        HoursLineItemFactory(
+            invoice=invoice, date_tracked=datetime.datetime(2022, 8, 25), quantity=2
         )
 
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=invoice,
             date_tracked=datetime.datetime(2022, 8, 25),
             sent_invoice_id=sent_invoice.id,
-            hours=3,
+            quantity=3,
         )
 
         weekly_invoice = InvoiceFactory(user=user, invoice_rate=1500, invoice_type=3)
@@ -63,14 +63,14 @@ class TestHourStats(TestCase):
             date_sent=datetime.date(2022, 7, 25),
             total_price=300,
         )
-        DailyHoursFactory(
-            invoice=invoice, hours=2, date_tracked=datetime.date(2022, 7, 25)
+        HoursLineItemFactory(
+            invoice=invoice, quantity=2, date_tracked=datetime.date(2022, 7, 25)
         )
 
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=invoice,
             sent_invoice_id=sent_invoice.id,
-            hours=3,
+            quantity=3,
             date_tracked=datetime.date(2022, 7, 25),
         )
 
@@ -91,14 +91,14 @@ class TestHourStats(TestCase):
             date_sent=datetime.date(2022, 7, 25),
             total_price=300,
         )
-        DailyHoursFactory(
-            invoice=invoice, hours=2, date_tracked=datetime.date(2022, 5, 25)
+        HoursLineItemFactory(
+            invoice=invoice, quantity=2, date_tracked=datetime.date(2022, 5, 25)
         )
 
-        DailyHoursFactory(
+        HoursLineItemFactory(
             invoice=invoice,
             sent_invoice_id=sent_invoice.id,
-            hours=3,
+            quantity=3,
             date_tracked=datetime.date(2022, 4, 25),
         )
 
