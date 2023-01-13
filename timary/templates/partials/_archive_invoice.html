@@ -34,8 +34,14 @@
                 </div>
             </div>
 
-            <p class="text-xl">Interval: {{ archive_invoice.invoice_type | lower }}</p>
-            <p class="text-xl">Recipient {{ archive_invoice.client_name }} ({{ archive_invoice.client_email }})</p>
+            <p class="text-xl">
+                {% if archive_invoice.invoice_type != "single" %}
+                    Interval: {{ archive_invoice.invoice_type | lower }}
+                {% else %}
+                    Balance: ${{ archive_invoice.balance_due }}
+                {% endif %}
+            </p>
+            <p class="text-xl">Client {{ archive_invoice.client_name }} ({{ archive_invoice.client_email }})</p>
         </div>
     </div>
 </li>

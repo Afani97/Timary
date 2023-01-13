@@ -128,7 +128,8 @@ class TestStripeViews(BaseTest):
             msg = f"""
             <div class="mb-4">
                 <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
-                <p class="mb-4">This is an invoice for {sent_invoice.user.first_name}'s services.</p>
+                <p class="mb-4">This is an invoice for
+                {sent_invoice.user.invoice_branding_properties()["user_name"]}'s services.</p>
                 <p>Total Amount Due: ${sent_invoice.total_price + 5}</p>
             </div>
             """

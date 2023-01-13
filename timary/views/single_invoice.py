@@ -1,30 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import LineItemForm, SingleInvoiceForm
-from timary.models import LineItem, SingleInvoice
+from timary.models import LineItem, SentInvoice, SingleInvoice
 from timary.utils import show_alert_message
-
-
-def greater_than_one(x):
-    return float(x) > 0
-
-
-def validate_line_items(request):
-    if len(request.POST.getlist("description")) == 0:
-        raise ValidationError("Invoice needs at least one line item.")
-
-    if not any(map(greater_than_one, request.POST.getlist("quantity"))) or not any(
-        map(greater_than_one, request.POST.getlist("unit_price"))
-    ):
-        raise ValidationError(
-            "Line items aren't valid, please set the price and quantity greater than 1."
-        )
 
 
 def format_line_items(request):
@@ -69,22 +52,6 @@ def single_invoice(request):
         )
     elif request.method == "POST":
         invoice_form = SingleInvoiceForm(request.POST)
-        try:
-            validate_line_items(request)
-        except ValidationError as e:
-            messages.error(
-                request,
-                e.message,
-                extra_tags="new-single-invoice",
-            )
-            return render(
-                request,
-                "invoices/single_invoice.html",
-                {
-                    "invoice_form": invoice_form,
-                    "line_item_forms": format_line_items(request),
-                },
-            )
         if not invoice_form.is_valid():
             return render(
                 request,
@@ -97,11 +64,6 @@ def single_invoice(request):
 
         saved_single_invoice = invoice_form.save(commit=False)
         saved_single_invoice.user = request.user
-        if invoice_status := request.GET.get("status"):
-            if invoice_status == "draft":
-                saved_single_invoice.status = SingleInvoice.InvoiceStatus.DRAFT
-            elif invoice_status == "send":
-                saved_single_invoice.status = SingleInvoice.InvoiceStatus.SENT
         saved_single_invoice.save()
 
         # Save line items to the invoice if valid
@@ -111,8 +73,6 @@ def single_invoice(request):
                 line_item_saved.invoice = saved_single_invoice
                 line_item_saved.save()
         saved_single_invoice.update()
-        if saved_single_invoice.status == SingleInvoice.InvoiceStatus.SENT:
-            saved_single_invoice.send_invoice()
         messages.success(
             request,
             f"Successfully created {saved_single_invoice.title}",
@@ -132,6 +92,8 @@ def single_invoice(request):
 @require_http_methods(["GET", "POST", "DELETE"])
 def update_single_invoice(request, single_invoice_id):
     single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if single_invoice_obj.user != request.user:
+        return redirect(reverse("timary:login"))
     invoice_form = SingleInvoiceForm(request.POST or None, instance=single_invoice_obj)
     line_item_forms = [
         LineItemForm(instance=line_item)
@@ -144,32 +106,9 @@ def update_single_invoice(request, single_invoice_id):
         response["HX-Redirect"] = "/invoices/manage/"
         return response
     if request.method == "POST":
-        # Check that invoice has at least 1 line item before proceeding
-        try:
-            validate_line_items(request)
-        except ValidationError as e:
-            messages.error(
-                request,
-                e.message,
-                extra_tags="update-single-invoice",
-            )
-            return render(
-                request,
-                "invoices/single_invoice.html",
-                {
-                    "single_invoice": single_invoice_obj,
-                    "invoice_form": invoice_form,
-                    "line_item_forms": format_line_items(request),
-                },
-            )
         if invoice_form.is_valid():
             saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
             saved_single_invoice.user = request.user
-            if invoice_status := request.GET.get("status"):
-                if invoice_status == "draft":
-                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.DRAFT
-                elif invoice_status == "send":
-                    saved_single_invoice.status = SingleInvoice.InvoiceStatus.SENT
             saved_single_invoice.save()
             # Save line items to the invoice if valid
             for line_form in format_line_items(request):
@@ -178,9 +117,7 @@ def update_single_invoice(request, single_invoice_id):
                     line_item_saved.invoice = saved_single_invoice
                     line_item_saved.save()
 
-            saved_single_invoice.update_total_price()
-            if saved_single_invoice.status == SingleInvoice.InvoiceStatus.SENT:
-                saved_single_invoice.send_invoice()
+            saved_single_invoice.update()
             single_invoice_obj = saved_single_invoice
             line_item_forms = [
                 LineItemForm(instance=line_item)
@@ -238,7 +175,7 @@ def sync_single_invoice(request, single_invoice_id):
     else:
         response = render(
             request,
-            "partials/_archived_single_invoice.html",
+            "partials/_archive_invoice.html",
             {"single_invoice": single_invoice_obj},
         )
 
@@ -263,9 +200,36 @@ def sync_single_invoice(request, single_invoice_id):
 
 @login_required()
 @require_http_methods(["GET"])
-def resend_single_invoice_email(request, single_invoice_id):
+def update_single_invoice_status(request, single_invoice_id):
     single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
-    if single_invoice_obj.paid_status == SingleInvoice.PaidStatus.PAID:
+    if request.user != single_invoice_obj.user:
+        return redirect(reverse("timary:login"))
+
+    if single_invoice_obj.status == SingleInvoice.InvoiceStatus.DRAFT:
+        single_invoice_obj.status = SingleInvoice.InvoiceStatus.FINAL
+    elif single_invoice_obj.status == SingleInvoice.InvoiceStatus.FINAL:
+        single_invoice_obj.status = SingleInvoice.InvoiceStatus.DRAFT
+    single_invoice_obj.save()
+    response = render(
+        request, "partials/_single_invoice.html", {"single_invoice": single_invoice_obj}
+    )
+    show_alert_message(
+        response,
+        "success",
+        f"{single_invoice_obj.title} has been updated to {single_invoice_obj.get_status_display()}",
+    )
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def send_single_invoice_email(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if (
+        single_invoice_obj.get_sent_invoice() is not None
+        and single_invoice_obj.get_sent_invoice().paid_status
+        == SentInvoice.PaidStatus.PAID
+    ):
         return redirect(reverse("timary:manage_invoices"))
     if not request.user.settings["subscription_active"]:
         response = render(

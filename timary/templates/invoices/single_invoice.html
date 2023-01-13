@@ -236,33 +236,13 @@
 
 
             <div class="flex justify-center space-x-20 mt-10">
-                {% if single_invoice %}
-                    <button _="on htmx:beforeRequest add .loading to me"
-                        hx-delete="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}"
-                        hx-confirm="Are you sure you want to delete this invoice?"
-                        hx-swap="none" class="btn btn-error btn-outline"
-                        type="button">
-                        Delete
-                    </button>
-                    {% if single_invoice.status == 0 %}
-                        <button class="btn btn-primary" type="submit"
-                            formaction="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}?status=draft">
-                            Update draft
-                        </button>
+                <button class="btn btn-primary" type="submit">
+                    {% if single_invoice %}
+                        Update
+                    {% else %}
+                        Create
                     {% endif %}
-                    <button class="btn btn-primary" type="submit">
-                        Update and Send
-                    </button>
-                {% else %}
-                    <button class="btn btn-outline" type="submit"
-                        formaction="{% url 'timary:single_invoice' %}?status=draft">
-                        Save as draft
-                    </button>
-                    <button class="btn btn-primary" type="submit">
-                        Create and Send
-                    </button>
-                {% endif %}
-
+                </button>
             </div>
         </form>
     </div>

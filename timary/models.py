@@ -186,7 +186,6 @@ class Invoice(PolymorphicModel, BaseModel):
         default=100,
         max_digits=6,
         decimal_places=2,
-        validators=[MinValueValidator(1)],
         null=True,
         blank=True,
     )
@@ -265,7 +264,7 @@ class Invoice(PolymorphicModel, BaseModel):
 class SingleInvoice(Invoice):
     class InvoiceStatus(models.IntegerChoices):
         DRAFT = 0, "DRAFT"
-        SENT = 1, "SENT"
+        FINAL = 1, "FINAL"
 
     status = models.PositiveSmallIntegerField(
         default=InvoiceStatus.DRAFT,
@@ -298,7 +297,7 @@ class SingleInvoice(Invoice):
         raise NotImplementedError()
 
     def render_line_items(self, sent_invoice_id):
-        raise render_to_string(
+        return render_to_string(
             "invoices/line_items/single.html",
             {"line_items": self.line_items.all(), "single_invoice": self},
         )
@@ -350,6 +349,7 @@ class SingleInvoice(Invoice):
             {
                 "site_url": settings.SITE_URL,
                 "single_invoice": self,
+                "line_items": self.render_line_items(None),
                 "user_name": self.user.invoice_branding_properties()["user_name"],
                 "todays_date": today,
             },
