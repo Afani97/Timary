@@ -13,8 +13,6 @@ from django.db.models import Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.template.defaultfilters import date as template_date
-from django.template.defaultfilters import floatformat
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django_q.tasks import async_task
@@ -300,7 +298,10 @@ class SingleInvoice(Invoice):
         raise NotImplementedError()
 
     def render_line_items(self, sent_invoice_id):
-        raise NotImplementedError()
+        raise render_to_string(
+            "invoices/line_items/single.html",
+            {"line_items": self.line_items.all(), "single_invoice": self},
+        )
 
     def update(self):
         self.update_total_price()
@@ -426,15 +427,9 @@ class RecurringInvoice(Invoice):
         return round((total_cost_amount / self.total_budget), ndigits=2) * 100
 
     def render_line_items(self, send_invoice_id):
-        return (
-            f"""
-            <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(line_item.quantity, -2)} hours on
-                {template_date(line_item.date_tracked, "M j")}</div>
-                <div>${floatformat(line_item.cost, -2)}</div>
-            </div>
-            """
-            for line_item in self.get_hours_sent(send_invoice_id).all()
+        return render_to_string(
+            "invoices/line_items/hourly.html",
+            {"line_items": self.get_hours_sent(send_invoice_id).all()},
         )
 
 
@@ -510,6 +505,7 @@ class WeeklyInvoice(RecurringInvoice):
         return "weekly"
 
     def update(self):
+        self.last_date = date.today()
         pass
 
     def form_class(self, action="create"):
@@ -540,12 +536,9 @@ class WeeklyInvoice(RecurringInvoice):
 
     def render_line_items(self, send_invoice_id):
         sent_invoice = get_object_or_404(SentInvoice, id=send_invoice_id)
-        return f"""
-        <div class="flex justify-between py-3 text-xl">
-            <div>Week of { template_date(sent_invoice.date_sent, "M j, Y")}</div>
-            <div>${floatformat(sent_invoice.total_price,-2 )}</div>
-        </div>
-        """
+        return render_to_string(
+            "invoices/line_items/weekly.html", {"sent_invoice": sent_invoice}
+        )
 
 
 class MilestoneInvoice(RecurringInvoice):
@@ -609,7 +602,7 @@ class InvoiceManager:
         return self._invoice
 
     @staticmethod
-    def get_invoice_form_class(i_type, action="create"):
+    def get_form(i_type, action="create"):
         invoice_form = None
         if i_type == "interval":
             from timary.forms import CreateIntervalForm, UpdateIntervalForm
