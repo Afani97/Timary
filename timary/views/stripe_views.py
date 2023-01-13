@@ -37,7 +37,13 @@ def pay_invoice(request, sent_invoice_id):
         else:
             return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
-        intent = StripeService.create_payment_intent_for_payout(sent_invoice)
+        try:
+            intent = StripeService.create_payment_intent_for_payout(sent_invoice)
+        except stripe.error.InvalidRequestError as e:
+            intent = None
+            print(str(e), file=sys.stderr)
+        if not intent:
+            return redirect(reverse("timary:login"))
         sent_invoice.stripe_payment_intent_id = intent["id"]
         sent_invoice.save()
 
@@ -83,21 +89,22 @@ def quick_pay_invoice(request, sent_invoice_id):
     except stripe.error.InvalidRequestError as e:
         intent = None
         print(str(e), file=sys.stderr)
-    if intent:
-        sent_invoice.stripe_payment_intent_id = intent["id"]
-        sent_invoice.save()
-        return JsonResponse(
-            {
-                "return_url": request.build_absolute_uri(
-                    reverse(
-                        "timary:invoice_payment_success",
-                        kwargs={"sent_invoice_id": sent_invoice.id},
-                    )
-                )
-            }
-        )
-    else:
+
+    if not intent:
         return JsonResponse({"error": "Unable to process payment"})
+
+    sent_invoice.stripe_payment_intent_id = intent["id"]
+    sent_invoice.save()
+    return JsonResponse(
+        {
+            "return_url": request.build_absolute_uri(
+                reverse(
+                    "timary:invoice_payment_success",
+                    kwargs={"sent_invoice_id": sent_invoice.id},
+                )
+            )
+        }
+    )
 
 
 @require_http_methods(["GET"])
