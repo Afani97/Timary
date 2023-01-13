@@ -4,7 +4,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -326,36 +325,6 @@ class SingleInvoice(Invoice):
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
         self.save()
-
-    def send_invoice(self):
-        today = date.today()
-        current_month = date.strftime(today, "%m/%Y")
-        msg_subject = (
-            f"{self.title}'s Invoice from {self.user.first_name} for {current_month}"
-        )
-        line_items = self.line_items.all()
-        sent_invoice = SentInvoice.objects.create(
-            date_sent=date.today(),
-            invoice=self,
-            user=self.user,
-            total_price=self.balance_due,
-        )
-        for line_item in line_items:
-            line_item.sent_invoice_id = sent_invoice.id
-            line_item.save()
-
-        msg_body = render_to_string(
-            "email/single_invoice.html",
-            {
-                "site_url": settings.SITE_URL,
-                "single_invoice": self,
-                "line_items": self.render_line_items(None),
-                "user_name": self.user.invoice_branding_properties()["user_name"],
-                "todays_date": today,
-            },
-        )
-
-        EmailService.send_html(msg_subject, msg_body, self.client_email)
 
 
 class RecurringInvoice(Invoice):
