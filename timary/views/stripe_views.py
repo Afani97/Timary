@@ -59,7 +59,7 @@ def pay_invoice(request, sent_invoice_id):
 
         context = {
             "sent_invoice": sent_invoice,
-            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "line_items": sent_invoice.get_rendered_line_items(),
             "user_name": sent_invoice.user.invoice_branding_properties()["user_name"],
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,

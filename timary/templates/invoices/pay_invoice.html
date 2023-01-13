@@ -129,38 +129,21 @@
                 <p>Total Amount Due: ${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
             </div>
             <div class="overflow-y-auto mt-10">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for hour in hours_tracked %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td width="80%" class="purchase_item"><span class="f-fallback">{{ hour.quantity|floatformat:-2 }} hours on {{ hour.date_tracked | date:"M j"}}</span></td>
-                                <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">${{ hour.cost | floatformat:-2 }}</span></td>
-                            </tr>
-                        {% endfor %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td width="80%" class="purchase_item"><span class="f-fallback">Stripe ACH Fee</span></td>
-                            <td class="align-right" width="20%" class="purchase_item"><span class="f-fallback">$5</span></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td width="80%" class="purchase_footer" valign="middle">
-                                <p class="f-fallback purchase_total purchase_total--label">Total</p>
-                            </td>
-                            <td width="20%" class="purchase_footer" valign="middle">
-                                <p class="f-fallback purchase_total">${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="flex justify-between mt-6 text-xl font-medium">
+                    <div>Invoice #{{ sent_invoice.email_id }}</div>
+                    <strong>{{ sent_invoice.date_sent }}</strong>
+                </div>
+                <div class="flex justify-between pb-3 border-b border-gray-200">
+                    <div>Description</div>
+                    <div>Amount</div>
+                </div>
+                <div class="border-b border-gray-200 pb-2">
+                    {{ line_items|safe }}
+                </div>
+                <div class="flex justify-end text-xl font-semibold  mt-6 mb-10">
+                    <div>Total</div>
+                    <div class="ml-24">${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</div>
+                </div>
             </div>
         </div>
 

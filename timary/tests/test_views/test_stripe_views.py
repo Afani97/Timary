@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.core import mail
@@ -136,12 +137,7 @@ class TestStripeViews(BaseTest):
             self.assertInHTML(msg, html_body)
 
         with self.subTest("Testing total price in table"):
-            msg = f"""
-            <td width="20%" class="purchase_footer" valign="middle">
-                <p class="f-fallback purchase_total">${sent_invoice.total_price + 5}</p>
-            </td>
-            """
-            self.assertInHTML(msg, html_body)
+            self.assertIn(f"{Decimal(sent_invoice.total_price + 5)}", html_body)
 
         with self.subTest("Testing payment info form renders"):
             msg = """
@@ -164,21 +160,7 @@ class TestStripeViews(BaseTest):
             self.assertInHTML(msg, html_body)
 
         with self.subTest("Testing hours table renders all hours for invoice"):
-            hours_tracked = sent_invoice.get_hours_tracked()
-            msg = ""
-            for i, hour in enumerate(hours_tracked, start=1):
-                msg += f"""
-                <tr>
-                    <td>{i}</td>
-                    <td width="80%" class="purchase_item"><span class="f-fallback">
-                    { floatformat(hour.quantity, -2) } hours on
-                    { template_date(hour.date_tracked, "M j") }</span></td>
-                    <td class="align-right" width="20%" class="purchase_item">
-                    <span class="f-fallback">${ floatformat(hour.cost, -2)}</span>
-                    </td>
-                </tr>
-                """
-            self.assertInHTML(msg, html_body)
+            self.assertInHTML(sent_invoice.get_rendered_line_items(), html_body)
 
     @patch(
         "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
