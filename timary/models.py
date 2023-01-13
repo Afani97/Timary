@@ -295,6 +295,13 @@ class SingleInvoice(Invoice):
     def get_hours_stats(self):
         raise NotImplementedError()
 
+    def is_synced(self):
+        sent_invoice = self.get_sent_invoice()
+        if sent_invoice:
+            if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
+                return True
+        return False
+
     def render_line_items(self, sent_invoice_id):
         return render_to_string(
             "invoices/line_items/single.html",
