@@ -220,7 +220,7 @@ def update_single_invoice_status(request, single_invoice_id):
     show_alert_message(
         response,
         "success",
-        f"{single_invoice_obj.title} has been updated to {single_invoice_obj.get_status_display()}",
+        f"{single_invoice_obj.title} has been updated to {single_invoice_obj.get_status_display().title()}",
     )
     return response
 

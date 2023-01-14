@@ -316,6 +316,28 @@ class SingleInvoice(Invoice):
 
         return SingleInvoiceForm
 
+    def can_send_invoice(self):
+        """
+        Either the invoice has been sent if not started/failed
+        or not sent at all
+        or it can only be sent if the status is Final
+        """
+        sent_invoice = self.get_sent_invoice()
+        return (
+            self.status == SingleInvoice.InvoiceStatus.FINAL
+            and self.balance_due > 0
+            and (
+                (not sent_invoice)
+                or (
+                    sent_invoice.paid_status
+                    in [
+                        SentInvoice.PaidStatus.NOT_STARTED,
+                        SentInvoice.PaidStatus.FAILED,
+                    ]
+                )
+            )
+        )
+
     def update_total_price(self):
         total_price = 0.0
         for line_item in self.line_items.all():

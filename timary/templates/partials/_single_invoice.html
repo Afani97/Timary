@@ -27,19 +27,10 @@
                     {% endif %}
                     <li>
                         <a class="btn btn-sm" hx-get="{% url 'timary:update_single_invoice_status' single_invoice_id=single_invoice.id %}"
-                            hx-target="closest .card" hx-swap="innerHTML" _="on htmx:beforeRequest add .loading to me">
+                            hx-target="closest .card" hx-swap="outerHTML" _="on htmx:beforeRequest add .loading to me">
                             Set status as {% if single_invoice.status == 0 %} Final {% else %} Draft {% endif %}
                         </a>
                     </li>
-                    {% if single_invoice.balance_due > 1 and single_invoice.status == 1 and not single_invoice.get_sent_invoice or single_invoice.get_sent_invoice.paid_status == 0 %}
-                        <li>
-                            <a class="btn btn-sm" hx-get="{% url 'timary:send_single_invoice_email' single_invoice_id=single_invoice.id %}"
-                                hx-confirm="Are you sure you want to send this invoice now?" hx-target="closest .card" hx-swap="innerHTML"
-                                _="on htmx:beforeRequest add .loading to me">
-                                Send to client
-                            </a>
-                        </li>
-                    {% endif %}
                     {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
@@ -105,6 +96,17 @@
                         {{ single_invoice.get_sent_invoice.get_paid_status_display|title }}
                     {% endif %}
                 </div>
+            {% endif %}
+            {% if single_invoice.can_send_invoice %}
+                <btn class="btn btn-accent btn-outline mt-5" hx-get="{% url 'timary:send_single_invoice_email' single_invoice_id=single_invoice.id %}"
+                    hx-confirm="Are you sure you want to send this invoice now?" hx-target="closest .card" hx-swap="outerHTML"
+                    _="on htmx:beforeRequest add .loading to me">
+                    {% if not single_invoice.get_sent_invoice %}
+                        Send to client
+                    {% else %}
+                        Resend to client
+                    {% endif %}
+                </btn>
             {% endif %}
             {% if single_invoice.balance_due <= 0 %}
                 <div class="alert alert-warning shadow-lg mt-5">

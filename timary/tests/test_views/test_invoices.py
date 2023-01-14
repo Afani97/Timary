@@ -121,7 +121,7 @@ class TestInvoices(BaseTest):
                 </ul>
                 <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
                     hx-confirm="Are you sure you want to complete this milestone?"
-                    hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-ghost btn-outline my-5"
+                    hx-target="closest #some-title" hx-swap="outerHTML" class="btn btn-ghost btn-outline my-5"
                     _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
                     Complete milestone
                 </a>
@@ -338,7 +338,7 @@ class TestInvoices(BaseTest):
             </ul>
             <a hx-get="{reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id})}"
                 hx-confirm="Are you sure you want to complete this milestone?"
-                hx-target="closest #some-title" hx-swap="innerHTML" class="btn btn-ghost btn-outline my-5"
+                hx-target="closest #some-title" hx-swap="outerHTML" class="btn btn-ghost btn-outline my-5"
                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
                 Complete milestone
             </a>
