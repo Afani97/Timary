@@ -22,7 +22,7 @@ from timary.tests.factories import (
 from timary.tests.test_views.basetest import BaseTest
 
 
-class TestInvoices(BaseTest):
+class TestRecurringInvoices(BaseTest):
     def setUp(self) -> None:
         super().setUp()
 
@@ -749,3 +749,7 @@ class TestInvoices(BaseTest):
             response.headers["HX-Trigger"],
         )
         self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
+
+class TestSingleInvoices(BaseTest):
+    pass

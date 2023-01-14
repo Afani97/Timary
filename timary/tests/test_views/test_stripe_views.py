@@ -14,7 +14,9 @@ from timary.models import SentInvoice, User
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    LineItemFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
@@ -155,6 +157,58 @@ class TestStripeViews(BaseTest):
                 class="input input-bordered border-2 text-lg bg-neutral
                 focus:border-primary focus:ring-0 focus:ring-primary w-full"
                 required id="id_first_name">
+            </div>
+            """
+            self.assertInHTML(msg, html_body)
+
+        with self.subTest("Testing hours table renders all hours for invoice"):
+            self.assertInHTML(sent_invoice.get_rendered_line_items(), html_body)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
+    )
+    def test_pay_single_invoice_get_invoice_summary_and_stripe_form(
+        self, stripe_intent_mock
+    ):
+        self.client.logout()
+        stripe_intent_mock.return_value = {
+            "client_secret": "tok_abc123",
+            "id": "abc123",
+        }
+
+        single_invoice = SingleInvoiceFactory()
+        sent_invoice = SentInvoiceFactory(invoice=single_invoice)
+        today = datetime.date.today()
+        LineItemFactory(
+            quantity=1,
+            unit_price=1,
+            invoice=sent_invoice.invoice,
+            date_tracked=today,
+            sent_invoice_id=sent_invoice.id,
+        )
+        LineItemFactory(
+            quantity=2,
+            unit_price=2.5,
+            invoice=sent_invoice.invoice,
+            date_tracked=today,
+            sent_invoice_id=sent_invoice.id,
+        )
+        single_invoice.update()
+        sent_invoice.refresh_from_db()
+        response = self.client.get(
+            reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
+        )
+        self.assertEqual(response.status_code, 200)
+
+        html_body = self.extract_html(response.content.decode("utf-8"))
+
+        with self.subTest("Testing summary"):
+            msg = f"""
+            <div class="mb-4">
+                <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
+                <p class="mb-4">This is an invoice for
+                {sent_invoice.user.invoice_branding_properties()["user_name"]}'s services.</p>
+                <p>Total Amount Due: $11</p>
             </div>
             """
             self.assertInHTML(msg, html_body)

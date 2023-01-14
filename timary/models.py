@@ -80,22 +80,14 @@ class LineItem(PolymorphicModel, BaseModel):
         return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"
 
     def total_amount(self):
-        return Decimal(self.quantity) * self.unit_price
+        return self.quantity * self.unit_price
 
 
 class HoursLineItem(LineItem):
-    objects = models.Manager()
-    all_hours = HoursQuerySet.as_manager()
-
     recurring_logic = models.JSONField(blank=True, null=True, default=dict)
 
-    # class Meta:
-    #     constraints = [
-    #         models.CheckConstraint(
-    #             check=(models.Q(quantity__gte=0) & models.Q(quantity__lt=24)),
-    #             name="between_0_and_24_hours",
-    #         )
-    #     ]
+    objects = models.Manager()
+    all_hours = HoursQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.invoice.title} - {self.date_tracked} - {self.quantity}"
@@ -353,6 +345,9 @@ class SingleInvoice(Invoice):
             total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
+        if sent_invoice := self.get_sent_invoice():
+            sent_invoice.total_price = self.balance_due
+            sent_invoice.save()
         self.save()
 
 

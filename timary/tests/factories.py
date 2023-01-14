@@ -8,8 +8,10 @@ from timary.models import (
     HoursLineItem,
     IntervalInvoice,
     Invoice,
+    LineItem,
     MilestoneInvoice,
     SentInvoice,
+    SingleInvoice,
     User,
     WeeklyInvoice,
 )
@@ -51,6 +53,8 @@ class InvoiceFactory(DjangoModelFactory):
     client_email = factory.Faker("email")
     client_name = factory.Faker("name")
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
+    rate = factory.Faker("pyint", min_value=1000, max_value=10_000)
+    balance_due = factory.Faker("pyint", min_value=1000, max_value=1000)
     is_archived = False
     is_paused = False
 
@@ -61,6 +65,7 @@ class WeeklyInvoiceFactory(InvoiceFactory):
 
     next_date = factory.LazyFunction(datetime.date.today)
     last_date = factory.LazyFunction(get_last_date)
+    rate = factory.Faker("pyint", min_value=1000, max_value=1000)
 
 
 class IntervalInvoiceFactory(WeeklyInvoiceFactory):
@@ -76,6 +81,7 @@ class IntervalInvoiceFactory(WeeklyInvoiceFactory):
             IntervalInvoice.Interval.YEARLY,
         ]
     )
+    rate = factory.Faker("pyint", min_value=1000, max_value=1000)
 
 
 class MilestoneInvoiceFactory(WeeklyInvoiceFactory):
@@ -84,6 +90,20 @@ class MilestoneInvoiceFactory(WeeklyInvoiceFactory):
 
     milestone_total_steps = factory.Faker("pyint", min_value=2, max_value=10)
     milestone_step = factory.Faker("pyint", min_value=3, max_value=9)
+    rate = factory.Faker("pyint", min_value=1000, max_value=10_000)
+
+
+class SingleInvoiceFactory(InvoiceFactory):
+    class Meta:
+        model = SingleInvoice
+
+    status = factory.Iterator(
+        [
+            SingleInvoice.InvoiceStatus.DRAFT,
+            SingleInvoice.InvoiceStatus.FINAL,
+        ]
+    )
+    due_date = factory.LazyFunction(datetime.date.today)
 
 
 class SentInvoiceFactory(DjangoModelFactory):
@@ -102,5 +122,15 @@ class HoursLineItemFactory(DjangoModelFactory):
         model = HoursLineItem
 
     invoice = factory.SubFactory(IntervalInvoiceFactory)
+    quantity = FuzzyDecimal(1, 23, 1)
+    date_tracked = factory.LazyFunction(datetime.date.today)
+
+
+class LineItemFactory(DjangoModelFactory):
+    class Meta:
+        model = LineItem
+
+    invoice = factory.SubFactory(IntervalInvoiceFactory)
+    unit_price = FuzzyDecimal(1, 10, 1)
     quantity = FuzzyDecimal(1, 23, 1)
     date_tracked = factory.LazyFunction(datetime.date.today)

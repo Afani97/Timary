@@ -6,6 +6,6 @@ from .other import *  # noqa
 from .profile import *  # noqa
 from .recurring_invoices import *  # noqa
 from .settings import *  # noqa
-from .single_invoice import *  # noqa
+from .single_invoices import *  # noqa
 from .stripe_views import *  # noqa
 from .twilio_views import *  # noqa
