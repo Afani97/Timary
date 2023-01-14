@@ -17,7 +17,7 @@
 {% if single_invoice.discount_amount %}
     <div class="flex justify-between py-3 text-xl">
         <div>Discount</div>
-        <div>${{ single_invoice.discount_amount | floatformat:-2 }}</div>
+        <div>-${{ single_invoice.discount_amount | floatformat:-2 }}</div>
     </div>
 {% endif %}
 {% if single_invoice.tax_amount %}
