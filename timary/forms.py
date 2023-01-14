@@ -71,11 +71,13 @@ class HoursLineItemForm(forms.ModelForm):
             invoice_qs = user.get_invoices.filter(is_paused=False).exclude(
                 Q(instance_of=SingleInvoice)
             )
+            invoice_qs_count = invoice_qs.count()
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
                 self.fields["invoice"].initial = invoice_qs.first()
             else:
                 self.fields["invoice"].queryset = RecurringInvoice.objects.none()
+            self.fields["invoice"].widget.attrs["qs_count"] = invoice_qs_count
 
         # Set date_tracked value/max when form is initialized
         self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
