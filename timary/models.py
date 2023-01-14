@@ -414,6 +414,7 @@ class WeeklyInvoice(RecurringInvoice):
 
     def update(self):
         self.last_date = date.today()
+        self.save()
 
     def form_class(self, action="create"):
         from timary.forms import CreateWeeklyForm, UpdateWeeklyForm
