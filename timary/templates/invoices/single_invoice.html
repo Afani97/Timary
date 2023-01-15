@@ -35,7 +35,7 @@
                     <div class="text-error pl-2">{{ invoice_form.title.errors }}</div>
                 {% endif %}
             </div>
-            <div class="form-control w-full">
+            <div class="form-control w-full contact-info">
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.client_name.label_tag }}</span>
                 </label>
@@ -44,7 +44,7 @@
                     <div class="text-error pl-2">{{ invoice_form.client_name.errors }}</div>
                 {% endif %}
             </div>
-            <div class="form-control w-full">
+            <div class="form-control w-full contact-info">
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.client_email.label_tag }}</span>
                 </label>
@@ -53,6 +53,24 @@
                     <div class="text-error pl-2">{{ invoice_form.client_email.errors }}</div>
                 {% endif %}
             </div>
+            {% if not single_invoice %}
+                <button class="contact-info cursor-pointer" type="button"
+                    _="on click remove .hidden from #contacts-list then add .hidden to .contact-info end"
+                >Select from previous clients?
+                </button>
+                <div class="flex flex-col space-y-2 hidden" id="contacts-list">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ invoice_form.contacts.label_tag }}</span>
+                        </label>
+                        <div>{{ invoice_form.contacts }}</div>
+                    </div>
+                    <button type="button" class="btn"
+                        _="on click add .hidden to #contacts-list then remove .hidden from .contact-info">
+                        Manually enter client info
+                    </button>
+                </div>
+            {% endif %}
             <div _="on click remove .hidden from #client-second-email then add .hidden to me"
                 id="add-second-email"
                 class="flex w-full py-2 items-center cursor-pointer {% if invoice_form.client_second_email.value|length != 0 %} hidden {% endif %}">

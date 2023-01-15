@@ -838,6 +838,21 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(invoice.line_items.count(), 2)
         self.assertEqual(invoice.balance_due, 8.5)
 
+    def test_create_invoice_from_client_list(self):
+        SingleInvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
+        response = self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "Some title",
+                "contacts": "abc123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            Invoice.objects.filter(client_stripe_customer_id="abc123").count(),
+            2,
+        )
+
     def test_create_invoice_error(self):
         response = self.client.post(
             reverse("timary:single_invoice"),

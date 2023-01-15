@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import LineItemForm, SingleInvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import LineItem, SentInvoice, SingleInvoice
+from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
 from timary.services.email_service import EmailService
 from timary.utils import show_alert_message
 
@@ -50,12 +50,12 @@ def single_invoice(request):
             request,
             "invoices/single_invoice.html",
             {
-                "invoice_form": SingleInvoiceForm(),
+                "invoice_form": SingleInvoiceForm(user=request.user),
                 "line_item_forms": [LineItemForm()],
             },
         )
     elif request.method == "POST":
-        invoice_form = SingleInvoiceForm(request.POST)
+        invoice_form = SingleInvoiceForm(request.POST, user=request.user)
         if not invoice_form.is_valid():
             return render(
                 request,
@@ -67,6 +67,17 @@ def single_invoice(request):
             )
 
         saved_single_invoice = invoice_form.save(commit=False)
+        # If user selects from list of contacts, get that contact's info
+        if contact_id := invoice_form.cleaned_data.get("contacts"):
+            contact = Invoice.objects.filter(
+                client_stripe_customer_id=contact_id
+            ).first()
+            saved_single_invoice.client_email = contact.client_email
+            saved_single_invoice.client_name = contact.client_name
+            saved_single_invoice.client_stripe_customer_id = (
+                contact.client_stripe_customer_id
+            )
+            saved_single_invoice.accounting_customer_id = contact.accounting_customer_id
         saved_single_invoice.user = request.user
         saved_single_invoice.save()
 

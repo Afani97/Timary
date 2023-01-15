@@ -429,6 +429,15 @@ class SingleInvoiceForm(InvoiceForm):
     late_penalty = forms.BooleanField(required=False)
     send_reminder = forms.BooleanField(required=False)
     save_for_reuse = forms.BooleanField(required=False, label="Save as template")
+    contacts = forms.ChoiceField(
+        required=False,
+        label="Clients",
+        widget=forms.Select(
+            attrs={
+                "class": "select select-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
 
     class Meta(InvoiceForm.Meta):
         model = SingleInvoice
@@ -447,6 +456,7 @@ class SingleInvoiceForm(InvoiceForm):
             "late_penalty",
             "late_penalty_amount",
             "send_reminder",
+            "contacts",
         ]
         labels = {
             "discount_amount": "Discount",
@@ -476,6 +486,22 @@ class SingleInvoiceForm(InvoiceForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.get("user", None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields["contacts"].choices = {
+                (
+                    inv.client_stripe_customer_id,
+                    f"{inv.client_name} - {inv.client_email}",
+                )
+                for inv in Invoice.objects.filter(user=self.user)
+            }
+            self.fields["contacts"].choices.insert(0, ("", "Select a client"))
+            # For the contacts logic
+            self.fields["client_name"].required = False
+            self.fields["client_email"].required = False
 
     def clean_due_date(self):
         due_date = self.cleaned_data.get("due_date")
