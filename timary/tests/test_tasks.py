@@ -9,7 +9,7 @@ from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
 
-from timary.models import HoursLineItem, SentInvoice
+from timary.models import HoursLineItem, SentInvoice, User
 from timary.tasks import (
     gather_invoices,
     gather_recurring_hours,
@@ -68,6 +68,20 @@ class TestGatherInvoices(TestCase):
         )
 
     @patch("timary.tasks.async_task")
+    def test_gather_0_invoices_if_user_are_not_active(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        HoursLineItemFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2),
+            invoice__user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 0 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
@@ -92,6 +106,22 @@ class TestGatherInvoices(TestCase):
         self.assertEquals(
             mail.outbox[0].subject,
             "Sent out 3 invoices",
+        )
+
+    @patch("timary.tasks.async_task")
+    def test_gather_0_invoice_previews_for_tomorrow_if_user_not_active(
+        self, send_invoice_mock
+    ):
+        send_invoice_mock.return_value = None
+        HoursLineItemFactory(
+            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1),
+            invoice__user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 0 invoices",
         )
 
     @patch("timary.tasks.async_task")
@@ -173,6 +203,19 @@ class TestGatherInvoices(TestCase):
     def test_gather_0_invoice_tuesday_for_weekly(self, today_mock):
         today_mock.today.return_value = datetime.date(2022, 8, 23)
         WeeklyInvoiceFactory()
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Sent out 0 invoices",
+        )
+
+    @patch("timary.tasks.date")
+    def test_gather_0_invoice_for_weekly_if_user_not_active(self, today_mock):
+        today_mock.today.return_value = datetime.date(2022, 8, 23)
+        WeeklyInvoiceFactory(
+            user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+        )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
         self.assertEquals(

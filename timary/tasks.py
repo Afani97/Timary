@@ -59,6 +59,9 @@ def gather_invoices():
     tomorrow = today + timedelta(days=1)
     paused_query = Q(is_paused=False)
     archived_query = Q(is_archived=False)
+    user_active_query = Q(
+        user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+    )
     today_query = Q(
         next_date__day=today.day,
         next_date__month=today.month,
@@ -66,7 +69,7 @@ def gather_invoices():
     )
     invoices_sent_today = IntervalInvoice.objects.filter(
         paused_query & today_query & archived_query
-    )
+    ).exclude(user_active_query)
     for invoice in invoices_sent_today:
         _ = async_task(send_invoice, invoice.id)
 
@@ -77,7 +80,7 @@ def gather_invoices():
     )
     invoices_sent_tomorrow = IntervalInvoice.objects.filter(
         paused_query & tomorrow_query & archived_query
-    )
+    ).exclude(user_active_query)
     for invoice in invoices_sent_tomorrow:
         _ = async_task(send_invoice_preview, invoice.id)
 
@@ -86,7 +89,7 @@ def gather_invoices():
     if today.weekday() == 0:
         invoices_sent_only_on_mondays = WeeklyInvoice.objects.filter(
             paused_query & archived_query
-        )
+        ).exclude(user_active_query)
 
         for invoice in invoices_sent_only_on_mondays:
             _ = async_task(send_invoice, invoice.id)
