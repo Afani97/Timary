@@ -55,50 +55,6 @@ def update_stripe_subscription_price(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
-    replaces = [
-        ("timary", "0001_initial"),
-        ("timary", "0002_dailyhoursinput_sent_invoice_id"),
-        ("timary", "0003_auto_20220429_2032"),
-        ("timary", "0004_contract"),
-        ("timary", "0005_user_profile_pic"),
-        ("timary", "0006_user_invoice_branding"),
-        ("timary", "0007_auto_20220812_1112"),
-        ("timary", "0008_user_referrer_id"),
-        ("timary", "0009_auto_20220818_2147"),
-        ("timary", "0010_rename_hourly_rate_invoice_invoice_rate_and_more"),
-        ("timary", "0011_remove_user_membership_tier"),
-        ("timary", "0012_user_timer_is_active"),
-        ("timary", "0013_user_stripe_connect_reason"),
-        ("timary", "0014_alter_sentinvoice_paid_status"),
-        ("timary", "0015_alter_sentinvoice_total_price"),
-        ("timary", "0016_user_stripe_subscription_status"),
-        ("timary", "0017_user_phone_number_repeat_sms"),
-        ("timary", "0018_invoice_is_paused"),
-        ("timary", "0019_dailyhoursinput_recurring_logic"),
-        ("timary", "0020_alter_invoice_invoice_rate"),
-        ("timary", "0021_alter_invoice_invoice_rate"),
-        ("timary", "0022_rename_referrer_id_user_referral_id"),
-        ("timary", "0023_user_referrer_id"),
-        ("timary", "0024_user_stripe_subscription_recurring_price"),
-        ("timary", "0025_rename_email_recipient_invoice_client_email_and_more"),
-        ("timary", "0026_remove_sentinvoice_hours_end_date_and_more"),
-        ("timary", "0027_alter_invoice_invoice_interval"),
-        ("timary", "0028_rename_dailyhoursinput_hourslineitem"),
-        ("timary", "0029_remove_hourslineitem_hours_and_more"),
-        ("timary", "0030_hourslineitem_between_0_and_24_hours"),
-        ("timary", "0031_alter_invoice_options_and_more"),
-        ("timary", "0032_singleinvoice"),
-        ("timary", "0033_hourslineitem_description"),
-        ("timary", "0034_lineitem_alter_hourslineitem_options_and_more"),
-        ("timary", "0035_alter_lineitem_date_tracked"),
-        ("timary", "0036_alter_lineitem_unit_price"),
-        ("timary", "0037_alter_singleinvoice_status"),
-        ("timary", "0038_alter_sentinvoice_paid_status"),
-        ("timary", "0039_alter_invoice_balance_due"),
-        ("timary", "0040_alter_singleinvoice_status"),
-    ]
-
     initial = True
 
     dependencies = [
