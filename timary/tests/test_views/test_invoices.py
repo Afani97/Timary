@@ -776,11 +776,7 @@ class TestSingleInvoices(BaseTest):
         message = s[start:end]
         return message
 
-    @patch(
-        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
-        return_value=None,
-    )
-    def test_create_invoice(self, customer_mock):
+    def test_create_invoice(self):
         Invoice.objects.all().delete()
         response = self.client.post(
             reverse("timary:single_invoice"),
@@ -803,11 +799,7 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), f"Successfully created {invoice.title}")
 
-    @patch(
-        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
-        return_value=None,
-    )
-    def test_create_invoice_single_line_item(self, customer_mock):
+    def test_create_invoice_single_line_item(self):
         Invoice.objects.all().delete()
         self.client.post(
             reverse("timary:single_invoice"),
@@ -826,11 +818,7 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(invoice.line_items.count(), 1)
         self.assertEqual(invoice.balance_due, 2.5)
 
-    @patch(
-        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
-        return_value=None,
-    )
-    def test_create_invoice_multiple_line_items(self, customer_mock):
+    def test_create_invoice_multiple_line_items(self):
         Invoice.objects.all().delete()
 
         self.client.post(
