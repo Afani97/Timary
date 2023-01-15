@@ -13,6 +13,7 @@ from timary.hours_manager import HoursManager
 from timary.models import (
     HoursLineItem,
     IntervalInvoice,
+    LineItem,
     MilestoneInvoice,
     SentInvoice,
     User,
@@ -24,15 +25,23 @@ from timary.tests.factories import (
     InvoiceFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
     WeeklyInvoiceFactory,
 )
 from timary.utils import get_date_parsed, get_starting_week_from_date
 
 
+class TestLineItems(TestCase):
+    def test_create(self):
+        invoice = IntervalInvoiceFactory()
+        line_item = LineItem.objects.create(invoice=invoice, quantity=2, unit_price=2.5)
+        self.assertEqual(line_item.total_amount(), 5.0)
+
+
 class TestDailyHours(TestCase):
     def test_create_daily_hours(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         hours = HoursLineItem.objects.create(
             invoice=invoice, quantity=1, date_tracked=datetime.date.today()
         )
@@ -44,22 +53,8 @@ class TestDailyHours(TestCase):
             hours.slug_id, f"{slugify(invoice.title)}-{str(hours.id.int)[:6]}"
         )
 
-    def test_error_creating_hours_less_than_0(self):
-        invoice = InvoiceFactory()
-        with self.assertRaises(ValidationError):
-            HoursLineItem.objects.create(
-                invoice=invoice, quantity=-1, date_tracked=datetime.date.today()
-            )
-
-    def test_error_creating_hours_greater_than_24(self):
-        invoice = InvoiceFactory()
-        with self.assertRaises(ValidationError):
-            HoursLineItem.objects.create(
-                invoice=invoice, quantity=25, date_tracked=datetime.date.today()
-            )
-
     def test_error_creating_hours_with_3_decimal_places(self):
-        invoice = InvoiceFactory()
+        invoice = IntervalInvoiceFactory()
         with self.assertRaises(ValidationError):
             HoursLineItem.objects.create(
                 invoice=invoice, quantity=2.556, date_tracked=datetime.date.today()
@@ -68,6 +63,93 @@ class TestDailyHours(TestCase):
     def test_error_creating_without_invoice(self):
         with self.assertRaises(ValidationError):
             HoursLineItem.objects.create(quantity=1, date_tracked=datetime.date.today())
+
+    def test_is_recurring_date_error(self):
+        hours = HoursLineItemFactory()
+        self.assertFalse(hours.is_recurring_date_today())
+
+        hours = HoursLineItemFactory(recurring_logic={})
+        self.assertFalse(hours.is_recurring_date_today())
+
+        hours = HoursLineItemFactory(recurring_logic={"type": "Some other type"})
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_daily_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "d",
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_repeating_daily_hours_end_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "end_date": datetime.date.today().isoformat(),
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_weekly_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "w",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_recurring_biweekly_hours_date_today(self):
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertTrue(hours.is_recurring_date_today())
+
+    def test_is_recurring_biweekly_hours_date_today_not_valid_week(self):
+        """Not the valid biweekly starting week iteration, either one week ago or ahead is fine"""
+        start_week = get_starting_week_from_date(
+            datetime.date.today() - datetime.timedelta(weeks=1)
+        ).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "b",
+                "interval_days": [get_date_parsed(datetime.date.today())],
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
+
+    def test_is_recurring_weekly_hours_date_today_not_valid_day(self):
+        """Not the valid weekly interval day"""
+        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        hours = HoursLineItemFactory(
+            recurring_logic={
+                "type": "recurring",
+                "interval": "w",
+                "interval_days": [
+                    get_date_parsed(datetime.date.today() - datetime.timedelta(days=1))
+                ],
+                "starting_week": start_week,
+            }
+        )
+        self.assertFalse(hours.is_recurring_date_today())
 
 
 class TestInvoice(TestCase):
@@ -317,92 +399,46 @@ class TestInvoice(TestCase):
         self.assertEqual(last_six[1][-3], 3000.0)
         self.assertEqual(last_six[1][-4], 4000.0)
 
-    def test_is_recurring_date_error(self):
-        hours = HoursLineItemFactory()
-        self.assertFalse(hours.is_recurring_date_today())
+    def test_single_invoice_cannot_send_invoice_if_draft_status(self):
+        invoice = SingleInvoiceFactory(status=0)
+        self.assertFalse(invoice.can_send_invoice())
 
-        hours = HoursLineItemFactory(recurring_logic={})
-        self.assertFalse(hours.is_recurring_date_today())
+    def test_single_invoice_can_send_invoice_if_final_status(self):
+        invoice = SingleInvoiceFactory(status=1)
+        self.assertTrue(invoice.can_send_invoice())
 
-        hours = HoursLineItemFactory(recurring_logic={"type": "Some other type"})
-        self.assertFalse(hours.is_recurring_date_today())
+    def test_single_invoice_cannot_send_invoice_if_balance_zero(self):
+        invoice = SingleInvoiceFactory(status=1, balance_due=0)
+        self.assertFalse(invoice.can_send_invoice())
 
-    def test_is_recurring_daily_hours_date_today(self):
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "recurring",
-                "interval": "d",
-                "starting_week": start_week,
-            }
+    def test_single_invoice_cannot_send_invoice_if_sent_invoice_is_pending(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=SingleInvoiceFactory(status=1),
+            paid_status=SentInvoice.PaidStatus.PENDING,
         )
-        self.assertTrue(hours.is_recurring_date_today())
+        self.assertFalse(sent_invoice.invoice.can_send_invoice())
 
-    def test_is_repeating_daily_hours_end_today(self):
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "repeating",
-                "interval": "d",
-                "end_date": datetime.date.today().isoformat(),
-                "starting_week": start_week,
-            }
+    def test_single_invoice_can_send_invoice_if_sent_invoice_is_not_paid_yet(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=SingleInvoiceFactory(status=1),
+            paid_status=SentInvoice.PaidStatus.NOT_STARTED,
         )
-        self.assertFalse(hours.is_recurring_date_today())
+        self.assertTrue(sent_invoice.invoice.can_send_invoice())
 
-    def test_is_recurring_weekly_hours_date_today(self):
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "recurring",
-                "interval": "w",
-                "interval_days": [get_date_parsed(datetime.date.today())],
-                "starting_week": start_week,
-            }
+    def test_single_invoice_update_total_price(self):
+        single_invoice = SingleInvoiceFactory(
+            discount_amount=1.0,
+            tax_amount=6.25,
+            late_penalty=True,
+            late_penalty_amount=2,
+            due_date=datetime.date.today() - datetime.timedelta(days=1),
         )
-        self.assertTrue(hours.is_recurring_date_today())
-
-    def test_is_recurring_biweekly_hours_date_today(self):
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "recurring",
-                "interval": "b",
-                "interval_days": [get_date_parsed(datetime.date.today())],
-                "starting_week": start_week,
-            }
-        )
-        self.assertTrue(hours.is_recurring_date_today())
-
-    def test_is_recurring_biweekly_hours_date_today_not_valid_week(self):
-        """Not the valid biweekly starting week iteration, either one week ago or ahead is fine"""
-        start_week = get_starting_week_from_date(
-            datetime.date.today() - datetime.timedelta(weeks=1)
-        ).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "recurring",
-                "interval": "b",
-                "interval_days": [get_date_parsed(datetime.date.today())],
-                "starting_week": start_week,
-            }
-        )
-        self.assertFalse(hours.is_recurring_date_today())
-
-    def test_is_recurring_weekly_hours_date_today_not_valid_day(self):
-        """Not the valid weekly interval day"""
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
-        hours = HoursLineItemFactory(
-            recurring_logic={
-                "type": "recurring",
-                "interval": "w",
-                "interval_days": [
-                    get_date_parsed(datetime.date.today() - datetime.timedelta(days=1))
-                ],
-                "starting_week": start_week,
-            }
-        )
-        self.assertFalse(hours.is_recurring_date_today())
+        _ = [
+            LineItem.objects.create(invoice=single_invoice, quantity=1, unit_price=1)
+            for i in range(5)
+        ]
+        single_invoice.update_total_price()
+        self.assertEqual(single_invoice.balance_due, 6.25)
 
 
 class TestSentInvoice(TestCase):

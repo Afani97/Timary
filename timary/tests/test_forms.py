@@ -13,6 +13,7 @@ from timary.forms import (
     LoginForm,
     PayInvoiceForm,
     RegisterForm,
+    SingleInvoiceForm,
     SMSSettingsForm,
     UserForm,
 )
@@ -352,6 +353,44 @@ class TestInvoices(TestCase):
         )
         self.assertTrue(form.is_valid())
         self.assertEqual(form.errors, {})
+
+    def test_single_invoice(self):
+        form = SingleInvoiceForm(
+            data={
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
+                "due_date": datetime.date.today() + datetime.timedelta(weeks=1),
+            }
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
+
+    def test_single_invoice_error_due_date_less_than_today(self):
+        form = SingleInvoiceForm(
+            data={
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
+                "due_date": datetime.date.today(),
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors, {"due_date": ["Due date cannot be set prior to today."]}
+        )
+
+    def test_single_invoice_error_title_named_with_an_number(self):
+        form = SingleInvoiceForm(
+            data={
+                "title": "2Some title",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
+                "due_date": datetime.date.today() + datetime.timedelta(weeks=1),
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors, {"title": ["Title cannot start with a number."]})
 
 
 class TestPayInvoice(TestCase):

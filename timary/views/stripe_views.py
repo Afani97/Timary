@@ -37,7 +37,13 @@ def pay_invoice(request, sent_invoice_id):
         else:
             return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
-        intent = StripeService.create_payment_intent_for_payout(sent_invoice)
+        try:
+            intent = StripeService.create_payment_intent_for_payout(sent_invoice)
+        except stripe.error.InvalidRequestError as e:
+            intent = None
+            print(str(e), file=sys.stderr)
+        if not intent:
+            return redirect(reverse("timary:login"))
         sent_invoice.stripe_payment_intent_id = intent["id"]
         sent_invoice.save()
 
@@ -53,7 +59,7 @@ def pay_invoice(request, sent_invoice_id):
 
         context = {
             "sent_invoice": sent_invoice,
-            "hours_tracked": sent_invoice.get_hours_tracked(),
+            "line_items": sent_invoice.get_rendered_line_items(),
             "user_name": sent_invoice.user.invoice_branding_properties()["user_name"],
             "pay_invoice_form": PayInvoiceForm(),
             "stripe_public_key": StripeService.stripe_public_api_key,
@@ -83,21 +89,22 @@ def quick_pay_invoice(request, sent_invoice_id):
     except stripe.error.InvalidRequestError as e:
         intent = None
         print(str(e), file=sys.stderr)
-    if intent:
-        sent_invoice.stripe_payment_intent_id = intent["id"]
-        sent_invoice.save()
-        return JsonResponse(
-            {
-                "return_url": request.build_absolute_uri(
-                    reverse(
-                        "timary:invoice_payment_success",
-                        kwargs={"sent_invoice_id": sent_invoice.id},
-                    )
-                )
-            }
-        )
-    else:
+
+    if not intent:
         return JsonResponse({"error": "Unable to process payment"})
+
+    sent_invoice.stripe_payment_intent_id = intent["id"]
+    sent_invoice.save()
+    return JsonResponse(
+        {
+            "return_url": request.build_absolute_uri(
+                reverse(
+                    "timary:invoice_payment_success",
+                    kwargs={"sent_invoice_id": sent_invoice.id},
+                )
+            )
+        }
+    )
 
 
 @require_http_methods(["GET"])
@@ -177,11 +184,10 @@ def stripe_webhook(request, stripe_secret):
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
 
-            line_items = sent_invoice.get_rendered_line_items()
             msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
                 {
                     "sent_invoice": sent_invoice,
-                    "line_items": line_items,
+                    "line_items": sent_invoice.get_rendered_line_items(),
                 }
             )
             EmailService.send_html(
