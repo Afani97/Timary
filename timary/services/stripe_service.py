@@ -322,6 +322,7 @@ ari@usetimary.com
             """,
             user.email,
         )
+        return True
 
     @classmethod
     def update_connect_account(cls, user_id, account_id):
