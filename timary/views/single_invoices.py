@@ -57,6 +57,11 @@ def single_invoice(request):
     elif request.method == "POST":
         invoice_form = SingleInvoiceForm(request.POST, user=request.user)
         if not invoice_form.is_valid():
+            messages.warning(
+                request,
+                "Errors occurred while creating invoice",
+                extra_tags="single-invoice-err",
+            )
             return render(
                 request,
                 "invoices/single_invoice.html",
@@ -121,28 +126,43 @@ def update_single_invoice(request, single_invoice_id):
         response["HX-Redirect"] = "/invoices/manage/"
         return response
     if request.method == "POST":
-        if invoice_form.is_valid():
-            saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
-            saved_single_invoice.user = request.user
-            saved_single_invoice.save()
-            # Save line items to the invoice if valid
-            for line_form in format_line_items(request):
-                if line_form.is_valid():
-                    line_item_saved = line_form.save(commit=False)
-                    line_item_saved.invoice = saved_single_invoice
-                    line_item_saved.save()
-
-            saved_single_invoice.update()
-            single_invoice_obj = saved_single_invoice
-            line_item_forms = [
-                LineItemForm(instance=line_item)
-                for line_item in saved_single_invoice.line_items.all()
-            ]
-            messages.success(
+        if not invoice_form.is_valid():
+            messages.warning(
                 request,
-                f"Updated {saved_single_invoice.title}",
-                extra_tags="update-single-invoice",
+                "Errors occurred while updating invoice",
+                extra_tags="single-invoice-err",
             )
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "single_invoice": single_invoice_obj,
+                    "invoice_form": invoice_form,
+                    "line_item_forms": line_item_forms,
+                },
+            )
+
+        saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
+        saved_single_invoice.user = request.user
+        saved_single_invoice.save()
+        # Save line items to the invoice if valid
+        for line_form in format_line_items(request):
+            if line_form.is_valid():
+                line_item_saved = line_form.save(commit=False)
+                line_item_saved.invoice = saved_single_invoice
+                line_item_saved.save()
+
+        saved_single_invoice.update()
+        single_invoice_obj = saved_single_invoice
+        line_item_forms = [
+            LineItemForm(instance=line_item)
+            for line_item in saved_single_invoice.line_items.all()
+        ]
+        messages.success(
+            request,
+            f"Updated {saved_single_invoice.title}",
+            extra_tags="update-single-invoice",
+        )
     return render(
         request,
         "invoices/single_invoice.html",
