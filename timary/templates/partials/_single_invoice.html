@@ -31,7 +31,7 @@
                             Set status as {% if single_invoice.status == 0 %} Final {% else %} Draft {% endif %}
                         </a>
                     </li>
-                    {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced %}
+                    {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced and single_invoice.user.settings.subscription_active %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
