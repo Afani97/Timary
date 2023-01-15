@@ -236,6 +236,8 @@ class Invoice(PolymorphicModel, BaseModel):
 
         if not self.user.accounting_org_id:
             return None, None
+        if self.client_stripe_customer_id:
+            return True, None
         try:
             AccountingService({"user": self.user, "invoice": self}).create_customer()
         except AccountingError as ae:
@@ -747,6 +749,9 @@ ari@usetimary.com
 
         if not self.user.accounting_org_id:
             return None, "No accounting service found"
+
+        if self.accounting_invoice_id:
+            return True, None
 
         try:
             AccountingService(
