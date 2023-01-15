@@ -13,15 +13,19 @@ from timary.models import HoursLineItem, SentInvoice, User
 from timary.tasks import (
     gather_invoices,
     gather_recurring_hours,
+    gather_single_invoices_before_due_date,
     send_invoice,
     send_invoice_preview,
+    send_invoice_reminder,
     send_weekly_updates,
 )
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    LineItemFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
     WeeklyInvoiceFactory,
 )
@@ -34,10 +38,6 @@ class TestGatherInvoices(TestCase):
         send_invoice_mock.return_value = None
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_for_today(self, send_invoice_mock):
@@ -50,10 +50,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_with_next_date_null(self, send_invoice_mock):
@@ -62,10 +58,6 @@ class TestGatherInvoices(TestCase):
         HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 1 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_if_user_are_not_active(self, send_invoice_mock):
@@ -76,10 +68,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
@@ -90,10 +78,6 @@ class TestGatherInvoices(TestCase):
         HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 1 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_3_invoices_for_today(self, send_invoice_mock):
@@ -103,10 +87,6 @@ class TestGatherInvoices(TestCase):
         HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 3", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 3 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoice_previews_for_tomorrow_if_user_not_active(
@@ -119,10 +99,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_preview_for_tomorrow(self, send_invoice_mock):
@@ -132,10 +108,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 1 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_3_invoice_previews_for_tomorrow(self, send_invoice_mock):
@@ -151,10 +123,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 3", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 3 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_and_invoice_previews(self, send_invoice_mock):
@@ -168,10 +136,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 2", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 2 invoices",
-        )
 
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_and_not_milestone_invoice(self, send_invoice_mock):
@@ -181,10 +145,6 @@ class TestGatherInvoices(TestCase):
         HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 1 invoices",
-        )
 
     @patch("timary.tasks.date")
     @patch("timary.tasks.async_task")
@@ -194,10 +154,6 @@ class TestGatherInvoices(TestCase):
         WeeklyInvoiceFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 1 invoices",
-        )
 
     @patch("timary.tasks.date")
     def test_gather_0_invoice_tuesday_for_weekly(self, today_mock):
@@ -205,10 +161,6 @@ class TestGatherInvoices(TestCase):
         WeeklyInvoiceFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
     @patch("timary.tasks.date")
     def test_gather_0_invoice_for_weekly_if_user_not_active(self, today_mock):
@@ -218,10 +170,6 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
-        self.assertEquals(
-            mail.outbox[0].subject,
-            "Sent out 0 invoices",
-        )
 
 
 class TestGatherHours(TestCase):
@@ -361,6 +309,115 @@ class TestGatherHours(TestCase):
         self.assertEqual("1 hours added.", hours_added)
         self.assertEquals(HoursLineItem.objects.count(), 2)
         self.assertTrue(cancel_hours_mock.assert_called_once)
+
+
+class TestGatherAndSendSingleInvoices(TestCase):
+    def setUp(self) -> None:
+        self.todays_date = date.today()
+        self.current_month = date.strftime(self.todays_date, "%m/%Y")
+
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_due_for_tomorrow(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        LineItemFactory(invoice=invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_due_in_two_days(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=2)
+        )
+        LineItemFactory(invoice=invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_due_tomorrow_and_in_two_days(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        LineItemFactory(invoice=invoice)
+        second_invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=2)
+        )
+        LineItemFactory(invoice=second_invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 2", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_0_invoice_due_since_none_are_ready(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=5)
+        )
+        LineItemFactory(invoice=invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_0_invoice_that_are_not_archived(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1),
+            is_archived=True,
+        )
+        LineItemFactory(invoice=invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_0_invoice_that_user_is_not_active(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1),
+            user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
+        )
+        LineItemFactory(invoice=invoice)
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoice_due_that_is_available(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
+        invoice = SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1)
+        )
+        LineItemFactory(invoice=invoice)
+        SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1),
+            user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
+        )
+        SingleInvoiceFactory(
+            due_date=datetime.date.today() + datetime.timedelta(days=1),
+            is_archived=True,
+        )
+        invoices_sent = gather_single_invoices_before_due_date()
+        self.assertEqual("Invoices sent: 1", invoices_sent)
+
+    def test_send_invoice_reminder(self):
+        invoice = SingleInvoiceFactory()
+        LineItemFactory(invoice=invoice)
+        send_invoice_reminder(invoice.id)
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            f"{invoice.title}'s Invoice from {invoice.user.first_name} for {self.current_month}",
+        )
+        self.assertEquals(SentInvoice.objects.count(), 1)
 
 
 class TestSendInvoice(TestCase):

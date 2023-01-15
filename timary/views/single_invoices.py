@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
@@ -8,9 +6,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import LineItemForm, SingleInvoiceForm
-from timary.invoice_builder import InvoiceBuilder
 from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
-from timary.services.email_service import EmailService
+from timary.tasks import send_invoice_reminder
 from timary.utils import show_alert_message
 
 
@@ -284,37 +281,7 @@ def send_single_invoice_email(request, single_invoice_id):
         )
         return response
 
-    today = date.today()
-    current_month = date.strftime(today, "%m/%Y")
-    msg_subject = f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} for {current_month}"
-    line_items = single_invoice_obj.line_items.all()
-    if sent_invoice is None:
-        sent_invoice = SentInvoice.objects.create(
-            date_sent=date.today(),
-            invoice=single_invoice_obj,
-            user=single_invoice_obj.user,
-            total_price=single_invoice_obj.balance_due,
-        )
-    else:
-        sent_invoice.date_send = date.today()
-        sent_invoice.total_price = single_invoice_obj.balance_due
-        sent_invoice.save()
-    for line_item in line_items:
-        line_item.sent_invoice_id = sent_invoice.id
-        line_item.save()
-
-    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
-        {
-            "sent_invoice": sent_invoice,
-            "line_items": sent_invoice.get_rendered_line_items(),
-        }
-    )
-
-    EmailService.send_html(
-        msg_subject,
-        msg_body,
-        [single_invoice_obj.client_email, single_invoice_obj.client_second_email],
-    )
+    send_invoice_reminder(single_invoice_id)
 
     response = render(
         request,
@@ -324,6 +291,6 @@ def send_single_invoice_email(request, single_invoice_id):
     show_alert_message(
         response,
         "success",
-        f"Invoice for {single_invoice_obj.title} has been resent",
+        f"Invoice for {single_invoice_obj.title} has been sent",
     )
     return response

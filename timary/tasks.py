@@ -15,6 +15,7 @@ from timary.models import (
     Invoice,
     MilestoneInvoice,
     SentInvoice,
+    SingleInvoice,
     User,
     WeeklyInvoice,
 )
@@ -95,13 +96,80 @@ def gather_invoices():
             _ = async_task(send_invoice, invoice.id)
         invoices_sent += len(list(invoices_sent_only_on_mondays))
 
-    EmailService.send_plain(
-        f"Sent out {invoices_sent} invoices",
-        f'{date.strftime(today, "%m/%-d/%Y")}, there were {invoices_sent} invoices sent out.',
-        "aristotelf@gmail.com",
+    return f"Invoices sent: {invoices_sent}"
+
+
+def gather_single_invoices_before_due_date():
+    today = date.today()
+    one_day_before = today + timedelta(days=1)
+    two_days_before = today + timedelta(days=2)
+    archived_query = Q(is_archived=False)
+    user_active_query = Q(
+        user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
     )
+    due_in_one_day = Q(
+        due_date__day=one_day_before.day,
+        due_date__month=one_day_before.month,
+        due_date__year=one_day_before.year,
+    )
+    due_in_two_days = Q(
+        due_date__day=two_days_before.day,
+        due_date__month=two_days_before.month,
+        due_date__year=two_days_before.year,
+    )
+    invoices_due_in_one_day = SingleInvoice.objects.filter(
+        due_in_one_day & archived_query
+    ).exclude(user_active_query)
+    for invoice in invoices_due_in_one_day:
+        _ = async_task(send_invoice_reminder, invoice.id)
+
+    invoices_due_in_two_days = SingleInvoice.objects.filter(
+        due_in_two_days & archived_query
+    ).exclude(user_active_query)
+    for invoice in invoices_due_in_two_days:
+        _ = async_task(send_invoice_reminder, invoice.id)
+
+    invoices_sent = len(list(invoices_due_in_one_day) + list(invoices_due_in_two_days))
 
     return f"Invoices sent: {invoices_sent}"
+
+
+def send_invoice_reminder(invoice_id):
+    single_invoice_obj = SingleInvoice.objects.get(id=invoice_id)
+    sent_invoice = single_invoice_obj.get_sent_invoice()
+
+    today = date.today()
+    current_month = date.strftime(today, "%m/%Y")
+
+    line_items = single_invoice_obj.line_items.all()
+    if sent_invoice is None:
+        sent_invoice = SentInvoice.objects.create(
+            date_sent=date.today(),
+            invoice=single_invoice_obj,
+            user=single_invoice_obj.user,
+            total_price=single_invoice_obj.balance_due,
+        )
+    else:
+        sent_invoice.date_send = date.today()
+        sent_invoice.total_price = single_invoice_obj.balance_due
+        sent_invoice.save()
+
+    for line_item in line_items:
+        line_item.sent_invoice_id = sent_invoice.id
+        line_item.save()
+
+    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
+        {
+            "sent_invoice": sent_invoice,
+            "line_items": sent_invoice.get_rendered_line_items(),
+        }
+    )
+
+    EmailService.send_html(
+        f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} for {current_month}",
+        msg_body,
+        [single_invoice_obj.client_email, single_invoice_obj.client_second_email],
+    )
 
 
 def send_invoice(invoice_id):

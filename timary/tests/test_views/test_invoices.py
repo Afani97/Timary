@@ -1044,7 +1044,7 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(line_item.sent_invoice_id, str(sent_invoice.id))
         self.assertEqual(second_line_item.sent_invoice_id, str(sent_invoice.id))
         self.assertIn(
-            f"Invoice for {invoice.title} has been resent",
+            f"Invoice for {invoice.title} has been sent",
             response.headers["HX-Trigger"],
         )
 
