@@ -1,0 +1,28 @@
+{% for line_item in line_items %}
+    <div class="flex justify-between py-3 text-xl">
+        <div>{{ line_item.description }}</div>
+        <div>${{ line_item.total_amount | floatformat:-2 }}</div>
+    </div>
+{% endfor %}
+<div class="flex justify-between py-3 text-xl">
+    <div>Stripe ACH Fee</div>
+    <div>$5</div>
+</div>
+{% if single_invoice.late_penalty %}
+    <div class="flex justify-between py-3 text-xl">
+        <div>Late Penalty Fee</div>
+        <div>${{single_invoice.late_penalty_amount|floatformat:-2 }}</div>
+    </div>
+{% endif %}
+{% if single_invoice.discount_amount %}
+    <div class="flex justify-between py-3 text-xl">
+        <div>Discount</div>
+        <div>-${{ single_invoice.discount_amount | floatformat:-2 }}</div>
+    </div>
+{% endif %}
+{% if single_invoice.tax_amount %}
+    <div class="flex justify-between py-3 text-xl">
+        <div>Tax</div>
+        <div>{{ single_invoice.tax_amount | floatformat:-2 }}%</div>
+    </div>
+{% endif %}

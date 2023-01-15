@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm, InvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import Invoice, InvoiceManager, SentInvoice, User
+from timary.models import Invoice, InvoiceManager, SentInvoice
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import show_active_timer, show_alert_message
@@ -51,57 +51,43 @@ def manage_invoices(request):
 @require_http_methods(["GET", "POST"])
 def create_invoice(request):
     if request.method == "GET":
-        invoice_form_class, template = InvoiceManager.get_invoice_form_class(
-            request.GET.get("type")
-        )
+        invoice_form_class, template = InvoiceManager.get_form(request.GET.get("type"))
         invoice_form = invoice_form_class(user=request.user)
-        return render(
-            request, f"invoices/{template}/_create.html", {"form": invoice_form}
-        )
-    user: User = request.user
-    request_data = request.POST.copy()
-    request_data.get("invoice_type")
-    invoice_form_class, template = InvoiceManager.get_invoice_form_class(
-        request_data.get("invoice_type")
+        return render(request, template, {"form": invoice_form})
+
+    invoice_form_class, template = InvoiceManager.get_form(
+        request.POST.get("invoice_type")
     )
-    invoice_form = invoice_form_class(request_data, user=user)
+    invoice_form = invoice_form_class(request.POST or None, user=request.user)
 
-    if invoice_form.is_valid():
-        prev_invoice_count = user.get_invoices.count()
-        invoice = invoice_form.save(commit=False)
-        invoice.user = user
-        # If user selects from list of contacts, get that contact's info
-        if contact_id := invoice_form.cleaned_data.get("contacts"):
-            contact = Invoice.objects.filter(
-                client_stripe_customer_id=contact_id
-            ).first()
-            invoice.client_email = contact.client_email
-            invoice.client_name = contact.client_name
-            invoice.client_stripe_customer_id = contact.client_stripe_customer_id
-            invoice.accounting_customer_id = contact.accounting_customer_id
-            invoice.save()
-        invoice.update()
-        invoice.save()
-        invoice.sync_customer()
-
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
-        response[
-            "HX-Trigger-After-Swap"
-        ] = "clearInvoiceModal"  # To trigger modal closing
-        # "newInvoice" - To trigger button refresh
-        show_alert_message(response, "success", "New invoice created!", "newInvoice")
-        if prev_invoice_count == 0:
-            response[
-                "HX-Redirect"
-            ] = "/main/"  # To trigger refresh to remove empty state
-        return response
-    else:
-        response = render(
-            request, f"invoices/{template}/_create.html", {"form": invoice_form}
-        )
+    if not invoice_form.is_valid():
+        response = render(request, template, {"form": invoice_form})
         response["HX-Retarget"] = "#new-invoice-form"
         response["HX-Reswap"] = "outerHTML"
         return response
+
+    prev_invoice_count = request.user.get_invoices.count()
+    invoice = invoice_form.save(commit=False)
+    invoice.user = request.user
+    # If user selects from list of contacts, get that contact's info
+    if contact_id := invoice_form.cleaned_data.get("contacts"):
+        contact = Invoice.objects.filter(client_stripe_customer_id=contact_id).first()
+        invoice.client_email = contact.client_email
+        invoice.client_name = contact.client_name
+        invoice.client_stripe_customer_id = contact.client_stripe_customer_id
+        invoice.accounting_customer_id = contact.accounting_customer_id
+        invoice.save()
+    invoice.update()
+    invoice.save()
+    invoice.sync_customer()
+
+    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    response["HX-Trigger-After-Swap"] = "clearInvoiceModal"  # To trigger modal closing
+    # "newInvoice" - To trigger button refresh
+    show_alert_message(response, "success", "New invoice created!", "newInvoice")
+    if prev_invoice_count == 0:
+        response["HX-Redirect"] = "/main/"  # To trigger refresh to remove empty state
+    return response
 
 
 @login_required()

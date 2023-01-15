@@ -1,0 +1,54 @@
+{% load filters %}
+<div class="line-item-wrapper">
+    {{ line_item_form.errors }}
+    {% if line_item_form.initial %}
+        <input hidden name="id" id="id" value="{{ line_item_form.instance.id }}" />
+    {% else %}
+        <input hidden name="id" id="id" value="" />
+    {% endif %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">{{ line_item_form.description.label_tag }}</span>
+        </label>
+        <div class="flex flex-row w-full items-center">
+            <div class="w-full">{{ line_item_form.description|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+        </div>
+        {% if line_item_form.description.errors %}
+            <div class="text-error pl-2">{{ line_item_form.description.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="flex justify-between space-x-2">
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ line_item_form.quantity.label_tag }}</span>
+            </label>
+            <div class="flex flex-row w-full items-center">
+                <div class="w-full">{{ line_item_form.quantity|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+            </div>
+            {% if line_item_form.quantity.errors %}
+                <div class="text-error pl-2">{{ line_item_form.quantity.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">{{ line_item_form.unit_price.label_tag }}</span>
+            </label>
+            <div class="flex flex-row w-full items-center">
+                <div class="w-full">{{ line_item_form.unit_price|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+            </div>
+            {% if line_item_form.unit_price.errors %}
+                <div class="text-error pl-2">{{ line_item_form.unit_price.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <button class="btn btn-error btn-sm my-4" type="button"
+        {% if line_item_form.initial %}
+            hx-delete="{% url 'timary:single_invoice_line_item'%}?line_item_id={{ line_item_form.instance.id }}"
+            hx-target="closest .line-item-wrapper"
+        {% else %}
+            _="on click remove closest .line-item-wrapper" {% endif %}
+    >
+        Remove
+    </button>
+    <div class="divider"></div>
+</div>

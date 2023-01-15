@@ -235,3 +235,21 @@ class TestUI(BaseUITest):
             page.click('a:has-text("Logout")')
             page.wait_for_selector('button:has-text("Continue")', timeout=2000)
             self.assertEqual(page.inner_text("h1"), "Login to Timary")
+
+    @tag("ui")
+    @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
+    def test_create_first_invoice_single(self, stripe_customer_mock):
+        stripe_customer_mock.return_value = None
+        with self.start_test(UserFactory()) as page:
+            page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-single", timeout=2000)
+            page.wait_for_selector("#id_title", timeout=2000)
+            page.fill("#id_title", "Timary")
+            page.fill("#id_client_name", "John Smith")
+            page.fill("#id_client_email", "john@smith.com")
+            page.fill("#id_description", "Test")
+            page.fill("#id_quantity", "1")
+            page.fill("#id_unit_price", "2.5")
+            page.click('button:has-text("Create")')
+            page.wait_for_selector("h1", timeout=2000)
+            self.assertEqual(page.inner_text("h1"), "Update Invoice")
