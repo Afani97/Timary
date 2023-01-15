@@ -184,11 +184,10 @@ def stripe_webhook(request, stripe_secret):
             sent_invoice.paid_status = SentInvoice.PaidStatus.FAILED
             sent_invoice.save()
 
-            line_items = sent_invoice.get_rendered_line_items()
             msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
                 {
                     "sent_invoice": sent_invoice,
-                    "line_items": line_items,
+                    "line_items": sent_invoice.get_rendered_line_items(),
                 }
             )
             EmailService.send_html(

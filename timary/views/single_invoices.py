@@ -170,29 +170,28 @@ def sync_single_invoice(request, single_invoice_id):
         raise Http404
 
     customer_synced, error_raised = single_invoice_obj.sync_customer()
-    if single_invoice_obj.status < 3:
-        response = render(
-            request,
-            "partials/_single_invoice.html",
-            {"single_invoice": single_invoice_obj},
-        )
-    else:
-        response = render(
-            request,
-            "partials/_archive_invoice.html",
-            {"single_invoice": single_invoice_obj},
-        )
+    template = "_single_invoice"
+    if single_invoice_obj.is_archived:
+        template = "_archive_template"
+    response = render(
+        request,
+        f"partials/{template}.html",
+        {"single_invoice": single_invoice_obj},
+    )
 
     if customer_synced:
-        invoice_synced, error_raised = single_invoice_obj.sync_invoice()
-
-        if invoice_synced:
-            show_alert_message(
-                response,
-                "success",
-                f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
-            )
-            return response
+        if single_invoice_obj.get_sent_invoice():
+            (
+                invoice_synced,
+                error_raised,
+            ) = single_invoice_obj.get_sent_invoice().sync_invoice()
+            if invoice_synced:
+                show_alert_message(
+                    response,
+                    "success",
+                    f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+                )
+                return response
     show_alert_message(
         response,
         "error",
@@ -236,7 +235,11 @@ def send_single_invoice_email(request, single_invoice_id):
         sent_invoice is not None
         and sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
     )
-    if not request.user.settings["subscription_active"] or invoice_is_paid:
+    if (
+        not request.user.settings["subscription_active"]
+        or invoice_is_paid
+        or single_invoice_obj.status == SingleInvoice.InvoiceStatus.DRAFT
+    ):
         response = render(
             request,
             "partials/_single_invoice.html",

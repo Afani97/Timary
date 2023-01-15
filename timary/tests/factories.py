@@ -131,6 +131,7 @@ class LineItemFactory(DjangoModelFactory):
         model = LineItem
 
     invoice = factory.SubFactory(IntervalInvoiceFactory)
+    description = factory.Faker("name")
     unit_price = FuzzyDecimal(1, 10, 1)
     quantity = FuzzyDecimal(1, 23, 1)
     date_tracked = factory.LazyFunction(datetime.date.today)

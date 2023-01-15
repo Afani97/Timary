@@ -4,18 +4,28 @@ import uuid
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
+from django.contrib.messages import get_messages
 from django.core import mail
 from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from timary.models import Invoice, MilestoneInvoice, SentInvoice
+from timary.models import (
+    Invoice,
+    LineItem,
+    MilestoneInvoice,
+    SentInvoice,
+    SingleInvoice,
+    User,
+)
 from timary.templatetags.filters import nextmonday
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    LineItemFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
     WeeklyInvoiceFactory,
 )
@@ -752,4 +762,331 @@ class TestRecurringInvoices(BaseTest):
 
 
 class TestSingleInvoices(BaseTest):
-    pass
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice(self, customer_mock):
+        Invoice.objects.all().delete()
+        response = self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+            },
+        )
+
+        invoice = Invoice.objects.first()
+        self.assertRedirects(
+            response,
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            fetch_redirect_response=True,
+        )
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), f"Successfully created {invoice.title}")
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice_single_line_item(self, customer_mock):
+        Invoice.objects.all().delete()
+        self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+                "id": "",
+                "description": "Test",
+                "quantity": 1,
+                "unit_price": 2.5,
+            },
+        )
+
+        invoice = SingleInvoice.objects.first()
+        self.assertEqual(invoice.line_items.count(), 1)
+        self.assertEqual(invoice.balance_due, 2.5)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_customer_for_invoice",
+        return_value=None,
+    )
+    def test_create_invoice_multiple_line_items(self, customer_mock):
+        Invoice.objects.all().delete()
+
+        self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+                "id": ["", ""],
+                "description": ["Test", "Test2"],
+                "quantity": [1, 2],
+                "unit_price": [2.5, 3],
+            },
+        )
+
+        invoice = SingleInvoice.objects.first()
+        self.assertEqual(invoice.line_items.count(), 2)
+        self.assertEqual(invoice.balance_due, 8.5)
+
+    def test_create_invoice_error(self):
+        response = self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "2Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+            },
+        )
+        self.assertIn(
+            "Title cannot start with a number.", response.content.decode("utf-8")
+        )
+        self.assertEqual(SingleInvoice.objects.all().count(), 0)
+
+    def test_update_invoice(self):
+        invoice = SingleInvoiceFactory(user=self.user)
+        self.client.post(
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+            },
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.title, "Some title")
+
+    def test_update_invoice_single_line_item(self):
+        invoice = SingleInvoiceFactory(user=self.user)
+        line_item = LineItemFactory(invoice=invoice)
+        response = self.client.post(
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+                "id": line_item.id,
+                "description": "Test",
+                "quantity": 1,
+                "unit_price": 2.5,
+            },
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.balance_due, 2.5)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), f"Updated {invoice.title}")
+
+    def test_update_invoice_multiple_line_items(self):
+        invoice = SingleInvoiceFactory(user=self.user)
+        line_item = LineItemFactory(invoice=invoice)
+        second_line_item = LineItemFactory(invoice=invoice)
+        self.client.post(
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            {
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+                "id": [line_item.id, second_line_item.id],
+                "description": ["Test", "Test2"],
+                "quantity": [1, 2],
+                "unit_price": [2.5, 3],
+            },
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.balance_due, 8.5)
+
+    def test_update_invoice_error(self):
+        invoice = SingleInvoiceFactory(user=self.user)
+        line_item = LineItemFactory(invoice=invoice)
+        response = self.client.post(
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            {
+                "title": "2Some title",
+                "client_name": "John Smith",
+                "client_email": "john@test.com",
+                "id": line_item.id,
+                "description": "Test",
+                "quantity": 1,
+                "unit_price": 2.5,
+            },
+        )
+        invoice.refresh_from_db()
+        self.assertIn(
+            "Title cannot start with a number.", response.content.decode("utf-8")
+        )
+        self.assertNotEqual(invoice.title, "2Some title")
+
+    def test_delete_line_item(self):
+        invoice = SingleInvoiceFactory(user=self.user)
+        line_item = LineItemFactory(invoice=invoice)
+        self.assertEqual(LineItem.objects.all().count(), 1)
+        self.client.delete(
+            f'{reverse("timary:single_invoice_line_item")}?line_item_id={line_item.id}',
+        )
+        self.assertEqual(LineItem.objects.all().count(), 0)
+
+    def test_update_invoice_status_to_final(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=0)
+        self.client.get(
+            reverse(
+                "timary:update_single_invoice_status",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, SingleInvoice.InvoiceStatus.FINAL)
+
+    def test_update_invoice_status_to_draft(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=1)
+        self.client.get(
+            reverse(
+                "timary:update_single_invoice_status",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, SingleInvoice.InvoiceStatus.DRAFT)
+
+    def test_send_invoice_email(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=1)
+        line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=2.5)
+        second_line_item = LineItemFactory(invoice=invoice, quantity=2, unit_price=3)
+        invoice.update()
+        self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+
+        html_message = TestSingleInvoices.extract_html()
+        with self.subTest("Testing title"):
+            msg = f"""
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
+            <div class="my-2 text-xl leading-7">Thanks for using Timary.
+            This is an invoice for {invoice.user.first_name}'s services.</div>
+            """
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing amount due"):
+            msg = (
+                f"<strong>Amount Due: "
+                f"${floatformat(line_item.total_amount() + second_line_item.total_amount() + 5, -2)}</strong>"
+            )
+            self.assertInHTML(msg, html_message)
+
+        with self.subTest("Testing line items"):
+            msg = f"""
+            <div>{line_item.description}</div>
+            <div>${floatformat(line_item.total_amount(), -2)}</div>
+            """
+            self.assertInHTML(msg, html_message)
+
+            msg = f"""
+            <div>{second_line_item.description}</div>
+            <div>${floatformat(second_line_item.total_amount(), -2)}</div>
+            """
+            self.assertInHTML(msg, html_message)
+
+    def test_resend_invoice(self):
+        """A single invoice should only have max 1 SentInvoice"""
+        invoice = SingleInvoiceFactory(user=self.user, status=1)
+        line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=2.5)
+        second_line_item = LineItemFactory(invoice=invoice, quantity=2, unit_price=3)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
+        invoice.update()
+        response = self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        line_item.refresh_from_db()
+        second_line_item.refresh_from_db()
+        sent_invoice.refresh_from_db()
+        self.assertEqual(sent_invoice.total_price, invoice.balance_due)
+        self.assertEqual(invoice.invoice_snapshots.count(), 1)
+        self.assertEqual(line_item.sent_invoice_id, str(sent_invoice.id))
+        self.assertEqual(second_line_item.sent_invoice_id, str(sent_invoice.id))
+        self.assertIn(
+            f"Invoice for {invoice.title} has been resent",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_send_invoice_error_user_not_active(self):
+        user = UserFactory(
+            stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+        )
+        invoice = SingleInvoiceFactory(user=user, status=1)
+        self.client.force_login(user)
+        response = self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        self.assertIn(
+            "Unable to send out invoice.",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_send_invoice_error_invoice_is_draft(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=0)
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        self.assertIn(
+            "Unable to send out invoice.",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_send_invoice_error_invoice_is_paid(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=0)
+        SentInvoiceFactory(invoice=invoice, paid_status=2)
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        self.assertIn(
+            "Unable to send out invoice.",
+            response.headers["HX-Trigger"],
+        )

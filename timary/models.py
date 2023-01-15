@@ -419,10 +419,10 @@ class RecurringInvoice(Invoice):
 
         return round((total_cost_amount / self.total_budget), ndigits=2) * 100
 
-    def render_line_items(self, send_invoice_id):
+    def render_line_items(self, sent_invoice_id):
         return render_to_string(
             "invoices/line_items/hourly.html",
-            {"line_items": self.get_hours_sent(send_invoice_id).all()},
+            {"line_items": self.get_hours_sent(sent_invoice_id).all()},
         )
 
 
@@ -527,8 +527,8 @@ class WeeklyInvoice(RecurringInvoice):
     def get_hours_stats(self):
         return self.get_hours_tracked(), self.rate
 
-    def render_line_items(self, send_invoice_id):
-        sent_invoice = get_object_or_404(SentInvoice, id=send_invoice_id)
+    def render_line_items(self, sent_invoice_id):
+        sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
         return render_to_string(
             "invoices/line_items/weekly.html", {"sent_invoice": sent_invoice}
         )
@@ -680,7 +680,7 @@ class SentInvoice(BaseModel):
         return self.invoice.get_hours_sent(sent_invoice_id=self.id)
 
     def get_rendered_line_items(self):
-        return "".join(self.invoice.render_line_items(self.id))
+        return self.invoice.render_line_items(sent_invoice_id=self.id)
 
     def success_notification(self):
         """
