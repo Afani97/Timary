@@ -265,6 +265,7 @@ class SingleInvoice(Invoice):
         null=True,
         blank=True,
     )
+    client_second_email = models.EmailField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     send_reminder = models.BooleanField(default=False, null=True, blank=True)
 

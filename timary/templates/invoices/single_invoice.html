@@ -55,13 +55,14 @@
             </div>
             <div _="on click remove .hidden from #client-second-email then add .hidden to me"
                 id="add-second-email"
-                class="flex w-full py-2 items-center cursor-pointer">
+                class="flex w-full py-2 items-center cursor-pointer {% if invoice_form.client_second_email.value|length != 0 %} hidden {% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2.5">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd" />
                 </svg>
                 Add a second email
             </div>
-            <div class="hidden w-full" id="client-second-email">
+            <div id="client-second-email"
+                class="w-full {% if invoice_form.client_second_email.value|length == 0 %} hidden {% endif %}">
                 <div class="form-control w-full">
                     <label class="label">
                         <span class="label-text font-bold text-xl">{{ invoice_form.client_second_email.label_tag }}</span>

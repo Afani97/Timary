@@ -279,7 +279,11 @@ def send_single_invoice_email(request, single_invoice_id):
         }
     )
 
-    EmailService.send_html(msg_subject, msg_body, single_invoice_obj.client_email)
+    EmailService.send_html(
+        msg_subject,
+        msg_body,
+        [single_invoice_obj.client_email, single_invoice_obj.client_second_email],
+    )
 
     response = render(
         request,
