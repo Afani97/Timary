@@ -236,7 +236,8 @@ class Invoice(PolymorphicModel, BaseModel):
 
         if not self.user.accounting_org_id:
             return None, None
-        if self.client_stripe_customer_id:
+
+        if self.accounting_customer_id:
             return True, None
         try:
             AccountingService({"user": self.user, "invoice": self}).create_customer()
