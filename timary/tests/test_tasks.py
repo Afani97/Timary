@@ -419,6 +419,18 @@ class TestGatherAndSendSingleInvoices(TestCase):
         )
         self.assertEquals(SentInvoice.objects.count(), 1)
 
+    def test_do_not_send_invoice_reminder_if_pending_or_paid(self):
+        invoice = SingleInvoiceFactory()
+        LineItemFactory(invoice=invoice)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice,
+            paid_status=SentInvoice.PaidStatus.PAID,
+            date_sent=date.today() - datetime.timedelta(days=1),
+        )
+        send_invoice_reminder(invoice.id)
+        self.assertEquals(len(mail.outbox), 0)
+        self.assertNotEqual(sent_invoice.date_sent, date.today())
+
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:

@@ -167,19 +167,18 @@
                     <div class="text-error pl-2">{{ invoice_form.late_penalty_amount.errors }}</div>
                 {% endif %}
             </div>
-            {# Uncomment when adding logic #}
-            {#            <div class="form-control w-full mt-4">#}
-            {#                <label class="label">#}
-            {#                    <span class="label-text font-bold text-xl">{{ invoice_form.send_reminder.label_tag }}</span>#}
-            {#                    <input type="checkbox" name="send_reminder" class="toggle toggle-primary" id="id_send_reminder"#}
-            {#                        {% if single_invoice.send_reminder %} checked {% endif %}#}
-            {#                    />#}
-            {#                </label>#}
-            {#                <span class="label-text-alt pl-1">If invoice isn't paid in 2 weeks, send it again.</span>#}
-            {#                {% if invoice_form.send_reminder.errors %}#}
-            {#                    <div class="text-error pl-2">{{ invoice_form.send_reminder.errors }}</div>#}
-            {#                {% endif %}#}
-            {#            </div>#}
+            <div class="form-control w-full mt-4">
+                <label class="label">
+                    <span class="label-text font-bold text-xl">{{ invoice_form.send_reminder.label_tag }}</span>
+                    <input type="checkbox" name="send_reminder" class="toggle toggle-primary" id="id_send_reminder"
+                        {% if single_invoice.send_reminder %} checked {% endif %}
+                    />
+                </label>
+                <span class="label-text-alt pl-1">If invoice isn't paid in 2 weeks, send it again.</span>
+                {% if invoice_form.send_reminder.errors %}
+                    <div class="text-error pl-2">{{ invoice_form.send_reminder.errors }}</div>
+                {% endif %}
+            </div>
             {# Uncomment when adding starter templates #}
             {#            <div class="form-control w-full mt-4">#}
             {#                <label class="label">#}
