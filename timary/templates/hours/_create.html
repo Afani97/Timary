@@ -38,7 +38,7 @@
             <div class="form-control w-full" id="repeating-wrapper">
                 <label class="cursor-pointer label">
                     <span class="label-text">Repeating?</span>
-                    <input type="checkbox" name="repeating" id="id_repeating" class="toggle toggle-primary"
+                    <input type="checkbox" name="repeating" id="id_repeating" class="toggle"
                         _="on change toggle .hidden on #recurring-wrapper then toggle .hidden on #schedule-selection then toggle .hidden on #repeat-end-date" />
                 </label>
                 <div class="hidden flex justify-between items-baseline w-full" id="repeat-end-date">
@@ -52,7 +52,7 @@
             <div class="form-control w-full" id="recurring-wrapper">
                 <label class="cursor-pointer label">
                     <span class="label-text">Recurring?</span>
-                    <input type="checkbox" name="recurring" id="id_recurring" class="toggle toggle-primary" _="on change toggle .hidden on #repeating-wrapper then toggle .hidden on #schedule-selection" />
+                    <input type="checkbox" name="recurring" id="id_recurring" class="toggle" _="on change toggle .hidden on #repeating-wrapper then toggle .hidden on #schedule-selection" />
                 </label>
             </div>
             <div class="flex justify-between space-x-3 hidden" id="schedule-selection">
