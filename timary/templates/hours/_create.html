@@ -33,7 +33,7 @@
                 <select name="invoice" class="select select-bordered border-2 w-full" required="" id="id_invoice" multiple="">
                     {% for value, label in form.fields.invoice.choices %}
                         {% if value %}
-                            <option value="{{ value }}" {% if forloop.counter0 == 0 %} selected="" {% endif %}>{{ label }}</option>
+                            <option value="{{ value }}" {% if forloop.counter0 == 1 %} selected="" {% endif %}>{{ label }}</option>
                         {% endif %}
                     {% endfor %}
 
