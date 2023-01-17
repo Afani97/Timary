@@ -61,6 +61,21 @@ class TestHourLineItems(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_create_multiple_daily_hours(self):
+        HoursLineItem.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        invoice2 = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": [invoice.id, invoice2.id],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+
     def test_create_daily_hours_error(self):
         HoursLineItem.objects.all().delete()
         invoice = InvoiceFactory(user=self.user)
@@ -73,6 +88,25 @@ class TestHourLineItems(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
+        self.assertInHTML(
+            "Invalid hours logged. Please log between 0 and 24 hours",
+            response.content.decode("utf-8"),
+        )
+
+    def test_create_multiple_daily_hours_error(self):
+        HoursLineItem.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        invoice2 = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": -1,
+                "date_tracked": datetime.date.today(),
+                "invoice": [invoice.id, invoice2.id],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
         self.assertInHTML(
             "Invalid hours logged. Please log between 0 and 24 hours",
             response.content.decode("utf-8"),
@@ -343,6 +377,26 @@ class TestHourLineItems(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
+        hours = HoursLineItem.objects.first()
+        self.assertIsNotNone(hours.recurring_logic)
+
+    def test_create_multiple_repeating_hours(self):
+        HoursLineItem.objects.all().delete()
+        invoice = InvoiceFactory(user=self.user)
+        invoice2 = InvoiceFactory(user=self.user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 1,
+                "date_tracked": datetime.date.today(),
+                "invoice": [invoice.id, invoice2.id],
+                "repeating": True,
+                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_interval_schedule": "d",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
         hours = HoursLineItem.objects.first()
         self.assertIsNotNone(hours.recurring_logic)
 

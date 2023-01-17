@@ -17,33 +17,61 @@ from timary.utils import show_alert_message
 @login_required()
 @require_http_methods(["POST"])
 def create_daily_hours(request):
-    hours_form = HoursLineItemForm(request.POST, user=request.user)
-    if hours_form.is_valid():
-        hours_saved = hours_form.save()
-        if "recurring_logic" in hours_form.cleaned_data:
-            hours_saved.recurring_logic = hours_form.cleaned_data.get("recurring_logic")
-            hours_saved.save()
-        hours_manager = HoursManager(request.user)
-        show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
-        show_most_frequent_options = hours_manager.show_most_frequent_options()
+    request_data = request.POST.copy()
+    hours = request_data.get("quantity")
+    date_tracked = request_data.get("date_tracked")
+    repeating = request_data.get("repeating")
+    recurring = request_data.get("recurring")
+    repeat_end_date = request_data.get("repeat_end_date")
+    repeat_interval_schedule = request_data.get("repeat_interval_schedule")
+    repeat_interval_days = request_data.getlist("repeat_interval_days")
 
-        context = {
-            "hours": hours_manager.hours,
-            "show_repeat": show_repeat_option,
+    hour_forms = []
+    for inv in request_data.getlist("invoice"):
+        data = {
+            "quantity": hours,
+            "date_tracked": date_tracked,
+            "invoice": inv,
         }
-        if len(show_most_frequent_options) > 0:
-            context["frequent_options"] = show_most_frequent_options
-        response = render(request, "partials/_hours_list.html", context=context)
-        response[
-            "HX-Trigger-After-Swap"
-        ] = "clearHoursModal"  # To trigger modal closing
-        # "newHours" - To trigger dashboard stats refresh
-        show_alert_message(response, "success", "New hours added!", "newHours")
-        return response
-    else:
-        response = render(request, "hours/_create.html", {"form": hours_form})
-        response["HX-Retarget"] = "#new-hours-form"
-        return response
+        if repeating or recurring:
+            data.update(
+                {
+                    "repeating": repeating,
+                    "recurring": recurring,
+                    "repeat_end_date": repeat_end_date,
+                    "repeat_interval_schedule": repeat_interval_schedule,
+                    "repeat_interval_days": repeat_interval_days,
+                }
+            )
+
+        hr_form = HoursLineItemForm(data=data, user=request.user)
+        if not hr_form.is_valid():
+            response = render(request, "hours/_create.html", {"form": hr_form})
+            response["HX-Retarget"] = "#new-hours-form"
+            return response
+        else:
+            hour_forms.append(hr_form)
+    for hour_form in hour_forms:
+        hours_saved = hour_form.save()
+        if "recurring_logic" in hour_form.cleaned_data:
+            hours_saved.recurring_logic = hour_form.cleaned_data.get("recurring_logic")
+            hours_saved.save()
+
+    hours_manager = HoursManager(request.user)
+    show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
+    show_most_frequent_options = hours_manager.show_most_frequent_options()
+
+    context = {
+        "hours": hours_manager.hours,
+        "show_repeat": show_repeat_option,
+    }
+    if len(show_most_frequent_options) > 0:
+        context["frequent_options"] = show_most_frequent_options
+    response = render(request, "partials/_hours_list.html", context=context)
+    response["HX-Trigger-After-Swap"] = "clearHoursModal"  # To trigger modal closing
+    # "newHours" - To trigger dashboard stats refresh
+    show_alert_message(response, "success", "New hours added!", "newHours")
+    return response
 
 
 @login_required()

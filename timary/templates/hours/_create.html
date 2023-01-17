@@ -29,7 +29,17 @@
             <label class="label">
                 <span class="label-text">{{ form.invoice.label_tag }}</span>
             </label>
-            <div>{{ form.invoice }}</div>
+            <div>
+                <select name="invoice" class="select select-bordered border-2 w-full" required="" id="id_invoice" multiple="">
+                    {% for value, label in form.fields.invoice.choices %}
+                        {% if value %}
+                            <option value="{{ value }}" {% if forloop.counter0 == 0 %} selected="" {% endif %}>{{ label }}</option>
+                        {% endif %}
+                    {% endfor %}
+
+                </select>
+            </div>
+
             {% if form.invoice.field.widget.attrs.qs_count == 0 %}
                 <div class="text-error text-sm">You don't have any active invoices.</div>
             {% endif %}
