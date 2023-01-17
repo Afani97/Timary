@@ -760,6 +760,27 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertTemplateUsed(response, "partials/_sent_invoice.html")
 
+    def test_sync_sent_invoice_error_no_active_subscription(self):
+        user = UserFactory(
+            stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+        )
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+        )
+        self.client.force_login(user)
+        response = self.client.get(
+            reverse(
+                "timary:sync_sent_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+        self.assertIn(
+            "Your account is in-active. Please re-activate to sync your invoices.",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
 
 class TestSingleInvoices(BaseTest):
     def setUp(self) -> None:

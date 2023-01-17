@@ -371,6 +371,17 @@ def sync_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
 
+    if not invoice.user.settings["subscription_active"]:
+        response = render(
+            request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to sync invoice, your subscription is inactive.",
+        )
+        return response
+
     customer_synced, error_raised = invoice.sync_customer()
     if invoice.is_archived:
         response = render(

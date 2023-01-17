@@ -577,7 +577,10 @@ class InvoiceManager:
                 try:
                     invoice = MilestoneInvoice.objects.get(id=invoice_id)
                 except MilestoneInvoice.DoesNotExist:
-                    raise Http404("Invoice does not exist")
+                    try:
+                        invoice = SingleInvoice.objects.get(id=invoice_id)
+                    except SingleInvoice.DoesNotExist:
+                        raise Http404("Invoice does not exist")
         self._invoice = invoice
 
     @staticmethod
