@@ -53,7 +53,7 @@ class InvoiceFactory(DjangoModelFactory):
     client_email = factory.Faker("email")
     client_name = factory.Faker("name")
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
-    rate = factory.Faker("pyint", min_value=1000, max_value=10_000)
+    rate = factory.Faker("pyint", min_value=100, max_value=1000)
     balance_due = factory.Faker("pyint", min_value=1000, max_value=1000)
     is_archived = False
     is_paused = False
