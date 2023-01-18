@@ -386,7 +386,9 @@ class RecurringInvoice(Invoice):
             (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
         ]
         six_months_qs = (
-            self.invoice_snapshots.annotate(month=TruncMonth("date_sent"))
+            self.invoice_snapshots.exclude(paid_status=SentInvoice.PaidStatus.FAILED)
+            .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+            .annotate(month=TruncMonth("date_sent"))
             .distinct()
             .values("month")
             .order_by("month")
@@ -629,6 +631,7 @@ class SentInvoice(BaseModel):
         PENDING = 1, "PENDING"
         PAID = 2, "PAID"
         FAILED = 3, "FAILED"
+        CANCELLED = 4, "CANCELLED"
 
     date_sent = models.DateField(null=False, blank=False)
     invoice = models.ForeignKey(

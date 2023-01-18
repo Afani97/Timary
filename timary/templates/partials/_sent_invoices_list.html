@@ -14,13 +14,13 @@
         type: 'pie',
         data: {
             datasets: [{
-                data: [{{ not_started_count }},  {{ pending_count }}, {{ paid_count }}, {{ failed_count }}],
+                data: [{{ not_started_count }},  {{ pending_count }}, {{ paid_count }}, {{ failed_count }}, {{ cancelled_count }}],
                 backgroundColor: [
-                    '#e6e6e6', '#ffff00', '#40bf40', '#ff3333'
+                    '#e6e6e6', '#ffff00', '#40bf40', '#ff3333', '#ff3333'
                 ],
                 label: 'Sent Invoices'
             }],
-            labels: ["Sent", "Pending", "Paid", "Failed"]
+            labels: ["Sent", "Pending", "Paid", "Failed", "Cancelled"]
         },
         options: {
             responsive: true,

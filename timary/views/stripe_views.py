@@ -27,6 +27,7 @@ def pay_invoice(request, sent_invoice_id):
     if (
         sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
         or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
+        or sent_invoice.paid_status == SentInvoice.PaidStatus.CANCELLED
     ):
         return redirect(reverse("timary:landing_page"))
 

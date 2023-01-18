@@ -781,6 +781,20 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertTemplateUsed(response, "partials/_sent_invoice.html")
 
+    def test_cancel_invoice(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=self.user,
+        )
+        response = self.client.get(
+            reverse(
+                "timary:cancel_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+            ),
+        )
+        sent_invoice.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.CANCELLED)
+
 
 class TestSingleInvoices(BaseTest):
     def setUp(self) -> None:

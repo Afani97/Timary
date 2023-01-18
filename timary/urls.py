@@ -179,6 +179,11 @@ urlpatterns += [
         views.sync_sent_invoice,
         name="sync_sent_invoice",
     ),
+    path(
+        "invoices/<uuid:sent_invoice_id>/cancel/",
+        views.cancel_invoice,
+        name="cancel_invoice",
+    ),
 ]
 
 # AUTH URLS

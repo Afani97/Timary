@@ -55,6 +55,16 @@ class TestStripeViews(BaseTest):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("timary:landing_page"))
 
+    def test_pay_invoice_redirect_cancelled_invoice(self):
+        self.client.logout()
+
+        sent_invoice = SentInvoiceFactory(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        response = self.client.get(
+            reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("timary:landing_page"))
+
     def test_pay_invoice_raise_error_unknown_sent_invoice(self):
         self.client.logout()
         response = self.client.get(

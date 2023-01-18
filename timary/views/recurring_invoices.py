@@ -351,6 +351,9 @@ def sent_invoices_list(request, invoice_id):
                 "failed_count": sent_invoices.filter(
                     paid_status=SentInvoice.PaidStatus.FAILED
                 ).count(),
+                "cancelled_count": sent_invoices.filter(
+                    paid_status=SentInvoice.PaidStatus.CANCELLED
+                ).count(),
             },
         )
     else:
@@ -443,4 +446,23 @@ def sync_sent_invoice(request, sent_invoice_id):
             f"We had trouble syncing this sent invoice. {error_raised}",
             persist=True,
         )
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def cancel_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+    sent_invoice.paid_status = SentInvoice.PaidStatus.CANCELLED
+    sent_invoice.save()
+    response = render(
+        request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
+    )
+    show_alert_message(
+        response,
+        "info",
+        f"{sent_invoice.invoice.title} has been cancelled",
+    )
     return response
