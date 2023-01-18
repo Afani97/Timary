@@ -329,6 +329,7 @@ class SingleInvoice(Invoice):
                     in [
                         SentInvoice.PaidStatus.NOT_STARTED,
                         SentInvoice.PaidStatus.FAILED,
+                        SentInvoice.PaidStatus.CANCELLED,
                     ]
                 )
             )

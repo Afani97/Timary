@@ -284,6 +284,10 @@ def send_single_invoice_email(request, single_invoice_id):
         )
         return response
 
+    if sent_invoice:
+        sent_invoice.paid_status = SentInvoice.PaidStatus.NOT_STARTED
+        sent_invoice.save()
+
     send_invoice_reminder(single_invoice_id)
 
     if single_invoice_obj.send_reminder:

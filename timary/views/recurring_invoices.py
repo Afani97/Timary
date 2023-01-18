@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm, InvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import Invoice, InvoiceManager, SentInvoice
+from timary.models import Invoice, InvoiceManager, SentInvoice, SingleInvoice
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import show_active_timer, show_alert_message
@@ -457,9 +457,17 @@ def cancel_invoice(request, sent_invoice_id):
         raise Http404
     sent_invoice.paid_status = SentInvoice.PaidStatus.CANCELLED
     sent_invoice.save()
-    response = render(
-        request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
-    )
+    if isinstance(sent_invoice.invoice, SingleInvoice):
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": sent_invoice.invoice},
+        )
+    else:
+
+        response = render(
+            request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
+        )
     show_alert_message(
         response,
         "info",
