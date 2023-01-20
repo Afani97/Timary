@@ -61,7 +61,7 @@ class LineItem(PolymorphicModel, BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="line_items"
     )
-    date_tracked = models.DateField(null=True, blank=True)
+    date_tracked = models.DateTimeField(null=True, blank=True)
     description = models.CharField(max_length=200, null=True, blank=True)
     quantity = models.DecimalField(
         default=1,
@@ -267,7 +267,7 @@ class SingleInvoice(Invoice):
         blank=True,
     )
     client_second_email = models.EmailField(null=True, blank=True)
-    due_date = models.DateField(null=True, blank=True)
+    due_date = models.DateTimeField(null=True, blank=True)
     send_reminder = models.BooleanField(default=False, null=True, blank=True)
 
     late_penalty = models.BooleanField(default=False, null=True, blank=True)
@@ -358,8 +358,8 @@ class SingleInvoice(Invoice):
 
 class RecurringInvoice(Invoice):
 
-    next_date = models.DateField(null=True, blank=True)
-    last_date = models.DateField(null=True, blank=True)
+    next_date = models.DateTimeField(null=True, blank=True)
+    last_date = models.DateTimeField(null=True, blank=True)
 
     def __repr__(self):
         return (
@@ -634,7 +634,7 @@ class SentInvoice(BaseModel):
         FAILED = 3, "FAILED"
         CANCELLED = 4, "CANCELLED"
 
-    date_sent = models.DateField(null=False, blank=False)
+    date_sent = models.DateTimeField(null=False, blank=False)
     invoice = models.ForeignKey(
         "timary.Invoice",
         on_delete=models.SET_NULL,
@@ -810,6 +810,10 @@ class User(AbstractUser, BaseModel):
         choices=WEEK_DAYS, null=True, blank=True
     )
     phone_number_repeat_sms = models.BooleanField(default=False)
+
+    timezone = models.CharField(
+        default="America/New_York", max_length=100, null=False, blank=False
+    )
 
     # Accounting integration
     accounting_org = models.CharField(max_length=200, blank=True, null=True)

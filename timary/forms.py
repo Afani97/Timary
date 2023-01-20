@@ -1,5 +1,6 @@
 import datetime
 
+import pytz
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
@@ -616,10 +617,21 @@ class UserForm(forms.ModelForm):
         ),
     )
     profile_pic = forms.ImageField(required=False)
+    timezone = forms.ChoiceField(
+        choices=[(x, x) for x in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "select select-bordered border-2 w-full"}),
+    )
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number", "profile_pic"]
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "profile_pic",
+            "timezone",
+        ]
 
     field_order = [
         "profile_pic",
@@ -714,6 +726,7 @@ class RegisterForm(forms.ModelForm):
         help_text="Please provide at least 5 characters including 1 uppercase, 1 number, 1 special character.",
         required=True,
     )
+    timezone = forms.CharField(required=True, widget=forms.HiddenInput)
 
     def clean_full_name(self):
         full_name = self.cleaned_data.get("full_name")
@@ -744,11 +757,7 @@ class RegisterForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = (
-            "full_name",
-            "email",
-            "password",
-        )
+        fields = ["full_name", "email", "password", "timezone"]
 
 
 class LoginForm(forms.Form):
