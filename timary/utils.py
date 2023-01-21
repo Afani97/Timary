@@ -1,6 +1,8 @@
 import json
+import zoneinfo
 from datetime import datetime, timedelta
 
+from django.utils import timezone
 from requests import Response
 
 
@@ -59,3 +61,7 @@ def get_starting_week_from_date(date):
 
 def get_date_parsed(date):
     return datetime.strftime(date, "%a").lower()
+
+
+def get_users_localtime(user):
+    return timezone.now().astimezone(tz=zoneinfo.ZoneInfo(user.timezone))

@@ -13,6 +13,7 @@ from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
@@ -472,9 +473,9 @@ class IntervalInvoice(RecurringInvoice):
 
     def get_next_date(self):
         if self.invoice_interval == IntervalInvoice.Interval.WEEKLY:
-            return timedelta(weeks=1)
+            return timezone.timedelta(weeks=1)
         elif self.invoice_interval == IntervalInvoice.Interval.BIWEEKLY:
-            return timedelta(weeks=2)
+            return timezone.timedelta(weeks=2)
         elif self.invoice_interval == IntervalInvoice.Interval.MONTHLY:
             return relativedelta(months=1)
         elif self.invoice_interval == IntervalInvoice.Interval.QUARTERLY:
@@ -483,7 +484,7 @@ class IntervalInvoice(RecurringInvoice):
             return relativedelta(years=1)
 
     def calculate_next_date(self, update_last: bool = True):
-        todays_date = date.today()
+        todays_date = timezone.now()
         self.next_date = todays_date + self.get_next_date()
         if update_last:
             self.last_date = todays_date

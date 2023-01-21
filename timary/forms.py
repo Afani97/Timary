@@ -6,6 +6,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db.models import Q
+from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
@@ -19,10 +20,10 @@ from timary.models import (
     User,
     WeeklyInvoice,
 )
-from timary.utils import get_starting_week_from_date
+from timary.utils import get_starting_week_from_date, get_users_localtime
 
 
-class DateInput(forms.DateInput):
+class DateInput(forms.DateTimeInput):
     input_type = "date"
 
 
@@ -33,7 +34,7 @@ class LineItemForm(forms.ModelForm):
 
 
 class HoursLineItemForm(forms.ModelForm):
-    date_tracked = forms.DateField(
+    date_tracked = forms.DateTimeField(
         required=True,
         widget=DateInput(
             attrs={
@@ -43,7 +44,7 @@ class HoursLineItemForm(forms.ModelForm):
     )
     repeating = forms.BooleanField(required=False, initial=False)
     recurring = forms.BooleanField(required=False, initial=False)
-    repeat_end_date = forms.DateField(
+    repeat_end_date = forms.DateTimeField(
         required=False,
     )
     repeat_interval_schedule = forms.ChoiceField(
@@ -64,12 +65,12 @@ class HoursLineItemForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user") if "user" in kwargs else None
+        self.user = kwargs.pop("user") if "user" in kwargs else None
 
         super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
-        if user:
-            invoice_qs = user.get_invoices.filter(is_paused=False).exclude(
+        if self.user:
+            invoice_qs = self.user.get_invoices.filter(is_paused=False).exclude(
                 Q(instance_of=SingleInvoice)
             )
             invoice_qs_count = invoice_qs.count()
@@ -81,8 +82,8 @@ class HoursLineItemForm(forms.ModelForm):
             self.fields["invoice"].widget.attrs["qs_count"] = invoice_qs_count
 
         # Set date_tracked value/max when form is initialized
-        self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
-        self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
+        self.fields["date_tracked"].widget.attrs["value"] = timezone.now().date()
+        self.fields["date_tracked"].widget.attrs["max"] = timezone.now().date()
         if (
             self.initial
             and self.instance.invoice
@@ -90,7 +91,7 @@ class HoursLineItemForm(forms.ModelForm):
         ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
-            ] = self.instance.invoice.last_date
+            ] = self.instance.invoice.last_date.date()
             self.fields["quantity"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
 
     class Meta:
@@ -116,9 +117,11 @@ class HoursLineItemForm(forms.ModelForm):
     field_order = ["quantity", "date_tracked", "invoice"]
 
     def clean_date_tracked(self):
+        now = get_users_localtime(self.user)
         date_tracked = self.cleaned_data.get("date_tracked")
-        if date_tracked > datetime.date.today():
+        if date_tracked.date() > now.date():
             raise ValidationError("Cannot set date into the future!")
+        date_tracked = date_tracked.replace(hour=now.hour, minute=now.minute)
         return date_tracked
 
     def clean_quantity(self):
@@ -142,7 +145,7 @@ class HoursLineItemForm(forms.ModelForm):
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
         if date_tracked and invoice and hasattr(invoice, "last_date"):
-            if date_tracked < invoice.last_date:
+            if date_tracked.date() < invoice.last_date.date():
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
                 )

@@ -1,13 +1,16 @@
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 
 from dateutil import relativedelta
 from django.db import models
 from django.db.models import F, Sum
+from django.utils import timezone
+
+from timary.utils import get_users_localtime
 
 
 class HoursQuerySet(models.QuerySet):
     def current_month(self, user):
-        current_date = datetime.today()
+        current_date = get_users_localtime(user)
         return (
             self.filter(
                 invoice__user=user,
@@ -24,11 +27,11 @@ class HoursQuerySet(models.QuerySet):
 class HourStats:
     def __init__(self, user):
         self.user = user
-        self.current_month = datetime.today()
+        self.current_month = timezone.now()
         self.last_month = (
-            datetime.today() - relativedelta.relativedelta(months=1)
+            timezone.now() - relativedelta.relativedelta(months=1)
         ).replace(day=1)
-        self.first_month = datetime.today().replace(month=1)
+        self.first_month = timezone.now().replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
         from timary.models import HoursLineItem, SentInvoice
@@ -87,7 +90,7 @@ class HourStats:
 
     def get_this_year_stats(self):
         date_range = (
-            date(self.current_month.year, 1, 1),
+            self.current_month.replace(month=1, day=1),
             self.current_month,
         )
         return self.get_stats(date_range)
