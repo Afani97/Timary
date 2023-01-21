@@ -1,4 +1,5 @@
 import uuid
+import zoneinfo
 
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
@@ -444,6 +445,7 @@ class TestHoursLineItem(TestCase):
     def setUpTestData(cls):
         cls.today = timezone.now()
         cls.invoice = IntervalInvoiceFactory()
+        cls.timezone = zoneinfo.ZoneInfo("America/New_York")
 
     def test_hours_success(self):
         form = HoursLineItemForm(
@@ -570,7 +572,9 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_repeating_daily(self):
         date_tracked = timezone.datetime(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -597,7 +601,9 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_repeating_weekly(self):
         date_tracked = timezone.datetime(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -625,7 +631,9 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_recurring_daily(self):
         date_tracked = timezone.datetime(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -648,7 +656,9 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_recurring_weekly(self):
         date_tracked = timezone.datetime(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -726,7 +736,9 @@ class TestHoursLineItem(TestCase):
 
     def test_repeating_has_valid_starting_week(self):
         date_tracked = timezone.datetime(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -743,7 +755,9 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 6, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -767,7 +781,9 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_biweekly_update_starting_week_if_created_saturday(self):
-        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 6, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,

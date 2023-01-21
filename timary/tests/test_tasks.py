@@ -277,9 +277,6 @@ class TestGatherHours(TestCase):
         date_mock.now.return_value = timezone.datetime(2022, 12, 31)
         # date_mock.side_effect = lambda *args, **kw: timezone.datetime(*args, **kw)
         update_weeks_mock.return_value = None
-
-        print(get_starting_week_from_date(date_mock).date())
-
         HoursLineItemFactory(
             recurring_logic={
                 "type": "recurring",

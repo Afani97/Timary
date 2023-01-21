@@ -383,7 +383,7 @@ class RecurringInvoice(Invoice):
     def get_hours_tracked(self):
         return (
             self.line_items.filter(
-                date_tracked__gte=self.last_date.date(), sent_invoice_id__isnull=True
+                date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
             )
             .exclude(quantity=0)
             .annotate(cost=self.rate * Sum("quantity"))
@@ -514,7 +514,7 @@ class WeeklyInvoice(RecurringInvoice):
         return "weekly"
 
     def update(self):
-        self.last_date = date.today()
+        self.last_date = timezone.now()
         self.save()
 
     def form_class(self, action="create"):
@@ -569,7 +569,7 @@ class MilestoneInvoice(RecurringInvoice):
 
     def update(self):
         self.milestone_step += 1
-        self.last_date = date.today()
+        self.last_date = timezone.now()
         self.save()
 
     def form_class(self, action="create"):
@@ -686,7 +686,7 @@ class SentInvoice(BaseModel):
     def create(cls, invoice):
         hours_tracked, total_cost = invoice.get_hours_stats()
         return SentInvoice.objects.create(
-            date_sent=date.today(),
+            date_sent=timezone.now(),
             invoice=invoice,
             user=invoice.user,
             total_price=total_cost,

@@ -1,4 +1,4 @@
-import datetime
+import zoneinfo
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -17,7 +17,9 @@ from timary.tests.factories import (
 class TestHourStats(TestCase):
     @patch("timary.querysets.timezone")
     def test_hour_stats_current_month(self, date_mock):
-        date_mock.now.return_value = timezone.datetime(2022, 8, 25)
+        date_mock.now.return_value = timezone.datetime(
+            2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user, rate=50)
         sent_invoice = SentInvoiceFactory(
@@ -25,17 +27,25 @@ class TestHourStats(TestCase):
             user=user,
             total_price=300,
             paid_status=2,
-            date_sent=datetime.date(2022, 8, 25),
+            date_sent=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
         sent_invoice.user = user
         sent_invoice.save()
         HoursLineItemFactory(
-            invoice=invoice, date_tracked=timezone.datetime(2022, 8, 25), quantity=2
+            invoice=invoice,
+            date_tracked=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
+            quantity=2,
         )
 
         HoursLineItemFactory(
             invoice=invoice,
-            date_tracked=timezone.datetime(2022, 8, 25),
+            date_tracked=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
             sent_invoice_id=sent_invoice.id,
             quantity=3,
         )
@@ -45,7 +55,9 @@ class TestHourStats(TestCase):
             invoice=weekly_invoice,
             user=user,
             total_price=weekly_invoice.rate,
-            date_sent=timezone.datetime(2022, 8, 25),
+            date_sent=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         hour_stats = HourStats(user=user)
@@ -56,24 +68,34 @@ class TestHourStats(TestCase):
 
     @patch("timary.querysets.timezone")
     def test_hour_stats_last_month(self, date_mock):
-        date_mock.now.return_value = timezone.datetime(2022, 8, 25)
+        date_mock.now.return_value = timezone.datetime(
+            2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user, rate=50)
         sent_invoice = SentInvoiceFactory(
             invoice=invoice,
             user=user,
-            date_sent=timezone.datetime(2022, 7, 25),
+            date_sent=timezone.datetime(
+                2022, 7, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
             total_price=300,
         )
         HoursLineItemFactory(
-            invoice=invoice, quantity=2, date_tracked=timezone.datetime(2022, 7, 25)
+            invoice=invoice,
+            quantity=2,
+            date_tracked=timezone.datetime(
+                2022, 7, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         HoursLineItemFactory(
             invoice=invoice,
             sent_invoice_id=sent_invoice.id,
             quantity=3,
-            date_tracked=timezone.datetime(2022, 7, 25),
+            date_tracked=timezone.datetime(
+                2022, 7, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         hour_stats = HourStats(user=user)
@@ -84,24 +106,34 @@ class TestHourStats(TestCase):
 
     @patch("timary.querysets.timezone")
     def test_hour_stats_current_year(self, date_mock):
-        date_mock.now.return_value = timezone.datetime(2022, 8, 25)
+        date_mock.now.return_value = timezone.datetime(
+            2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user, rate=50)
         sent_invoice = SentInvoiceFactory(
             invoice=invoice,
             user=user,
-            date_sent=timezone.datetime(2022, 7, 25),
+            date_sent=timezone.datetime(
+                2022, 7, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
             total_price=300,
         )
         HoursLineItemFactory(
-            invoice=invoice, quantity=2, date_tracked=timezone.datetime(2022, 5, 25)
+            invoice=invoice,
+            quantity=2,
+            date_tracked=timezone.datetime(
+                2022, 5, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         HoursLineItemFactory(
             invoice=invoice,
             sent_invoice_id=sent_invoice.id,
             quantity=3,
-            date_tracked=timezone.datetime(2022, 4, 25),
+            date_tracked=timezone.datetime(
+                2022, 4, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         hour_stats = HourStats(user=user)

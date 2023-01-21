@@ -1,5 +1,3 @@
-import datetime
-
 import factory
 from django.utils import timezone
 from factory.django import DjangoModelFactory
@@ -38,11 +36,11 @@ class UserFactory(DjangoModelFactory):
 
 
 def get_next_date():
-    return (timezone.now() + timezone.timedelta(weeks=2)).date()
+    return timezone.now() + timezone.timedelta(weeks=2)
 
 
 def get_last_date():
-    return (timezone.now() - timezone.timedelta(weeks=1)).date()
+    return timezone.now() - timezone.timedelta(weeks=1)
 
 
 class InvoiceFactory(DjangoModelFactory):
@@ -64,7 +62,7 @@ class WeeklyInvoiceFactory(InvoiceFactory):
     class Meta:
         model = WeeklyInvoice
 
-    next_date = factory.LazyFunction(timezone.now)
+    next_date = factory.LazyFunction(get_next_date)
     last_date = factory.LazyFunction(get_last_date)
     rate = factory.Faker("pyint", min_value=1000, max_value=1000)
 
@@ -104,7 +102,7 @@ class SingleInvoiceFactory(InvoiceFactory):
             SingleInvoice.InvoiceStatus.FINAL,
         ]
     )
-    due_date = factory.LazyFunction(timezone.now)
+    due_date = factory.LazyFunction(get_next_date)
 
 
 class SentInvoiceFactory(DjangoModelFactory):

@@ -1,4 +1,3 @@
-import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -87,7 +86,7 @@ class TestDailyHours(TestCase):
         self.assertTrue(hours.is_recurring_date_today())
 
     def test_is_repeating_daily_hours_end_today(self):
-        today = timezone.now().date()
+        today = timezone.now()
         start_week = get_starting_week_from_date(today).isoformat()
         hours = HoursLineItemFactory(
             recurring_logic={
@@ -129,7 +128,7 @@ class TestDailyHours(TestCase):
         """Not the valid biweekly starting week iteration, either one week ago or ahead is fine"""
         today = timezone.now()
         start_week = get_starting_week_from_date(
-            today - datetime.timedelta(weeks=1)
+            today - timezone.timedelta(weeks=1)
         ).isoformat()
         hours = HoursLineItemFactory(
             recurring_logic={
@@ -149,7 +148,7 @@ class TestDailyHours(TestCase):
             recurring_logic={
                 "type": "recurring",
                 "interval": "w",
-                "interval_days": [get_date_parsed(today - datetime.timedelta(days=1))],
+                "interval_days": [get_date_parsed(today - timezone.timedelta(days=1))],
                 "starting_week": start_week,
             }
         )
@@ -160,20 +159,20 @@ class TestInvoice(TestCase):
     def test_invoice(self):
         user = UserFactory()
 
-        def assert_valid(invoice):
-            self.assertIsNotNone(invoice)
-            self.assertIsNotNone(invoice.email_id)
-            self.assertEqual(invoice.title, "Some title")
-            self.assertEqual(invoice.user, user)
-            self.assertEqual(invoice.rate, 100)
-            self.assertEqual(invoice.client_name, "User")
-            self.assertEqual(invoice.client_email, "user@test.com")
-            self.assertEqual(invoice.next_date, next_date)
-            self.assertEqual(invoice.last_date.date(), timezone.now().date())
-            self.assertEqual(invoice.slug_title, slugify(invoice.title))
+        def assert_valid(inv):
+            self.assertIsNotNone(inv)
+            self.assertIsNotNone(inv.email_id)
+            self.assertEqual(inv.title, "Some title")
+            self.assertEqual(inv.user, user)
+            self.assertEqual(inv.rate, 100)
+            self.assertEqual(inv.client_name, "User")
+            self.assertEqual(inv.client_email, "user@test.com")
+            self.assertEqual(inv.next_date.date(), next_date.date())
+            self.assertEqual(inv.last_date.date(), timezone.now().date())
+            self.assertEqual(inv.slug_title, slugify(inv.title))
 
         with self.subTest("Interval"):
-            next_date = timezone.now() + datetime.timedelta(weeks=1)
+            next_date = timezone.now() + timezone.timedelta(weeks=1)
             invoice = IntervalInvoice.objects.create(
                 title="Some title",
                 user=user,
@@ -201,7 +200,7 @@ class TestInvoice(TestCase):
             assert_valid(invoice)
 
         with self.subTest("Weekly"):
-            next_date = timezone.now() + datetime.timedelta(weeks=1)
+            next_date = timezone.now() + timezone.timedelta(weeks=1)
             invoice = WeeklyInvoice.objects.create(
                 title="Some title",
                 user=user,
@@ -287,8 +286,8 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.last_date.date(), today.date())
 
     def test_get_hours_stats(self):
-        two_days_ago = timezone.now() - datetime.timedelta(days=2)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        two_days_ago = timezone.now() - timezone.timedelta(days=2)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
@@ -301,8 +300,8 @@ class TestInvoice(TestCase):
         )
 
     def test_get_hours_logged(self):
-        two_days_ago = timezone.now() - datetime.timedelta(days=2)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        two_days_ago = timezone.now() - timezone.timedelta(days=2)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
@@ -312,9 +311,9 @@ class TestInvoice(TestCase):
         self.assertListEqual(list(hours_logged), hours_list)
 
     def test_get_hours_logged_since_last_date(self):
-        three_days_ago = timezone.now() - datetime.timedelta(days=3)
-        two_days_ago = timezone.now() - datetime.timedelta(days=2)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        three_days_ago = timezone.now() - timezone.timedelta(days=3)
+        two_days_ago = timezone.now() - timezone.timedelta(days=2)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=two_days_ago)
         hours1 = HoursLineItemFactory(invoice=invoice, date_tracked=yesterday)
         hours2 = HoursLineItemFactory(invoice=invoice)
@@ -445,7 +444,7 @@ class TestInvoice(TestCase):
             tax_amount=6.25,
             late_penalty=True,
             late_penalty_amount=2,
-            due_date=timezone.now() - datetime.timedelta(days=1),
+            due_date=timezone.now() - timezone.timedelta(days=1),
         )
         _ = [
             LineItem.objects.create(invoice=single_invoice, quantity=1, unit_price=1)
@@ -457,8 +456,8 @@ class TestInvoice(TestCase):
 
 class TestSentInvoice(TestCase):
     def test_get_rendered_hourly_line_items(self):
-        three_days_ago = timezone.now() - datetime.timedelta(days=3)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        three_days_ago = timezone.now() - timezone.timedelta(days=3)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
@@ -496,8 +495,8 @@ class TestSentInvoice(TestCase):
         )
 
     def test_get_rendered_milestone_line_items(self):
-        three_days_ago = timezone.now() - datetime.timedelta(days=3)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        three_days_ago = timezone.now() - timezone.timedelta(days=3)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = MilestoneInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
@@ -549,8 +548,8 @@ class TestSentInvoice(TestCase):
         )
 
     def test_get_rendered_line_items_not_including_skipped(self):
-        three_days_ago = timezone.now() - datetime.timedelta(days=3)
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        three_days_ago = timezone.now() - timezone.timedelta(days=3)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
         hours1 = HoursLineItemFactory(
             quantity=0, invoice=invoice, date_tracked=yesterday
@@ -645,7 +644,7 @@ class TestUser(TestCase):
 
     def test_get_1_remaining_invoices_logged_yesterday(self):
         user = UserFactory()
-        yesterday = timezone.now() - datetime.timedelta(days=1)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
         HoursLineItemFactory(invoice__user=user, date_tracked=yesterday)
         InvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 2)
@@ -674,7 +673,7 @@ class TestUser(TestCase):
         with self.subTest("Show repeat button"):
             HoursLineItemFactory(
                 invoice=InvoiceFactory(user=user),
-                date_tracked=timezone.now() - datetime.timedelta(days=1),
+                date_tracked=timezone.now() - timezone.timedelta(days=1),
             )
             self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 1)
 

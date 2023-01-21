@@ -410,6 +410,7 @@ class TestRecurringInvoices(BaseTest):
 
     def test_pause_invoice(self):
         invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
+        invoice.update()
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
@@ -438,6 +439,7 @@ class TestRecurringInvoices(BaseTest):
 
         # Pause invoice
         invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
+        invoice.update()
         hours1 = HoursLineItemFactory(invoice=invoice)
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
@@ -647,7 +649,7 @@ class TestRecurringInvoices(BaseTest):
         hours2 = HoursLineItemFactory(invoice=self.invoice)
         hours3 = HoursLineItemFactory(
             invoice=self.invoice,
-            date_tracked=datetime.date.today() - relativedelta(months=2),
+            date_tracked=timezone.now() - relativedelta(months=2),
         )
         response = self.client.get(
             reverse("timary:edit_invoice_hours", kwargs={"invoice_id": self.invoice.id})

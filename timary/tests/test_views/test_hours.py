@@ -244,7 +244,6 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(HoursLineItem.objects.count(), 2)
 
         response = self.client.get(reverse("timary:repeat_hours"))
-        print(response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(HoursLineItem.objects.count(), 4)
@@ -302,7 +301,6 @@ class TestHourLineItems(BaseTest):
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(timezone.now()).isoformat()
-        print(start_week)
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),

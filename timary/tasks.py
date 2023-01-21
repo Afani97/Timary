@@ -145,19 +145,19 @@ def send_invoice_reminder(invoice_id):
     ):
         return
 
-    today = date.today()
+    today = timezone.now()
     current_month = date.strftime(today, "%m/%Y")
 
     line_items = single_invoice_obj.line_items.all()
     if sent_invoice is None:
         sent_invoice = SentInvoice.objects.create(
-            date_sent=date.today(),
+            date_sent=today,
             invoice=single_invoice_obj,
             user=single_invoice_obj.user,
             total_price=single_invoice_obj.balance_due,
         )
     else:
-        sent_invoice.date_send = date.today()
+        sent_invoice.date_sent = today
         sent_invoice.total_price = single_invoice_obj.balance_due
         sent_invoice.save()
 
