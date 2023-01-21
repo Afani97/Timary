@@ -1,4 +1,5 @@
 import datetime
+import zoneinfo
 from datetime import date
 from unittest.mock import patch
 
@@ -44,10 +45,10 @@ class TestGatherInvoices(TestCase):
     def test_gather_0_invoices_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=2)
         )
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() - datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() - timezone.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
@@ -56,15 +57,14 @@ class TestGatherInvoices(TestCase):
     def test_gather_0_invoices_with_next_date_null(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(invoice__next_date=None)
-        HoursLineItemFactory()
         invoices_sent = gather_invoices()
-        self.assertEqual("Invoices sent: 1", invoices_sent)
+        self.assertEqual("Invoices sent: 0", invoices_sent)
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_if_user_are_not_active(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2),
+            invoice__next_date=timezone.now() + timezone.timedelta(days=2),
             invoice__user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
         )
         invoices_sent = gather_invoices()
@@ -73,9 +73,7 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
-        )
+        HoursLineItemFactory(invoice__next_date=timezone.now())
         HoursLineItemFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
@@ -83,9 +81,9 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_3_invoices_for_today(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        HoursLineItemFactory()
-        HoursLineItemFactory()
-        HoursLineItemFactory()
+        HoursLineItemFactory(invoice__next_date=timezone.now())
+        HoursLineItemFactory(invoice__next_date=timezone.now())
+        HoursLineItemFactory(invoice__next_date=timezone.now())
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 3", invoices_sent)
 
@@ -95,7 +93,7 @@ class TestGatherInvoices(TestCase):
     ):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1),
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1),
             invoice__user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE,
         )
         invoices_sent = gather_invoices()
@@ -105,7 +103,7 @@ class TestGatherInvoices(TestCase):
     def test_gather_1_invoice_preview_for_tomorrow(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
@@ -114,13 +112,13 @@ class TestGatherInvoices(TestCase):
     def test_gather_3_invoice_previews_for_tomorrow(self, send_invoice_mock):
         send_invoice_mock.return_value = None
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1)
         )
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1)
         )
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 3", invoices_sent)
@@ -128,12 +126,12 @@ class TestGatherInvoices(TestCase):
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_and_invoice_previews(self, send_invoice_mock):
         send_invoice_mock.return_value = None
-        HoursLineItemFactory()
+        HoursLineItemFactory(invoice__next_date=timezone.now())
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=1)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=1)
         )
         HoursLineItemFactory(
-            invoice__next_date=datetime.date.today() + datetime.timedelta(days=2)
+            invoice__next_date=timezone.now() + timezone.timedelta(days=2)
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 2", invoices_sent)
@@ -143,29 +141,35 @@ class TestGatherInvoices(TestCase):
         send_invoice_mock.return_value = None
         milestone_invoice = MilestoneInvoiceFactory()
         HoursLineItemFactory(invoice=milestone_invoice)
-        HoursLineItemFactory()
+        HoursLineItemFactory(invoice__next_date=timezone.now())
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
 
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     @patch("timary.tasks.async_task")
     def test_gather_1_invoice_monday_for_weekly(self, send_invoice_mock, today_mock):
         send_invoice_mock.return_value = None
-        today_mock.today.return_value = datetime.date(2022, 8, 22)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 8, 22, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         WeeklyInvoiceFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 1", invoices_sent)
 
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_gather_0_invoice_tuesday_for_weekly(self, today_mock):
-        today_mock.today.return_value = datetime.date(2022, 8, 23)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 8, 23, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         WeeklyInvoiceFactory()
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
 
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_gather_0_invoice_for_weekly_if_user_not_active(self, today_mock):
-        today_mock.today.return_value = datetime.date(2022, 8, 23)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 8, 23, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         WeeklyInvoiceFactory(
             user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
         )
@@ -274,16 +278,16 @@ class TestGatherHours(TestCase):
     @patch("timary.models.HoursLineItem.update_recurring_starting_weeks")
     @patch("timary.tasks.timezone")
     def test_refresh_starting_weeks_on_saturday(self, date_mock, update_weeks_mock):
-        date_mock.now.return_value = timezone.datetime(2022, 12, 31)
-        # date_mock.side_effect = lambda *args, **kw: timezone.datetime(*args, **kw)
+        date_mocked = timezone.datetime(
+            2022, 12, 31, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        date_mock.now.return_value = date_mocked
         update_weeks_mock.return_value = None
         HoursLineItemFactory(
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "starting_week": get_starting_week_from_date(
-                    date_mock.date()
-                ).isoformat(),
+                "starting_week": get_starting_week_from_date(date_mocked).isoformat(),
                 "interval_days": ["mon", "tue"],
             }
         )
@@ -293,11 +297,12 @@ class TestGatherHours(TestCase):
         self.assertTrue(update_weeks_mock.assert_called_once)
 
     @patch("timary.models.HoursLineItem.cancel_recurring_hour")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_cancel_previous_recurring_logic(self, date_mock, cancel_hours_mock):
         """Prevent double stacking of hours, have one recurring instance at a time"""
-        date_mock.today.return_value = datetime.date(2022, 12, 31)
-        date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        date_mock.now.return_value = timezone.datetime(
+            2022, 12, 31, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         cancel_hours_mock.return_value = None
 
         HoursLineItemFactory(

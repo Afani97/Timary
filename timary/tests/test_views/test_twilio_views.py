@@ -1,4 +1,4 @@
-import datetime
+import zoneinfo
 from dataclasses import dataclass
 from unittest.mock import patch
 
@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django_twilio.decorators import twilio_view
 
 from timary.models import HoursLineItem
@@ -16,13 +17,18 @@ from timary.views.twilio_views import twilio_reply
 
 
 class TestTwilioSendReminderSMS(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.timezone = zoneinfo.ZoneInfo("America/New_York")
+
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_0_messages_if_no_active_subscription(
         self, today_mock, message_create_mock
     ):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         invoice = InvoiceFactory(user__phone_number_availability=["Mon"])
@@ -33,20 +39,22 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_0_messages(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_1_message(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number_availability=["Mon"])
@@ -55,10 +63,11 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_3_messages(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number_availability=["Mon"])
@@ -69,10 +78,11 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("3 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_1_message_filtering_users(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number=None)
@@ -84,12 +94,13 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_1_message_from_1_user_with_2_invoices(
         self, today_mock, message_create_mock
     ):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         user = UserFactory(phone_number_availability=["Mon"])
@@ -101,10 +112,11 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_does_not_send_1_message_on_off_day(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number_availability=["Tue"])
@@ -113,10 +125,11 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_do_not_send_1_message_in_between(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number_availability=["Sun", "Tue"])
@@ -125,10 +138,11 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     @patch("twilio.rest.api.v2010.account.message.MessageList.create")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_send_reminder(self, today_mock, message_create_mock):
-        today_mock.today.return_value = datetime.date(2022, 1, 10)
-        today_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        today_mock.now.return_value = timezone.datetime(
+            2022, 1, 10, tzinfo=self.timezone
+        )
         message_create_mock.return_value = None
 
         InvoiceFactory(user__phone_number_availability=["Mon"])
