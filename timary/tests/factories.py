@@ -1,6 +1,7 @@
 import datetime
 
 import factory
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
@@ -37,11 +38,11 @@ class UserFactory(DjangoModelFactory):
 
 
 def get_next_date():
-    return datetime.date.today() + datetime.timedelta(weeks=2)
+    return (timezone.now() + timezone.timedelta(weeks=2)).date()
 
 
 def get_last_date():
-    return datetime.date.today() - datetime.timedelta(weeks=1)
+    return (timezone.now() - timezone.timedelta(weeks=1)).date()
 
 
 class InvoiceFactory(DjangoModelFactory):
@@ -63,7 +64,7 @@ class WeeklyInvoiceFactory(InvoiceFactory):
     class Meta:
         model = WeeklyInvoice
 
-    next_date = factory.LazyFunction(datetime.date.today)
+    next_date = factory.LazyFunction(timezone.now)
     last_date = factory.LazyFunction(get_last_date)
     rate = factory.Faker("pyint", min_value=1000, max_value=1000)
 
@@ -103,7 +104,7 @@ class SingleInvoiceFactory(InvoiceFactory):
             SingleInvoice.InvoiceStatus.FINAL,
         ]
     )
-    due_date = factory.LazyFunction(datetime.date.today)
+    due_date = factory.LazyFunction(timezone.now)
 
 
 class SentInvoiceFactory(DjangoModelFactory):
@@ -112,7 +113,7 @@ class SentInvoiceFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     invoice = factory.SubFactory(IntervalInvoiceFactory)
-    date_sent = factory.LazyFunction(datetime.date.today)
+    date_sent = factory.LazyFunction(timezone.now)
     total_price = FuzzyDecimal(100, 10_000)
     paid_status = SentInvoice.PaidStatus.NOT_STARTED
 
@@ -123,7 +124,7 @@ class HoursLineItemFactory(DjangoModelFactory):
 
     invoice = factory.SubFactory(IntervalInvoiceFactory)
     quantity = FuzzyDecimal(1, 23, 1)
-    date_tracked = factory.LazyFunction(datetime.date.today)
+    date_tracked = factory.LazyFunction(timezone.now)
 
 
 class LineItemFactory(DjangoModelFactory):
@@ -134,4 +135,4 @@ class LineItemFactory(DjangoModelFactory):
     description = factory.Faker("name")
     unit_price = FuzzyDecimal(1, 10, 1)
     quantity = FuzzyDecimal(1, 23, 1)
-    date_tracked = factory.LazyFunction(datetime.date.today)
+    date_tracked = factory.LazyFunction(timezone.now)

@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -8,7 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, DateField
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -116,7 +116,7 @@ class HoursLineItem(LineItem):
 
         - Return false otherwise
         """
-        today = date.today()
+        today = timezone.now().date()
         if (
             not self.recurring_logic
             or "type" not in self.recurring_logic
@@ -347,7 +347,7 @@ class SingleInvoice(Invoice):
         if self.tax_amount:
             total_price += total_price * float(self.tax_amount / 100)
 
-        if self.late_penalty and self.due_date < date.today():
+        if self.late_penalty and self.due_date < timezone.now():
             total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
@@ -383,14 +383,14 @@ class RecurringInvoice(Invoice):
         )
 
     def get_last_six_months(self):
-        today = date.today()
+        today = timezone.now()
         date_times = [
-            (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
+            (today - relativedelta(months=m)).date().replace(day=1) for m in range(0, 6)
         ]
         six_months_qs = (
             self.invoice_snapshots.exclude(paid_status=SentInvoice.PaidStatus.FAILED)
             .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-            .annotate(month=TruncMonth("date_sent"))
+            .annotate(month=TruncMonth("date_sent", output_field=DateField()))
             .distinct()
             .values("month")
             .order_by("month")
@@ -418,9 +418,9 @@ class RecurringInvoice(Invoice):
         if not self.total_budget:
             return 0
 
-        total_hours = self.line_items.filter(date_tracked__lte=date.today()).aggregate(
-            total_hours=Sum("quantity")
-        )
+        total_hours = self.line_items.filter(
+            date_tracked__lte=timezone.now()
+        ).aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * self.rate
@@ -864,9 +864,14 @@ class User(AbstractUser, BaseModel):
         return self.invoices.all()
 
     def invoices_not_logged(self):
+        today = timezone.now()
+        today_range = (
+            today.replace(hour=0, minute=0, second=0),
+            today.replace(hour=23, minute=59, second=59),
+        )
         invoices = set(
             self.get_invoices.filter(
-                Q(is_paused=False) & Q(line_items__date_tracked__exact=date.today())
+                Q(is_paused=False) & Q(line_items__date_tracked__range=today_range)
             )
         )
         remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices
