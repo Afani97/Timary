@@ -193,7 +193,7 @@ class HoursLineItemForm(forms.ModelForm):
                 "interval": interval_schedule,
                 "interval_days": interval_days,
                 "starting_week": get_starting_week_from_date(
-                    starting_week_date.date()
+                    starting_week_date
                 ).isoformat(),
             }
             if repeating:
@@ -458,12 +458,13 @@ class SingleInvoiceForm(InvoiceForm):
         ),
     )
     due_date = forms.DateTimeField(
+        required=False,
         widget=DateInput(
             attrs={
                 "value": next_month(),
                 "class": "input input-bordered border-2 text-lg w-full",
             }
-        )
+        ),
     )
 
     class Meta(InvoiceForm.Meta):
@@ -527,9 +528,7 @@ class SingleInvoiceForm(InvoiceForm):
     def clean_due_date(self):
         due_date = self.cleaned_data.get("due_date")
         if not due_date:
-            self.cleaned_data["due_date"] = timezone.now().date() + timezone.timedelta(
-                weeks=4
-            )
+            self.cleaned_data["due_date"] = timezone.now() + timezone.timedelta(weeks=4)
             due_date = self.cleaned_data.get("due_date")
         if due_date.date() <= timezone.now().date():
             raise ValidationError("Due date cannot be set prior to today.")

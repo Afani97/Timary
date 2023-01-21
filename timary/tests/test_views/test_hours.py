@@ -1,9 +1,9 @@
-import datetime
 import random
 
 from django.db.models import Sum
 from django.template.defaultfilters import floatformat
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from timary.models import HoursLineItem
@@ -55,7 +55,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
             },
         )
@@ -69,7 +69,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": [invoice.id, invoice2.id],
             },
         )
@@ -83,7 +83,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": -1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
             },
         )
@@ -101,7 +101,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": -1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": [invoice.id, invoice2.id],
             },
         )
@@ -168,7 +168,7 @@ class TestHourLineItems(BaseTest):
     def test_update_daily_hours(self):
         url_params = {
             "quantity": random.randint(1, 23),
-            "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
+            "date_tracked": timezone.now() - timezone.timedelta(days=1),
             "invoice": str(self.hours.invoice.id),
         }
         response = self.client.put(
@@ -196,7 +196,7 @@ class TestHourLineItems(BaseTest):
         random_hours = random.randint(1, 23)
         url_params = {
             "quantity": random_hours,
-            "date_tracked": datetime.date.today() - datetime.timedelta(days=1),
+            "date_tracked": timezone.now() - timezone.timedelta(days=1),
             "invoice": self.hours.invoice.id,
         }
         response = self.client.patch(
@@ -235,15 +235,16 @@ class TestHourLineItems(BaseTest):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         self.assertEqual(HoursLineItem.objects.count(), 2)
 
         response = self.client.get(reverse("timary:repeat_hours"))
+        print(response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(HoursLineItem.objects.count(), 4)
@@ -253,17 +254,17 @@ class TestHourLineItems(BaseTest):
         HoursLineItemFactory(
             quantity=1,
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             quantity=0,
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             quantity=2,
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         self.assertEqual(
             int(
@@ -294,20 +295,21 @@ class TestHourLineItems(BaseTest):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        start_week = get_starting_week_from_date(timezone.now()).isoformat()
+        print(start_week)
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(datetime.date.today())],
+                "interval_days": [get_date_parsed(timezone.now().date())],
                 "starting_week": start_week,
             },
         )
@@ -324,34 +326,34 @@ class TestHourLineItems(BaseTest):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
-        start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        start_week = get_starting_week_from_date(timezone.now()).isoformat()
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(datetime.date.today())],
+                "interval_days": [get_date_parsed(timezone.now())],
                 "starting_week": start_week,
             },
         )
         # Biweekly shouldn't be added since not correct week
         bi_weekly_start_week = get_starting_week_from_date(
-            datetime.date.today() + datetime.timedelta(weeks=+1)
+            timezone.now() + timezone.timedelta(weeks=+1)
         ).isoformat()
         HoursLineItemFactory(
             invoice=InvoiceFactory(user=self.user),
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(datetime.date.today())],
+                "interval_days": [get_date_parsed(timezone.now())],
                 "starting_week": bi_weekly_start_week,
             },
         )
@@ -369,10 +371,10 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -388,10 +390,10 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": [invoice.id, invoice2.id],
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -407,10 +409,10 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() - datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() - timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -424,7 +426,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "d",
@@ -441,7 +443,7 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": datetime.date.today(),
+                "date_tracked": timezone.now(),
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "m",

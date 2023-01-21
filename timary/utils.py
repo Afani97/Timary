@@ -1,6 +1,6 @@
 import json
 import zoneinfo
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.utils import timezone
 from requests import Response
@@ -55,8 +55,8 @@ def convert_hours_to_decimal_hours(time):
 
 def get_starting_week_from_date(date):
     if date.weekday() == 6:
-        return date
-    return date - timezone.timedelta(days=timezone.now().isoweekday() % 7)
+        return date.date()
+    return (date - timezone.timedelta(days=timezone.now().isoweekday() % 7)).date()
 
 
 def get_date_parsed(date):

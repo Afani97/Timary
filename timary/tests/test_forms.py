@@ -1,4 +1,3 @@
-import datetime
 import uuid
 
 from dateutil.relativedelta import relativedelta
@@ -562,7 +561,7 @@ class TestHoursLineItem(TestCase):
             data={
                 "quantity": 1,
                 "invoice": self.invoice.id,
-                "date_tracked": self.today + datetime.timedelta(days=7),
+                "date_tracked": self.today + timezone.timedelta(days=7),
             },
         )
         self.assertEqual(
@@ -570,15 +569,15 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_daily(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             }
         )
@@ -590,22 +589,22 @@ class TestHoursLineItem(TestCase):
                 "interval": "d",
                 "interval_days": [],
                 "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
-                "end_date": (
-                    datetime.date.today() + datetime.timedelta(weeks=1)
-                ).isoformat(),
+                "end_date": (timezone.now() + timezone.timedelta(weeks=1))
+                .date()
+                .isoformat(),
             },
         )
 
     def test_hours_repeating_weekly(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "w",
                 "repeat_interval_days": ["mon", "tue"],
             }
@@ -618,14 +617,14 @@ class TestHoursLineItem(TestCase):
                 "interval": "w",
                 "interval_days": ["mon", "tue"],
                 "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
-                "end_date": (
-                    datetime.date.today() + datetime.timedelta(weeks=1)
-                ).isoformat(),
+                "end_date": (timezone.now() + timezone.timedelta(weeks=1))
+                .date()
+                .isoformat(),
             },
         )
 
     def test_hours_recurring_daily(self):
-        date_tracked = timezone.datetime(2022, 1, 5).date()
+        date_tracked = timezone.datetime(2022, 1, 5)
         invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
         form = HoursLineItemForm(
             data={
@@ -648,8 +647,8 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_recurring_weekly(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(last_date=timezone.datetime(2022, 1, 4))
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -740,7 +739,7 @@ class TestHoursLineItem(TestCase):
         self.assertTrue(form.is_valid())
         self.assertEqual(
             form.cleaned_data.get("recurring_logic")["starting_week"],
-            get_starting_week_from_date(date_tracked.date()).isoformat(),
+            get_starting_week_from_date(date_tracked).isoformat(),
         )
 
     def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
@@ -762,7 +761,7 @@ class TestHoursLineItem(TestCase):
                 "interval": "d",
                 "interval_days": [],
                 "starting_week": get_starting_week_from_date(
-                    timezone.datetime(2022, 1, 9).date()  # Sun Jan 8, 2022
+                    timezone.datetime(2022, 1, 9)  # Sun Jan 8, 2022
                 ).isoformat(),
             },
         )
@@ -787,7 +786,7 @@ class TestHoursLineItem(TestCase):
                 "interval": "b",
                 "interval_days": ["mon", "tue"],
                 "starting_week": get_starting_week_from_date(
-                    timezone.datetime(2022, 1, 16).date()  # Sun Jan 15, 2022
+                    timezone.datetime(2022, 1, 16)  # Sun Jan 15, 2022
                 ).isoformat(),
             },
         )

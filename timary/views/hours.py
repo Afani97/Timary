@@ -219,7 +219,7 @@ def repeat_hours(request):
         )
 
     # Add recurring hours if scheduled for today or daily
-    # gather_recurring_hours()
+    gather_recurring_hours()
 
     hours_manager = HoursManager(request.user)
     show_most_frequent_options = hours_manager.show_most_frequent_options()

@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -8,7 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, Sum, DateField
+from django.db.models import DateField, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -116,7 +116,7 @@ class HoursLineItem(LineItem):
 
         - Return false otherwise
         """
-        today = timezone.now().date()
+        today = timezone.now()
         if (
             not self.recurring_logic
             or "type" not in self.recurring_logic
@@ -128,7 +128,10 @@ class HoursLineItem(LineItem):
         ):
             return False
         if self.recurring_logic["type"] == "repeating":
-            if date.fromisoformat(self.recurring_logic["end_date"]) <= today:
+            if (
+                datetime.fromisoformat(self.recurring_logic["end_date"]).date()
+                <= today.date()
+            ):
                 self.cancel_recurring_hour()
                 return False
 
@@ -136,9 +139,14 @@ class HoursLineItem(LineItem):
             return True
 
         if self.recurring_logic["interval"] in ["w", "b"]:
-            starting_week = date.fromisoformat(self.recurring_logic["starting_week"])
+            starting_week = datetime.fromisoformat(
+                self.recurring_logic["starting_week"]
+            ).date()
             if starting_week == get_starting_week_from_date(today):
-                if get_date_parsed(today) in self.recurring_logic["interval_days"]:
+                if (
+                    get_date_parsed(today.date())
+                    in self.recurring_logic["interval_days"]
+                ):
                     return True
 
         return False
@@ -151,7 +159,7 @@ class HoursLineItem(LineItem):
             num_weeks = 1 if self.recurring_logic["interval"] != "b" else 2
             self.recurring_logic["starting_week"] = (
                 date.fromisoformat(self.recurring_logic["starting_week"])
-                + timedelta(weeks=num_weeks)
+                + timezone.timedelta(weeks=num_weeks)
             ).isoformat()
             self.save()
 
@@ -375,7 +383,7 @@ class RecurringInvoice(Invoice):
     def get_hours_tracked(self):
         return (
             self.line_items.filter(
-                date_tracked__gte=self.last_date, sent_invoice_id__isnull=True
+                date_tracked__gte=self.last_date.date(), sent_invoice_id__isnull=True
             )
             .exclude(quantity=0)
             .annotate(cost=self.rate * Sum("quantity"))

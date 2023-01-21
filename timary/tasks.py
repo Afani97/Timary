@@ -6,6 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
+from django.utils import timezone
 from django_q.tasks import async_task, schedule
 
 from timary.invoice_builder import InvoiceBuilder
@@ -28,7 +29,8 @@ def gather_recurring_hours():
         Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
     ).exclude(invoice__is_archived=True)
 
-    is_today_saturday = date.today().weekday() == 5
+    today = timezone.now()
+    is_today_saturday = today.weekday() == 5
 
     new_hours_added = []
 
@@ -37,7 +39,7 @@ def gather_recurring_hours():
 
             new_hours = HoursLineItem.objects.create(
                 quantity=recurring_hour.quantity,
-                date_tracked=date.today(),
+                date_tracked=today,
                 invoice=recurring_hour.invoice,
                 recurring_logic=recurring_hour.recurring_logic,
             )

@@ -8,6 +8,7 @@ from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from timary.models import HoursLineItem, SentInvoice, User
 from timary.tasks import (
@@ -175,9 +176,9 @@ class TestGatherInvoices(TestCase):
 class TestGatherHours(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.start_week = get_starting_week_from_date(datetime.date.today()).isoformat()
+        cls.start_week = get_starting_week_from_date(timezone.now()).isoformat()
         cls.next_week = get_starting_week_from_date(
-            datetime.date.today() + datetime.timedelta(weeks=1)
+            timezone.now() + timezone.timedelta(weeks=1)
         ).isoformat()
 
     def test_gather_0_hours(self):
@@ -224,7 +225,7 @@ class TestGatherHours(TestCase):
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
-                "interval_days": [get_date_parsed(date.today())],
+                "interval_days": [get_date_parsed(timezone.now().date())],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
             }
@@ -255,7 +256,9 @@ class TestGatherHours(TestCase):
                 "type": "repeating",
                 "interval": "w",
                 "interval_days": [
-                    get_date_parsed(date.today() - datetime.timedelta(days=1))
+                    get_date_parsed(
+                        (timezone.now() - timezone.timedelta(days=1)).date()
+                    )
                 ],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
@@ -269,18 +272,20 @@ class TestGatherHours(TestCase):
         self.assertIsNotNone(hours.recurring_logic)
 
     @patch("timary.models.HoursLineItem.update_recurring_starting_weeks")
-    @patch("timary.tasks.date")
+    @patch("timary.tasks.timezone")
     def test_refresh_starting_weeks_on_saturday(self, date_mock, update_weeks_mock):
-        date_mock.today.return_value = datetime.date(2022, 12, 31)
-        date_mock.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
+        date_mock.now.return_value = timezone.datetime(2022, 12, 31)
+        # date_mock.side_effect = lambda *args, **kw: timezone.datetime(*args, **kw)
         update_weeks_mock.return_value = None
+
+        print(get_starting_week_from_date(date_mock).date())
 
         HoursLineItemFactory(
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
                 "starting_week": get_starting_week_from_date(
-                    date_mock.today()
+                    date_mock.date()
                 ).isoformat(),
                 "interval_days": ["mon", "tue"],
             }

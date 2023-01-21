@@ -100,7 +100,7 @@ class TestDailyHours(TestCase):
         self.assertFalse(hours.is_recurring_date_today())
 
     def test_is_recurring_weekly_hours_date_today(self):
-        today = timezone.now().date()
+        today = timezone.now()
         start_week = get_starting_week_from_date(today).isoformat()
         hours = HoursLineItemFactory(
             recurring_logic={
@@ -113,7 +113,7 @@ class TestDailyHours(TestCase):
         self.assertTrue(hours.is_recurring_date_today())
 
     def test_is_recurring_biweekly_hours_date_today(self):
-        today = timezone.now().date()
+        today = timezone.now()
         start_week = get_starting_week_from_date(today).isoformat()
         hours = HoursLineItemFactory(
             recurring_logic={
@@ -127,7 +127,7 @@ class TestDailyHours(TestCase):
 
     def test_is_recurring_biweekly_hours_date_today_not_valid_week(self):
         """Not the valid biweekly starting week iteration, either one week ago or ahead is fine"""
-        today = timezone.now().date()
+        today = timezone.now()
         start_week = get_starting_week_from_date(
             today - datetime.timedelta(weeks=1)
         ).isoformat()
@@ -143,7 +143,7 @@ class TestDailyHours(TestCase):
 
     def test_is_recurring_weekly_hours_date_today_not_valid_day(self):
         """Not the valid weekly interval day"""
-        today = timezone.now().date()
+        today = timezone.now()
         start_week = get_starting_week_from_date(today).isoformat()
         hours = HoursLineItemFactory(
             recurring_logic={

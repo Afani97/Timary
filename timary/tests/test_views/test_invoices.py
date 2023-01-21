@@ -8,6 +8,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from timary.models import (
@@ -423,8 +424,8 @@ class TestRecurringInvoices(BaseTest):
         invoice.refresh_from_db()
 
         self.assertEqual(
-            invoice.next_date,
-            datetime.date.today() + invoice.get_next_date(),
+            invoice.next_date.date(),
+            (timezone.now() + invoice.get_next_date()).date(),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -455,8 +456,8 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(
-            invoice.next_date,
-            datetime.date.today() + invoice.get_next_date(),
+            invoice.next_date.date(),
+            (timezone.now() + invoice.get_next_date()).date(),
         )
         self.assertIn(hours1, invoice.get_hours_tracked())
 
@@ -822,7 +823,7 @@ class TestSingleInvoices(BaseTest):
             },
         )
 
-        invoice = Invoice.objects.first()
+        invoice = SingleInvoice.objects.first()
         self.assertRedirects(
             response,
             reverse(
