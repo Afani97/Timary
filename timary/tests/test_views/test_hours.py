@@ -2,6 +2,7 @@ import random
 
 from django.db.models import Sum
 from django.template.defaultfilters import floatformat
+from django.template.defaultfilters import time as template_time
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -14,7 +15,11 @@ from timary.tests.factories import (
     UserFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
-from timary.utils import get_date_parsed, get_starting_week_from_date
+from timary.utils import (
+    get_date_parsed,
+    get_starting_week_from_date,
+    get_users_localtime,
+)
 
 
 class TestHourLineItems(BaseTest):
@@ -449,3 +454,43 @@ class TestHourLineItems(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(HoursLineItem.objects.first())
+
+    def test_get_hours_ny_timezone(self):
+        user = UserFactory()
+        user.timezone = "America/New_York"
+        invoice = IntervalInvoiceFactory(user=user)
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 1,
+                "date_tracked": timezone.now(),
+                "invoice": invoice.id,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        user_localtime = template_time(get_users_localtime(user), "g:i a")
+        self.assertIn(
+            f"{invoice.title} - {user_localtime}", response.content.decode("utf-8")
+        )
+
+    def test_get_hours_la_timezone(self):
+        user = UserFactory()
+        user.timezone = "America/Los_Angeles"
+        user.save()
+        invoice = IntervalInvoiceFactory(user=user)
+        users_localtime = get_users_localtime(user)
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 1,
+                "date_tracked": users_localtime,
+                "invoice": invoice.id,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        user_localtime = template_time(users_localtime, "g:i a")
+        self.assertIn(
+            f"{invoice.title} - {user_localtime}", response.content.decode("utf-8")
+        )

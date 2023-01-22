@@ -156,7 +156,6 @@ class HoursLineItemForm(forms.ModelForm):
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
         if date_tracked and invoice and hasattr(invoice, "last_date"):
-
             invoice_last_date = invoice.last_date
             if self.user:
                 invoice_last_date = invoice_last_date.astimezone(
