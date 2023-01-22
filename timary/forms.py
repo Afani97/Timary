@@ -1,10 +1,12 @@
-import datetime
+import zoneinfo
 
+import pytz
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db.models import Q
+from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
@@ -18,7 +20,7 @@ from timary.models import (
     User,
     WeeklyInvoice,
 )
-from timary.utils import get_starting_week_from_date
+from timary.utils import get_starting_week_from_date, get_users_localtime
 
 
 class DateInput(forms.DateInput):
@@ -32,7 +34,7 @@ class LineItemForm(forms.ModelForm):
 
 
 class HoursLineItemForm(forms.ModelForm):
-    date_tracked = forms.DateField(
+    date_tracked = forms.DateTimeField(
         required=True,
         widget=DateInput(
             attrs={
@@ -42,7 +44,7 @@ class HoursLineItemForm(forms.ModelForm):
     )
     repeating = forms.BooleanField(required=False, initial=False)
     recurring = forms.BooleanField(required=False, initial=False)
-    repeat_end_date = forms.DateField(
+    repeat_end_date = forms.DateTimeField(
         required=False,
     )
     repeat_interval_schedule = forms.ChoiceField(
@@ -63,12 +65,14 @@ class HoursLineItemForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user") if "user" in kwargs else None
+        self.user = kwargs.pop("user") if "user" in kwargs else None
 
         super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
-        if user:
-            invoice_qs = user.get_invoices.filter(is_paused=False).exclude(
+        users_localtime = timezone.now()
+        if self.user:
+            users_localtime = get_users_localtime(self.user)
+            invoice_qs = self.user.get_invoices.filter(is_paused=False).exclude(
                 Q(instance_of=SingleInvoice)
             )
             invoice_qs_count = invoice_qs.count()
@@ -79,9 +83,8 @@ class HoursLineItemForm(forms.ModelForm):
                 self.fields["invoice"].queryset = RecurringInvoice.objects.none()
             self.fields["invoice"].widget.attrs["qs_count"] = invoice_qs_count
 
-        # Set date_tracked value/max when form is initialized
-        self.fields["date_tracked"].widget.attrs["value"] = datetime.date.today()
-        self.fields["date_tracked"].widget.attrs["max"] = datetime.date.today()
+        date_tracked = users_localtime.date()
+
         if (
             self.initial
             and self.instance.invoice
@@ -89,8 +92,15 @@ class HoursLineItemForm(forms.ModelForm):
         ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
-            ] = self.instance.invoice.last_date
+            ] = self.instance.invoice.last_date.date()
+            date_tracked = self.instance.date_tracked.astimezone(
+                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            ).date()
             self.fields["quantity"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
+        else:
+            self.fields["date_tracked"].widget.attrs["max"] = users_localtime.date()
+
+        self.fields["date_tracked"].widget.attrs["value"] = date_tracked
 
     class Meta:
         model = HoursLineItem
@@ -115,9 +125,14 @@ class HoursLineItemForm(forms.ModelForm):
     field_order = ["quantity", "date_tracked", "invoice"]
 
     def clean_date_tracked(self):
+        if self.user:
+            now = get_users_localtime(self.user)
+        else:
+            now = timezone.now()
         date_tracked = self.cleaned_data.get("date_tracked")
-        if date_tracked > datetime.date.today():
+        if date_tracked.date() > now.date():
             raise ValidationError("Cannot set date into the future!")
+        date_tracked = date_tracked.replace(hour=now.hour, minute=now.minute)
         return date_tracked
 
     def clean_quantity(self):
@@ -141,7 +156,12 @@ class HoursLineItemForm(forms.ModelForm):
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
         if date_tracked and invoice and hasattr(invoice, "last_date"):
-            if date_tracked < invoice.last_date:
+            invoice_last_date = invoice.last_date
+            if self.user:
+                invoice_last_date = invoice_last_date.astimezone(
+                    tz=zoneinfo.ZoneInfo(self.user.timezone)
+                )
+            if date_tracked.date() < invoice_last_date.date():
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
                 )
@@ -156,7 +176,7 @@ class HoursLineItemForm(forms.ModelForm):
             raise ValidationError("Cannot set repeating and recurring both to true.")
         if repeating and not repeat_end_date:
             raise ValidationError("Cannot have a repeating hour without an end date.")
-        if repeating and repeat_end_date and repeat_end_date < datetime.date.today():
+        if repeating and repeat_end_date and repeat_end_date < timezone.now():
             raise ValidationError("Cannot set repeat end date less than today.")
         if recurring and repeat_end_date:
             validated_data.pop("repeat_end_date")
@@ -169,7 +189,7 @@ class HoursLineItemForm(forms.ModelForm):
                 # If date is saturday, set it to sunday to update start_week
                 # If interval_schedule is biweekly, set it to the sunday after the next
                 days_ahead = 1 if interval_schedule != "b" else 8
-                starting_week_date = starting_week_date + datetime.timedelta(
+                starting_week_date = starting_week_date + timezone.timedelta(
                     days=days_ahead
                 )
             recurring_logic = {
@@ -182,7 +202,10 @@ class HoursLineItemForm(forms.ModelForm):
             }
             if repeating:
                 recurring_logic.update(
-                    {"type": "repeating", "end_date": repeat_end_date.isoformat()}
+                    {
+                        "type": "repeating",
+                        "end_date": repeat_end_date.date().isoformat(),
+                    }
                 )
             validated_data["recurring_logic"] = recurring_logic
 
@@ -421,7 +444,7 @@ UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
 
 
 def next_month():
-    return datetime.date.today() + relativedelta(months=1)
+    return timezone.now() + relativedelta(months=1)
 
 
 class SingleInvoiceForm(InvoiceForm):
@@ -435,6 +458,15 @@ class SingleInvoiceForm(InvoiceForm):
         widget=forms.Select(
             attrs={
                 "class": "select select-bordered border-2 text-lg w-full",
+            }
+        ),
+    )
+    due_date = forms.DateTimeField(
+        required=False,
+        widget=DateInput(
+            attrs={
+                "value": next_month(),
+                "class": "input input-bordered border-2 text-lg w-full",
             }
         ),
     )
@@ -463,12 +495,6 @@ class SingleInvoiceForm(InvoiceForm):
             "tax_amount": "Tax",
         }
         widgets = {
-            "due_date": DateInput(
-                attrs={
-                    "value": next_month(),
-                    "class": "input input-bordered border-2 text-lg w-full",
-                }
-            ),
             "invoice_interval": forms.Select(
                 attrs={
                     "class": "select select-bordered bg-neutral border-2 text-lg w-full",
@@ -506,11 +532,9 @@ class SingleInvoiceForm(InvoiceForm):
     def clean_due_date(self):
         due_date = self.cleaned_data.get("due_date")
         if not due_date:
-            self.cleaned_data["due_date"] = datetime.date.today() + datetime.timedelta(
-                weeks=4
-            )
+            self.cleaned_data["due_date"] = timezone.now() + timezone.timedelta(weeks=4)
             due_date = self.cleaned_data.get("due_date")
-        if due_date <= datetime.date.today():
+        if due_date.date() <= timezone.now().date():
             raise ValidationError("Due date cannot be set prior to today.")
         return due_date
 
@@ -616,10 +640,21 @@ class UserForm(forms.ModelForm):
         ),
     )
     profile_pic = forms.ImageField(required=False)
+    timezone = forms.ChoiceField(
+        choices=[(x, x) for x in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "select select-bordered border-2 w-full"}),
+    )
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "phone_number", "profile_pic"]
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "profile_pic",
+            "timezone",
+        ]
 
     field_order = [
         "profile_pic",
@@ -714,6 +749,7 @@ class RegisterForm(forms.ModelForm):
         help_text="Please provide at least 5 characters including 1 uppercase, 1 number, 1 special character.",
         required=True,
     )
+    timezone = forms.CharField(required=False, widget=forms.HiddenInput)
 
     def clean_full_name(self):
         full_name = self.cleaned_data.get("full_name")
@@ -744,11 +780,7 @@ class RegisterForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = (
-            "full_name",
-            "email",
-            "password",
-        )
+        fields = ["full_name", "email", "password", "timezone"]
 
 
 class LoginForm(forms.Form):

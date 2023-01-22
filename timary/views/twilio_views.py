@@ -1,6 +1,6 @@
-import datetime
 from decimal import Decimal, InvalidOperation
 
+from django.utils import timezone
 from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
 from twilio.twiml.messaging_response import MessagingResponse
@@ -67,7 +67,7 @@ def twilio_reply(request):
         if hours and 0 < hours <= 24:
             HoursLineItem.objects.create(
                 quantity=hours,
-                date_tracked=datetime.date.today(),
+                date_tracked=timezone.now(),
                 invoice=invoice,
             )
         else:
@@ -79,7 +79,7 @@ def twilio_reply(request):
     else:
         HoursLineItem.objects.create(
             quantity=0,
-            date_tracked=datetime.date.today(),
+            date_tracked=timezone.now(),
             invoice=invoice,
         )
 

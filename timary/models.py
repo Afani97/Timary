@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -8,11 +8,12 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import DateField, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.text import slugify
 from django_q.tasks import async_task
 from multiselectfield import MultiSelectField
@@ -26,7 +27,11 @@ from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.utils import get_date_parsed, get_starting_week_from_date
+from timary.utils import (
+    get_date_parsed,
+    get_starting_week_from_date,
+    get_users_localtime,
+)
 
 
 def create_new_ref_number():
@@ -61,7 +66,7 @@ class LineItem(PolymorphicModel, BaseModel):
     invoice = models.ForeignKey(
         "timary.Invoice", on_delete=models.CASCADE, related_name="line_items"
     )
-    date_tracked = models.DateField(null=True, blank=True)
+    date_tracked = models.DateTimeField(null=True, blank=True)
     description = models.CharField(max_length=200, null=True, blank=True)
     quantity = models.DecimalField(
         default=1,
@@ -115,7 +120,7 @@ class HoursLineItem(LineItem):
 
         - Return false otherwise
         """
-        today = date.today()
+        today = timezone.now()
         if (
             not self.recurring_logic
             or "type" not in self.recurring_logic
@@ -127,7 +132,10 @@ class HoursLineItem(LineItem):
         ):
             return False
         if self.recurring_logic["type"] == "repeating":
-            if date.fromisoformat(self.recurring_logic["end_date"]) <= today:
+            if (
+                datetime.fromisoformat(self.recurring_logic["end_date"]).date()
+                <= today.date()
+            ):
                 self.cancel_recurring_hour()
                 return False
 
@@ -135,9 +143,14 @@ class HoursLineItem(LineItem):
             return True
 
         if self.recurring_logic["interval"] in ["w", "b"]:
-            starting_week = date.fromisoformat(self.recurring_logic["starting_week"])
+            starting_week = datetime.fromisoformat(
+                self.recurring_logic["starting_week"]
+            ).date()
             if starting_week == get_starting_week_from_date(today):
-                if get_date_parsed(today) in self.recurring_logic["interval_days"]:
+                if (
+                    get_date_parsed(today.date())
+                    in self.recurring_logic["interval_days"]
+                ):
                     return True
 
         return False
@@ -150,7 +163,7 @@ class HoursLineItem(LineItem):
             num_weeks = 1 if self.recurring_logic["interval"] != "b" else 2
             self.recurring_logic["starting_week"] = (
                 date.fromisoformat(self.recurring_logic["starting_week"])
-                + timedelta(weeks=num_weeks)
+                + timezone.timedelta(weeks=num_weeks)
             ).isoformat()
             self.save()
 
@@ -267,7 +280,7 @@ class SingleInvoice(Invoice):
         blank=True,
     )
     client_second_email = models.EmailField(null=True, blank=True)
-    due_date = models.DateField(null=True, blank=True)
+    due_date = models.DateTimeField(null=True, blank=True)
     send_reminder = models.BooleanField(default=False, null=True, blank=True)
 
     late_penalty = models.BooleanField(default=False, null=True, blank=True)
@@ -346,7 +359,7 @@ class SingleInvoice(Invoice):
         if self.tax_amount:
             total_price += total_price * float(self.tax_amount / 100)
 
-        if self.late_penalty and self.due_date < date.today():
+        if self.late_penalty and self.due_date < timezone.now():
             total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
@@ -358,8 +371,8 @@ class SingleInvoice(Invoice):
 
 class RecurringInvoice(Invoice):
 
-    next_date = models.DateField(null=True, blank=True)
-    last_date = models.DateField(null=True, blank=True)
+    next_date = models.DateTimeField(null=True, blank=True)
+    last_date = models.DateTimeField(null=True, blank=True)
 
     def __repr__(self):
         return (
@@ -382,14 +395,14 @@ class RecurringInvoice(Invoice):
         )
 
     def get_last_six_months(self):
-        today = date.today()
+        today = timezone.now()
         date_times = [
-            (today - relativedelta(months=m)).replace(day=1) for m in range(0, 6)
+            (today - relativedelta(months=m)).date().replace(day=1) for m in range(0, 6)
         ]
         six_months_qs = (
             self.invoice_snapshots.exclude(paid_status=SentInvoice.PaidStatus.FAILED)
             .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-            .annotate(month=TruncMonth("date_sent"))
+            .annotate(month=TruncMonth("date_sent", output_field=DateField()))
             .distinct()
             .values("month")
             .order_by("month")
@@ -417,9 +430,9 @@ class RecurringInvoice(Invoice):
         if not self.total_budget:
             return 0
 
-        total_hours = self.line_items.filter(date_tracked__lte=date.today()).aggregate(
-            total_hours=Sum("quantity")
-        )
+        total_hours = self.line_items.filter(
+            date_tracked__lte=timezone.now()
+        ).aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * self.rate
@@ -472,9 +485,9 @@ class IntervalInvoice(RecurringInvoice):
 
     def get_next_date(self):
         if self.invoice_interval == IntervalInvoice.Interval.WEEKLY:
-            return timedelta(weeks=1)
+            return timezone.timedelta(weeks=1)
         elif self.invoice_interval == IntervalInvoice.Interval.BIWEEKLY:
-            return timedelta(weeks=2)
+            return timezone.timedelta(weeks=2)
         elif self.invoice_interval == IntervalInvoice.Interval.MONTHLY:
             return relativedelta(months=1)
         elif self.invoice_interval == IntervalInvoice.Interval.QUARTERLY:
@@ -483,7 +496,7 @@ class IntervalInvoice(RecurringInvoice):
             return relativedelta(years=1)
 
     def calculate_next_date(self, update_last: bool = True):
-        todays_date = date.today()
+        todays_date = get_users_localtime(self.user)
         self.next_date = todays_date + self.get_next_date()
         if update_last:
             self.last_date = todays_date
@@ -505,7 +518,7 @@ class WeeklyInvoice(RecurringInvoice):
         return "weekly"
 
     def update(self):
-        self.last_date = date.today()
+        self.last_date = timezone.now()
         self.save()
 
     def form_class(self, action="create"):
@@ -560,7 +573,7 @@ class MilestoneInvoice(RecurringInvoice):
 
     def update(self):
         self.milestone_step += 1
-        self.last_date = date.today()
+        self.last_date = timezone.now()
         self.save()
 
     def form_class(self, action="create"):
@@ -634,7 +647,7 @@ class SentInvoice(BaseModel):
         FAILED = 3, "FAILED"
         CANCELLED = 4, "CANCELLED"
 
-    date_sent = models.DateField(null=False, blank=False)
+    date_sent = models.DateTimeField(null=False, blank=False)
     invoice = models.ForeignKey(
         "timary.Invoice",
         on_delete=models.SET_NULL,
@@ -677,7 +690,7 @@ class SentInvoice(BaseModel):
     def create(cls, invoice):
         hours_tracked, total_cost = invoice.get_hours_stats()
         return SentInvoice.objects.create(
-            date_sent=date.today(),
+            date_sent=timezone.now(),
             invoice=invoice,
             user=invoice.user,
             total_price=total_cost,
@@ -811,6 +824,10 @@ class User(AbstractUser, BaseModel):
     )
     phone_number_repeat_sms = models.BooleanField(default=False)
 
+    timezone = models.CharField(
+        default="America/New_York", max_length=100, null=False, blank=False
+    )
+
     # Accounting integration
     accounting_org = models.CharField(max_length=200, blank=True, null=True)
     accounting_org_id = models.CharField(max_length=200, null=True, blank=True)
@@ -859,9 +876,14 @@ class User(AbstractUser, BaseModel):
         return self.invoices.all()
 
     def invoices_not_logged(self):
+        today = timezone.now()
+        today_range = (
+            today.replace(hour=0, minute=0, second=0),
+            today.replace(hour=23, minute=59, second=59),
+        )
         invoices = set(
             self.get_invoices.filter(
-                Q(is_paused=False) & Q(line_items__date_tracked__exact=date.today())
+                Q(is_paused=False) & Q(line_items__date_tracked__range=today_range)
             )
         )
         remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices

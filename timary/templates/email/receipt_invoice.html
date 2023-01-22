@@ -1,5 +1,5 @@
 {% extends "email/base_invoice.html" %}
-{% load filters %}
+{% load filters tz %}
 
 {% block preheader %}
     <span class="preheader">This is a copy of the invoice paid for {{ user_name }}'s services on {{ sent_invoice.date_sent }}.</span>
@@ -8,7 +8,7 @@
 {% block main %}
     <div class="mb-6">
         <div class="mt-0 mb-4  text-3xl font-semibold text-left">Hi {{ sent_invoice.invoice.client_name }},</div>
-        <div class="my-2 text-xl leading-7">Thanks for using Timary. This is a copy of the invoice paid for {{ user_name }}'s services on {{ sent_invoice.date_sent }}.</div>
+        <div class="my-2 text-xl leading-7">Thanks for using Timary. This is a copy of the invoice paid for {{ user_name }}'s services on {{ sent_invoice.date_sent|localtime|date:"M. j, Y" }}.</div>
     </div>
 
     <div class="text-xl font-medium my-4 p-6 tracking-wide bg-base-300">

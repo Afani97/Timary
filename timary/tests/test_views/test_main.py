@@ -1,8 +1,8 @@
-import datetime
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from timary.forms import HoursLineItemForm
@@ -23,7 +23,7 @@ class TestMain(BaseTest):
         hours_today = HoursLineItemFactory(invoice__user=self.user)
         hours_last_month = HoursLineItemFactory(
             invoice__user=self.user,
-            date_tracked=datetime.date.today() - relativedelta(months=1),
+            date_tracked=timezone.now() - relativedelta(months=1),
         )
         response = self.client.get(reverse("timary:index"))
 
@@ -49,7 +49,7 @@ class TestMain(BaseTest):
         HoursLineItemFactory(invoice__user=self.user)
         HoursLineItemFactory(
             invoice__user=self.user,
-            date_tracked=datetime.date.today() - relativedelta(months=1),
+            date_tracked=timezone.now() - relativedelta(months=1),
         )
         response = self.client.get(reverse("timary:dashboard_stats"))
 

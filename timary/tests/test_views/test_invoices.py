@@ -8,6 +8,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.template.defaultfilters import date, floatformat
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from timary.models import (
@@ -409,6 +410,7 @@ class TestRecurringInvoices(BaseTest):
 
     def test_pause_invoice(self):
         invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
+        invoice.update()
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
         )
@@ -423,8 +425,8 @@ class TestRecurringInvoices(BaseTest):
         invoice.refresh_from_db()
 
         self.assertEqual(
-            invoice.next_date,
-            datetime.date.today() + invoice.get_next_date(),
+            invoice.next_date.date(),
+            (timezone.now() + invoice.get_next_date()).date(),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
@@ -437,6 +439,7 @@ class TestRecurringInvoices(BaseTest):
 
         # Pause invoice
         invoice = IntervalInvoiceFactory(invoice_interval="M", user=self.user)
+        invoice.update()
         hours1 = HoursLineItemFactory(invoice=invoice)
         response = self.client.get(
             reverse("timary:pause_invoice", kwargs={"invoice_id": invoice.id}),
@@ -455,8 +458,8 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(
-            invoice.next_date,
-            datetime.date.today() + invoice.get_next_date(),
+            invoice.next_date.date(),
+            (timezone.now() + invoice.get_next_date()).date(),
         )
         self.assertIn(hours1, invoice.get_hours_tracked())
 
@@ -608,7 +611,7 @@ class TestRecurringInvoices(BaseTest):
         self.client.logout()
 
     def test_generate_invoice(self):
-        todays_date = datetime.date.today()
+        todays_date = timezone.now()
         current_month = datetime.date.strftime(todays_date, "%m/%Y")
         hours = HoursLineItemFactory(invoice=self.invoice)
         self.client.force_login(self.user)
@@ -646,7 +649,7 @@ class TestRecurringInvoices(BaseTest):
         hours2 = HoursLineItemFactory(invoice=self.invoice)
         hours3 = HoursLineItemFactory(
             invoice=self.invoice,
-            date_tracked=datetime.date.today() - relativedelta(months=2),
+            date_tracked=timezone.now() - relativedelta(months=2),
         )
         response = self.client.get(
             reverse("timary:edit_invoice_hours", kwargs={"invoice_id": self.invoice.id})
@@ -822,7 +825,7 @@ class TestSingleInvoices(BaseTest):
             },
         )
 
-        invoice = Invoice.objects.first()
+        invoice = SingleInvoice.objects.first()
         self.assertRedirects(
             response,
             reverse(

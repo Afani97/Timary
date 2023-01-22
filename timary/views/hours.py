@@ -1,17 +1,17 @@
-import datetime
 import json
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import HoursLineItem, Invoice
 from timary.tasks import gather_recurring_hours
-from timary.utils import show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -86,7 +86,7 @@ def quick_hours(request):
     hours_form = HoursLineItemForm(
         data={
             "quantity": hours,
-            "date_tracked": datetime.date.today(),
+            "date_tracked": get_users_localtime(request.user),
             "invoice": Invoice.objects.get(email_id=invoice_id),
         },
         user=request.user,
@@ -196,10 +196,15 @@ def delete_hours(request, hours_id):
 @login_required()
 @require_http_methods(["GET"])
 def repeat_hours(request):
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    users_localtime = get_users_localtime(request.user)
+    yesterday = users_localtime - timezone.timedelta(days=1)
+    yesterday_range = (
+        yesterday.replace(hour=0, minute=0, second=0),
+        yesterday.replace(hour=23, minute=59, second=59),
+    )
     yesterday_hours = HoursLineItem.objects.filter(
         invoice__user=request.user,
-        date_tracked=yesterday,
+        date_tracked__range=yesterday_range,
         invoice__is_archived=False,
         quantity__gt=0,
     ).filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
@@ -207,7 +212,7 @@ def repeat_hours(request):
     for hour in yesterday_hours:
         hours.append(
             HoursLineItem.objects.create(
-                date_tracked=datetime.date.today(),
+                date_tracked=users_localtime,
                 quantity=hour.quantity,
                 invoice=hour.invoice,
             )

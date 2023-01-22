@@ -1,4 +1,3 @@
-import datetime
 import sys
 from tempfile import NamedTemporaryFile
 
@@ -9,6 +8,7 @@ from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -25,7 +25,7 @@ from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.utils import show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -162,8 +162,9 @@ def update_invoice_branding(request):
     if request.method == "GET":
         context.update(
             {
-                "todays_date": datetime.date.today(),
-                "yesterday_date": datetime.date.today() - datetime.timedelta(days=1),
+                "todays_date": get_users_localtime(request.user),
+                "yesterday_date": get_users_localtime(request.user)
+                - timezone.timedelta(days=1),
             }
         )
         return render(request, "invoices/invoice_branding.html", context)

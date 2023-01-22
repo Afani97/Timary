@@ -1,4 +1,3 @@
-import datetime
 import sys
 
 import stripe
@@ -8,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -219,7 +219,7 @@ def stripe_webhook(request, stripe_secret):
                 return JsonResponse({"success": True})
 
             sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-            sent_invoice.date_sent = datetime.date.today()
+            sent_invoice.date_sent = timezone.now()
             sent_invoice.save()
             sent_invoice.success_notification()
         else:

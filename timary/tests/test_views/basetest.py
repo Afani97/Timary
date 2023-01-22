@@ -8,7 +8,11 @@ class BaseTest(TestCase):
 
     def setup_template(self, template_name: str, context: dict) -> Template:
         template = Engine(
-            app_dirs=True, libraries={"filters": "timary.templatetags.filters"}
+            app_dirs=True,
+            libraries={
+                "filters": "timary.templatetags.filters",
+                "tz": "django.templatetags.tz",
+            },
         ).get_template(template_name)
         context = Context(context)
         return template.render(context)

@@ -1,10 +1,12 @@
-from datetime import date, timedelta
+import zoneinfo
 
 from django.db.models import CharField, Count, F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
+from django.utils import timezone
 
-from timary.models import HoursLineItem, Invoice, InvoiceManager
+from timary.models import HoursLineItem, InvoiceManager
 from timary.querysets import HourStats
+from timary.utils import get_users_localtime
 
 
 class HoursManager:
@@ -25,15 +27,28 @@ class HoursManager:
         latest_date_tracked = (
             latest_hour_tracked.date_tracked if latest_hour_tracked else None
         )
-        if latest_date_tracked == date.today():
+        if not latest_date_tracked:
+            return show_repeat
+
+        latest_date_tracked = latest_date_tracked.astimezone(
+            tz=zoneinfo.ZoneInfo(self.user.timezone)
+        ).date()
+        users_localtime = get_users_localtime(self.user)
+        if latest_date_tracked == users_localtime.date():
             show_repeat = 0
-        elif latest_date_tracked == (date.today() - timedelta(days=1)):
+        elif (
+            latest_date_tracked == (users_localtime - timezone.timedelta(days=1)).date()
+        ):
             show_repeat = 1
         return show_repeat
 
     def show_most_frequent_options(self):
         """Get current months hours and get top 3 most frequent hours logged"""
-        today = date.today()
+        today = get_users_localtime(self.user)
+        today_range = (
+            today.replace(hour=0, minute=0, second=59),
+            today.replace(hour=23, minute=59, second=59),
+        )
         repeated_hours = (
             self.hours.filter(
                 Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
@@ -58,7 +73,7 @@ class HoursManager:
         }
         hours_today_set = {
             (float(h["quantity"]), h["invoice__email_id"])
-            for h in self.hours.filter(date_tracked=today).values(
+            for h in self.hours.filter(date_tracked__range=today_range).values(
                 "quantity", "invoice__email_id"
             )
         }

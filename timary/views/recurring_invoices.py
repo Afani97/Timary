@@ -5,6 +5,7 @@ from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm, InvoiceForm
@@ -12,7 +13,7 @@ from timary.invoice_builder import InvoiceBuilder
 from timary.models import Invoice, InvoiceManager, SentInvoice, SingleInvoice
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import show_active_timer, show_alert_message
+from timary.utils import get_users_localtime, show_active_timer, show_alert_message
 
 
 @login_required()
@@ -106,7 +107,7 @@ def pause_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     invoice.is_paused = not invoice.is_paused
-    if invoice.next_date <= date.today():
+    if invoice.next_date.date() <= timezone.now().date():
         invoice.calculate_next_date(update_last=True)
     invoice.save()
     response = render(request, "partials/_invoice.html", {"invoice": invoice})
@@ -157,7 +158,7 @@ def update_invoice(request, invoice_id):
         raise Http404
     put_params = QueryDict(request.body).copy()
     prev_invoice_interval_type = (
-        invoice.invoice_interval if invoice.invoice_type() == "internal" else None
+        invoice.invoice_interval if invoice.invoice_type() == "interval" else None
     )
     invoice_form = invoice.form_class("update")(
         put_params, instance=invoice, user=request.user
@@ -166,7 +167,7 @@ def update_invoice(request, invoice_id):
         saved_invoice = invoice_form.save()
         if (
             prev_invoice_interval_type
-            and invoice.invoice_type() == "internal"
+            and saved_invoice.invoice_type() == "interval"
             and prev_invoice_interval_type != saved_invoice.invoice_interval
             and not invoice.is_paused
         ):
@@ -188,12 +189,13 @@ def update_invoice_next_date(request, invoice_id):
     invoice = InvoiceManager(invoice_id).invoice
     if request.user != invoice.user:
         raise Http404
+    users_localtime = get_users_localtime(request.user)
     put_params = QueryDict(request.body).copy()
     next_date = datetime.strptime(
         put_params.get(f"start_on_{invoice.email_id}"), "%Y-%m-%d"
-    ).date()
+    )
     next_date_updated = False
-    if next_date > date.today():
+    if next_date.date() > users_localtime.date():
         invoice.next_date = next_date
         invoice.save()
         next_date_updated = True

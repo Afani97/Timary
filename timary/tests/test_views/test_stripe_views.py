@@ -1,4 +1,3 @@
-import datetime
 import json
 import uuid
 from decimal import Decimal
@@ -9,6 +8,7 @@ from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from timary.models import SentInvoice, User
 from timary.tests.factories import (
@@ -122,11 +122,11 @@ class TestStripeViews(BaseTest):
         }
 
         sent_invoice = SentInvoiceFactory()
-        today = datetime.date.today()
+        today = timezone.now()
         for i in range(10):
             HoursLineItemFactory(
                 invoice=sent_invoice.invoice,
-                date_tracked=today - datetime.timedelta(days=i),
+                date_tracked=today - timezone.timedelta(days=i),
                 sent_invoice_id=sent_invoice.id,
             )
         sent_invoice.refresh_from_db()
@@ -188,7 +188,7 @@ class TestStripeViews(BaseTest):
 
         single_invoice = SingleInvoiceFactory()
         sent_invoice = SentInvoiceFactory(invoice=single_invoice)
-        today = datetime.date.today()
+        today = timezone.now()
         LineItemFactory(
             quantity=1,
             unit_price=1,
@@ -491,7 +491,7 @@ class TestStripeViews(BaseTest):
             "data": {"object": {"id": "abc123"}},
         }
         hours = HoursLineItemFactory(
-            invoice=self.invoice, date_tracked=datetime.date.today(), quantity=2
+            invoice=self.invoice, date_tracked=timezone.now(), quantity=2
         )
         sent_invoice = SentInvoiceFactory(
             stripe_payment_intent_id="abc123", invoice=self.invoice, total_price=200.0

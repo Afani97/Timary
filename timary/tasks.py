@@ -1,4 +1,3 @@
-import datetime
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -6,6 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
+from django.utils import timezone
 from django_q.tasks import async_task, schedule
 
 from timary.invoice_builder import InvoiceBuilder
@@ -28,7 +28,8 @@ def gather_recurring_hours():
         Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
     ).exclude(invoice__is_archived=True)
 
-    is_today_saturday = date.today().weekday() == 5
+    today = timezone.now()
+    is_today_saturday = today.weekday() == 5
 
     new_hours_added = []
 
@@ -37,7 +38,7 @@ def gather_recurring_hours():
 
             new_hours = HoursLineItem.objects.create(
                 quantity=recurring_hour.quantity,
-                date_tracked=date.today(),
+                date_tracked=today,
                 invoice=recurring_hour.invoice,
                 recurring_logic=recurring_hour.recurring_logic,
             )
@@ -56,32 +57,34 @@ def gather_recurring_hours():
 
 
 def gather_invoices():
-    today = date.today()
+    today = timezone.now()
     tomorrow = today + timedelta(days=1)
     paused_query = Q(is_paused=False)
     archived_query = Q(is_archived=False)
     user_active_query = Q(
         user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
     )
-    today_query = Q(
-        next_date__day=today.day,
-        next_date__month=today.month,
-        next_date__year=today.year,
+    today_range_query = (
+        today.replace(hour=0, minute=0, second=0),
+        today.replace(hour=23, minute=59, second=59),
     )
-    invoices_sent_today = IntervalInvoice.objects.filter(
-        paused_query & today_query & archived_query
-    ).exclude(user_active_query)
+    invoices_sent_today = (
+        IntervalInvoice.objects.filter(paused_query & archived_query)
+        .filter(next_date__range=today_range_query)
+        .exclude(user_active_query)
+    )
     for invoice in invoices_sent_today:
         _ = async_task(send_invoice, invoice.id)
 
-    tomorrow_query = Q(
-        next_date__day=tomorrow.day,
-        next_date__month=tomorrow.month,
-        next_date__year=tomorrow.year,
+    tomorrow_range_query = (
+        tomorrow.replace(hour=0, minute=0, second=0),
+        tomorrow.replace(hour=23, minute=59, second=59),
     )
-    invoices_sent_tomorrow = IntervalInvoice.objects.filter(
-        paused_query & tomorrow_query & archived_query
-    ).exclude(user_active_query)
+    invoices_sent_tomorrow = (
+        IntervalInvoice.objects.filter(paused_query & archived_query)
+        .filter(next_date__range=tomorrow_range_query)
+        .exclude(user_active_query)
+    )
     for invoice in invoices_sent_tomorrow:
         _ = async_task(send_invoice_preview, invoice.id)
 
@@ -100,7 +103,7 @@ def gather_invoices():
 
 
 def gather_single_invoices_before_due_date():
-    today = date.today()
+    today = timezone.now()
     one_day_before = today + timedelta(days=1)
     two_days_before = today + timedelta(days=2)
     archived_query = Q(is_archived=False)
@@ -143,19 +146,19 @@ def send_invoice_reminder(invoice_id):
     ):
         return
 
-    today = date.today()
+    today = timezone.now()
     current_month = date.strftime(today, "%m/%Y")
 
     line_items = single_invoice_obj.line_items.all()
     if sent_invoice is None:
         sent_invoice = SentInvoice.objects.create(
-            date_sent=date.today(),
+            date_sent=today,
             invoice=single_invoice_obj,
             user=single_invoice_obj.user,
             total_price=single_invoice_obj.balance_due,
         )
     else:
-        sent_invoice.date_send = date.today()
+        sent_invoice.date_sent = today
         sent_invoice.total_price = single_invoice_obj.balance_due
         sent_invoice.save()
 
@@ -186,7 +189,7 @@ def send_invoice(invoice_id):
         # There is nothing to invoice, update next date for invoice email.
         invoice.update()
         return
-    today = date.today()
+    today = timezone.now()
     current_month = date.strftime(today, "%m/%Y")
 
     msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
@@ -236,7 +239,7 @@ def send_reminder_sms():
     ).prefetch_related("invoices")
 
     invoices_sent_count = 0
-    weekday = date.today().strftime("%a")
+    weekday = timezone.now().strftime("%a")
     for user in users:
         if weekday not in user.settings.get("phone_number_availability"):
             continue
@@ -252,7 +255,7 @@ def send_reminder_sms():
                     "timary.tasks.remind_sms_again",
                     user.email,
                     schedule_type="O",
-                    next_run=datetime.datetime.today() + timedelta(hours=1),
+                    next_run=timezone.now() + timedelta(hours=1),
                 )
     return f"{invoices_sent_count} message(s) sent."
 
@@ -269,8 +272,8 @@ def remind_sms_again(user_email):
 
 
 def send_weekly_updates():
-    today = date.today()
-    week_start = today - timedelta(days=today.weekday())
+    today = timezone.now()
+    week_start = today - timezone.timedelta(days=today.weekday())
     all_recurring_invoices = Invoice.objects.instance_of(
         IntervalInvoice
     ) | Invoice.objects.instance_of(MilestoneInvoice)

@@ -240,6 +240,7 @@
                             let form = document.querySelector("form");
                             form.appendChild(createHiddenInput('first_token', first_token.id));
                             form.appendChild(createHiddenInput('second_token', second_token.id));
+                            form.appendChild(createHiddenInput("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone))
                             form.submit()
                         } else {
                             showMessage(secondToken.error.message);

@@ -79,6 +79,7 @@ class TestUserProfile(BaseTest):
             "first_name": "Test",
             "last_name": "Test",
             "phone_number": "+17742613186",
+            "timezone": "America/Los_Angeles",
         }
         response = self.client.post(reverse("timary:update_user_profile"), data=data)
         self.user.refresh_from_db()

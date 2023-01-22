@@ -1,8 +1,9 @@
-import datetime
 import uuid
+import zoneinfo
 
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
+from django.utils import timezone
 
 from timary.forms import (
     CreateIntervalForm,
@@ -360,7 +361,7 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
-                "due_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "due_date": timezone.now().date() + timezone.timedelta(weeks=1),
             }
         )
         self.assertTrue(form.is_valid())
@@ -372,7 +373,7 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
-                "due_date": datetime.date.today(),
+                "due_date": timezone.now().date(),
             }
         )
         self.assertFalse(form.is_valid())
@@ -386,7 +387,7 @@ class TestInvoices(TestCase):
                 "title": "2Some title",
                 "client_name": "John Smith",
                 "client_email": "user@test.com",
-                "due_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "due_date": timezone.now().date() + timezone.timedelta(weeks=1),
             }
         )
         self.assertFalse(form.is_valid())
@@ -442,8 +443,9 @@ class TestPayInvoice(TestCase):
 class TestHoursLineItem(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.today = datetime.date.today()
+        cls.today = timezone.now()
         cls.invoice = IntervalInvoiceFactory()
+        cls.timezone = zoneinfo.ZoneInfo("America/New_York")
 
     def test_hours_success(self):
         form = HoursLineItemForm(
@@ -561,7 +563,7 @@ class TestHoursLineItem(TestCase):
             data={
                 "quantity": 1,
                 "invoice": self.invoice.id,
-                "date_tracked": self.today + datetime.timedelta(days=7),
+                "date_tracked": self.today + timezone.timedelta(days=7),
             },
         )
         self.assertEqual(
@@ -569,15 +571,17 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_daily(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             }
         )
@@ -589,22 +593,24 @@ class TestHoursLineItem(TestCase):
                 "interval": "d",
                 "interval_days": [],
                 "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
-                "end_date": (
-                    datetime.date.today() + datetime.timedelta(weeks=1)
-                ).isoformat(),
+                "end_date": (timezone.now() + timezone.timedelta(weeks=1))
+                .date()
+                .isoformat(),
             },
         )
 
     def test_hours_repeating_weekly(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
                 "date_tracked": date_tracked,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() + datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "w",
                 "repeat_interval_days": ["mon", "tue"],
             }
@@ -617,15 +623,17 @@ class TestHoursLineItem(TestCase):
                 "interval": "w",
                 "interval_days": ["mon", "tue"],
                 "starting_week": get_starting_week_from_date(date_tracked).isoformat(),
-                "end_date": (
-                    datetime.date.today() + datetime.timedelta(weeks=1)
-                ).isoformat(),
+                "end_date": (timezone.now() + timezone.timedelta(weeks=1))
+                .date()
+                .isoformat(),
             },
         )
 
     def test_hours_recurring_daily(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -647,8 +655,10 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_recurring_weekly(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -707,7 +717,7 @@ class TestHoursLineItem(TestCase):
                 "invoice": self.invoice.id,
                 "date_tracked": self.today,
                 "repeating": True,
-                "repeat_end_date": datetime.date.today() - datetime.timedelta(weeks=1),
+                "repeat_end_date": timezone.now() - timezone.timedelta(weeks=1),
             }
         )
         self.assertIn("Cannot set repeat end date less than today.", str(form.errors))
@@ -725,8 +735,10 @@ class TestHoursLineItem(TestCase):
         self.assertIn("Need specific days which to add hours to.", str(form.errors))
 
     def test_repeating_has_valid_starting_week(self):
-        date_tracked = datetime.date(2022, 1, 5)
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 4))
+        date_tracked = timezone.datetime(2022, 1, 5)
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 4, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
@@ -743,12 +755,14 @@ class TestHoursLineItem(TestCase):
         )
 
     def test_hours_repeating_daily_update_starting_week_if_created_saturday(self):
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 6, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
-                "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
+                "date_tracked": timezone.datetime(2022, 1, 8),  # Sat Jan 7, 2022
                 "recurring": True,
                 "repeat_interval_schedule": "d",
             }
@@ -761,18 +775,20 @@ class TestHoursLineItem(TestCase):
                 "interval": "d",
                 "interval_days": [],
                 "starting_week": get_starting_week_from_date(
-                    datetime.date(2022, 1, 9)  # Sun Jan 8, 2022
+                    timezone.datetime(2022, 1, 9)  # Sun Jan 8, 2022
                 ).isoformat(),
             },
         )
 
     def test_hours_repeating_biweekly_update_starting_week_if_created_saturday(self):
-        invoice = IntervalInvoiceFactory(last_date=datetime.date(2022, 1, 6))
+        invoice = IntervalInvoiceFactory(
+            last_date=timezone.datetime(2022, 1, 6, tzinfo=self.timezone)
+        )
         form = HoursLineItemForm(
             data={
                 "quantity": 1,
                 "invoice": invoice.id,
-                "date_tracked": datetime.date(2022, 1, 8),  # Sat Jan 7, 2022
+                "date_tracked": timezone.datetime(2022, 1, 8),  # Sat Jan 7, 2022
                 "recurring": True,
                 "repeat_interval_schedule": "b",
                 "repeat_interval_days": ["mon", "tue"],
@@ -786,7 +802,7 @@ class TestHoursLineItem(TestCase):
                 "interval": "b",
                 "interval_days": ["mon", "tue"],
                 "starting_week": get_starting_week_from_date(
-                    datetime.date(2022, 1, 16)  # Sun Jan 15, 2022
+                    timezone.datetime(2022, 1, 16)  # Sun Jan 15, 2022
                 ).isoformat(),
             },
         )
@@ -796,6 +812,7 @@ class TestUser(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = UserFactory()
+        cls.timezone = "America/New_York"
 
     def test_user_success(self):
         form = UserForm(
@@ -804,6 +821,7 @@ class TestUser(TestCase):
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
                 "phone_number": "+17742613186",
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(form.errors, {})
@@ -813,6 +831,7 @@ class TestUser(TestCase):
             data={
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(form.errors, {"email": ["This field is required."]})
@@ -822,6 +841,7 @@ class TestUser(TestCase):
             data={
                 "email": "user@test.com",
                 "last_name": self.user.last_name,
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(form.errors, {"first_name": ["This field is required."]})
@@ -832,6 +852,7 @@ class TestUser(TestCase):
                 "email": self.user.email,
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(form.errors, {"email": ["Email already registered!"]})
@@ -842,6 +863,7 @@ class TestUser(TestCase):
                 "email": "user@test.com",
                 "first_name": self.user.first_name + "123",
                 "last_name": self.user.last_name,
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(form.errors, {"first_name": ["Only valid names allowed."]})
@@ -853,6 +875,7 @@ class TestUser(TestCase):
                 "first_name": self.user.first_name,
                 "last_name": self.user.last_name,
                 "phone_number": "abc123",
+                "timezone": self.timezone,
             }
         )
         self.assertEqual(
@@ -866,6 +889,7 @@ class TestUser(TestCase):
             {
                 "email": ["This field is required."],
                 "first_name": ["This field is required."],
+                "timezone": ["This field is required."],
             },
         )
 

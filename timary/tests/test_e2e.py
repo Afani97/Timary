@@ -1,4 +1,3 @@
-import datetime
 import os
 import uuid
 from contextlib import contextmanager
@@ -8,6 +7,7 @@ from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import override_settings, tag
 from django.urls import reverse
+from django.utils import timezone
 from playwright.sync_api import sync_playwright
 
 from timary.tests.factories import (
@@ -191,11 +191,11 @@ class TestUI(BaseUITest):
     @tag("ui")
     def test_edit_hours_within_invoice(self):
         invoice = IntervalInvoiceFactory(
-            next_date=datetime.date.today() + datetime.timedelta(days=1)
+            next_date=timezone.now() + timezone.timedelta(days=1)
         )
         hours = HoursLineItemFactory(
             invoice=invoice,
-            date_tracked=datetime.date.today() - datetime.timedelta(days=1),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')

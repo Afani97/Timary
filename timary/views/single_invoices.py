@@ -1,17 +1,16 @@
-import datetime
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django_q.tasks import schedule
 
 from timary.forms import LineItemForm, SingleInvoiceForm
 from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
 from timary.tasks import send_invoice_reminder
-from timary.utils import show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 def format_line_items(request):
@@ -295,7 +294,7 @@ def send_single_invoice_email(request, single_invoice_id):
             "timary.tasks.send_invoice_reminder",
             str(single_invoice_obj.id),
             schedule_type="O",
-            next_run=datetime.datetime.today() + datetime.timedelta(weeks=2),
+            next_run=get_users_localtime(request.user) + timezone.timedelta(weeks=2),
         )
 
     response = render(
