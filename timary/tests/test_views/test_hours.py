@@ -9,7 +9,7 @@ from django.utils.http import urlencode
 from timary.models import HoursLineItem
 from timary.tests.factories import (
     HoursLineItemFactory,
-    InvoiceFactory,
+    IntervalInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
 )
@@ -50,7 +50,7 @@ class TestHourLineItems(BaseTest):
         )
 
     def test_create_daily_hours(self):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -63,8 +63,8 @@ class TestHourLineItems(BaseTest):
 
     def test_create_multiple_daily_hours(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
-        invoice2 = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        invoice2 = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -78,7 +78,7 @@ class TestHourLineItems(BaseTest):
 
     def test_create_daily_hours_error(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -95,8 +95,8 @@ class TestHourLineItems(BaseTest):
 
     def test_create_multiple_daily_hours_error(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
-        invoice2 = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        invoice2 = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -113,7 +113,7 @@ class TestHourLineItems(BaseTest):
         )
 
     def test_create_quick_hours(self):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         hours_ref_id = f"{1.0}_{invoice.email_id}"
         response = self.client.get(
             f"{reverse('timary:quick_hours')}?hours_ref_id={hours_ref_id}"
@@ -234,11 +234,11 @@ class TestHourLineItems(BaseTest):
     def test_repeat_daily_hours(self):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         self.assertEqual(HoursLineItem.objects.count(), 2)
@@ -252,17 +252,17 @@ class TestHourLineItems(BaseTest):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             quantity=1,
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             quantity=0,
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             quantity=2,
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         self.assertEqual(
@@ -293,16 +293,16 @@ class TestHourLineItems(BaseTest):
     def test_repeat_hours_including_repeating(self):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(timezone.now()).isoformat()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
@@ -323,16 +323,16 @@ class TestHourLineItems(BaseTest):
     ):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(timezone.now()).isoformat()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
@@ -346,7 +346,7 @@ class TestHourLineItems(BaseTest):
             timezone.now() + timezone.timedelta(weeks=+1)
         ).isoformat()
         HoursLineItemFactory(
-            invoice=InvoiceFactory(user=self.user),
+            invoice=IntervalInvoiceFactory(user=self.user),
             date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
@@ -364,7 +364,7 @@ class TestHourLineItems(BaseTest):
 
     def test_create_repeating_hours(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -382,8 +382,8 @@ class TestHourLineItems(BaseTest):
 
     def test_create_multiple_repeating_hours(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
-        invoice2 = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        invoice2 = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -402,7 +402,7 @@ class TestHourLineItems(BaseTest):
 
     def test_create_repeating_hours_error(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -419,7 +419,7 @@ class TestHourLineItems(BaseTest):
 
     def test_create_recurring_hours(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
@@ -436,7 +436,7 @@ class TestHourLineItems(BaseTest):
 
     def test_create_recurring_hours_error(self):
         HoursLineItem.objects.all().delete()
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={

@@ -273,7 +273,7 @@ def remind_sms_again(user_email):
 
 def send_weekly_updates():
     today = timezone.now()
-    week_start = today - timedelta(days=today.weekday())
+    week_start = today - timezone.timedelta(days=today.weekday())
     all_recurring_invoices = Invoice.objects.instance_of(
         IntervalInvoice
     ) | Invoice.objects.instance_of(MilestoneInvoice)

@@ -25,7 +25,7 @@ from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.utils import show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -162,8 +162,9 @@ def update_invoice_branding(request):
     if request.method == "GET":
         context.update(
             {
-                "todays_date": datetime.date.today(),
-                "yesterday_date": datetime.date.today() - datetime.timedelta(days=1),
+                "todays_date": get_users_localtime(request.user),
+                "yesterday_date": get_users_localtime(request.user)
+                - datetime.timedelta(days=1),
             }
         )
         return render(request, "invoices/invoice_branding.html", context)

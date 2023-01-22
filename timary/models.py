@@ -27,7 +27,11 @@ from timary.services.accounting_service import AccountingService
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.utils import get_date_parsed, get_starting_week_from_date
+from timary.utils import (
+    get_date_parsed,
+    get_starting_week_from_date,
+    get_users_localtime,
+)
 
 
 def create_new_ref_number():
@@ -492,7 +496,7 @@ class IntervalInvoice(RecurringInvoice):
             return relativedelta(years=1)
 
     def calculate_next_date(self, update_last: bool = True):
-        todays_date = timezone.now()
+        todays_date = get_users_localtime(self.user)
         self.next_date = todays_date + self.get_next_date()
         if update_last:
             self.last_date = todays_date

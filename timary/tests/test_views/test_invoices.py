@@ -611,7 +611,7 @@ class TestRecurringInvoices(BaseTest):
         self.client.logout()
 
     def test_generate_invoice(self):
-        todays_date = datetime.date.today()
+        todays_date = timezone.now()
         current_month = datetime.date.strftime(todays_date, "%m/%Y")
         hours = HoursLineItemFactory(invoice=self.invoice)
         self.client.force_login(self.user)
