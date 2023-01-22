@@ -1,4 +1,3 @@
-import datetime
 import sys
 from tempfile import NamedTemporaryFile
 
@@ -9,6 +8,7 @@ from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -164,7 +164,7 @@ def update_invoice_branding(request):
             {
                 "todays_date": get_users_localtime(request.user),
                 "yesterday_date": get_users_localtime(request.user)
-                - datetime.timedelta(days=1),
+                - timezone.timedelta(days=1),
             }
         )
         return render(request, "invoices/invoice_branding.html", context)
