@@ -1,3 +1,4 @@
+import zoneinfo
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from timary.models import (
 )
 from timary.services.email_service import EmailService
 from timary.services.twilio_service import TwilioClient
+from timary.utils import get_users_localtime
 
 
 def gather_recurring_hours():
@@ -239,24 +241,33 @@ def send_reminder_sms():
     ).prefetch_related("invoices")
 
     invoices_sent_count = 0
-    weekday = timezone.now().strftime("%a")
     for user in users:
+        now = get_users_localtime(user)
+        weekday = now.strftime("%a")
         if weekday not in user.settings.get("phone_number_availability"):
             continue
         if not user.settings["subscription_active"]:
             continue
-        remaining_invoices = user.invoices_not_logged()
-        if remaining_invoices:
-            invoice = remaining_invoices.pop()
-            TwilioClient.log_hours(invoice)
-            invoices_sent_count += 1
-            if user.phone_number_repeat_sms:
-                _ = schedule(
-                    "timary.tasks.remind_sms_again",
-                    user.email,
-                    schedule_type="O",
-                    next_run=timezone.now() + timedelta(hours=1),
-                )
+        five_pm_localtime = timezone.now().replace(
+            hour=17,
+            minute=0,
+            second=0,
+            microsecond=0,
+            tzinfo=zoneinfo.ZoneInfo(user.timezone),
+        )
+        if now.replace(second=0, microsecond=0) == five_pm_localtime:
+            remaining_invoices = user.invoices_not_logged()
+            if remaining_invoices:
+                invoice = remaining_invoices.pop()
+                TwilioClient.log_hours(invoice)
+                invoices_sent_count += 1
+                if user.phone_number_repeat_sms:
+                    _ = schedule(
+                        "timary.tasks.remind_sms_again",
+                        user.email,
+                        schedule_type="O",
+                        next_run=timezone.now() + timedelta(hours=1),
+                    )
     return f"{invoices_sent_count} message(s) sent."
 
 
