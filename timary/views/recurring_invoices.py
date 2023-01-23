@@ -38,7 +38,9 @@ def manage_invoices(request):
         "new_invoice": InvoiceForm(user=request.user),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
-        "archived_invoices": request.user.invoices.filter(is_archived=True),
+        "archived_invoices": request.user.invoices.filter(is_archived=True).order_by(
+            "title"
+        ),
     }
     context.update(show_active_timer(request.user))
     return render(

@@ -1,5 +1,5 @@
 import zoneinfo
-from datetime import date
+from datetime import date, datetime, timedelta
 from unittest.mock import patch
 
 from django.conf import settings
@@ -711,10 +711,6 @@ class TestSendInvoice(TestCase):
 
 
 class TestWeeklyInvoiceUpdates(TestCase):
-    def setUp(self) -> None:
-        self.todays_date = timezone.now()
-        self.current_month = date.strftime(self.todays_date, "%m/%Y")
-
     @classmethod
     def extract_html(cls):
         s = mail.outbox[0].message().as_string()
@@ -733,15 +729,39 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         self.assertEquals(len(mail.outbox), 0)
 
-    def test_send_weekly_update(self):
-        """Only shows hours tracked for current week, not prior and send email update."""
-        invoice = IntervalInvoiceFactory(
-            last_date=(self.todays_date - timezone.timedelta(days=3))
+    @patch("timary.tasks.timezone")
+    def test_dont_send_weekly_update_if_no_hours_logged(self, today_mock):
+        todays_date = datetime(
+            2023, 1, 20, 12, 30, 0, tzinfo=zoneinfo.ZoneInfo("America/New_York")
         )
-        hour = HoursLineItemFactory(invoice=invoice)
+        today_mock.now.return_value = todays_date
+        IntervalInvoiceFactory()
+        send_weekly_updates()
+        self.assertEquals(len(mail.outbox), 0)
+
+    @patch("timary.tasks.timezone")
+    def test_send_weekly_update(self, today_mock):
+        """Only shows hours tracked for current week, not prior and send email update."""
+        todays_date = datetime(
+            2023, 1, 20, 12, 30, 0, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        today_mock.now.return_value = todays_date
+        invoice = IntervalInvoiceFactory(
+            last_date=(todays_date - timedelta(days=3)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            )
+        )
+        hour = HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=(todays_date - timedelta(days=1)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
         HoursLineItemFactory(
             invoice=invoice,
-            date_tracked=(self.todays_date - timezone.timedelta(days=8)),
+            date_tracked=(todays_date - timedelta(days=8)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
         )
 
         send_weekly_updates()

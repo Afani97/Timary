@@ -132,7 +132,12 @@ class HoursLineItemForm(forms.ModelForm):
         date_tracked = self.cleaned_data.get("date_tracked")
         if date_tracked.date() > now.date():
             raise ValidationError("Cannot set date into the future!")
-        date_tracked = date_tracked.replace(hour=now.hour, minute=now.minute)
+        date_tracked = date_tracked.replace(
+            hour=now.hour,
+            minute=now.minute,
+            second=now.second,
+            microsecond=now.microsecond,
+        )
         return date_tracked
 
     def clean_quantity(self):
@@ -428,6 +433,7 @@ def create_invoice_weekly(superclass):
                 attrs={
                     "label": "Weekly rate",
                     "class": "input input-bordered border-2 text-lg w-full",
+                    "placeholder": 1500,
                     "max": 1_000_000,
                 }
             ),

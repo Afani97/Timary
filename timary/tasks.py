@@ -283,22 +283,24 @@ def remind_sms_again(user_email):
 
 
 def send_weekly_updates():
-    today = timezone.now()
-    week_start = today - timezone.timedelta(days=today.weekday())
     all_recurring_invoices = Invoice.objects.instance_of(
         IntervalInvoice
     ) | Invoice.objects.instance_of(MilestoneInvoice)
+
+    today = timezone.now()
+    week_start = (today - timedelta(days=today.weekday())).astimezone(
+        tz=zoneinfo.ZoneInfo("America/New_York")
+    )
 
     for invoice in all_recurring_invoices:
         if not invoice.user.settings["subscription_active"]:
             continue
         hours = invoice.get_hours_tracked()
-        if not hours:
+        if hours.count() == 0:
             continue
-        hours_tracked_this_week = hours.filter(
-            date_tracked__range=(week_start, today)
-        ).annotate(cost=invoice.rate * Sum("quantity"))
-        if not hours:
+
+        hours_tracked_this_week = hours.filter(date_tracked__gte=week_start)
+        if hours_tracked_this_week.count() == 0:
             continue
 
         total_hours = hours_tracked_this_week.aggregate(total_hours=Sum("quantity"))
