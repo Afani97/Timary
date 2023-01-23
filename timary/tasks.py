@@ -288,8 +288,10 @@ def send_weekly_updates():
     ) | Invoice.objects.instance_of(MilestoneInvoice)
 
     today = timezone.now()
-    week_start = (today - timedelta(days=today.weekday())).astimezone(
-        tz=zoneinfo.ZoneInfo("America/New_York")
+    week_start = (
+        (today - timedelta(days=today.weekday()))
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
     )
 
     for invoice in all_recurring_invoices:
