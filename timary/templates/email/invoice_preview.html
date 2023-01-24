@@ -1,7 +1,7 @@
 {% extends "email/base_invoice.html" %}
 
 {% block preheader %}
-    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ next_weeks_date }}</span>
+    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ due_date }}</span>
 {% endblock %}
 
 {% block main %}
@@ -14,7 +14,7 @@
             <strong>Amount Due: ${{ total_amount | floatformat:-2 }}</strong>
         </div>
         <div>
-            <strong>Due By:</strong> {{ next_weeks_date }}
+            <strong>Due By:</strong> {{ due_date }}
         </div>
     </div>
     <div class="mx-1">

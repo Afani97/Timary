@@ -2,7 +2,7 @@
 {% load filters %}
 
 {% block preheader %}
-    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ next_weeks_date }}</span>
+    <span class="preheader">This is an invoice for {{ user_name }}'s services. Please submit payment by {{ due_date|date:"M. j, Y" }}</span>
 {% endblock %}
 
 {% block main %}
@@ -16,7 +16,7 @@
             <strong>Amount Due: ${{ sent_invoice.total_price|addf:"5"|floatformat:-2 }}</strong>
         </div>
         <div>
-            <strong>Due By:</strong> {{ next_weeks_date }}
+            <strong>Due By:</strong> {{ due_date|date:"M. j, Y" }}
         </div>
     </div>
 
@@ -31,7 +31,7 @@
     <div class="mx-1">
         <div class="flex justify-between mt-6 text-xl font-medium">
             <div>Invoice #{{ sent_invoice.email_id }}</div>
-            <strong>{{ sent_invoice.date_sent }}</strong>
+            <strong>{{ sent_invoice.date_sent|date:"M. j, Y" }}</strong>
         </div>
         <div class="flex justify-between pb-3 border-b border-gray-200">
             <div>Description</div>

@@ -172,6 +172,7 @@ def send_invoice_reminder(invoice_id):
         {
             "sent_invoice": sent_invoice,
             "line_items": sent_invoice.get_rendered_line_items(),
+            "due_date": single_invoice_obj.due_date,
         }
     )
 

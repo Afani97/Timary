@@ -13,11 +13,9 @@ class InvoiceBuilder:
             "site_url": settings.SITE_URL,
             "user_name": self.user.invoice_branding_properties().get("user_name"),
             "invoice_branding": self.user.invoice_branding_properties(),
-            "next_weeks_date": self.user.invoice_branding_properties()[
-                "next_weeks_date"
-            ],
-            **ctx,
+            "due_date": self.user.invoice_branding_properties()["next_weeks_date"],
         }
+        invoice_ctx.update(**ctx)
         return render_to_string(
             f"email/{template}.html",
             invoice_ctx,
