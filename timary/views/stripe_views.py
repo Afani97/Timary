@@ -38,6 +38,10 @@ def pay_invoice(request, sent_invoice_id):
         else:
             return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
+        if isinstance(sent_invoice.invoice, SingleInvoice):
+            sent_invoice.invoice.update()
+            sent_invoice.total_price = sent_invoice.invoice.balance_due
+            sent_invoice.save()
         try:
             intent = StripeService.create_payment_intent_for_payout(sent_invoice)
         except stripe.error.InvalidRequestError as e:
