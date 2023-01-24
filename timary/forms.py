@@ -450,7 +450,7 @@ UpdateWeeklyForm = create_invoice_weekly(UpdateInvoiceForm)
 
 
 def next_month():
-    return timezone.now() + relativedelta(months=1)
+    return (timezone.now() + relativedelta(months=1)).date()
 
 
 class SingleInvoiceForm(InvoiceForm):

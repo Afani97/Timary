@@ -20,8 +20,9 @@ from timary.utils import get_users_localtime, show_active_timer, show_alert_mess
 @require_http_methods(["GET"])
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
-    sent_invoices_owed = request.user.sent_invoices.filter(
-        ~Q(paid_status=SentInvoice.PaidStatus.PAID)
+    sent_invoices_owed = request.user.sent_invoices.exclude(
+        Q(paid_status=SentInvoice.PaidStatus.PAID)
+        | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
     ).aggregate(total=Sum("total_price"))
     sent_invoices_owed = (
         sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
