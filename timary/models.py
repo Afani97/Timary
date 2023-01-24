@@ -360,7 +360,7 @@ class SingleInvoice(Invoice):
         if self.tax_amount:
             total_price += total_price * float(self.tax_amount / 100)
 
-        if self.late_penalty and self.due_date < timezone.now():
+        if self.is_payment_late():
             total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
@@ -368,6 +368,9 @@ class SingleInvoice(Invoice):
             sent_invoice.total_price = self.balance_due
             sent_invoice.save()
         self.save()
+        
+    def is_payment_late(self):
+        return self.late_penalty and self.due_date < timezone.now()
 
 
 class RecurringInvoice(Invoice):
