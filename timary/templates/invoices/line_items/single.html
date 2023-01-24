@@ -8,7 +8,7 @@
     <div>Stripe ACH Fee</div>
     <div>$5</div>
 </div>
-{% if single_invoice.late_penalty %}
+{% if single_invoice.is_late_payment %}
     <div class="flex justify-between py-3 text-xl">
         <div>Late Penalty Fee</div>
         <div>${{single_invoice.late_penalty_amount|floatformat:-2 }}</div>
