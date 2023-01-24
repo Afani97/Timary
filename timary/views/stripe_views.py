@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import SentInvoice, User
+from timary.models import SentInvoice, User, SingleInvoice
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
