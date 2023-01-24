@@ -229,6 +229,64 @@ class TestStripeViews(BaseTest):
     @patch(
         "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
     )
+    def test_pay_single_invoice_update_total_price_if_late(self, stripe_intent_mock):
+        stripe_intent_mock.return_value = {
+            "client_secret": "tok_abc123",
+            "id": "abc123",
+        }
+
+        today = timezone.now()
+        late_penalty_amount = 100
+        single_invoice = SingleInvoiceFactory(
+            late_penalty=True,
+            late_penalty_amount=late_penalty_amount,
+            due_date=today,
+            status=1,
+            user=self.user,
+            balance_due=2,
+        )
+
+        li = LineItemFactory(
+            quantity=2,
+            unit_price=1,
+            invoice=single_invoice,
+            date_tracked=today,
+        )
+
+        # Generate sent invoice
+        self.client.get(
+            reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": single_invoice.id},
+            ),
+        )
+        self.client.logout()
+        sent_invoice = single_invoice.get_sent_invoice()
+
+        with patch("timary.models.SingleInvoice.is_payment_late", return_value=True):
+            response = self.client.get(
+                reverse(
+                    "timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}
+                ),
+            )
+            self.assertEqual(response.status_code, 200)
+
+            html_body = self.extract_html(response.content.decode("utf-8"))
+            total_due = late_penalty_amount + li.total_amount() + 5  # stripe fee
+            with self.subTest("Testing summary"):
+                msg = f"""
+                    <div class="mb-4">
+                        <h1 class="text-2xl mb-6">Hello! Thanks for using Timary</h1>
+                        <p class="mb-4">This is an invoice for
+                        {sent_invoice.user.invoice_branding_properties()["user_name"]}'s services.</p>
+                        <p>Total Amount Due: ${total_due}</p>
+                    </div>
+                    """
+                self.assertInHTML(msg, html_body)
+
+    @patch(
+        "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"
+    )
     @patch(
         "timary.services.stripe_service.StripeService.retrieve_customer_payment_method"
     )
