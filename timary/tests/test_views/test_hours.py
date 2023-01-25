@@ -1,4 +1,5 @@
 import random
+import zoneinfo
 
 from django.db.models import Sum
 from django.template.defaultfilters import floatformat
@@ -74,7 +75,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": [invoice.id, invoice2.id],
             },
         )
@@ -374,7 +377,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": invoice.id,
                 "repeating": True,
                 "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
@@ -393,7 +398,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": [invoice.id, invoice2.id],
                 "repeating": True,
                 "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
@@ -429,7 +436,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "d",
@@ -446,7 +455,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "m",
@@ -464,7 +475,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo("America/New_York")
+                ),
                 "invoice": invoice.id,
             },
         )

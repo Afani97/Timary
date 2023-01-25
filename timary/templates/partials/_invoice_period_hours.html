@@ -1,3 +1,7 @@
+{% load tz %}
 {% for hour in invoice.get_hours_tracked %}
-    <li class="text-xl flex justify-between"><span>{{ hour.date_tracked|date:"M j" }}</span><span>{{ hour.quantity|floatformat:-2 }} hrs</span></li>
+    <li class="text-xl flex justify-between">
+        <span>{{ hour.date_tracked|localtime|date:"M j" }}</span>
+        <span>{{ hour.quantity|floatformat:-2 }} hrs</span>
+    </li>
 {% endfor %}

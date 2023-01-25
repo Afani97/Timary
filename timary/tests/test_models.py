@@ -1,3 +1,4 @@
+import zoneinfo
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -253,7 +254,7 @@ class TestInvoice(TestCase):
             )
 
     def test_invoice_calculate_next_date(self):
-        today = timezone.now()
+        today = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
         invoice = IntervalInvoiceFactory(invoice_interval="W")
         invoice.calculate_next_date()
         self.assertEqual(

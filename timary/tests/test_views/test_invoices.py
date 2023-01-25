@@ -1,12 +1,14 @@
 import copy
 import datetime
 import uuid
+import zoneinfo
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.messages import get_messages
 from django.core import mail
-from django.template.defaultfilters import date, floatformat
+from django.template.defaultfilters import date as template_date
+from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -67,6 +69,8 @@ class TestRecurringInvoices(BaseTest):
                 "client_email": "john@test.com",
             },
         )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
 
         invoice = Invoice.objects.first()
         inv_name = invoice.client_name
@@ -81,12 +85,13 @@ class TestRecurringInvoices(BaseTest):
             f"{inv_name} - {inv_email}",
             response.content.decode("utf-8"),
         )
+        local_date = invoice.next_date.astimezone(
+            tz=zoneinfo.ZoneInfo("America/New_York")
+        )
         self.assertIn(
-            f'{invoice.next_date.strftime("%b. %-d, %Y")}',
+            f"<span>{template_date(local_date, 'M. j, Y')}</span>",
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
-        self.assertEqual(response.status_code, 200)
 
     def test_create_invoice_from_client_list(self):
         IntervalInvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
@@ -243,10 +248,15 @@ class TestRecurringInvoices(BaseTest):
             reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
+        local_date = hour.date_tracked.astimezone(
+            tz=zoneinfo.ZoneInfo(self.invoice.user.timezone)
+        )
         self.assertInHTML(
             f"""
-                <li class="flex justify-between text-xl"><span>{date(hour.date_tracked, "M j")}</span>
-                <span>{floatformat(hour.quantity, -2)} hrs </span></li>
+            <li class="flex justify-between text-xl">
+                <span>{template_date(local_date, "M j")}</span>
+                <span>{floatformat(hour.quantity, -2)} hrs </span>
+            </li>
            """,
             response.content.decode("utf-8"),
         )
@@ -299,6 +309,8 @@ class TestRecurringInvoices(BaseTest):
             reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
             data=urlencode(url_params),  # HTML PUT FORM
         )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.invoice.refresh_from_db()
         inv_name = self.invoice.client_name
         inv_email = self.invoice.client_email
@@ -317,11 +329,9 @@ class TestRecurringInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertIn(
-            self.invoice.next_date.strftime("%b. %-d, %Y"),
+            f"{template_date(self.invoice.next_date.astimezone(tz=zoneinfo.ZoneInfo('America/New_York')), 'M. j, Y')}",
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
-        self.assertEqual(response.status_code, 200)
 
     def test_update_invoice_milestone(self):
         invoice = MilestoneInvoiceFactory(user=self.user, milestone_step=3)

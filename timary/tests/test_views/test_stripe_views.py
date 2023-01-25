@@ -1,5 +1,6 @@
 import json
 import uuid
+import zoneinfo
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -564,10 +565,14 @@ class TestStripeViews(BaseTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.FAILED)
+        formatted_date = template_date(
+            hours.date_tracked.astimezone(tz=zoneinfo.ZoneInfo("America/New_York")),
+            "M j",
+        )
         self.assertInHTML(
             f"""
             <div class="flex justify-between py-3 text-xl">
-                <div>{floatformat(hours.quantity, -2)} hours on {template_date(hours.date_tracked, "M j")}</div>
+                <div>{floatformat(hours.quantity, -2)} hours on {formatted_date}</div>
                 <div>${floatformat(hours.quantity * self.invoice.rate, -2)}</div>
             </div>
             """,
