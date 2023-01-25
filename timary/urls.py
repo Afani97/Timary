@@ -94,31 +94,10 @@ urlpatterns += [
 ]
 
 
-# INVOICE URLS
+# RECURRING INVOICE URLS
 urlpatterns += [
     path("invoices/", views.create_invoice, name="create_invoice"),
     path("invoices/manage/", views.manage_invoices, name="manage_invoices"),
-    path("invoices/single/", views.single_invoice, name="single_invoice"),
-    path(
-        "invoices/single/<uuid:single_invoice_id>/",
-        views.update_single_invoice,
-        name="update_single_invoice",
-    ),
-    path(
-        "invoices/single/<uuid:single_invoice_id>/send/",
-        views.send_single_invoice_email,
-        name="send_single_invoice_email",
-    ),
-    path(
-        "invoices/single/<uuid:single_invoice_id>/status/",
-        views.update_single_invoice_status,
-        name="update_single_invoice_status",
-    ),
-    path(
-        "invoices/single-line-item/",
-        views.single_invoice_line_item,
-        name="single_invoice_line_item",
-    ),
     path("invoices/<uuid:invoice_id>/", views.get_invoice, name="get_single_invoice"),
     path("invoices/<uuid:invoice_id>/edit/", views.edit_invoice, name="edit_invoice"),
     path(
@@ -140,11 +119,6 @@ urlpatterns += [
         name="update_invoice_next_date",
     ),
     path(
-        "invoices/<uuid:sent_invoice_id>/remind/",
-        views.resend_invoice_email,
-        name="resend_invoice_email",
-    ),
-    path(
         "invoices/<uuid:invoice_id>/generate/",
         views.generate_invoice,
         name="generate_invoice",
@@ -160,19 +134,53 @@ urlpatterns += [
         name="invoice_hour_stats",
     ),
     path(
-        "invoices/<uuid:invoice_id>/sent_invoices/",
-        views.sent_invoices_list,
-        name="sent_invoices_list",
-    ),
-    path(
         "invoices/<uuid:invoice_id>/sync/",
         views.sync_invoice,
         name="sync_invoice",
+    ),
+]
+
+# SINGLE INVOICE URLS
+urlpatterns += [
+    path("invoices/single/", views.single_invoice, name="single_invoice"),
+    path(
+        "invoices/single/<uuid:single_invoice_id>/",
+        views.update_single_invoice,
+        name="update_single_invoice",
     ),
     path(
         "invoices/single/<uuid:single_invoice_id>/sync",
         views.sync_single_invoice,
         name="sync_single_invoice",
+    ),
+    path(
+        "invoices/single/<uuid:single_invoice_id>/send/",
+        views.send_single_invoice_email,
+        name="send_single_invoice_email",
+    ),
+    path(
+        "invoices/single/<uuid:single_invoice_id>/status/",
+        views.update_single_invoice_status,
+        name="update_single_invoice_status",
+    ),
+    path(
+        "invoices/single-line-item/",
+        views.single_invoice_line_item,
+        name="single_invoice_line_item",
+    ),
+]
+
+# SENT INVOICE URLS
+urlpatterns += [
+    path(
+        "invoices/<uuid:sent_invoice_id>/remind/",
+        views.resend_invoice_email,
+        name="resend_invoice_email",
+    ),
+    path(
+        "invoices/<uuid:invoice_id>/sent_invoices/",
+        views.sent_invoices_list,
+        name="sent_invoices_list",
     ),
     path(
         "invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
