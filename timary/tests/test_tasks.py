@@ -179,10 +179,14 @@ class TestGatherInvoices(TestCase):
 class TestGatherHours(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.start_week = get_starting_week_from_date(timezone.now()).isoformat()
+        cls.local_time = timezone.now().astimezone(
+            tz=zoneinfo.ZoneInfo("America/New_York")
+        )
+        cls.start_week = get_starting_week_from_date(cls.local_time).isoformat()
         cls.next_week = get_starting_week_from_date(
-            timezone.now() + timezone.timedelta(weeks=1)
+            cls.local_time + timezone.timedelta(weeks=1)
         ).isoformat()
+        cls.date_tracked = cls.local_time - timezone.timedelta(days=1)
 
     def test_gather_0_hours(self):
         hours_added = gather_recurring_hours()
@@ -191,6 +195,7 @@ class TestGatherHours(TestCase):
 
     def test_gather_0_hours_with_archived_invoice(self):
         HoursLineItemFactory(
+            date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
@@ -202,14 +207,31 @@ class TestGatherHours(TestCase):
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
 
-    def test_gather_1_hour(self):
+    def test_gather_0_hours_if_already_tracked_today(self):
         HoursLineItemFactory(
+            date_tracked=timezone.now().astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
-            }
+            },
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+        self.assertEquals(HoursLineItem.objects.count(), 1)
+
+    def test_gather_1_hour(self):
+        HoursLineItemFactory(
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
@@ -217,21 +239,26 @@ class TestGatherHours(TestCase):
 
     def test_gather_2_hour(self):
         HoursLineItemFactory(
+            date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
-            }
+            },
         )
         HoursLineItemFactory(
+            date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
-                "interval_days": [get_date_parsed(timezone.now().date())],
+                "interval_days": [
+                    get_date_parsed(self.date_tracked.date()),
+                    get_date_parsed(self.local_time.date()),
+                ],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
-            }
+            },
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("2 hours added.", hours_added)
@@ -239,12 +266,13 @@ class TestGatherHours(TestCase):
 
     def test_passing_recurring_logic(self):
         hours = HoursLineItemFactory(
+            date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "d",
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
-            }
+            },
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
@@ -255,6 +283,7 @@ class TestGatherHours(TestCase):
 
     def test_hours_not_scheduled_do_not_get_created(self):
         hours = HoursLineItemFactory(
+            date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
@@ -265,7 +294,7 @@ class TestGatherHours(TestCase):
                 ],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
-            }
+            },
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)

@@ -26,11 +26,15 @@ from timary.utils import get_users_localtime
 
 
 def gather_recurring_hours():
-    all_recurring_hours = HoursLineItem.objects.exclude(
-        Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
-    ).exclude(invoice__is_archived=True)
-
     today = timezone.now()
+    all_recurring_hours = (
+        HoursLineItem.objects.exclude(
+            Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
+        )
+        .exclude(invoice__is_archived=True)
+        .exclude(date_tracked__date=today.date())
+    )
+
     is_today_saturday = today.weekday() == 5
 
     new_hours_added = []
