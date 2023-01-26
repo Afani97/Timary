@@ -10,13 +10,14 @@ from timary.utils import get_users_localtime
 
 class HoursQuerySet(models.QuerySet):
     def current_month(self, user):
-        current_date = get_users_localtime(user)
+        beginning_of_month = get_users_localtime(user).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
         return (
             self.filter(
                 invoice__user=user,
                 invoice__is_archived=False,
-                date_tracked__month__gte=current_date.month,
-                date_tracked__year__gte=current_date.year,
+                date_tracked__gte=beginning_of_month,
             )
             .exclude(quantity=0)
             .select_related("invoice", "invoice__user")

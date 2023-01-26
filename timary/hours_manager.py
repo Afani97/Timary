@@ -23,7 +23,7 @@ class HoursManager:
             2 == Show message to log hours (no hours logged day before)
         """
         show_repeat = 2
-        latest_hour_tracked = self.hours.order_by("-date_tracked").first()
+        latest_hour_tracked = self.hours.first()
         latest_date_tracked = (
             latest_hour_tracked.date_tracked if latest_hour_tracked else None
         )

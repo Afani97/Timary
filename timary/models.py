@@ -368,7 +368,7 @@ class SingleInvoice(Invoice):
             sent_invoice.total_price = self.balance_due
             sent_invoice.save()
         self.save()
-        
+
     def is_payment_late(self):
         return self.late_penalty and self.due_date < timezone.now()
 
