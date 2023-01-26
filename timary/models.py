@@ -894,8 +894,10 @@ class User(AbstractUser, BaseModel):
             )
         )
         remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices
-        if len(remaining_invoices) > 0:
-            return remaining_invoices
+        remaining_invoices = [
+            inv for inv in remaining_invoices if inv.invoice_type() != "single"
+        ]
+        return remaining_invoices if len(remaining_invoices) > 0 else None
 
     @property
     def formatted_phone_number(self):

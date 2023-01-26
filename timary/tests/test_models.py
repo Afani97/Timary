@@ -655,6 +655,13 @@ class TestUser(TestCase):
         IntervalInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 1)
 
+    def test_filter_out_single_invoices_logged_today(self):
+        user = UserFactory()
+        HoursLineItemFactory(invoice__user=user, date_tracked=timezone.now())
+        IntervalInvoiceFactory(user=user)
+        SingleInvoiceFactory(user=user)
+        self.assertEqual(len(user.invoices_not_logged()), 1)
+
     def test_can_accept_payments(self):
         with self.subTest("Payouts enabled"):
             user = UserFactory(stripe_payouts_enabled=True)
