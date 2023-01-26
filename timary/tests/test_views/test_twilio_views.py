@@ -12,7 +12,7 @@ from django_twilio.decorators import twilio_view
 
 from timary.models import HoursLineItem
 from timary.tasks import send_reminder_sms
-from timary.tests.factories import IntervalInvoiceFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import IntervalInvoiceFactory, UserFactory
 from timary.views.twilio_views import twilio_reply
 
 user_timezone = zoneinfo.ZoneInfo("America/New_York")
@@ -32,7 +32,7 @@ class TestTwilioSendReminderSMS(TestCase):
         self, localtime_mock, today_mock, message_create_mock
     ):
 
-        invoice = InvoiceFactory(user__phone_number_availability=["Mon"])
+        invoice = IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
         invoice.user.stripe_subscription_status = 3
         invoice.user.save()
 
@@ -44,15 +44,15 @@ class TestTwilioSendReminderSMS(TestCase):
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     def test_send_1_message(self, localtime_mock, today_mock, message_create_mock):
-        InvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
     def test_send_3_messages(self, localtime_mock, today_mock, message_create_mock):
-        InvoiceFactory(user__phone_number_availability=["Mon"])
-        InvoiceFactory(user__phone_number_availability=["Mon"])
-        InvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("3 message(s) sent.", invoices_sent)
@@ -60,10 +60,10 @@ class TestTwilioSendReminderSMS(TestCase):
     def test_send_1_message_filtering_users(
         self, localtime_mock, today_mock, message_create_mock
     ):
-        InvoiceFactory(user__phone_number=None)
-        InvoiceFactory(user__phone_number="")
-        InvoiceFactory(is_paused=True)
-        InvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number=None)
+        IntervalInvoiceFactory(user__phone_number="")
+        IntervalInvoiceFactory(is_paused=True)
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
@@ -73,8 +73,8 @@ class TestTwilioSendReminderSMS(TestCase):
     ):
         user = UserFactory(phone_number_availability=["Mon"])
 
-        InvoiceFactory(user=user)
-        InvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
@@ -82,7 +82,7 @@ class TestTwilioSendReminderSMS(TestCase):
     def test_does_not_send_1_message_on_off_day(
         self, localtime, today_mock, message_create_mock
     ):
-        InvoiceFactory(user__phone_number_availability=["Tue"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Tue"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
@@ -93,7 +93,7 @@ class TestTwilioSendReminderSMS(TestCase):
         localtime.return_value = timezone.datetime(
             2022, 1, 10, hour=17, minute=1, tzinfo=user_timezone
         )
-        InvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
@@ -101,13 +101,13 @@ class TestTwilioSendReminderSMS(TestCase):
     def test_do_not_send_1_message_in_between(
         self, localtime, today_mock, message_create_mock
     ):
-        InvoiceFactory(user__phone_number_availability=["Sun", "Tue"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Sun", "Tue"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("0 message(s) sent.", invoices_sent)
 
     def test_send_reminder(self, localtime, today_mock, message_create_mock):
-        InvoiceFactory(user__phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
@@ -144,7 +144,7 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_no_invoices_left_to_sms(self, message_list_mock, message_response_mock):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
             Message(f"How many hours to log for: {invoice.title}.")
@@ -166,8 +166,8 @@ class TestTwilioReplyWebhook(TestCase):
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
     def test_1_invoice_left_to_sms(self, message_list_mock, message_response_mock):
-        invoice = InvoiceFactory(user=self.user)
-        invoice2 = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        invoice2 = IntervalInvoiceFactory(user=self.user)
 
         # FIRST INVOICE SMS SENT
         message_list_mock.return_value = [
@@ -210,7 +210,7 @@ class TestTwilioReplyWebhook(TestCase):
     def test_invalid_response_type_in_body(
         self, message_list_mock, message_response_mock
     ):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [
             Message(f"How many hours to log for: {invoice.title}.")
@@ -248,7 +248,7 @@ class TestTwilioReplyWebhook(TestCase):
     ):
         log_hours_mock.return_value = None
         send_message_mock.return_value = None
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
 
         message_list_mock.return_value = [None]
         message_response_mock.return_value = MessageResponse(response="")
@@ -288,7 +288,7 @@ class TestTwilioReplyWebhook(TestCase):
     def test_body_has_to_be_greater_than_half_hour(
         self, message_list_mock, message_response_mock
     ):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
 
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
@@ -337,7 +337,7 @@ class TestTwilioReplyWebhook(TestCase):
     def test_body_has_to_be_less_than_24(
         self, message_list_mock, message_response_mock
     ):
-        invoice = InvoiceFactory(user=self.user)
+        invoice = IntervalInvoiceFactory(user=self.user)
 
         # FIRST INVOICE SENT, NOT ENOUGH HOURS
         message_list_mock.return_value = [
@@ -461,7 +461,7 @@ class TestTwilioReplyWebhook(TestCase):
     ):
         """Return an error message if invoice isn't found in twilio body."""
         self.data["Body"] = "1:30"
-        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        invoice = IntervalInvoiceFactory(title="Invoice1", user=self.user)
         message_list_mock.return_value = [
             Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
         ]
@@ -485,7 +485,7 @@ class TestTwilioReplyWebhook(TestCase):
     ):
         """Return an error message if invoice isn't found in twilio body."""
         self.data["Body"] = "1::30"
-        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        invoice = IntervalInvoiceFactory(title="Invoice1", user=self.user)
         message_list_mock.return_value = [
             Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
         ]
@@ -514,7 +514,7 @@ class TestTwilioReplyWebhook(TestCase):
         """Return an error message if invoice isn't found in twilio body."""
         # FIRST INVOICE IS VALID PARSED
         self.data["Body"] = "1::30"
-        invoice = InvoiceFactory(title="Invoice1", user=self.user)
+        invoice = IntervalInvoiceFactory(title="Invoice1", user=self.user)
         message_list_mock.return_value = [
             Message(f"How many hours to log for: {invoice.title}. Reply 'S' to skip")
         ]

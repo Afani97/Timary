@@ -23,7 +23,6 @@ from timary.models import (
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
-    InvoiceFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
     SingleInvoiceFactory,
@@ -620,40 +619,40 @@ class TestUser(TestCase):
 
     def test_get_active_invoices(self):
         user = UserFactory()
-        InvoiceFactory(user=user)
-        InvoiceFactory(user=user, is_archived=True)
+        IntervalInvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user, is_archived=True)
         self.assertEqual(len(user.get_invoices), 1)
 
     def test_get_remaining_invoices(self):
         user = UserFactory()
-        InvoiceFactory(user=user)
-        InvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices(self):
         user = UserFactory()
-        InvoiceFactory(user=user)
-        InvoiceFactory()
+        IntervalInvoiceFactory(user=user)
+        IntervalInvoiceFactory()
         self.assertEqual(len(user.invoices_not_logged()), 1)
 
     def test_get_2_remaining_invoices(self):
         user = UserFactory()
         HoursLineItemFactory(invoice__user=user)
-        InvoiceFactory(user=user)
-        InvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices_logged_yesterday(self):
         user = UserFactory()
         yesterday = timezone.now() - timezone.timedelta(days=1)
         HoursLineItemFactory(invoice__user=user, date_tracked=yesterday)
-        InvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 2)
 
     def test_get_1_remaining_invoices_logged_today(self):
         user = UserFactory()
         HoursLineItemFactory(invoice__user=user, date_tracked=timezone.now())
-        InvoiceFactory(user=user)
+        IntervalInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 1)
 
     def test_can_accept_payments(self):
@@ -673,14 +672,14 @@ class TestUser(TestCase):
 
         with self.subTest("Show repeat button"):
             HoursLineItemFactory(
-                invoice=InvoiceFactory(user=user),
+                invoice=IntervalInvoiceFactory(user=user),
                 date_tracked=timezone.now() - timezone.timedelta(days=1),
             )
             self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 1)
 
         with self.subTest("Don't show any message"):
             HoursLineItemFactory(
-                invoice=InvoiceFactory(user=user),
+                invoice=IntervalInvoiceFactory(user=user),
                 date_tracked=timezone.now(),
             )
             self.assertEqual(hours_manager.can_repeat_previous_hours_logged(), 0)

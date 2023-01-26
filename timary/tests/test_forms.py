@@ -20,7 +20,6 @@ from timary.forms import (
 )
 from timary.tests.factories import (
     IntervalInvoiceFactory,
-    InvoiceFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
@@ -303,7 +302,7 @@ class TestInvoices(TestCase):
 
     def test_invoice_error_duplicate_title(self):
         user = UserFactory()
-        invoice = InvoiceFactory(user=user)
+        invoice = IntervalInvoiceFactory(user=user)
         form = CreateIntervalForm(
             user=user,
             data={
@@ -520,9 +519,9 @@ class TestHoursLineItem(TestCase):
 
     def test_hours_with_user_and_associated_invoices(self):
         user = UserFactory()
-        InvoiceFactory()
-        inv_1 = InvoiceFactory(user=user)
-        inv_2 = InvoiceFactory(user=user)
+        IntervalInvoiceFactory()
+        inv_1 = IntervalInvoiceFactory(user=user)
+        inv_2 = IntervalInvoiceFactory(user=user)
 
         form = HoursLineItemForm(
             data={
