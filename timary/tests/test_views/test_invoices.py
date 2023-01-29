@@ -950,7 +950,9 @@ class TestSingleInvoices(BaseTest):
         invoice.refresh_from_db()
         self.assertEqual(invoice.balance_due, 2.5)
         messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            len(messages), 2
+        )  # The second is the request to resend the invoice
         self.assertEqual(str(messages[0]), f"Updated {invoice.title}")
 
     def test_update_invoice_multiple_line_items(self):

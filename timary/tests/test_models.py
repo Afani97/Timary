@@ -269,19 +269,19 @@ class TestInvoice(TestCase):
         invoice.invoice_interval = "M"
         invoice.calculate_next_date()
         self.assertEqual(
-            invoice.next_date.date(), (today + relativedelta(months=1)).date()
+            invoice.next_date.date(), (today + timezone.timedelta(weeks=4)).date()
         )
 
         invoice.invoice_interval = "Q"
         invoice.calculate_next_date()
         self.assertEqual(
-            invoice.next_date.date(), (today + relativedelta(months=3)).date()
+            invoice.next_date.date(), (today + timezone.timedelta(weeks=12)).date()
         )
 
         invoice.invoice_interval = "Y"
         invoice.calculate_next_date()
         self.assertEqual(
-            invoice.next_date.date(), (today + relativedelta(years=1)).date()
+            invoice.next_date.date(), (today + timezone.timedelta(weeks=52)).date()
         )
         self.assertEqual(invoice.last_date.date(), today.date())
 

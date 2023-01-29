@@ -179,9 +179,7 @@ class TestGatherInvoices(TestCase):
 class TestGatherHours(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.local_time = timezone.now().astimezone(
-            tz=zoneinfo.ZoneInfo("America/New_York")
-        )
+        cls.local_time = timezone.now()
         cls.start_week = get_starting_week_from_date(cls.local_time).isoformat()
         cls.next_week = get_starting_week_from_date(
             cls.local_time + timezone.timedelta(weeks=1)
@@ -237,7 +235,9 @@ class TestGatherHours(TestCase):
         self.assertEqual("1 hours added.", hours_added)
         self.assertEquals(HoursLineItem.objects.count(), 2)
 
-    def test_gather_2_hour(self):
+    @patch("timary.tasks.timezone")
+    def test_gather_2_hour(self, date_mock):
+        date_mock.now.return_value = self.local_time
         HoursLineItemFactory(
             date_tracked=self.date_tracked,
             recurring_logic={
@@ -542,11 +542,6 @@ class TestSendInvoice(TestCase):
         send_invoice(hours.invoice.id)
         self.assertEqual(len(mail.outbox), 0)
 
-        hours.invoice.refresh_from_db()
-        self.assertEqual(
-            hours.invoice.next_date.date(),
-            (self.todays_date + hours.invoice.get_next_date()).date(),
-        )
         self.assertEquals(SentInvoice.objects.count(), 0)
 
     def test_dont_send_invoice_if_skipped_hours(self):

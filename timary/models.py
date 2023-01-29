@@ -496,11 +496,11 @@ class IntervalInvoice(RecurringInvoice):
         elif self.invoice_interval == IntervalInvoice.Interval.BIWEEKLY:
             return timezone.timedelta(weeks=2)
         elif self.invoice_interval == IntervalInvoice.Interval.MONTHLY:
-            return relativedelta(months=1)
+            return timezone.timedelta(weeks=4)
         elif self.invoice_interval == IntervalInvoice.Interval.QUARTERLY:
-            return relativedelta(months=3)
+            return timezone.timedelta(weeks=12)
         else:
-            return relativedelta(years=1)
+            return timezone.timedelta(weeks=52)
 
     def calculate_next_date(self, update_last: bool = True):
         todays_date = get_users_localtime(self.user)
