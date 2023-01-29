@@ -13,6 +13,7 @@ from playwright.sync_api import sync_playwright
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    SentInvoiceFactory,
     UserFactory,
 )
 
@@ -206,6 +207,33 @@ class TestUI(BaseUITest):
             page.wait_for_selector(
                 'h3:has-text("Update hours for this invoice period")', timeout=3000
             )
+            page.fill(f"#id_{hours.slug_id}", ":30")
+            page.click('button:has-text("Update")')
+            page.wait_for_selector(".text-success", timeout=2000)
+            self.assertEqual(
+                page.inner_text(".text-success"), "Successfully updated hours!"
+            )
+
+    @tag("ui")
+    def test_edit_hours_for_sent_invoice(self):
+        invoice = IntervalInvoiceFactory(
+            next_date=timezone.now() + timezone.timedelta(days=1)
+        )
+        hours = HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=invoice.user)
+        hours.sent_invoice_id = sent_invoice.id
+        hours.save()
+        with self.start_test(invoice.user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.wait_for_selector("#current-invoices", timeout=2000)
+            page.click(".card-body .dropdown")
+            page.click('label:has-text("View sent invoices")')
+            page.wait_for_selector('h3:has-text("View sent invoices")', timeout=3000)
+            page.click("span:has-text('Edit')")
+            page.wait_for_selector(".edit-sent-hours", timeout=3000)
             page.fill(f"#id_{hours.slug_id}", ":30")
             page.click('button:has-text("Update")')
             page.wait_for_selector(".text-success", timeout=2000)

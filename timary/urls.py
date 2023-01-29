@@ -173,24 +173,34 @@ urlpatterns += [
 # SENT INVOICE URLS
 urlpatterns += [
     path(
-        "invoices/<uuid:sent_invoice_id>/remind/",
+        "sent_invoices/<uuid:sent_invoice_id>/",
+        views.get_sent_invoice,
+        name="get_sent_invoice",
+    ),
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/remind/",
         views.resend_invoice_email,
         name="resend_invoice_email",
     ),
     path(
-        "invoices/<uuid:invoice_id>/sent_invoices/",
+        "sent_invoices/<uuid:invoice_id>/sent_invoices/",
         views.sent_invoices_list,
         name="sent_invoices_list",
     ),
     path(
-        "invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
+        "sent_invoices/<uuid:sent_invoice_id>/sync/sent_invoice/",
         views.sync_sent_invoice,
         name="sync_sent_invoice",
     ),
     path(
-        "invoices/<uuid:sent_invoice_id>/cancel/",
+        "sent_invoices/<uuid:sent_invoice_id>/cancel/",
         views.cancel_invoice,
         name="cancel_invoice",
+    ),
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/edit_hours/",
+        views.edit_sent_invoice_hours,
+        name="edit_sent_invoice_hours",
     ),
 ]
 

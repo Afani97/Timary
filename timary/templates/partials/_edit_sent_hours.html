@@ -1,0 +1,16 @@
+<div class="edit-sent-hours">
+    {% for hour_form in hour_forms %}
+        {% include "partials/_patch_sent_invoice_hour.html" with form=hour_form sent_invoice=sent_invoice %}
+        {% if not forloop.last %}
+            <div class="divider"></div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="flex justify-center my-10"
+        hx-put="{% url 'timary:edit_sent_invoice_hours' sent_invoice_id=sent_invoice.id %}"
+        hx-target="closest .edit-sent-hours"
+        hx-swap="outerHTML"
+    >
+        <div class="btn btn-outline">Done</div>
+    </div>
+</div>

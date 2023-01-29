@@ -1,0 +1,36 @@
+<div id="patch-hours-{{ form.instance.slug_id }}">
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    {% if success_msg %}
+        {% include "partials/_form_success.html" with message=success_msg %}
+    {% endif %}
+    <form class="flex flex-col space-y-2 w-full"
+        hx-patch="{% url 'timary:edit_sent_invoice_hours' sent_invoice_id=sent_invoice.id %}"
+        hx-swap="innerHTML"
+        hx-target="#patch-hours-{{ form.instance.slug_id }}"
+        hx-vals='{"invoice": "{{ form.instance.invoice.id }}", "hour_id": "{{ form.instance.id }}"}'
+    >
+        <div class="flex flex-row space-x-5 w-full items-center">
+            <div>{{ form.date_tracked.value|date:"M j" }}</div>
+            <div>{{ form.quantity }}</div>
+            <button class="btn btn-primary btn-sm submit-btn"
+                _="on click call convertHoursInput(htmx.find('#id_{{ form.instance.slug_id }}')) then send submit to #patch-hours-{{ form.instance.slug_id }} end on htmx:afterRequest remove .loading from me">Update</button>
+
+            <button class="btn btn-error btn-sm btn-outline w-20"
+                hx-trigger="click"
+                hx-delete="{% url 'timary:edit_sent_invoice_hours' sent_invoice_id=sent_invoice.id %}?hour_id={{ form.instance.id }}"
+                hx-confirm="Are you sure you want to remove this hour"
+                hx-swap="outerHTML"
+                hx-disinherit="true"
+                hx-target="#patch-hours-{{ form.instance.slug_id }}"
+                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+                type="button"
+            >
+                Remove
+            </button>
+        </div>
+
+    </form>
+</div>

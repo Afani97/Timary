@@ -662,6 +662,15 @@ class SentInvoice(BaseModel):
         null=True,
         blank=True,
     )
+    # Save the rate of the invoice when the invoice is sent for when editing is needed
+    hourly_rate_snapshot = models.DecimalField(
+        default=100,
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(1)],
+        null=True,
+        blank=True,
+    )
 
     user = models.ForeignKey(
         "timary.User", on_delete=models.CASCADE, related_name="sent_invoices"
@@ -701,6 +710,7 @@ class SentInvoice(BaseModel):
             invoice=invoice,
             user=invoice.user,
             total_price=total_cost,
+            hourly_rate_snapshot=invoice.rate,
         )
 
     @property
@@ -790,6 +800,14 @@ ari@usetimary.com
             error_reason = ae.log()
             return False, error_reason
         return True, None
+
+    def update_total_price(self):
+        hours = self.get_hours_tracked().all()
+        total_price = Decimal(0.0)
+        for hour in hours:
+            total_price += hour.quantity * self.hourly_rate_snapshot
+        self.total_price = total_price
+        self.save()
 
 
 class User(AbstractUser, BaseModel):

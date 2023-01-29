@@ -808,6 +808,161 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.CANCELLED)
 
+    def test_edit_sent_invoice_hours(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        response = self.client.put(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            )
+        )
+        self.assertIn("Sent updated invoice", str(response.headers))
+
+    def test_edit_sent_invoice_hours_update_single_hour(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+
+        url_params = {
+            "quantity": hour1.quantity,
+            "invoice": invoice.id,
+            "hour_id": hour1.id,
+        }
+        response = self.client.patch(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+            data=urlencode(url_params),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Successfully updated hours!", response.content.decode("utf-8"))
+
+    def test_edit_sent_invoice_hours_update_single_errors(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+
+        url_params = {
+            "quantity": -2,
+            "invoice": invoice.id,
+            "hour_id": hour1.id,
+        }
+        response = self.client.patch(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+            data=urlencode(url_params),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "Invalid hours logged. Please log between 0 and 24 hours",
+            response.content.decode("utf-8"),
+        )
+
+    def test_edit_sent_invoice_hours_invalid_hour_id(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        url_params = {
+            "quantity": -2,
+            "invoice": invoice.id,
+            "hour_id": uuid.uuid4(),
+        }
+        response = self.client.patch(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+            data=urlencode(url_params),
+        )
+        self.assertEqual(response.status_code, 302)  # Redirect to login page if invalid
+
+    def test_edit_sent_invoice_hours_delete_single_hour(self):
+        invoice = IntervalInvoiceFactory(user=self.user, rate=125)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice, user=self.user, hourly_rate_snapshot=125
+        )
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        hour2 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour2.sent_invoice_id = sent_invoice.id
+        hour2.save()
+        sent_invoice.update_total_price()
+        expected_sent_invoice_total_price = sent_invoice.total_price - (
+            hour1.quantity * invoice.rate
+        )
+        self.client.delete(
+            f'{reverse("timary:edit_sent_invoice_hours",kwargs={"sent_invoice_id": sent_invoice.id})}'
+            f"?hour_id={hour1.id}",
+        )
+        self.assertEqual(
+            expected_sent_invoice_total_price, hour2.quantity * invoice.rate
+        )
+
+    def test_edit_sent_invoice_hours_cannot_delete_single_hour_remaining(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        response = self.client.delete(
+            f'{reverse("timary:edit_sent_invoice_hours",kwargs={"sent_invoice_id": sent_invoice.id},)}'
+            f"?hour_id={hour1.id}",
+        )
+        self.assertIn(
+            "The sent invoice needs at least one line item.", str(response.headers)
+        )
+
+    def test_edit_sent_invoice_hours_update_total_price(self):
+        invoice = IntervalInvoiceFactory(user=self.user, rate=20)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice, user=self.user, hourly_rate_snapshot=20
+        )
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        invoice.rate = 50
+        invoice.save()
+        response = self.client.put(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        sent_invoice.refresh_from_db()
+        self.assertEqual(
+            sent_invoice.total_price, hour1.quantity * sent_invoice.hourly_rate_snapshot
+        )
+
+    def test_cannot_edit_sent_invoice_hours_if_not_started_yet(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice, user=self.user, paid_status=2
+        )
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        response = self.client.put(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        sent_invoice.refresh_from_db()
+        self.assertIn("Unable to edit hours", str(response.headers))
+
 
 class TestSingleInvoices(BaseTest):
     def setUp(self) -> None:
