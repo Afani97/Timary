@@ -162,6 +162,14 @@ def update_single_invoice(request, single_invoice_id):
             f"Updated {saved_single_invoice.title}",
             extra_tags="update-single-invoice",
         )
+        messages.info(
+            request,
+            {
+                "msg": "Resend the invoice?",
+                "link": f'{reverse("timary:send_single_invoice_email",  kwargs={"single_invoice_id": saved_single_invoice.id})}?from_update=true',
+            },
+            extra_tags="send-single-invoice",
+        )
     return render(
         request,
         "invoices/single_invoice.html",
@@ -265,6 +273,8 @@ def send_single_invoice_email(request, single_invoice_id):
         sent_invoice is not None
         and sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
     )
+
+    from_update_form = request.GET.get("from_update", False)
     if (
         not request.user.settings["subscription_active"]
         or invoice_is_paid
@@ -297,14 +307,18 @@ def send_single_invoice_email(request, single_invoice_id):
             next_run=get_users_localtime(request.user) + timezone.timedelta(weeks=2),
         )
 
-    response = render(
-        request,
-        "partials/_single_invoice.html",
-        {"single_invoice": single_invoice_obj, "invoice_resent": True},
-    )
+    if from_update_form:
+        response = HttpResponse(status=204)
+    else:
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj, "invoice_resent": True},
+        )
     show_alert_message(
         response,
         "success",
         f"Invoice for {single_invoice_obj.title} has been sent",
+        persist=True,
     )
     return response
