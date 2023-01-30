@@ -125,11 +125,11 @@ class HoursLineItemForm(forms.ModelForm):
     field_order = ["quantity", "date_tracked", "invoice"]
 
     def clean_date_tracked(self):
-        if self.user:
-            now = get_users_localtime(self.user)
-        else:
-            now = timezone.now()
         date_tracked = self.cleaned_data.get("date_tracked")
+        if self.instance and self.instance.sent_invoice_id is not None:
+            # FE doesn't allow date tracked to be updated
+            return date_tracked
+        now = get_users_localtime(self.user) if self.user else timezone.now()
         if date_tracked.date() > now.date():
             raise ValidationError("Cannot set date into the future!")
         date_tracked = date_tracked.replace(
@@ -166,7 +166,10 @@ class HoursLineItemForm(forms.ModelForm):
                 invoice_last_date = invoice_last_date.astimezone(
                     tz=zoneinfo.ZoneInfo(self.user.timezone)
                 )
-            if date_tracked.date() < invoice_last_date.date():
+            if self.instance and self.instance.sent_invoice_id is not None:
+                # Date tracked doesn't need to be affected by this
+                pass
+            elif date_tracked.date() < invoice_last_date.date():
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
                 )
