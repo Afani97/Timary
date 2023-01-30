@@ -2,6 +2,8 @@ import datetime
 
 from django import template
 from django.template.defaultfilters import date as template_date
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 register = template.Library()
 
@@ -12,11 +14,11 @@ def addclass(field, class_attr):
 
 
 @register.filter(name="nextmonday")
-def nextmonday(field):
+def nextmonday(field, today_str):
     weekday = 0
-    today = datetime.datetime.today()
+    today = parse_datetime(today_str)
     day_shift = (weekday - today.weekday()) % 7
-    next_date = (today + datetime.timedelta(days=day_shift)).date()
+    next_date = (today + timezone.timedelta(days=day_shift)).date()
     return template_date(next_date, "M. j, Y") if next_date != today.date() else "today"
 
 

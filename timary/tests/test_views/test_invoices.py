@@ -171,8 +171,13 @@ class TestRecurringInvoices(BaseTest):
             f"{inv_name} - {inv_email}",
             response.content.decode("utf-8"),
         )
+        date = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+        formatted_date = template_date(date, "c")
         self.assertIn(
-            nextmonday("").title(),
+            nextmonday(
+                field="",
+                today_str=formatted_date,
+            ).title(),
             response.content.decode("utf-8"),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")

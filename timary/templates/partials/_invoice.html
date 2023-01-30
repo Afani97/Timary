@@ -89,7 +89,8 @@
                         {% if invoice.invoice_type == "interval" %}
                             {% include 'partials/_invoice_next_date.html' with invoice=invoice %}
                         {% elif invoice.invoice_type == "weekly" %}
-                            {{ ""|nextmonday|title }}
+                            {% now "c" as current_date %}
+                            {{ ""|nextmonday:current_date|title}}
                         {% endif %}
                     {% endif %}
                 </div>
