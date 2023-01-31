@@ -131,7 +131,7 @@
             <div class="overflow-y-auto mt-10">
                 <div class="flex justify-between mt-6 text-xl font-medium">
                     <div>Invoice #{{ sent_invoice.email_id }}</div>
-                    <strong>{{ sent_invoice.date_sent }}</strong>
+                    <strong>{{ sent_invoice.date_sent|date:"M j, Y" }}</strong>
                 </div>
                 <div class="flex justify-between pb-3 border-b border-gray-200">
                     <div>Description</div>

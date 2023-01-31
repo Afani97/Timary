@@ -284,6 +284,11 @@ class TestStripeViews(BaseTest):
                     </div>
                     """
                 self.assertInHTML(msg, html_body)
+            with self.subTest("Testing late penalty msg appears"):
+                self.assertInHTML(
+                    """<div class="text-sm -mt-3 pb-3">Penalty added because this is past due.</div>""",
+                    html_body,
+                )
 
     @patch(
         "timary.services.stripe_service.StripeService.create_payment_intent_for_payout"

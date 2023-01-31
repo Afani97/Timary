@@ -13,6 +13,7 @@
         <div>Late Penalty Fee</div>
         <div>${{single_invoice.late_penalty_amount|floatformat:-2 }}</div>
     </div>
+    <div class="text-sm -mt-3 pb-3">Penalty added because this is past due.</div>
 {% endif %}
 {% if single_invoice.discount_amount %}
     <div class="flex justify-between py-3 text-xl">
