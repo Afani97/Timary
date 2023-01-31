@@ -543,6 +543,9 @@ class SingleInvoiceForm(InvoiceForm):
         if not due_date:
             self.cleaned_data["due_date"] = timezone.now() + timezone.timedelta(weeks=4)
             due_date = self.cleaned_data.get("due_date")
+        if self.instance.pk is not None:
+            # Updating invoices created and set with due date in the past is ok.
+            return due_date
         if due_date.date() <= timezone.now().date():
             raise ValidationError("Due date cannot be set prior to today.")
         return due_date

@@ -22,6 +22,7 @@ from timary.tests.factories import (
     IntervalInvoiceFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
 )
 from timary.utils import get_starting_week_from_date
@@ -379,6 +380,22 @@ class TestInvoices(TestCase):
         self.assertEqual(
             form.errors, {"due_date": ["Due date cannot be set prior to today."]}
         )
+
+    def test_single_invoice_update_due_date_with_less_than_today_is_ok(self):
+        single_invoice = SingleInvoiceFactory(
+            due_date=timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+        )
+        form = SingleInvoiceForm(
+            instance=single_invoice,
+            data={
+                "title": "Some title",
+                "client_name": "John Smith",
+                "client_email": "user@test.com",
+                "due_date": timezone.now().date(),
+            },
+        )
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.errors, {})
 
     def test_single_invoice_error_title_named_with_an_number(self):
         form = SingleInvoiceForm(
