@@ -172,7 +172,10 @@ def cancel_invoice(request, sent_invoice_id):
         return response
     sent_invoice.paid_status = SentInvoice.PaidStatus.CANCELLED
     sent_invoice.save()
-    if isinstance(sent_invoice.invoice, SingleInvoice):
+    if (
+        isinstance(sent_invoice.invoice, SingleInvoice)
+        and not sent_invoice.invoice.is_archived
+    ):
         response = render(
             request,
             "partials/_single_invoice.html",
