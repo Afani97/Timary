@@ -74,7 +74,11 @@ class HoursLineItemForm(forms.ModelForm):
         )
         if self.user:
             users_localtime = get_users_localtime(self.user)
-            invoice_qs = self.user.get_invoices.filter(is_paused=False).exclude(
+            invoices = self.user.get_invoices
+            if self.instance.pk and self.instance.sent_invoice_id is not None:
+                # For updating sent invoices hours that are eligible
+                invoices = self.user.get_all_invoices()
+            invoice_qs = invoices.filter(is_paused=False).exclude(
                 Q(instance_of=SingleInvoice)
             )
             invoice_qs_count = invoice_qs.count()

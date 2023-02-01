@@ -827,6 +827,20 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertIn("Sent updated invoice", str(response.headers))
 
+    def test_edit_sent_invoice_hours_including_archived_invoics(self):
+        invoice = IntervalInvoiceFactory(user=self.user, is_archived=True)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
+        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1.sent_invoice_id = sent_invoice.id
+        hour1.save()
+        response = self.client.put(
+            reverse(
+                "timary:edit_sent_invoice_hours",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            )
+        )
+        self.assertIn("Sent updated invoice", str(response.headers))
+
     def test_edit_sent_invoice_hours_update_single_hour(self):
         invoice = IntervalInvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
