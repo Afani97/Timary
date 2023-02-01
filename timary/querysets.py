@@ -53,7 +53,8 @@ class HourStats:
         ).exclude(paid_status=SentInvoice.PaidStatus.FAILED)
 
         total_hours = HoursLineItem.objects.filter(
-            sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True))
+            sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True)),
+            date_tracked__range=date_range,
         ).aggregate(total_hours=Sum("quantity"))["total_hours"]
         total_amount = sent_invoices.aggregate(total_amount=Sum("total_price"))[
             "total_amount"
