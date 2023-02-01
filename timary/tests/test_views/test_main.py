@@ -56,7 +56,7 @@ class TestMain(BaseTest):
         hours = HoursManager(self.user)
 
         context = hours.get_hours_tracked()
-        context["new_hour_form"] = HoursLineItemForm()
+        context["new_hour_form"] = HoursLineItemForm(user=self.user)
 
         rendered_template = self.setup_template(
             "partials/_dashboard_stats.html",

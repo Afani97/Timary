@@ -69,7 +69,9 @@ class HoursLineItemForm(forms.ModelForm):
 
         super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
-        users_localtime = timezone.now()
+        users_localtime = timezone.now().astimezone(
+            tz=zoneinfo.ZoneInfo(self.user.timezone)
+        )
         if self.user:
             users_localtime = get_users_localtime(self.user)
             invoice_qs = self.user.get_invoices.filter(is_paused=False).exclude(
@@ -92,7 +94,9 @@ class HoursLineItemForm(forms.ModelForm):
         ):
             self.fields["date_tracked"].widget.attrs[
                 "min"
-            ] = self.instance.invoice.last_date.date()
+            ] = self.instance.invoice.last_date.astimezone(
+                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            ).date()
             date_tracked = self.instance.date_tracked.astimezone(
                 tz=zoneinfo.ZoneInfo(self.user.timezone)
             ).date()

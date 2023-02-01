@@ -2,7 +2,6 @@ import zoneinfo
 from decimal import Decimal
 from unittest.mock import patch
 
-from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import date as template_date
 from django.template.defaultfilters import floatformat
@@ -347,18 +346,27 @@ class TestInvoice(TestCase):
         self.assertEqual(invoice.budget_percentage(), Decimal("30.0"))
 
     def test_get_last_six_months(self):
+        tz = zoneinfo.ZoneInfo("America/New_York")
         invoice = IntervalInvoiceFactory()
-        hours1 = HoursLineItemFactory(invoice=invoice, quantity=1)
-        sent_invoice_1 = SentInvoiceFactory(invoice=invoice, total_price=50)
+        hours1 = HoursLineItemFactory(
+            invoice=invoice,
+            quantity=1,
+            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=1),
+        )
+        sent_invoice_1 = SentInvoiceFactory(
+            invoice=invoice,
+            total_price=50,
+            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=1),
+        )
         hours1.sent_invoice_id = sent_invoice_1.id
         hours2 = HoursLineItemFactory(
             invoice=invoice,
             quantity=2,
-            date_tracked=timezone.now() - relativedelta(months=1),
+            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=6),
         )
         sent_invoice_2 = SentInvoiceFactory(
             invoice=invoice,
-            date_sent=timezone.now() - relativedelta(months=1),
+            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=6),
             total_price=50,
         )
         hours2.sent_invoice_id = sent_invoice_2.id
@@ -369,11 +377,11 @@ class TestInvoice(TestCase):
         hours3 = HoursLineItemFactory(
             invoice=invoice,
             quantity=3,
-            date_tracked=timezone.now() - relativedelta(months=2),
+            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=8),
         )
         sent_invoice_3 = SentInvoiceFactory(
             invoice=invoice,
-            date_sent=timezone.now() - relativedelta(months=2),
+            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=12),
             total_price=100,
         )
         hours3.sent_invoice_id = sent_invoice_3.id
@@ -383,28 +391,35 @@ class TestInvoice(TestCase):
         self.assertEqual(last_six[1][-2], 50.0)
         self.assertEqual(last_six[1][-3], 100.0)
 
-    def test_get_last_six_months_including_weekly(self):
+    @patch("timary.models.timezone")
+    def test_get_last_six_months_including_weekly(self, date_mock):
+        date_mock.now.return_value = timezone.datetime(2023, 2, 5)
         invoice = WeeklyInvoiceFactory(rate=1000)
-        SentInvoiceFactory(invoice=invoice, total_price=1000)
+        tz = zoneinfo.ZoneInfo("America/New_York")
         SentInvoiceFactory(
             invoice=invoice,
             total_price=1000,
-            date_sent=timezone.now() - relativedelta(months=1),
+            date_sent=timezone.datetime(2023, 2, 1, tzinfo=tz),
         )
         SentInvoiceFactory(
             invoice=invoice,
             total_price=1000,
-            date_sent=timezone.now() - relativedelta(months=1),
+            date_sent=timezone.datetime(2023, 1, 10, tzinfo=tz),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            total_price=1000,
+            date_sent=timezone.datetime(2023, 1, 17, tzinfo=tz),
         )
         SentInvoiceFactory(
             invoice=invoice,
             total_price=3000,
-            date_sent=timezone.now() - relativedelta(months=2),
+            date_sent=timezone.datetime(2022, 12, 10, tzinfo=tz),
         )
         SentInvoiceFactory(
             invoice=invoice,
             total_price=4000,
-            date_sent=timezone.now() - relativedelta(months=3),
+            date_sent=timezone.datetime(2022, 11, 12, tzinfo=tz),
         )
         last_six = invoice.get_last_six_months()
         self.assertEqual(last_six[1][-1], 1000.0)

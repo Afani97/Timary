@@ -402,9 +402,11 @@ class RecurringInvoice(Invoice):
         )
 
     def get_last_six_months(self):
-        today = timezone.now()
+        tz = zoneinfo.ZoneInfo(self.user.timezone)
+        today = timezone.now().astimezone(tz=tz)
         date_times = [
-            (today - relativedelta(months=m)).date().replace(day=1) for m in range(0, 6)
+            (today - relativedelta(months=m)).astimezone(tz=tz).date().replace(day=1)
+            for m in range(0, 6)
         ]
         six_months_qs = (
             self.invoice_snapshots.exclude(paid_status=SentInvoice.PaidStatus.FAILED)

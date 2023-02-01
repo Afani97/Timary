@@ -1,3 +1,4 @@
+import zoneinfo
 from datetime import timedelta
 
 from dateutil import relativedelta
@@ -11,7 +12,12 @@ from timary.utils import get_users_localtime
 class HoursQuerySet(models.QuerySet):
     def current_month(self, user):
         beginning_of_month = get_users_localtime(user).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+            tzinfo=zoneinfo.ZoneInfo(user.timezone),
         )
         return (
             self.filter(
@@ -28,11 +34,12 @@ class HoursQuerySet(models.QuerySet):
 class HourStats:
     def __init__(self, user):
         self.user = user
-        self.current_month = timezone.now()
+        tz = zoneinfo.ZoneInfo(self.user.timezone)
+        self.current_month = timezone.now().astimezone(tz=tz)
         self.last_month = (
-            timezone.now() - relativedelta.relativedelta(months=1)
+            timezone.now().astimezone(tz=tz) - relativedelta.relativedelta(months=1)
         ).replace(day=1)
-        self.first_month = timezone.now().replace(month=1)
+        self.first_month = timezone.now().astimezone(tz=tz).replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
         from timary.models import HoursLineItem, SentInvoice
