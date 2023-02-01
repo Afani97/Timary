@@ -66,10 +66,14 @@ class TestHourStats(TestCase):
         self.assertEqual(float(current_month_stats["total_hours"]), 5)
         self.assertEqual(float(current_month_stats["total_amount"]), 1900)
 
+    @patch("timary.querysets.get_last_month")
     @patch("timary.querysets.timezone")
-    def test_hour_stats_last_month(self, date_mock):
+    def test_hour_stats_last_month(self, date_mock, last_month_mock):
         date_mock.now.return_value = timezone.datetime(
             2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        last_month_mock.return_value = timezone.datetime(
+            2022, 7, 1, tzinfo=zoneinfo.ZoneInfo("America/New_York")
         )
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user, rate=50)

@@ -1,7 +1,6 @@
 import zoneinfo
 from datetime import timedelta
 
-from dateutil import relativedelta
 from django.db import models
 from django.db.models import F, Sum
 from django.utils import timezone
@@ -31,14 +30,19 @@ class HoursQuerySet(models.QuerySet):
         )
 
 
+def get_last_month(tz):
+    """Easier for testing"""
+    return (
+        timezone.now().astimezone(tz=tz).replace(day=1) - timezone.timedelta(days=1)
+    ).replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=tz)
+
+
 class HourStats:
     def __init__(self, user):
         self.user = user
         tz = zoneinfo.ZoneInfo(self.user.timezone)
         self.current_month = timezone.now().astimezone(tz=tz)
-        self.last_month = (
-            timezone.now().astimezone(tz=tz) - relativedelta.relativedelta(months=1)
-        ).replace(day=1)
+        self.last_month = get_last_month(tz)
         self.first_month = timezone.now().astimezone(tz=tz).replace(month=1)
 
     def get_sent_invoices_stats(self, date_range=None):
@@ -87,12 +91,19 @@ class HourStats:
         }
 
     def get_current_month_stats(self):
-        return self.get_stats((self.current_month.replace(day=1), self.current_month))
+        return self.get_stats(
+            (
+                self.current_month.replace(
+                    day=1, hour=0, minute=0, second=0, microsecond=0
+                ),
+                self.current_month,
+            )
+        )
 
     def get_last_month_stats(self):
         date_range = (
             self.last_month,
-            (self.current_month.replace(day=1) - timedelta(days=1)),
+            self.current_month.replace(day=1) - timedelta(days=1),
         )
         return self.get_stats(date_range)
 
