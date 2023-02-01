@@ -345,28 +345,30 @@ class TestInvoice(TestCase):
         # (6 hours * $50) / $1000
         self.assertEqual(invoice.budget_percentage(), Decimal("30.0"))
 
-    def test_get_last_six_months(self):
+    @patch("timary.models.timezone")
+    def test_get_last_six_months(self, date_mock):
+        date_mock.now.return_value = timezone.datetime(2023, 2, 5)
         tz = zoneinfo.ZoneInfo("America/New_York")
         invoice = IntervalInvoiceFactory()
         hours1 = HoursLineItemFactory(
             invoice=invoice,
             quantity=1,
-            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=1),
+            date_tracked=timezone.datetime(2023, 2, 1, tzinfo=tz),
         )
         sent_invoice_1 = SentInvoiceFactory(
             invoice=invoice,
             total_price=50,
-            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=1),
+            date_sent=timezone.datetime(2023, 2, 1, tzinfo=tz),
         )
         hours1.sent_invoice_id = sent_invoice_1.id
         hours2 = HoursLineItemFactory(
             invoice=invoice,
             quantity=2,
-            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=6),
+            date_tracked=timezone.datetime(2023, 1, 10, tzinfo=tz),
         )
         sent_invoice_2 = SentInvoiceFactory(
             invoice=invoice,
-            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=6),
+            date_sent=timezone.datetime(2023, 1, 10, tzinfo=tz),
             total_price=50,
         )
         hours2.sent_invoice_id = sent_invoice_2.id
@@ -377,11 +379,11 @@ class TestInvoice(TestCase):
         hours3 = HoursLineItemFactory(
             invoice=invoice,
             quantity=3,
-            date_tracked=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=8),
+            date_tracked=timezone.datetime(2022, 12, 10, tzinfo=tz),
         )
         sent_invoice_3 = SentInvoiceFactory(
             invoice=invoice,
-            date_sent=timezone.now().astimezone(tz=tz) - timezone.timedelta(weeks=12),
+            date_sent=timezone.datetime(2022, 12, 10, tzinfo=tz),
             total_price=100,
         )
         hours3.sent_invoice_id = sent_invoice_3.id
@@ -686,7 +688,11 @@ class TestUser(TestCase):
             user = UserFactory(stripe_payouts_enabled=False)
             self.assertFalse(user.can_accept_payments)
 
-    def test_can_repeat_logged_days(self):
+    @patch("timary.querysets.get_users_localtime")
+    def test_can_repeat_logged_days(self, date_mock):
+        date_mock.return_value = timezone.datetime(
+            2023, 1, 10, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
         user = UserFactory()
         hours_manager = HoursManager(user)
         with self.subTest("No previous day with logged hours"):
