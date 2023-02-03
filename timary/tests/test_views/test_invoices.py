@@ -33,6 +33,7 @@ from timary.tests.factories import (
     WeeklyInvoiceFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
+from timary.utils import get_users_localtime
 
 
 class TestRecurringInvoices(BaseTest):
@@ -391,6 +392,34 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(invoice.rate, 100)
+
+    def test_update_invoice_next_date_manually(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        next_date = get_users_localtime(self.user) + timezone.timedelta(days=14)
+        url_params = {f"start_on_{invoice.email_id}": next_date.strftime("%Y-%m-%d")}
+        response = self.client.put(
+            reverse(
+                "timary:update_invoice_next_date", kwargs={"invoice_id": invoice.id}
+            ),
+            data=urlencode(url_params),  # HTML PUT FORM
+        )
+        self.invoice.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.invoice.next_date.date(), next_date.date())
+
+    def test_dont_update_invoice_next_date_less_than_today(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        next_date = get_users_localtime(self.user) - timezone.timedelta(days=14)
+        url_params = {f"start_on_{invoice.email_id}": next_date.strftime("%Y-%m-%d")}
+        response = self.client.put(
+            reverse(
+                "timary:update_invoice_next_date", kwargs={"invoice_id": invoice.id}
+            ),
+            data=urlencode(url_params),  # HTML PUT FORM
+        )
+        self.invoice.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(self.invoice.next_date.date(), next_date.date())
 
     def test_update_invoice_dont_update_next_date_if_paused(self):
         url_params = {
