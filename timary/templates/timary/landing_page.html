@@ -17,23 +17,20 @@
         <title>Hello from Timary!</title>
     </head>
     <body>
-        <div class="">
+        <div>
             <header class="navbar mb-14 md:px-12 shadow-lg bg-neutral text-neutral-content w-full">
-                <div class="flex w-full px-3 flex-col md:flex-row items-center md:justify-between">
-                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white mb-5 md:mb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                        </svg>
+                <div class="flex w-full flex-col md:flex-row items-center md:justify-between">
+                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white">
+                        {% include "partials/_logo.html" %}
                         <span class="ml-3 text-xl">Timary</span>
                     </a>
                     <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-5 mx-3 items-center justify-end">
                         <div class="flex flex-row space-x-3 w-full min-w-fit justify-end md:mr-5 mb-3 md:mb-0">
+                            <a href="#timary-for-me">For me?</a>
                             <a href="#benefits">Benefits</a>
                             <a href="#features">Features</a>
-                            <a href="#timary-for-me">For me?</a>
                             <a href="#pricing">Pricing</a>
                             <a href="#faq">FAQ</a>
-
                         </div>
 
                         <div class="flex flex-row space-x-5 w-full items-center justify-center">
