@@ -314,7 +314,7 @@ def send_weekly_updates():
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * invoice.rate
-        msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
+        msg_body = InvoiceBuilder(invoice.user).send_invoice_update(
             {
                 "invoice": invoice,
                 "hours_tracked": hours_tracked_this_week,

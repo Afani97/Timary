@@ -773,7 +773,8 @@ class TestWeeklyInvoiceUpdates(TestCase):
         invoice = IntervalInvoiceFactory(
             last_date=(todays_date - timedelta(days=3)).astimezone(
                 tz=zoneinfo.ZoneInfo("America/New_York")
-            )
+            ),
+            total_budget=1000,
         )
         hour = HoursLineItemFactory(
             invoice=invoice,
@@ -804,3 +805,6 @@ class TestWeeklyInvoiceUpdates(TestCase):
                 <div>${ floatformat(hour.quantity * invoice.rate, -2) }</div>
                 """
             self.assertInHTML(msg, html_message)
+
+        with self.subTest("Test budget appears in weekly update"):
+            self.assertIn("Invoice Budget", html_message)
