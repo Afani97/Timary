@@ -37,4 +37,10 @@ test-ui:
 	python manage.py test timary.tests.test_e2e --failfast
 .PHONY: test-ui
 
+upgrade:
+	pip-compile --upgrade
+	pip-sync
+	playwright install
+.PHONY: upgrade
+
 # TO RUN NGROK FOR TESTING: JUST TYPE 'n' in terminal
