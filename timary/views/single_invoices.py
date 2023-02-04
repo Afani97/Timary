@@ -9,7 +9,7 @@ from django_q.tasks import schedule
 
 from timary.forms import LineItemForm, SingleInvoiceForm
 from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
-from timary.tasks import send_invoice_reminder
+from timary.tasks import send_invoice_reminder, send_invoice_installment
 from timary.utils import get_users_localtime, show_alert_message
 
 
@@ -162,14 +162,15 @@ def update_single_invoice(request, single_invoice_id):
             f"Updated {saved_single_invoice.title}",
             extra_tags="update-single-invoice",
         )
-        messages.info(
-            request,
-            {
-                "msg": "Resend the invoice?",
-                "link": f'{reverse("timary:send_single_invoice_email",  kwargs={"single_invoice_id": saved_single_invoice.id})}?from_update=true',
-            },
-            extra_tags="send-single-invoice",
-        )
+        if single_invoice_obj.installments == 1:
+            messages.info(
+                request,
+                {
+                    "msg": "Resend the invoice?",
+                    "link": f'{reverse("timary:send_single_invoice_email",  kwargs={"single_invoice_id": saved_single_invoice.id})}?from_update=true',
+                },
+                extra_tags="send-single-invoice",
+            )
     return render(
         request,
         "invoices/single_invoice.html",
@@ -274,6 +275,7 @@ def send_single_invoice_email(request, single_invoice_id):
         and sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
     )
 
+    # Send once done updating single invoice and sends from message link
     from_update_form = request.GET.get("from_update", False)
     if (
         not request.user.settings["subscription_active"]
@@ -322,3 +324,54 @@ def send_single_invoice_email(request, single_invoice_id):
         persist=True,
     )
     return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def send_first_installment(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if request.user != single_invoice_obj.user:
+        raise Http404
+
+    if (
+        not request.user.settings["subscription_active"]
+        or single_invoice_obj.status == SingleInvoice.InvoiceStatus.DRAFT
+    ):
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj},
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to send out invoice.",
+            persist=True,
+        )
+        return response
+
+    if (
+        single_invoice_obj.installments > 1
+        and single_invoice_obj.invoice_snapshots.count() == 0
+    ):
+        single_invoice_obj.next_installment_date = timezone.now()
+        single_invoice_obj.save()
+        send_invoice_installment(single_invoice_obj.id)
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj, "installment_sent": True},
+        )
+        show_alert_message(
+            response,
+            "success",
+            f"Invoice for {single_invoice_obj.title} has been sent",
+            persist=True,
+        )
+        return response
+    else:
+        return render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj},
+        )

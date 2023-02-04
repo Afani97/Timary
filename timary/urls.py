@@ -159,6 +159,11 @@ urlpatterns += [
         name="send_single_invoice_email",
     ),
     path(
+        "invoices/single/<uuid:single_invoice_id>/send-installment/",
+        views.send_first_installment,
+        name="send_invoice_installment",
+    ),
+    path(
         "invoices/single/<uuid:single_invoice_id>/status/",
         views.update_single_invoice_status,
         name="update_single_invoice_status",

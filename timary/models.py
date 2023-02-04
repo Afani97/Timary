@@ -9,7 +9,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import DateField, Q, Sum
+from django.db.models import DateField, Q, Sum, F
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -274,6 +274,16 @@ class SingleInvoice(Invoice):
         DRAFT = 0, "DRAFT"
         FINAL = 1, "FINAL"
 
+    class Installments(models.IntegerChoices):
+        ONE = 1, "ONE"
+        TWO = 2, "TWO"
+        THREE = 3, "THREE"
+        FOUR = 4, "FOUR"
+        FIVE = 5, "FIVE"
+        SIX = 6, "SIX"
+        SEVEN = 7, "SEVEN"
+        EIGHT = 8, "EIGHT"
+
     status = models.PositiveSmallIntegerField(
         default=InvoiceStatus.DRAFT,
         choices=InvoiceStatus.choices,
@@ -295,9 +305,19 @@ class SingleInvoice(Invoice):
     tax_amount = models.DecimalField(
         default=0, max_digits=4, decimal_places=2, null=True, blank=True
     )
+    installments = models.PositiveSmallIntegerField(
+        default=Installments.ONE, choices=Installments.choices, blank=True
+    )
+    next_installment_date = models.DateTimeField(null=True, blank=True)
 
     def get_sent_invoice(self):
-        return self.invoice_snapshots.first()
+        if self.installments == 1:
+            return self.invoice_snapshots.first()
+        else:
+            return self.invoice_snapshots.all()
+
+    def get_installments_data(self):
+        return self.invoice_snapshots.count(), self.installments
 
     def invoice_type(self):
         return "single"
@@ -313,13 +333,50 @@ class SingleInvoice(Invoice):
         return False
 
     def render_line_items(self, sent_invoice_id):
+        ctx = {"line_items": self.line_items.all(), "single_invoice": self}
+        if self.installments > 1:
+            installments_left = self.installments - self.invoice_snapshots.count()
+            # Add one installment to include this sent invoice in price
+            line_items = self.line_items.all().annotate(
+                total_amount=(F("quantity") * F("unit_price")) / (installments_left + 1)
+            )
+            ctx["line_items"] = line_items
         return render_to_string(
             "invoices/line_items/single.html",
-            {"line_items": self.line_items.all(), "single_invoice": self},
+            ctx,
         )
+
+    def can_edit(self):
+        if self.installments == 1:
+            if not self.get_sent_invoice() or self.get_sent_invoice().paid_status == 0:
+                return True
+        if self.installments > 1:
+            return (
+                self.invoice_snapshots.filter(paid_status=2).count()
+                != self.installments
+            )
+
+        return False
 
     def update(self):
         self.update_total_price()
+
+    def update_next_installment_date(self):
+        if self.invoice_snapshots.count() < self.installments:
+            self.next_installment_date = (
+                self.next_installment_date + timezone.timedelta(days=14)
+            )
+        else:
+            self.next_installment_date = None
+        self.save()
+
+    def get_installment_price(self):
+        total_amount_sent_so_far = (
+            self.invoice_snapshots.aggregate(price=Sum("total_price"))["price"] or 0
+        )
+        balance_left = self.balance_due - total_amount_sent_so_far
+        installments_left = self.installments - self.invoice_snapshots.count()
+        return balance_left / installments_left
 
     def form_class(self, action="create"):
         from timary.forms import SingleInvoiceForm
@@ -332,6 +389,8 @@ class SingleInvoice(Invoice):
         or not sent at all
         or it can only be sent if the status is Final
         """
+        if self.installments > 1:
+            return False
         sent_invoice = self.get_sent_invoice()
         return (
             self.status == SingleInvoice.InvoiceStatus.FINAL
@@ -349,6 +408,14 @@ class SingleInvoice(Invoice):
             )
         )
 
+    def can_start_installments(self):
+        return (
+            self.status == SingleInvoice.InvoiceStatus.FINAL
+            and self.balance_due > 0
+            and self.installments > 1
+            and self.invoice_snapshots.count() == 0
+        )
+
     def update_total_price(self):
         total_price = 0.0
         for line_item in self.line_items.all():
@@ -364,9 +431,10 @@ class SingleInvoice(Invoice):
             total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
-        if sent_invoice := self.get_sent_invoice():
-            sent_invoice.total_price = self.balance_due
-            sent_invoice.save()
+        if self.installments == 1:
+            if sent_invoice := self.get_sent_invoice():
+                sent_invoice.total_price = self.balance_due
+                sent_invoice.save()
         self.save()
 
     def is_payment_late(self):
@@ -656,6 +724,7 @@ class SentInvoice(BaseModel):
         CANCELLED = 4, "CANCELLED"
 
     date_sent = models.DateTimeField(null=False, blank=False)
+    due_date = models.DateTimeField(null=True, blank=True)
     invoice = models.ForeignKey(
         "timary.Invoice",
         on_delete=models.SET_NULL,

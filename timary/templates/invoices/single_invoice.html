@@ -14,9 +14,9 @@
 
         <form class="my-10"
             {% if single_invoice %}
-                action="{% url 'timary:update_single_invoice' single_invoice_id=invoice_form.instance.id %}?status=send"
+                action="{% url 'timary:update_single_invoice' single_invoice_id=invoice_form.instance.id %}"
             {% else %}
-                action="{% url 'timary:single_invoice' %}?status=send"
+                action="{% url 'timary:single_invoice' %}"
             {% endif %}
             method="post">
 
@@ -195,62 +195,27 @@
             {#            </div>#}
 
             <div class="divider"></div>
-            {# Uncomment when adding logic #}
-            {#            <div id="interval-container"#}
-            {#                {% if single_invoice and single_invoice.invoice_interval == 0 %} class="hidden" {% endif %}>#}
-            {#                <div class="form-control w-full mt-4 {% if single_invoice and single_invoice.invoice_interval != 0 %}hidden {% endif %}">#}
-            {#                    <label class="label">#}
-            {#                        <span class="label-text font-bold text-xl">Repeat this invoice?</span>#}
-            {#                        <input type="checkbox" class="toggle" _="on change toggle .hidden on #invoice-interval-wrapper then toggle .hidden on #installments-container"/>#}
-            {#                    </label>#}
-            {#                    <span class="label-text-alt pl-1">Repeat this invoice for this client until the end date you've chosen</span>#}
-            {#                </div>#}
-            {#                <div class="flex justify-between space-x-5 mt-4#}
-            {#                    {% if single_invoice and single_invoice.invoice_interval != 0 %} '' {% else %} hidden {% endif %}" id="invoice-interval-wrapper">#}
-            {#                    <div class="form-control w-full">#}
-            {#                        <label class="label">#}
-            {#                            <span class="label-text font-bold text-xl">{{ invoice_form.invoice_interval.label_tag }}</span>#}
-            {#                        </label>#}
-            {#                        {{ invoice_form.invoice_interval }}#}
-            {#                        {% if invoice_form.send_reminder.errors %}#}
-            {#                            <div class="text-error pl-2">{{ invoice_form.invoice_interval.errors }}</div>#}
-            {#                        {% endif %}#}
-            {#                    </div>#}
-            {##}
-            {#                    <div class="form-control w-full">#}
-            {#                        <label class="label">#}
-            {#                            <span class="label-text font-bold text-xl">{{ invoice_form.end_interval_date.label_tag }}</span>#}
-            {#                        </label>#}
-            {#                        <div>{{ invoice_form.end_interval_date|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>#}
-            {#                        {% if invoice_form.end_interval_date.errors %}#}
-            {#                            <div class="text-error pl-2">{{ invoice_form.end_interval_date.errors }}</div>#}
-            {#                        {% endif %}#}
-            {#                    </div>#}
-            {#                </div>#}
-            {#                <div class="divider"></div>#}
-            {#            </div>#}
-            {##}
-            {#            <div id="installments-container"#}
-            {#                {% if single_invoice and single_invoice.installments == 0 %} class="hidden" {% endif %}>#}
-            {#                <div class="form-control w-full mt-4 {% if single_invoice and single_invoice.installments != 0 %}hidden {% endif %}">#}
-            {#                    <label class="label">#}
-            {#                        <span class="label-text font-bold text-xl">Break into installments?</span>#}
-            {#                        <input type="checkbox" class="toggle" _="on change toggle .hidden on #installments-wrapper then toggle .hidden on #interval-container"/>#}
-            {#                    </label>#}
-            {#                    <span class="label-text-alt pl-1">Allow the client to pay this invoice in installments up to 8 weeks.</span>#}
-            {#                </div>#}
-            {#                <div class="form-control w-full {% if single_invoice and single_invoice.installments != 0 %} ''  {% else %} hidden {% endif %}"#}
-            {#                    id="installments-wrapper">#}
-            {#                    <label class="label">#}
-            {#                        <span class="label-text font-bold text-xl">{{ invoice_form.installments.label_tag }}</span>#}
-            {#                    </label>#}
-            {#                    {{ invoice_form.installments }}#}
-            {#                    {% if invoice_form.installments.errors %}#}
-            {#                        <div class="text-error pl-2">{{ invoice_form.installments.errors }}</div>#}
-            {#                    {% endif %}#}
-            {#                </div>#}
-            {#                <div class="divider"></div>#}
-            {#            </div>#}
+            <div id="installments-container"
+                {% if single_invoice and single_invoice.installments == 1 %} class="hidden" {% endif %}>
+                <div class="form-control w-full mt-4 {% if single_invoice and single_invoice.installments != 1 %}hidden {% endif %}">
+                    <label class="label">
+                        <span class="label-text font-bold text-xl">Break up this invoice?</span>
+                        <input type="checkbox" class="toggle" _="on change toggle .hidden on #installments-wrapper then toggle .hidden on #interval-container"/>
+                    </label>
+                    <span class="label-text-alt pl-1">Allow the client to pay this invoice in installments.</span>
+                </div>
+                <div class="form-control w-full {% if single_invoice and single_invoice.installments != 1 %} ''  {% else %} hidden {% endif %}"
+                    id="installments-wrapper">
+                    <label class="label">
+                        <span class="label-text font-bold text-xl">{{ invoice_form.installments.label_tag }}</span>
+                    </label>
+                    {{ invoice_form.installments }}
+                    {% if invoice_form.installments.errors %}
+                        <div class="text-error pl-2">{{ invoice_form.installments.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="divider"></div>
+            </div>
 
 
 
