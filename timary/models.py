@@ -374,7 +374,6 @@ class SingleInvoice(Invoice):
 
 
 class RecurringInvoice(Invoice):
-
     next_date = models.DateTimeField(null=True, blank=True)
     last_date = models.DateTimeField(null=True, blank=True)
 
@@ -960,7 +959,13 @@ class User(AbstractUser, BaseModel):
             "linked_in": self.invoice_branding.get("linked_in") or "",
             "twitter": self.invoice_branding.get("twitter") or "",
             "youtube": self.invoice_branding.get("youtube") or "",
+            "social_links": self.social_links_added(),
         }
+
+    def social_links_added(self):
+        links = ["personal_website", "linked_in", "twitter", "youtube"]
+        any_links = any([self.invoice_branding.get(link) for link in links])
+        return any_links
 
     def update_payouts_enabled(self, reason):
         if not reason:

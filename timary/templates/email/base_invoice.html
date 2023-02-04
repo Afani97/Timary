@@ -49,32 +49,35 @@
         {% block footer %}
         {% endblock %}
 
-        <div>
-            {% if invoice_branding.show_profile_pic %}
-                <div class="show_picture flex justify-center my-4">
-                    {% if invoice_branding.profile_pic %}
-                        <div class="avatar">
-                            <div class="w-24 rounded-full">
-                                <img src="{{ invoice_branding.profile_pic.url }}" />
+        <div class="mt-10">
+            <div class="flex flex-row space-x-3 justify-center items-center max-w-md mx-auto mb-10 h-full">
+                {% if invoice_branding.show_profile_pic %}
+                    <div class="show_picture flex justify-center w-full">
+                        {% if invoice_branding.profile_pic %}
+                            <div class="avatar">
+                                <div class="w-24 rounded-full">
+                                    <img src="{{ invoice_branding.profile_pic.url }}" />
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="social_media flex flex-col space-y-1 w-full {% if not invoice_branding.social_links %} hidden {% endif %}">
+                    {% if invoice_branding.personal_website %}
+                        <a href="{{ invoice_branding.personal_website }}" id="personal_website" class="link text-center">{{ invoice_branding.personal_website }}</a>
+                    {% endif %}
+                    {% if invoice_branding.linked_in %}
+                        <a href="{{ invoice_branding.linked_in }}" id="linked_in" class="link text-center">Linkedin</a>
+                    {% endif %}
+                    {% if invoice_branding.twitter %}
+                        <a href="{{ invoice_branding.twitter }}" id="twitter" class="link text-center">Twitter</a>
+                    {% endif %}
+                    {% if invoice_branding.youtube %}
+                        <a href="{{ invoice_branding.youtube }}" id="youtube" class="link text-center">Youtube</a>
                     {% endif %}
                 </div>
-            {% endif %}
-            <div class="social_media my-8 flex flex-col space-y-1">
-                {% if invoice_branding.personal_website %}
-                    <a href="{{ invoice_branding.personal_website }}" id="personal_website" class="link text-center">{{ invoice_branding.personal_website }}</a>
-                {% endif %}
-                {% if invoice_branding.linked_in %}
-                    <a href="{{ invoice_branding.linked_in }}" id="linked_in" class="link text-center">Linkedin</a>
-                {% endif %}
-                {% if invoice_branding.twitter %}
-                    <a href="{{ invoice_branding.twitter }}" id="twitter" class="link text-center">Twitter</a>
-                {% endif %}
-                {% if invoice_branding.youtube %}
-                    <a href="{{ invoice_branding.youtube }}" id="youtube" class="link text-center">Youtube</a>
-                {% endif %}
             </div>
+
             {% if not invoice_branding.hide_timary %}
                 <div class="timary_branding">
                     <p class="text-center">&copy; {% now "Y" %} Timary. All rights reserved.</p>

@@ -120,6 +120,23 @@ class TestHourLineItems(BaseTest):
             response.content.decode("utf-8"),
         )
 
+    def test_create_more_than_24_hours_error(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        HoursLineItemFactory(invoice=invoice, quantity=20)
+        response = self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 10,
+                "date_tracked": timezone.now(),
+                "invoice": invoice.id,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML(
+            "Too many hours logged for today",
+            response.content.decode("utf-8"),
+        )
+
     def test_create_quick_hours(self):
         invoice = IntervalInvoiceFactory(user=self.user)
         hours_ref_id = f"{1.0}_{invoice.email_id}"
@@ -135,6 +152,19 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(response.status_code, 204)
         self.assertIn(
             "Error adding hours",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_create_more_than_24_quick_hours_error(self):
+        invoice = IntervalInvoiceFactory(user=self.user)
+        HoursLineItemFactory(invoice=invoice, quantity=20)
+        hours_ref_id = f"{10.0}_{invoice.email_id}"
+        response = self.client.get(
+            f"{reverse('timary:quick_hours')}?hours_ref_id={hours_ref_id}"
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertIn(
+            "Unable to add hours",
             response.headers["HX-Trigger"],
         )
 

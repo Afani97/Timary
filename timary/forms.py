@@ -1,11 +1,12 @@
 import zoneinfo
+from decimal import Decimal
 
 import pytz
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
@@ -166,6 +167,7 @@ class HoursLineItemForm(forms.ModelForm):
     def clean(self):
         validated_data = super().clean()
 
+        hours = validated_data.get("quantity")
         date_tracked = validated_data.get("date_tracked")
         invoice = validated_data.get("invoice")
         if date_tracked and invoice and hasattr(invoice, "last_date"):
@@ -181,6 +183,24 @@ class HoursLineItemForm(forms.ModelForm):
                 raise ValidationError(
                     "Cannot set date since your last invoice's cutoff date."
                 )
+        if hours and date_tracked:
+            # Keep tracked hours under 24 per day
+            date_tracked_range = (
+                date_tracked.replace(hour=0, minute=0, second=0, microsecond=0),
+                date_tracked.replace(hour=23, minute=59, second=59, microsecond=59),
+            )
+            sum_hours_for_day = (
+                HoursLineItem.objects.filter(
+                    date_tracked__range=date_tracked_range
+                ).aggregate(sum_q=Sum("quantity"))["sum_q"]
+                or 0
+            )
+            if sum_hours_for_day + Decimal(hours) > 24:
+                date_str = date_tracked.date().strftime("%b %-d, %Y")
+                today = get_users_localtime(self.user).date()
+                if today == date_tracked.date():
+                    date_str = "today"
+                raise ValidationError(f"Too many hours logged for {date_str}")
 
         repeating = validated_data.get("repeating")
         recurring = validated_data.get("recurring")

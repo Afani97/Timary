@@ -873,7 +873,9 @@ class TestRecurringInvoices(BaseTest):
     def test_edit_sent_invoice_hours_update_single_hour(self):
         invoice = IntervalInvoiceFactory(user=self.user)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
-        hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
+        hour1 = HoursLineItemFactory(
+            invoice=invoice, date_tracked=invoice.last_date, quantity=10
+        )
         hour1.sent_invoice_id = sent_invoice.id
         hour1.save()
 

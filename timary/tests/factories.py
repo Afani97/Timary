@@ -121,7 +121,7 @@ class HoursLineItemFactory(DjangoModelFactory):
         model = HoursLineItem
 
     invoice = factory.SubFactory(IntervalInvoiceFactory)
-    quantity = FuzzyDecimal(1, 23, 1)
+    quantity = FuzzyDecimal(1, 10, 1)
     date_tracked = factory.LazyFunction(timezone.now)
 
 
@@ -132,5 +132,5 @@ class LineItemFactory(DjangoModelFactory):
     invoice = factory.SubFactory(IntervalInvoiceFactory)
     description = factory.Faker("name")
     unit_price = FuzzyDecimal(1, 10, 1)
-    quantity = FuzzyDecimal(1, 23, 1)
+    quantity = FuzzyDecimal(1, 10, 1)
     date_tracked = factory.LazyFunction(timezone.now)

@@ -30,3 +30,8 @@ def addfloats(val, arg):
 @register.filter(name="adddays")
 def adddays(value, days):
     return datetime.date.fromisoformat(value) + datetime.timedelta(days=int(days))
+
+
+@register.filter(name="python_any")
+def python_any(values):
+    return any(values)
