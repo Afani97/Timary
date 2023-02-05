@@ -127,7 +127,9 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 10,
-                "date_tracked": timezone.now(),
+                "date_tracked": timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo(self.user.timezone)
+                ),
                 "invoice": invoice.id,
             },
         )

@@ -405,7 +405,12 @@ class TestRecurringInvoices(BaseTest):
         )
         self.invoice.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.invoice.next_date.date(), next_date.date())
+        self.assertEqual(
+            self.invoice.next_date.astimezone(
+                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            ).date(),
+            next_date.date(),
+        )
 
     def test_dont_update_invoice_next_date_less_than_today(self):
         invoice = IntervalInvoiceFactory(user=self.user)
@@ -1344,6 +1349,71 @@ class TestSingleInvoices(BaseTest):
                 kwargs={"single_invoice_id": invoice.id},
             )
         )
+        self.assertIn(
+            "Unable to send out invoice.",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_send_first_invoice_installment(self):
+        invoice = SingleInvoiceFactory(
+            user=self.user, installments=3, status=1, balance_due=15
+        )
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=15)
+        response = self.client.get(
+            reverse(
+                "timary:send_invoice_installment",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        sent_invoice = invoice.get_sent_invoice().first()
+        sent_invoice.refresh_from_db()
+        self.assertIsNotNone(invoice.next_installment_date)
+        self.assertEqual(sent_invoice.total_price, 5)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(
+            f"Installment for {invoice.title} has been sent",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_do_not_send_first_invoice_installment_if_draft_status(self):
+        invoice = SingleInvoiceFactory(
+            user=self.user, installments=3, balance_due=15, status=0
+        )
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=15)
+        response = self.client.get(
+            reverse(
+                "timary:send_invoice_installment",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        sent_invoice = invoice.get_sent_invoice().first()
+        self.assertIsNone(invoice.next_installment_date)
+        self.assertIsNone(sent_invoice)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertIn(
+            "Unable to send out invoice.",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_do_not_send_first_invoice_installment_if_already_has_first_installment(
+        self,
+    ):
+        invoice = SingleInvoiceFactory(
+            user=self.user, installments=3, balance_due=15, status=1
+        )
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=15)
+        SentInvoiceFactory(invoice=invoice)
+        response = self.client.get(
+            reverse(
+                "timary:send_invoice_installment",
+                kwargs={"single_invoice_id": invoice.id},
+            )
+        )
+        invoice.refresh_from_db()
+        self.assertIsNone(invoice.next_installment_date)
+        self.assertEqual(len(mail.outbox), 0)
         self.assertIn(
             "Unable to send out invoice.",
             response.headers["HX-Trigger"],

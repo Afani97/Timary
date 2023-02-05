@@ -41,7 +41,6 @@ def gather_recurring_hours():
 
     for recurring_hour in all_recurring_hours:
         if recurring_hour.is_recurring_date_today():
-
             new_hours = HoursLineItem.objects.create(
                 quantity=recurring_hour.quantity,
                 date_tracked=today,
@@ -106,6 +105,57 @@ def gather_invoices():
         invoices_sent += len(list(invoices_sent_only_on_mondays))
 
     return f"Invoices sent: {invoices_sent}"
+
+
+def gather_invoice_installments():
+    today = timezone.now()
+    user_active_query = Q(
+        user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+    )
+    today_range_query = (
+        today.replace(hour=0, minute=0, second=0),
+        today.replace(hour=23, minute=59, second=59),
+    )
+    installment_sent_today = SingleInvoice.objects.filter(
+        is_archived=False, next_installment_date__range=today_range_query
+    ).exclude(user_active_query)
+    installments_sent = 0
+    for installment in installment_sent_today:
+        _ = async_task(send_invoice_installment, installment.id)
+        installments_sent += 1
+
+    return f"Installments sent: {installments_sent}"
+
+
+def send_invoice_installment(invoice_id):
+    today = timezone.now()
+    installment = SingleInvoice.objects.get(id=invoice_id)
+    if installment.invoice_snapshots.count() >= installment.installments:
+        return False
+    current_month = date.strftime(today, "%m/%Y")
+    sent_invoice = SentInvoice.objects.create(
+        date_sent=today,
+        invoice=installment,
+        user=installment.user,
+        due_date=today + timezone.timedelta(days=14),
+        total_price=installment.get_installment_price(),
+    )
+    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
+        {
+            "sent_invoice": sent_invoice,
+            "line_items": sent_invoice.get_rendered_line_items(),
+            "due_date": sent_invoice.due_date,
+            "installment": True,
+        }
+    )
+
+    EmailService.send_html(
+        f"{installment.title}'s Installment Invoice from {installment.user.first_name} for {current_month}",
+        msg_body,
+        [installment.client_email, installment.client_second_email],
+    )
+    installment.update_next_installment_date()
+    return True
 
 
 def gather_single_invoices_before_due_date():

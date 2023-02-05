@@ -18,7 +18,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </label>
                 <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-64 md:w-80 z-auto">
-                    {% if not single_invoice.get_sent_invoice or single_invoice.get_sent_invoice.paid_status == 0 %}
+                    {% if single_invoice.can_edit %}
                         <li>
                             <a class="btn btn-sm" href="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}">
                                 Edit
@@ -31,6 +31,23 @@
                             Set status as {% if single_invoice.status == 0 %} Final {% else %} Draft {% endif %}
                         </a>
                     </li>
+                    {% if single_invoice.installments > 1 %}
+                        <li>
+                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=single_invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                View sent invoices
+                            </label>
+                        </li>
+                        {# TODO: Send remaining balance #}
+                        {#                    <li>#}
+                        {#                        <label hx-get="{% url 'timary:send_invoice_installment' single_invoice_id=single_invoice.id %}?remaining=true"#}
+                        {#                               hx-confirm="Are you sure you want to send the remaining balance?"#}
+                        {#                               hx-target="closest .card"#}
+                        {#                               hx-swap="outerHTMl"#}
+                        {#                               class="btn btn-sm">#}
+                        {#                            Sent remaining balance#}
+                        {#                        </label>#}
+                        {#                    </li>#}
+                    {% endif %}
                     {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced and single_invoice.user.settings.subscription_active %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
@@ -84,7 +101,15 @@
                     </svg>
                     ${{ single_invoice.balance_due|floatformat:-2 }}
                 </div>
-                {% if single_invoice.status == 1 and single_invoice.get_sent_invoice %}
+                {% if single_invoice.installments > 1 and single_invoice.invoice_snapshots.count > 0 %}
+                    <div class="flex mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                        </svg>
+                        Installments: {{ single_invoice.get_installments_data.0 }} sent out of {{ single_invoice.get_installments_data.1 }}
+                    </div>
+                {% endif %}
+                {% if single_invoice.installments == 1 and single_invoice.status == 1 and single_invoice.get_sent_invoice %}
                     <div class="flex mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -129,7 +154,7 @@
                                 hx-confirm="Are you sure you want to cancel this invoice?"
                                 hx-target="closest li"
                                 hx-swap="outerHTML">
-    
+
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -137,6 +162,16 @@
                             </div>
                         </div>
                     {% endif %}
+                </div>
+            {% endif %}
+
+            {% if single_invoice.can_start_installments %}
+                <div class="w-full flex flex-row justify-center sm:items-end sm:justify-end space-x-5 mt-4 md:mt-0">
+                    <btn class="btn btn-accent btn-outline" hx-get="{% url 'timary:send_invoice_installment' single_invoice_id=single_invoice.id %}"
+                        hx-confirm="Are you sure you want to send this installment now?" hx-target="closest .card" hx-swap="outerHTML"
+                        _="on htmx:beforeRequest add .loading to me">
+                        Send first installment
+                    </btn>
                 </div>
             {% endif %}
         </div>

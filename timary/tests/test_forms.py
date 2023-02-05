@@ -409,6 +409,23 @@ class TestInvoices(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors, {"title": ["Title cannot start with a number."]})
 
+    def test_single_invoice_error_installments_less_than_created(self):
+        single_invoice = SingleInvoiceFactory(installments=5)
+        form = SingleInvoiceForm(
+            instance=single_invoice,
+            data={
+                "title": single_invoice.title,
+                "client_name": single_invoice.client_name,
+                "client_email": single_invoice.client_email,
+                "due_date": single_invoice.due_date,
+                "installments": 3,
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors, {"installments": ["Can't set installments less than 5"]}
+        )
+
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):

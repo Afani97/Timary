@@ -517,7 +517,7 @@ class SingleInvoiceForm(InvoiceForm):
             "client_second_email",
             # "invoice_interval",
             # "end_interval_date",
-            # "installments",
+            "installments",
             "save_for_reuse",
             "due_date",
             "discount_amount",
@@ -583,6 +583,18 @@ class SingleInvoiceForm(InvoiceForm):
         if title[0].isdigit():
             raise ValidationError("Title cannot start with a number.")
         return title
+
+    def clean_installments(self):
+        installments = self.cleaned_data.get("installments")
+        if (
+            installments
+            and self.instance.pk
+            and self.instance.installments > installments
+        ):
+            raise ValidationError(
+                f"Can't set installments less than {self.instance.installments}"
+            )
+        return installments
 
 
 class PayInvoiceForm(forms.Form):

@@ -12,10 +12,12 @@ from django.utils import timezone
 
 from timary.models import HoursLineItem, SentInvoice, User
 from timary.tasks import (
+    gather_invoice_installments,
     gather_invoices,
     gather_recurring_hours,
     gather_single_invoices_before_due_date,
     send_invoice,
+    send_invoice_installment,
     send_invoice_preview,
     send_invoice_reminder,
     send_weekly_updates,
@@ -174,6 +176,59 @@ class TestGatherInvoices(TestCase):
         )
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
+
+
+class TestGatherInvoiceInstallments(TestCase):
+    @patch("timary.tasks.async_task")
+    def test_gather_0_installments(self, send_installment_mock):
+        send_installment_mock.return_value = None
+        installments_sent = gather_invoice_installments()
+        self.assertEqual("Installments sent: 0", installments_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_0_installments_for_today(self, send_installment_mock):
+        send_installment_mock.return_value = None
+        SingleInvoiceFactory(
+            next_installment_date=timezone.now() + timezone.timedelta(days=2)
+        )
+        SingleInvoiceFactory(
+            next_installment_date=timezone.now() - timezone.timedelta(days=1)
+        )
+        installments_sent = gather_invoice_installments()
+        self.assertEqual("Installments sent: 0", installments_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_installments_excluding_archived_and_inactive_subscriptions(
+        self, send_installment_mock
+    ):
+        send_installment_mock.return_value = None
+        SingleInvoiceFactory(next_installment_date=timezone.now(), is_archived=True)
+        SingleInvoiceFactory(
+            next_installment_date=timezone.now(), user__stripe_subscription_status=3
+        )
+        installments_sent = gather_invoice_installments()
+        self.assertEqual("Installments sent: 0", installments_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_installments_for_today(self, send_installment_mock):
+        send_installment_mock.return_value = None
+        SingleInvoiceFactory(next_installment_date=timezone.now())
+        SingleInvoiceFactory(next_installment_date=timezone.now())
+        installments_sent = gather_invoice_installments()
+        self.assertEqual("Installments sent: 2", installments_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_installments_for_today_exluding_not_allowed(
+        self, send_installment_mock
+    ):
+        send_installment_mock.return_value = None
+        SingleInvoiceFactory(next_installment_date=timezone.now())
+        SingleInvoiceFactory(next_installment_date=timezone.now(), is_archived=True)
+        SingleInvoiceFactory(
+            next_installment_date=timezone.now(), user__stripe_subscription_status=3
+        )
+        installments_sent = gather_invoice_installments()
+        self.assertEqual("Installments sent: 1", installments_sent)
 
 
 class TestGatherHours(TestCase):
@@ -732,6 +787,81 @@ class TestSendInvoice(TestCase):
 
         hours.invoice.refresh_from_db()
         self.assertEquals(SentInvoice.objects.count(), 0)
+
+
+class TestSendInvoiceInstallment(TestCase):
+    def setUp(self) -> None:
+        self.todays_date = timezone.now()
+        self.current_month = date.strftime(self.todays_date, "%m/%Y")
+
+    @classmethod
+    def extract_html(cls):
+        s = mail.outbox[0].message().as_string()
+        start = s.find("<body>") + len("<body>")
+        end = s.find("</body>")
+        message = s[start:end]
+        return message
+
+    def test_send_installment(self):
+        invoice = SingleInvoiceFactory(
+            next_installment_date=timezone.now(), installments=2, balance_due=100
+        )
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=100)
+        send_invoice_installment(invoice.id)
+        sent_invoice = invoice.get_sent_invoice().first()
+        self.assertIsNotNone(sent_invoice.due_date)
+        self.assertEqual(sent_invoice.total_price, 50)
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            f"{invoice.title}'s Installment Invoice from {invoice.user.first_name} for {self.current_month}",
+        )
+        self.assertEquals(SentInvoice.objects.count(), 1)
+
+    def test_send_installment_return_if_installments_all_sent(self):
+        invoice = SingleInvoiceFactory(
+            next_installment_date=timezone.now(), installments=2, balance_due=100
+        )
+        SentInvoiceFactory(invoice=invoice)
+        SentInvoiceFactory(invoice=invoice)
+        invoice_sent = send_invoice_installment(invoice.id)
+        self.assertFalse(invoice_sent)
+        self.assertEquals(len(mail.outbox), 0)
+        self.assertEquals(SentInvoice.objects.count(), 2)
+
+    def test_send_installment_renders_valid_items(self):
+        invoice = SingleInvoiceFactory(
+            next_installment_date=timezone.now(), installments=2, balance_due=100
+        )
+        line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=100)
+        send_invoice_installment(invoice.id)
+        invoice.refresh_from_db()
+        sent_invoice = invoice.get_sent_invoice().first()
+        sent_invoice.refresh_from_db()
+        html_body = self.extract_html()
+        sent_invoice_due_date = timezone.now() + timezone.timedelta(days=14)
+        self.assertInHTML(
+            f"""
+            <div>
+                <strong>Due By: </strong>
+                {template_date(sent_invoice_due_date, "M. j, Y")}
+            </div>
+        """,
+            html_body,
+        )
+        self.assertInHTML(
+            f"""
+            <div>{line_item.description}</div>
+            <div>$50</div>
+        """,
+            html_body,
+        )
+        self.assertInHTML(
+            """
+            <div class="ml-24">$55</div>
+            """,
+            html_body,
+        )
 
 
 class TestWeeklyInvoiceUpdates(TestCase):
