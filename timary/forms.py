@@ -586,7 +586,11 @@ class SingleInvoiceForm(InvoiceForm):
 
     def clean_installments(self):
         installments = self.cleaned_data.get("installments")
-        if self.instance.pk and self.instance.installments > installments:
+        if (
+            installments
+            and self.instance.pk
+            and self.instance.installments > installments
+        ):
             raise ValidationError(
                 f"Can't set installments less than {self.instance.installments}"
             )

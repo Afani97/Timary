@@ -405,7 +405,12 @@ class TestRecurringInvoices(BaseTest):
         )
         self.invoice.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.invoice.next_date.date(), next_date.date())
+        self.assertEqual(
+            self.invoice.next_date.astimezone(
+                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            ).date(),
+            next_date.date(),
+        )
 
     def test_dont_update_invoice_next_date_less_than_today(self):
         invoice = IntervalInvoiceFactory(user=self.user)
