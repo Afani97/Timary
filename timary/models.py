@@ -334,15 +334,7 @@ class SingleInvoice(Invoice):
                 if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
                     return True
         elif self.installments > 1:
-            sent_invoices = self.get_sent_invoice()
-            if sent_invoices.count() > 1:
-                installments_synced = sent_invoices.filter(
-                    accounting_invoice_id__isnull=False
-                ).count()
-                return (
-                    self.accounting_customer_id
-                    and installments_synced == self.installments
-                )
+            return self.accounting_customer_id is not None
         return False
 
     def render_line_items(self, sent_invoice_id):

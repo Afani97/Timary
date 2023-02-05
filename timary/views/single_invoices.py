@@ -223,7 +223,10 @@ def sync_single_invoice(request, single_invoice_id):
     )
 
     if customer_synced:
-        if single_invoice_obj.get_sent_invoice():
+        if (
+            single_invoice_obj.installments == 1
+            and single_invoice_obj.get_sent_invoice()
+        ):
             (
                 invoice_synced,
                 error_raised,
@@ -235,6 +238,13 @@ def sync_single_invoice(request, single_invoice_id):
                     f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
                 )
                 return response
+        elif single_invoice_obj.installments > 1:
+            show_alert_message(
+                response,
+                "success",
+                f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+            )
+            return response
     show_alert_message(
         response,
         "error",

@@ -598,21 +598,14 @@ class TestInvoice(TestCase):
                 rendered_line_items,
             )
 
-    def test_multiple_installments_are_synced(self):
-        with self.subTest("Invoice installments not all are synced"):
-            invoice = SingleInvoiceFactory(
-                installments=2, accounting_customer_id="abc123"
-            )
-            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
-            SentInvoiceFactory(invoice=invoice)
-            self.assertFalse(invoice.is_synced())
-        with self.subTest("Invoice installments are all synced"):
-            invoice = SingleInvoiceFactory(
-                installments=2, accounting_customer_id="abc123"
-            )
-            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
-            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
-            self.assertTrue(invoice.is_synced())
+    def test_multiple_installments_invoice_is_synced(self):
+        invoice = SingleInvoiceFactory(installments=2, accounting_customer_id="abc123")
+        self.assertTrue(invoice.is_synced())
+
+    def test_single_installment_is_synced(self):
+        invoice = SingleInvoiceFactory(installments=1, accounting_customer_id="abc123")
+        SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
+        self.assertTrue(invoice.is_synced())
 
 
 class TestSentInvoice(TestCase):
