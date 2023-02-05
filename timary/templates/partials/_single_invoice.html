@@ -31,6 +31,23 @@
                             Set status as {% if single_invoice.status == 0 %} Final {% else %} Draft {% endif %}
                         </a>
                     </li>
+                    {% if single_invoice.installments > 1 %}
+                        <li>
+                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=single_invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                View sent invoices
+                            </label>
+                        </li>
+                        {# TODO: Send remaining balance #}
+                        {#                    <li>#}
+                        {#                        <label hx-get="{% url 'timary:send_invoice_installment' single_invoice_id=single_invoice.id %}?remaining=true"#}
+                        {#                               hx-confirm="Are you sure you want to send the remaining balance?"#}
+                        {#                               hx-target="closest .card"#}
+                        {#                               hx-swap="outerHTMl"#}
+                        {#                               class="btn btn-sm">#}
+                        {#                            Sent remaining balance#}
+                        {#                        </label>#}
+                        {#                    </li>#}
+                    {% endif %}
                     {% if single_invoice.user.accounting_org_id and not single_invoice.is_synced and single_invoice.user.settings.subscription_active %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"

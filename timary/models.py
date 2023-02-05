@@ -9,7 +9,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import DateField, Q, Sum, F
+from django.db.models import DateField, F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -336,7 +336,7 @@ class SingleInvoice(Invoice):
         ctx = {"line_items": self.line_items.all(), "single_invoice": self}
         if self.installments > 1:
             installments_left = self.installments - self.invoice_snapshots.count()
-            # Add one installment to include this sent invoice in price
+            # Add one installment to include this sent invoice in amount
             line_items = self.line_items.all().annotate(
                 total_amount=(F("quantity") * F("unit_price")) / (installments_left + 1)
             )
@@ -427,8 +427,9 @@ class SingleInvoice(Invoice):
         if self.tax_amount:
             total_price += total_price * float(self.tax_amount / 100)
 
-        if self.is_payment_late():
-            total_price += float(self.late_penalty_amount)
+        if self.installments == 1:
+            if self.is_payment_late():
+                total_price += float(self.late_penalty_amount)
 
         self.balance_due = round(Decimal.from_float(total_price), 2)
         if self.installments == 1:
@@ -877,6 +878,12 @@ ari@usetimary.com
         for hour in hours:
             total_price += hour.quantity * self.hourly_rate_snapshot
         self.total_price = total_price
+        if self.due_date:
+            tz = zoneinfo.ZoneInfo(self.user.timezone)
+            now = timezone.now().astimezone(tz=tz)
+            due_date = self.due_date.astimezone(tz=tz)
+            if now > due_date and self.invoice.late_penalty:
+                self.total_price += self.invoice.late_penalty_amount
         self.save()
 
 

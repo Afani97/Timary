@@ -109,7 +109,6 @@ def gather_invoices():
 
 def gather_invoice_installments():
     today = timezone.now()
-    current_month = date.strftime(today, "%m/%Y")
     user_active_query = Q(
         user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
     )

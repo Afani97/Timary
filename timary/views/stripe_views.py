@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import PayInvoiceForm
 from timary.invoice_builder import InvoiceBuilder
-from timary.models import SentInvoice, User, SingleInvoice
+from timary.models import SentInvoice, SingleInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 
@@ -39,8 +39,11 @@ def pay_invoice(request, sent_invoice_id):
             return JsonResponse({"valid": False, "errors": pay_invoice_form.errors})
     else:
         if isinstance(sent_invoice.invoice, SingleInvoice):
-            sent_invoice.invoice.update()
-            sent_invoice.total_price = sent_invoice.invoice.balance_due
+            if sent_invoice.invoice.installments == 1:
+                sent_invoice.invoice.update()
+                sent_invoice.total_price = sent_invoice.invoice.balance_due
+            else:
+                sent_invoice.update_total_price()
             sent_invoice.save()
         try:
             intent = StripeService.create_payment_intent_for_payout(sent_invoice)
