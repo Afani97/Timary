@@ -9,7 +9,7 @@ from django_q.tasks import schedule
 
 from timary.forms import LineItemForm, SingleInvoiceForm
 from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
-from timary.tasks import send_invoice_reminder, send_invoice_installment
+from timary.tasks import send_invoice_installment, send_invoice_reminder
 from timary.utils import get_users_localtime, show_alert_message
 
 
@@ -163,11 +163,15 @@ def update_single_invoice(request, single_invoice_id):
             extra_tags="update-single-invoice",
         )
         if single_invoice_obj.installments == 1:
+            send_url = reverse(
+                "timary:send_single_invoice_email",
+                kwargs={"single_invoice_id": saved_single_invoice.id},
+            )
             messages.info(
                 request,
                 {
                     "msg": "Resend the invoice?",
-                    "link": f'{reverse("timary:send_single_invoice_email",  kwargs={"single_invoice_id": saved_single_invoice.id})}?from_update=true',
+                    "link": f"{send_url}?from_update=true",
                 },
                 extra_tags="send-single-invoice",
             )
@@ -365,13 +369,20 @@ def send_first_installment(request, single_invoice_id):
         show_alert_message(
             response,
             "success",
-            f"Invoice for {single_invoice_obj.title} has been sent",
+            f"Installment for {single_invoice_obj.title} has been sent",
             persist=True,
         )
         return response
     else:
-        return render(
+        response = render(
             request,
             "partials/_single_invoice.html",
             {"single_invoice": single_invoice_obj},
         )
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to send out invoice.",
+            persist=True,
+        )
+        return response

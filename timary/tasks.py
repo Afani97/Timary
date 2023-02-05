@@ -131,7 +131,7 @@ def send_invoice_installment(invoice_id):
     today = timezone.now()
     installment = SingleInvoice.objects.get(id=invoice_id)
     if installment.invoice_snapshots.count() >= installment.installments:
-        return None
+        return False
     current_month = date.strftime(today, "%m/%Y")
     sent_invoice = SentInvoice.objects.create(
         date_sent=today,
@@ -155,6 +155,7 @@ def send_invoice_installment(invoice_id):
         [installment.client_email, installment.client_second_email],
     )
     installment.update_next_installment_date()
+    return True
 
 
 def gather_single_invoices_before_due_date():
