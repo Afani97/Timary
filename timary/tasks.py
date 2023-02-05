@@ -140,7 +140,6 @@ def send_invoice_installment(invoice_id):
         due_date=today + timezone.timedelta(days=14),
         total_price=installment.get_installment_price(),
     )
-    print(sent_invoice.id)
     msg_body = InvoiceBuilder(sent_invoice.user).send_invoice(
         {
             "sent_invoice": sent_invoice,

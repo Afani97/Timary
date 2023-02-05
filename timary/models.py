@@ -317,6 +317,8 @@ class SingleInvoice(Invoice):
             return self.invoice_snapshots.all()
 
     def get_installments_data(self):
+        if self.installments == 1:
+            return None
         return self.invoice_snapshots.count(), self.installments
 
     def invoice_type(self):
@@ -331,6 +333,16 @@ class SingleInvoice(Invoice):
             if sent_invoice:
                 if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
                     return True
+        elif self.installments > 1:
+            sent_invoices = self.get_sent_invoice()
+            if sent_invoices.count() > 1:
+                installments_synced = sent_invoices.filter(
+                    accounting_invoice_id__isnull=False
+                ).count()
+                return (
+                    self.accounting_customer_id
+                    and installments_synced == self.installments
+                )
         return False
 
     def render_line_items(self, sent_invoice_id):
@@ -356,7 +368,7 @@ class SingleInvoice(Invoice):
                 return True
         if self.installments > 1:
             return (
-                self.invoice_snapshots.filter(paid_status=2).count()
+                self.get_sent_invoice().filter(paid_status=2).count()
                 != self.installments
             )
 
@@ -367,6 +379,10 @@ class SingleInvoice(Invoice):
 
     def update_next_installment_date(self):
         if self.invoice_snapshots.count() < self.installments:
+            if self.next_installment_date is None:
+                self.next_installment_date = timezone.now().astimezone(
+                    tz=zoneinfo.ZoneInfo(self.user.timezone)
+                )
             self.next_installment_date = (
                 self.next_installment_date + timezone.timedelta(days=14)
             )
@@ -882,8 +898,6 @@ ari@usetimary.com
         for hour in hours:
             total_price += hour.quantity * self.hourly_rate_snapshot
         self.total_price = total_price
-        if self.due_date and self.is_payment_late() and self.invoice.late_penalty:
-            self.total_price += self.invoice.late_penalty_amount
         self.save()
 
     def update_installments(self):
@@ -897,14 +911,14 @@ ari@usetimary.com
         self.save()
 
     def is_payment_late(self):
+        if self.invoice.installments == 1:
+            return False
+        if not self.invoice.late_penalty:
+            return False
         tz = zoneinfo.ZoneInfo(self.user.timezone)
         now = timezone.now().astimezone(tz=tz)
-        due_date = self.invoice.due_date.astimezone(tz=tz)
-        if self.invoice.installments > 1:
-            due_date = self.due_date.astimezone(tz=tz)
-        if now > due_date:
-            return True
-        return False
+        due_date = self.due_date.astimezone(tz=tz)
+        return now > due_date
 
 
 class User(AbstractUser, BaseModel):

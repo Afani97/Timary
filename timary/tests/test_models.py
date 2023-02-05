@@ -22,6 +22,7 @@ from timary.models import (
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    LineItemFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
     SingleInvoiceFactory,
@@ -465,13 +466,189 @@ class TestInvoice(TestCase):
         )
         _ = [
             LineItem.objects.create(invoice=single_invoice, quantity=1, unit_price=1)
-            for i in range(5)
+            for _ in range(5)
         ]
         single_invoice.update_total_price()
         self.assertEqual(single_invoice.balance_due, 6.25)
 
+    def test_single_invoice_get_sent_invoices(self):
+        with self.subTest("Installments of 1 only have one sent invoice instance"):
+            single_invoice = SingleInvoiceFactory(installments=1)
+            sent_invoice = SentInvoiceFactory(invoice=single_invoice)
+            self.assertEqual(single_invoice.get_sent_invoice(), sent_invoice)
+            self.assertIsNone(single_invoice.get_installments_data())
+        with self.subTest(
+            "Installments of 2 or more get the same number of sent invoices when complete"
+        ):
+            single_invoice = SingleInvoiceFactory(installments=3)
+            SentInvoiceFactory(invoice=single_invoice)
+            SentInvoiceFactory(invoice=single_invoice)
+            self.assertEqual(single_invoice.get_sent_invoice().count(), 2)
+            self.assertEqual(single_invoice.get_installments_data(), (2, 3))
+
+    def test_can_edit_single_invoice(self):
+        with self.subTest("Single installment not pending payment yet"):
+            invoice = SingleInvoiceFactory(installments=1)
+            SentInvoiceFactory(invoice=invoice, paid_status=0)
+            self.assertTrue(invoice.can_edit())
+        with self.subTest("single installment payment is pending"):
+            invoice = SingleInvoiceFactory(installments=1)
+            SentInvoiceFactory(invoice=invoice, paid_status=1)
+            self.assertFalse(invoice.can_edit())
+        with self.subTest("Multiple installment not all payment paid yet"):
+            invoice = SingleInvoiceFactory(installments=3)
+            SentInvoiceFactory(invoice=invoice, paid_status=0)
+            SentInvoiceFactory(invoice=invoice, paid_status=0)
+            SentInvoiceFactory(invoice=invoice, paid_status=2)
+            self.assertTrue(invoice.can_edit())
+        with self.subTest("Multiple installment all payment is paid"):
+            invoice = SingleInvoiceFactory(installments=3)
+            SentInvoiceFactory(invoice=invoice, paid_status=2)
+            SentInvoiceFactory(invoice=invoice, paid_status=2)
+            SentInvoiceFactory(invoice=invoice, paid_status=2)
+            self.assertFalse(invoice.can_edit())
+
+    def test_single_update_next_installment_date(self):
+        with self.subTest("Invoice still has left to send"):
+            invoice = SingleInvoiceFactory(
+                installments=3, next_installment_date=timezone.now()
+            )
+            SentInvoiceFactory(invoice=invoice)
+            SentInvoiceFactory(invoice=invoice)
+            invoice.update_next_installment_date()
+            invoice.refresh_from_db()
+            self.assertIsNotNone(invoice.next_installment_date)
+        with self.subTest("Invoice still has none left to send"):
+            invoice = SingleInvoiceFactory(installments=3)
+            SentInvoiceFactory(invoice=invoice)
+            SentInvoiceFactory(invoice=invoice)
+            SentInvoiceFactory(invoice=invoice)
+            invoice.update_next_installment_date()
+            invoice.refresh_from_db()
+            self.assertIsNone(invoice.next_installment_date)
+
+    def test_get_installment_price(self):
+        with self.subTest("No installment sent yet"):
+            invoice = SingleInvoiceFactory(installments=4, balance_due=400)
+            self.assertEqual(invoice.get_installment_price(), 100)
+        with self.subTest("One or more installments send already"):
+            invoice = SingleInvoiceFactory(installments=4, balance_due=1000)
+            SentInvoiceFactory(invoice=invoice, total_price=250)
+            # (1000 - 250) / (4 -1)
+            # Only get remaining price after calculating total pending/paid so far
+            self.assertEqual(invoice.get_installment_price(), 250)
+
+    def test_multiple_installments_do_not_include_late_payment_in_total(self):
+        """We only want to apply the late payment to the individual installments if they are each paid late"""
+        invoice = SingleInvoiceFactory(
+            installments=4, discount_amount=5, late_penalty=True, late_penalty_amount=20
+        )
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=10)
+        invoice.update_total_price()
+        self.assertEqual(invoice.balance_due, 5)
+
+    def test_render_installment_line_items(self):
+        with self.subTest("No late payment"):
+            invoice = SingleInvoiceFactory(installments=4, balance_due=100)
+            line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=100)
+            sent_invoice = SentInvoiceFactory(
+                invoice=invoice, due_date=timezone.now() + timezone.timedelta(days=1)
+            )
+            rendered_line_items = invoice.render_line_items(
+                sent_invoice_id=sent_invoice.id
+            )
+            # The line item and balance is broken up into 4 therefore 25 each installment.
+            self.assertInHTML(
+                f"""
+                <div>{line_item.description}</div>
+                <div>$25</div>
+                """,
+                rendered_line_items,
+            )
+        with self.subTest("With late payment added"):
+            invoice = SingleInvoiceFactory(
+                installments=4,
+                balance_due=100,
+                late_penalty=True,
+                late_penalty_amount=10,
+            )
+            line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=100)
+            sent_invoice = SentInvoiceFactory(
+                invoice=invoice, due_date=timezone.now() - timezone.timedelta(days=1)
+            )
+            rendered_line_items = invoice.render_line_items(
+                sent_invoice_id=sent_invoice.id
+            )
+            # The line item and balance is broken up into 4 therefore 25 each installment.
+            self.assertInHTML(
+                f"""
+                       <div>{line_item.description}</div>
+                       <div>$25</div>
+                       """,
+                rendered_line_items,
+            )
+            self.assertInHTML(
+                """
+                <div class="flex justify-between py-3 text-xl">
+                    <div>Late Penalty Fee</div>
+                    <div>$10</div>
+                </div>
+                <div class="text-sm -mt-3 pb-3">Penalty added because this is past due.</div>
+                """,
+                rendered_line_items,
+            )
+
+    def test_multiple_installments_are_synced(self):
+        with self.subTest("Invoice installments not all are synced"):
+            invoice = SingleInvoiceFactory(
+                installments=2, accounting_customer_id="abc123"
+            )
+            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
+            SentInvoiceFactory(invoice=invoice)
+            self.assertFalse(invoice.is_synced())
+        with self.subTest("Invoice installments are all synced"):
+            invoice = SingleInvoiceFactory(
+                installments=2, accounting_customer_id="abc123"
+            )
+            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
+            SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
+            self.assertTrue(invoice.is_synced())
+
 
 class TestSentInvoice(TestCase):
+    def test_update_installments_price(self):
+        invoice = SingleInvoiceFactory(installments=2, balance_due=100)
+        sent_invoice = SentInvoiceFactory(invoice=invoice, total_price=100)
+        LineItemFactory(
+            invoice=invoice, sent_invoice_id=sent_invoice.id, quantity=1, unit_price=100
+        )
+        sent_invoice.update_installments()
+
+        # Divide line items by # of installments and added them up for each sent invoice installment
+        self.assertEqual(sent_invoice.total_price, 50)
+
+    def test_is_payment_late(self):
+        with self.subTest("Installments of 1 do not have due dates on sent invoices"):
+            invoice = SingleInvoiceFactory(installments=1)
+            sent_invoice = SentInvoiceFactory(
+                invoice=invoice, due_date=timezone.now() - timezone.timedelta(days=1)
+            )
+            self.assertFalse(sent_invoice.is_payment_late())
+
+        with self.subTest("If no late penalty set, then false"):
+            invoice = SingleInvoiceFactory(installments=3)
+            sent_invoice = SentInvoiceFactory(
+                invoice=invoice, due_date=timezone.now() - timezone.timedelta(days=1)
+            )
+            self.assertFalse(sent_invoice.is_payment_late())
+
+        with self.subTest("If current date is greater than due date set"):
+            invoice = SingleInvoiceFactory(installments=3, late_penalty=True)
+            sent_invoice = SentInvoiceFactory(
+                invoice=invoice, due_date=timezone.now() - timezone.timedelta(days=1)
+            )
+            self.assertTrue(sent_invoice.is_payment_late())
+
     def test_get_rendered_hourly_line_items(self):
         three_days_ago = timezone.now() - timezone.timedelta(days=3)
         yesterday = timezone.now() - timezone.timedelta(days=1)
