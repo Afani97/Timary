@@ -29,6 +29,9 @@
             </div>
             <p>${{ sent_invoice.total_price|floatformat:-2 }}</p>
             <p>{{ sent_invoice.date_sent|localtime|date:"M. j, Y" }}</p>
+            {% if sent_invoice.due_date %}
+                <p>Due: {{ sent_invoice.due_date|date:"M. j, Y" }}</p>
+            {% endif %}
             <p>#{{ sent_invoice.email_id }}</p>
         </div>
         <div class="col-span-1">

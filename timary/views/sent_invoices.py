@@ -50,6 +50,12 @@ def resend_invoice_email(request, sent_invoice_id):
     if request.user != invoice.user:
         raise Http404
 
+    if (
+        isinstance(sent_invoice.invoice, SingleInvoice)
+        and sent_invoice.invoice.installments > 1
+    ):
+        sent_invoice.update_installments()
+
     month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
     msg_body = InvoiceBuilder(invoice.user).send_invoice(
         {
@@ -182,7 +188,6 @@ def cancel_invoice(request, sent_invoice_id):
             {"single_invoice": sent_invoice.invoice},
         )
     else:
-
         response = render(
             request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
         )
@@ -264,7 +269,6 @@ def edit_sent_invoice_hours(request, sent_invoice_id):
             return HttpResponse("", status=401)
 
     if request.method == "PUT":
-
         sent_invoice.update_total_price()
         request.method = "GET"  # Trick Django into allowing this
         _ = resend_invoice_email(request, sent_invoice.id)

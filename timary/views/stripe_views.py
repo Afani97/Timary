@@ -42,8 +42,8 @@ def pay_invoice(request, sent_invoice_id):
             if sent_invoice.invoice.installments == 1:
                 sent_invoice.invoice.update()
                 sent_invoice.total_price = sent_invoice.invoice.balance_due
-            else:
-                sent_invoice.update_total_price()
+            elif sent_invoice.invoice.installments > 1:
+                sent_invoice.update_installments()
             sent_invoice.save()
         try:
             intent = StripeService.create_payment_intent_for_payout(sent_invoice)

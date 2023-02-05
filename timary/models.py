@@ -326,10 +326,11 @@ class SingleInvoice(Invoice):
         raise NotImplementedError()
 
     def is_synced(self):
-        sent_invoice = self.get_sent_invoice()
-        if sent_invoice:
-            if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
-                return True
+        if self.installments == 1:
+            sent_invoice = self.get_sent_invoice()
+            if sent_invoice:
+                if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
+                    return True
         return False
 
     def render_line_items(self, sent_invoice_id):
@@ -341,6 +342,9 @@ class SingleInvoice(Invoice):
                 total_amount=(F("quantity") * F("unit_price")) / (installments_left + 1)
             )
             ctx["line_items"] = line_items
+            sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
+            if sent_invoice.is_payment_late():
+                ctx["is_sent_invoice_late"] = True
         return render_to_string(
             "invoices/line_items/single.html",
             ctx,
@@ -878,13 +882,29 @@ ari@usetimary.com
         for hour in hours:
             total_price += hour.quantity * self.hourly_rate_snapshot
         self.total_price = total_price
-        if self.due_date:
-            tz = zoneinfo.ZoneInfo(self.user.timezone)
-            now = timezone.now().astimezone(tz=tz)
-            due_date = self.due_date.astimezone(tz=tz)
-            if now > due_date and self.invoice.late_penalty:
-                self.total_price += self.invoice.late_penalty_amount
+        if self.due_date and self.is_payment_late() and self.invoice.late_penalty:
+            self.total_price += self.invoice.late_penalty_amount
         self.save()
+
+    def update_installments(self):
+        line_items = self.invoice.line_items.all()
+        total_price = Decimal(0.0)
+        for item in line_items:
+            total_price += item.total_amount() / self.invoice.installments
+        self.total_price = total_price
+        if self.due_date and self.is_payment_late() and self.invoice.late_penalty:
+            self.total_price += self.invoice.late_penalty_amount
+        self.save()
+
+    def is_payment_late(self):
+        tz = zoneinfo.ZoneInfo(self.user.timezone)
+        now = timezone.now().astimezone(tz=tz)
+        due_date = self.invoice.due_date.astimezone(tz=tz)
+        if self.invoice.installments > 1:
+            due_date = self.due_date.astimezone(tz=tz)
+        if now > due_date:
+            return True
+        return False
 
 
 class User(AbstractUser, BaseModel):
