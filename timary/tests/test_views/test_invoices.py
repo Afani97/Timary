@@ -78,7 +78,7 @@ class TestRecurringInvoices(BaseTest):
         inv_email = invoice.client_email
         self.assertInHTML(
             f"""
-            <h2 class="text-3xl font-bold mr-4">{invoice.title}</h2>
+            <h2 class="text-3xl font-bold overflow-x-hidden">{invoice.title}</h2>
             """,
             response.content.decode("utf-8"),
         )
@@ -187,7 +187,7 @@ class TestRecurringInvoices(BaseTest):
     def test_manage_invoices(self):
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertInHTML(
-            f'<h2 class="text-3xl font-bold mr-4">{self.invoice.title}</h2>',
+            f'<h2 class="text-3xl font-bold overflow-x-hidden">{self.invoice.title}</h2>',
             response.content.decode(),
         )
         self.assertIn(f"Hourly ${self.invoice.rate}", response.content.decode())
@@ -322,7 +322,7 @@ class TestRecurringInvoices(BaseTest):
         inv_email = self.invoice.client_email
         self.assertInHTML(
             f"""
-            <h2 class="text-3xl font-bold mr-4">{self.invoice.title}</h2>
+            <h2 class="text-3xl font-bold overflow-x-hidden">{self.invoice.title}</h2>
             """,
             response.content.decode("utf-8"),
         )
