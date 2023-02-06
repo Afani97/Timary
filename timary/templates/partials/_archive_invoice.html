@@ -34,7 +34,7 @@
                     Balance: ${{ archive_invoice.balance_due }}
                 {% endif %}
             </p>
-            <p class="text-xl">Client {{ archive_invoice.client_name }} ({{ archive_invoice.client_email }})</p>
+            <p class="text-xl">Client: {{ archive_invoice.client_name }} ({{ archive_invoice.client_email }})</p>
             {% if archive_invoice.user.accounting_org_id and archive_invoice.accounting_customer_id %}
                 <div class="text-xl flex flex-row items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-4 h-4 mr-2">
