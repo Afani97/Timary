@@ -838,13 +838,14 @@ class TestUser(TestCase):
 
     def test_get_1_remaining_invoices_logged_today(self):
         user = UserFactory()
-        HoursLineItemFactory(invoice__user=user, date_tracked=timezone.now())
         IntervalInvoiceFactory(user=user)
+        invoice = IntervalInvoiceFactory(user=user)
+        HoursLineItemFactory(invoice=invoice)
         self.assertEqual(len(user.invoices_not_logged()), 1)
 
     def test_filter_out_single_invoices_logged_today(self):
         user = UserFactory()
-        HoursLineItemFactory(invoice__user=user, date_tracked=timezone.now())
+        HoursLineItemFactory(invoice__user=user)
         IntervalInvoiceFactory(user=user)
         SingleInvoiceFactory(user=user)
         self.assertEqual(len(user.invoices_not_logged()), 1)

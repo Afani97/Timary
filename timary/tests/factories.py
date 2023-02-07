@@ -1,3 +1,5 @@
+import zoneinfo
+
 import factory
 from django.utils import timezone
 from factory.django import DjangoModelFactory
@@ -33,6 +35,10 @@ class UserFactory(DjangoModelFactory):
     )
     phone_number_repeat_sms = False
     stripe_subscription_status = 2
+
+
+def get_localtime():
+    return timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
 
 
 def get_next_date():
@@ -122,7 +128,7 @@ class HoursLineItemFactory(DjangoModelFactory):
 
     invoice = factory.SubFactory(IntervalInvoiceFactory)
     quantity = FuzzyDecimal(1, 10, 1)
-    date_tracked = factory.LazyFunction(timezone.now)
+    date_tracked = factory.LazyFunction(get_localtime)
 
 
 class LineItemFactory(DjangoModelFactory):
@@ -133,4 +139,4 @@ class LineItemFactory(DjangoModelFactory):
     description = factory.Faker("name")
     unit_price = FuzzyDecimal(1, 10, 1)
     quantity = FuzzyDecimal(1, 10, 1)
-    date_tracked = factory.LazyFunction(timezone.now)
+    date_tracked = factory.LazyFunction(get_localtime)

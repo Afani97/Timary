@@ -9,7 +9,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import DateField, F, Q, Sum
+from django.db.models import DateField, F, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -1004,20 +1004,16 @@ class User(AbstractUser, BaseModel):
         return self.invoices.all()
 
     def invoices_not_logged(self):
-        today = timezone.now().astimezone(tz=zoneinfo.ZoneInfo(self.timezone))
+        today = get_users_localtime(self)
         today_range = (
-            today.replace(hour=0, minute=0, second=0, microsecond=0),
-            today.replace(hour=23, minute=59, second=59, microsecond=59),
+            today.replace(hour=0, minute=0, second=0),
+            today.replace(hour=23, minute=59, second=59),
         )
-        invoices = set(
-            self.get_invoices.filter(
-                Q(is_paused=False) & Q(line_items__date_tracked__range=today_range)
-            )
+        invoices = self.get_invoices.exclude(is_paused=True).exclude(
+            line_items__date_tracked__range=today_range
         )
-        remaining_invoices = set(self.get_invoices.filter(is_paused=False)) - invoices
-        remaining_invoices = [
-            inv for inv in remaining_invoices if inv.invoice_type() != "single"
-        ]
+
+        remaining_invoices = [inv for inv in invoices if inv.invoice_type() != "single"]
         return remaining_invoices if len(remaining_invoices) > 0 else None
 
     @property

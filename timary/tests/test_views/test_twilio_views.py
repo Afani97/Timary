@@ -12,7 +12,11 @@ from django_twilio.decorators import twilio_view
 
 from timary.models import HoursLineItem
 from timary.tasks import send_reminder_sms
-from timary.tests.factories import IntervalInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    HoursLineItemFactory,
+    IntervalInvoiceFactory,
+    UserFactory,
+)
 from timary.views.twilio_views import twilio_reply
 
 user_timezone = zoneinfo.ZoneInfo("America/New_York")
@@ -21,7 +25,7 @@ user_timezone = zoneinfo.ZoneInfo("America/New_York")
 @patch("twilio.rest.api.v2010.account.message.MessageList.create", return_value=None)
 @patch(
     "timary.tasks.timezone.now",
-    return_value=timezone.datetime(2022, 1, 10, tzinfo=user_timezone),
+    return_value=timezone.datetime(2022, 1, 10, 12, tzinfo=user_timezone),
 )
 @patch(
     "timary.tasks.get_users_localtime",
@@ -31,7 +35,6 @@ class TestTwilioSendReminderSMS(TestCase):
     def test_send_0_messages_if_no_active_subscription(
         self, localtime_mock, today_mock, message_create_mock
     ):
-
         invoice = IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
         invoice.user.stripe_subscription_status = 3
         invoice.user.save()
@@ -45,6 +48,20 @@ class TestTwilioSendReminderSMS(TestCase):
 
     def test_send_1_message(self, localtime_mock, today_mock, message_create_mock):
         IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        invoices_sent = send_reminder_sms()
+        self.assertEqual("1 message(s) sent.", invoices_sent)
+
+    def test_send_1_message_filtered_by_already_tracked(
+        self, localtime_mock, today_mock, message_create_mock
+    ):
+        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        invoice = IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.datetime(
+                2022, 1, 10, 12, 30, 0, tzinfo=user_timezone
+            ),
+        )
 
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)

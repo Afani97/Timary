@@ -303,13 +303,7 @@ def send_reminder_sms():
             continue
         if not user.settings["subscription_active"]:
             continue
-        five_pm_localtime = timezone.now().replace(
-            hour=17,
-            minute=0,
-            second=0,
-            microsecond=0,
-            tzinfo=zoneinfo.ZoneInfo(user.timezone),
-        )
+        five_pm_localtime = now.replace(hour=17, minute=0, second=0, microsecond=0)
         if now.replace(second=0, microsecond=0) == five_pm_localtime:
             remaining_invoices = user.invoices_not_logged()
             if remaining_invoices:
