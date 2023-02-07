@@ -4890,6 +4890,10 @@ input[type="checkbox"]:checked
     align-content: center;
 }
 
+.items-end {
+    align-items: flex-end;
+}
+
 .items-center {
     align-items: center;
 }
