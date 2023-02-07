@@ -3930,6 +3930,10 @@ input[type="checkbox"]:checked
     align-items: flex-end;
 }
 
+.modal-middle {
+    align-items: center;
+}
+
 .stats-vertical {
     grid-auto-flow: row;
 }
@@ -4884,10 +4888,6 @@ input[type="checkbox"]:checked
 
 .content-center {
     align-content: center;
-}
-
-.items-end {
-    align-items: flex-end;
 }
 
 .items-center {
