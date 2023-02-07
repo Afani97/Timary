@@ -127,8 +127,8 @@
 
     {# New invoice modal #}
     <input type="checkbox" id="new-invoice-modal" class="modal-toggle">
-    <div class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box bg-neutral w-11/12 max-w-5xl">
+    <div class="modal modal-bottom md:items-center">
+        <div class="modal-box relative bg-neutral max-w-3xl mx-auto">
             <label _="on click call clearInvoiceModal()"
                 for="new-invoice-modal"
                 id="close-invoice-modal"
@@ -145,7 +145,7 @@
 
     {# Edit hours modal #}
     <input type="checkbox" id="edit-hours-modal" class="modal-toggle" />
-    <div for="edit-hours-modal" class="modal modal-bottom sm:modal-middle">
+    <div for="edit-hours-modal" class="modal modal-bottom md:modal-middle">
         <div class="modal-box relative bg-neutral">
             <h3 class="font-bold text-lg my-6">Update hours for this invoice period</h3>
             <label
