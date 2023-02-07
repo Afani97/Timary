@@ -1004,10 +1004,10 @@ class User(AbstractUser, BaseModel):
         return self.invoices.all()
 
     def invoices_not_logged(self):
-        today = timezone.now()
+        today = timezone.now().astimezone(tz=zoneinfo.ZoneInfo(self.timezone))
         today_range = (
-            today.replace(hour=0, minute=0, second=0),
-            today.replace(hour=23, minute=59, second=59),
+            today.replace(hour=0, minute=0, second=0, microsecond=0),
+            today.replace(hour=23, minute=59, second=59, microsecond=59),
         )
         invoices = set(
             self.get_invoices.filter(
