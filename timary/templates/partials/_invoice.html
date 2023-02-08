@@ -94,6 +94,14 @@
                 </svg>
                 {{ invoice.client_name }} - {{ invoice.client_email }}
             </div>
+            {% if invoice.invoices_pending > 0 %}
+                <div class="flex mb-2 text-yellow-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                    Invoices pending: {{ invoice.invoices_pending }}
+                </div>
+            {% endif %}
             {% if invoice.user.accounting_org_id and invoice.accounting_customer_id %}
                 <div class="flex flex-row items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-5">
@@ -130,12 +138,13 @@
 
         <div tabindex="0" class="collapse collapse-arrow rounded-md -mx-5">
             <input type="checkbox" />
-            <div class="collapse-title text-xl font-medium">View more</div>
+            <div class="collapse-title text-xl font-medium mb-4">View more</div>
             <div class="collapse-content" id="hours-logged">
                 <div class="flex flex-col justify-evenly md:flex-row w-full">
                     {% if invoice.get_hours_tracked.count > 0 %}
-                        <div class="flex flex-grow flex-col items-center w-full">
-                            <p class="text-center mb-12">Hours logged this period</p>
+                        <div class="flex flex-grow flex-col items-center w-full max-w-2xl">
+                            <p class="text-center mb-1">Hours logged this period</p>
+                            <p class="text-center text-sm mb-6"> {{ invoice.last_date|date:"M. j" }} - {{ invoice.next_date|date:"M. j" }}</p>
                             <div class="h-full w-3/4">
                                 <ul class="list-none"
                                     hx-get="{% url 'timary:invoice_hour_stats' invoice_id=invoice.id %}"

@@ -9,7 +9,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import DateField, F, Sum
+from django.db.models import DateField, F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -267,6 +267,14 @@ class Invoice(PolymorphicModel, BaseModel):
             .annotate(cost=self.rate * Sum("quantity"))
             .order_by("date_tracked")
         )
+
+    def invoices_pending(self):
+        if self.invoice_type() == "single":
+            if self.installments == 0:
+                return 0
+        return self.invoice_snapshots.filter(
+            Q(paid_status=0) | Q(paid_status=1)
+        ).count()
 
 
 class SingleInvoice(Invoice):
