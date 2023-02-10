@@ -107,7 +107,10 @@ def pause_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     invoice.is_paused = not invoice.is_paused
-    if invoice.next_date.date() <= timezone.now().date():
+    if (
+        invoice.invoice_type() == "interval"
+        and invoice.next_date.date() <= timezone.now().date()
+    ):
         invoice.calculate_next_date(update_last=True)
     invoice.save()
     response = render(request, "partials/_invoice.html", {"invoice": invoice})
