@@ -332,9 +332,13 @@ def remind_sms_again(user_email):
 
 
 def send_weekly_updates():
+    paused_query = Q(is_paused=False)
+    archived_query = Q(is_archived=False)
     all_recurring_invoices = Invoice.objects.instance_of(
         IntervalInvoice
-    ) | Invoice.objects.instance_of(MilestoneInvoice)
+    ) | Invoice.objects.instance_of(MilestoneInvoice).exclude(
+        Q(paused_query) | Q(archived_query)
+    )
 
     today = timezone.now()
     week_start = (

@@ -883,6 +883,18 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         self.assertEquals(len(mail.outbox), 0)
 
+    def test_dont_send_weekly_update_if_no_active_invoices(self):
+        IntervalInvoiceFactory(is_paused=True)
+        send_weekly_updates()
+
+        self.assertEquals(len(mail.outbox), 0)
+
+    def test_dont_send_weekly_update_if_no_non_archived_invoices(self):
+        IntervalInvoiceFactory(is_archived=True)
+        send_weekly_updates()
+
+        self.assertEquals(len(mail.outbox), 0)
+
     @patch("timary.tasks.timezone")
     def test_dont_send_weekly_update_if_no_hours_logged(self, today_mock):
         todays_date = datetime(
