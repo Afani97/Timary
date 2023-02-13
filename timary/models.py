@@ -335,6 +335,12 @@ class SingleInvoice(Invoice):
     def get_hours_stats(self):
         raise NotImplementedError()
 
+    def can_sync(self):
+        if self.installments == 1:
+            sent_invoice = self.get_sent_invoice()
+            return self.accounting_customer_id and sent_invoice is not None
+        return False
+
     def is_synced(self):
         if self.installments == 1:
             sent_invoice = self.get_sent_invoice()
