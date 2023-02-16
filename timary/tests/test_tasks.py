@@ -651,7 +651,10 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing one day details"):
-            formatted_date = hours_1.date_tracked.strftime("%b %-d")
+            formatted_date = template_date(
+                hours_1.date_tracked.astimezone(tz=zoneinfo.ZoneInfo("UTC")),
+                "M j",
+            )
             msg = f"""
             <div>1 hours on { formatted_date }</div>
             <div>$25</div>
@@ -692,7 +695,11 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing one day details"):
-            formatted_date = hours_1.date_tracked.strftime("%b %-d")
+            # No way of getting hours localtime in emails yet
+            formatted_date = template_date(
+                hours_1.date_tracked.astimezone(tz=zoneinfo.ZoneInfo("UTC")),
+                "M j",
+            )
             msg = f"""
             <div>1 hours on { formatted_date }</div>
             <div>$25</div>

@@ -212,7 +212,6 @@ def sync_single_invoice(request, single_invoice_id):
     if request.user != single_invoice_obj.user:
         raise Http404
 
-    customer_synced, error_raised = single_invoice_obj.sync_customer()
     template = "_single_invoice"
     if single_invoice_obj.is_archived:
         template = "_archive_template"
@@ -222,7 +221,24 @@ def sync_single_invoice(request, single_invoice_id):
         {"single_invoice": single_invoice_obj},
     )
 
-    if customer_synced:
+    if single_invoice_obj.accounting_customer_id is None:
+        customer_synced, error_raised = single_invoice_obj.sync_customer()
+        if customer_synced:
+            show_alert_message(
+                response,
+                "success",
+                f"{single_invoice_obj.client_name.title()} is "
+                f"now synced with {single_invoice_obj.user.accounting_org}",
+            )
+        else:
+            show_alert_message(
+                response,
+                "error",
+                f"We had trouble syncing {single_invoice_obj.client_name.title()} "
+                f"with {single_invoice_obj.user.accounting_org}",
+            )
+        return response
+    else:
         if (
             single_invoice_obj.installments == 1
             and single_invoice_obj.get_sent_invoice()
@@ -235,23 +251,10 @@ def sync_single_invoice(request, single_invoice_id):
                 show_alert_message(
                     response,
                     "success",
-                    f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
+                    f"{single_invoice_obj.title}'s paid invoice is "
+                    f"now synced with {single_invoice_obj.user.accounting_org}",
                 )
-                return response
-        elif single_invoice_obj.installments > 1:
-            show_alert_message(
-                response,
-                "success",
-                f"{single_invoice_obj.title} is now synced with {single_invoice_obj.user.accounting_org}",
-            )
-            return response
-    show_alert_message(
-        response,
-        "error",
-        f"We had trouble syncing {single_invoice_obj.title}. {error_raised}",
-        persist=True,
-    )
-    return response
+        return response
 
 
 @login_required()

@@ -41,11 +41,11 @@
                         {#                        </label>#}
                         {#                    </li>#}
                     {% endif %}
-                    {% if single_invoice.can_sync %}
+                    {% if not single_invoice.is_client_synced %}
                         <li>
                             <a hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}" hx-target="closest .card" hx-swap="outerHTML" class="btn btn-sm"
                                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
-                                Sync with {{ single_invoice.user.accounting_org }}
+                                Sync client
                             </a>
                         </li>
                     {% endif %}
@@ -115,10 +115,11 @@
                             </div>
                         {% else %}
                             {{ single_invoice.get_sent_invoice.get_paid_status_display|title }}
+                            {% if single_invoice.is_sent_invoice_synced %} and Synced {% endif %}
                         {% endif %}
                     </div>
                 {% endif %}
-                {% if single_invoice.is_synced %}
+                {% if single_invoice.is_client_synced %}
                     <div class="flex flex-row items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-5">
                             <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
@@ -165,6 +166,16 @@
                             </div>
                         </div>
                     {% endif %}
+                </div>
+            {% elif single_invoice.can_sync_invoice %}
+                <div class="w-full flex flex-row justify-center sm:items-end sm:justify-end space-x-5 mt-4 md:mt-0">
+                    <btn class="btn btn-accent btn-outline"
+                        hx-get="{% url 'timary:sync_single_invoice' single_invoice_id=single_invoice.id %}"
+                        hx-target="closest .card"
+                        hx-swap="outerHTML"
+                        _="on htmx:beforeRequest add .loading to me">
+                        Sync invoice
+                    </btn>
                 </div>
             {% endif %}
 

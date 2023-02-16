@@ -39,10 +39,14 @@
                 </div>
 
             </div>
-            <button class="btn contact-info" type="button"
-                _="on click remove .hidden from #contacts-list then add .hidden to .contact-info end"
-            >Select from previous clients?
-            </button>
+            <div class="flex flex-start">
+                <button class="contact-info cursor-pointer hover:underline" type="button"
+                    _="on click remove .hidden from #contacts-list then add .hidden to .contact-info end"
+                >
+                    Select from previous clients?
+                </button>
+            </div>
+
             <div class="flex flex-col space-y-2 hidden" id="contacts-list">
                 <div class="form-control w-full">
                     <label class="label">
@@ -50,10 +54,13 @@
                     </label>
                     <div>{{ form.contacts }}</div>
                 </div>
-                <button type="button" class="btn"
-                    _="on click add .hidden to #contacts-list then remove .hidden from .contact-info">
-                    Manually enter client info
-                </button>
+                <div class="flex flex-start">
+                    <button class="cursor-pointer hover:underline" type="button"
+                        _="on click add .hidden to #contacts-list then remove .hidden from .contact-info"
+                    >
+                        Manually enter client info
+                    </button>
+                </div>
             </div>
         </div>
     </div>

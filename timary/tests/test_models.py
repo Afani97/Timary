@@ -598,14 +598,14 @@ class TestInvoice(TestCase):
                 rendered_line_items,
             )
 
-    def test_multiple_installments_invoice_is_synced(self):
+    def test_multiple_installments_invoice_is_client_synced(self):
         invoice = SingleInvoiceFactory(installments=2, accounting_customer_id="abc123")
-        self.assertTrue(invoice.is_synced())
+        self.assertTrue(invoice.is_client_synced())
 
     def test_single_installment_is_synced(self):
         invoice = SingleInvoiceFactory(installments=1, accounting_customer_id="abc123")
         SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
-        self.assertTrue(invoice.is_synced())
+        self.assertTrue(invoice.is_client_synced())
 
 
 class TestSentInvoice(TestCase):
@@ -665,17 +665,20 @@ class TestSentInvoice(TestCase):
         invoice.rate = 25
         invoice.save()
 
+        zone_info = zoneinfo.ZoneInfo("UTC")
         line_items = sent_invoice.get_rendered_line_items()
         self.assertInHTML(
             f"""
-            <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+            <div>{floatformat(hours1.quantity, -2)} hours on
+            {template_date(hours1.date_tracked.astimezone(tz=zone_info), "M j")}</div>
             <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
         """,
             line_items,
         )
         self.assertInHTML(
             f"""
-                    <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+                    <div>{floatformat(hours2.quantity, -2)} hours on
+                    {template_date(hours2.date_tracked.astimezone(tz=zone_info), "M j")}</div>
                     <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
                 """,
             line_items,
@@ -704,17 +707,20 @@ class TestSentInvoice(TestCase):
         invoice.rate = 25
         invoice.save()
 
+        zone_info = zoneinfo.ZoneInfo("UTC")
         line_items = sent_invoice.get_rendered_line_items()
         self.assertInHTML(
             f"""
-            <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+            <div>{floatformat(hours1.quantity, -2)} hours on
+            {template_date(hours1.date_tracked.astimezone(tz=zone_info), "M j")}</div>
             <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
         """,
             line_items,
         )
         self.assertInHTML(
             f"""
-                    <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+                    <div>{floatformat(hours2.quantity, -2)} hours on
+                    {template_date(hours2.date_tracked.astimezone(tz=zone_info), "M j")}</div>
                     <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
                 """,
             line_items,
@@ -757,18 +763,21 @@ class TestSentInvoice(TestCase):
         invoice.rate = 25
         invoice.save()
 
+        zone_info = zoneinfo.ZoneInfo("UTC")
         line_items = sent_invoice.get_rendered_line_items()
         with self.assertRaises(Exception):
             self.assertInHTML(
                 f"""
-                <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
+                <div>{floatformat(hours1.quantity, -2)} hours on
+                {template_date(hours1.date_tracked.astimezone(tz=zone_info), "M j")}</div>
                 <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
                 """,
                 line_items,
             )
         self.assertInHTML(
             f"""
-            <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
+            <div>{floatformat(hours2.quantity, -2)} hours on
+            {template_date(hours2.date_tracked.astimezone(tz=zone_info), "M j")}</div>
             <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
             """,
             line_items,

@@ -318,13 +318,13 @@ def sync_invoice(request, invoice_id):
         show_alert_message(
             response,
             "success",
-            f"{invoice.title} is now synced with {invoice.user.accounting_org}",
+            f"{invoice.client_name.title()} is now synced with {invoice.user.accounting_org}",
         )
     else:
         show_alert_message(
             response,
             "error",
-            f"We had trouble syncing {invoice.title}. {error_raised}",
+            f"We had trouble syncing {invoice.client_name.title()}. {error_raised}",
             persist=True,
         )
     return response

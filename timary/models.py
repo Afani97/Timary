@@ -335,20 +335,29 @@ class SingleInvoice(Invoice):
     def get_hours_stats(self):
         raise NotImplementedError()
 
-    def can_sync(self):
-        if self.installments == 1:
-            sent_invoice = self.get_sent_invoice()
-            return self.accounting_customer_id and sent_invoice is not None
-        return False
-
-    def is_synced(self):
+    def can_sync_invoice(self):
         if self.installments == 1:
             sent_invoice = self.get_sent_invoice()
             if sent_invoice:
-                if self.accounting_customer_id and sent_invoice.accounting_invoice_id:
-                    return True
-        elif self.installments > 1:
-            return self.accounting_customer_id is not None
+                return (
+                    self.is_client_synced()
+                    and sent_invoice.accounting_invoice_id is None
+                    and sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
+                )
+
+        return False
+
+    def is_client_synced(self):
+        return self.accounting_customer_id is not None
+
+    def is_sent_invoice_synced(self):
+        if self.installments == 1:
+            sent_invoice = self.get_sent_invoice()
+            if sent_invoice:
+                return (
+                    self.is_client_synced()
+                    and sent_invoice.accounting_invoice_id is not None
+                )
         return False
 
     def render_line_items(self, sent_invoice_id):
