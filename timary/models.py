@@ -554,7 +554,10 @@ class RecurringInvoice(Invoice):
     def render_line_items(self, sent_invoice_id):
         return render_to_string(
             "invoices/line_items/hourly.html",
-            {"line_items": self.get_hours_sent(sent_invoice_id).all()},
+            {
+                "line_items": self.get_hours_sent(sent_invoice_id).all(),
+                "user_timezone": self.user.timezone,
+            },
         )
 
 
@@ -662,7 +665,8 @@ class WeeklyInvoice(RecurringInvoice):
     def render_line_items(self, sent_invoice_id):
         sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
         return render_to_string(
-            "invoices/line_items/weekly.html", {"sent_invoice": sent_invoice}
+            "invoices/line_items/weekly.html",
+            {"sent_invoice": sent_invoice, "user_timezone": self.user.timezone},
         )
 
 

@@ -1,5 +1,6 @@
+{% load tz %}
 <div class="flex justify-between py-3 text-xl">
-    <div>Week of {{ sent_invoice.date_sent|date:"M j, Y" }}</div>
+    <div>Week of {{ sent_invoice.date_sent|timezone:user_timezone|date:"M j, Y" }}</div>
     <div>${{ sent_invoice.total_price|floatformat:-2 }}</div>
 </div>
 <div class="flex justify-between py-3 text-xl">

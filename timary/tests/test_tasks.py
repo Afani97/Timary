@@ -652,7 +652,7 @@ class TestSendInvoice(TestCase):
 
         with self.subTest("Testing one day details"):
             formatted_date = template_date(
-                hours_1.date_tracked.astimezone(tz=zoneinfo.ZoneInfo("UTC")),
+                hours_1.date_tracked,
                 "M j",
             )
             msg = f"""
@@ -695,9 +695,8 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
         with self.subTest("Testing one day details"):
-            # No way of getting hours localtime in emails yet
             formatted_date = template_date(
-                hours_1.date_tracked.astimezone(tz=zoneinfo.ZoneInfo("UTC")),
+                hours_1.date_tracked,
                 "M j",
             )
             msg = f"""
@@ -743,10 +742,13 @@ class TestSendInvoice(TestCase):
         send_invoice(invoice.id)
 
         sent_invoice = SentInvoice.objects.filter(invoice__id=invoice.id).first()
+        date_sent = sent_invoice.date_sent.astimezone(
+            tz=zoneinfo.ZoneInfo("America/New_York")
+        )
 
         weekly_log_item = f"""
         <div class="flex justify-between py-3 text-xl">
-            <div>Week of { template_date(sent_invoice.date_sent, "M j, Y") }</div>
+            <div>Week of { template_date(date_sent, "M j, Y") }</div>
             <div>$1200</div>
         </div>
         """
