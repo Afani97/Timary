@@ -475,7 +475,9 @@ class TestRecurringInvoices(BaseTest):
 
         now = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
         self.assertEqual(
-            invoice.next_date.date(),
+            invoice.next_date.astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ).date(),
             (now + invoice.get_next_date()).date(),
         )
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
@@ -509,7 +511,9 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.templates[0].name, "partials/_invoice.html")
         now = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
         self.assertEqual(
-            invoice.next_date.date(),
+            invoice.next_date.astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ).date(),
             (now + invoice.get_next_date()).date(),
         )
         self.assertIn(hours1, invoice.get_hours_tracked())

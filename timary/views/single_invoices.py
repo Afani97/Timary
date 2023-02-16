@@ -234,8 +234,8 @@ def sync_single_invoice(request, single_invoice_id):
             show_alert_message(
                 response,
                 "error",
-                f"We had trouble syncing {single_invoice_obj.client_name.title()} "
-                f"with {single_invoice_obj.user.accounting_org}",
+                f"We had trouble syncing {single_invoice_obj.client_name.title()}. {error_raised}",
+                persist=True,
             )
         return response
     else:
@@ -253,6 +253,13 @@ def sync_single_invoice(request, single_invoice_id):
                     "success",
                     f"{single_invoice_obj.title}'s paid invoice is "
                     f"now synced with {single_invoice_obj.user.accounting_org}",
+                )
+            else:
+                show_alert_message(
+                    response,
+                    "error",
+                    f"We had trouble syncing {single_invoice_obj.title}'s paid invoice. {error_raised}",
+                    persist=True,
                 )
         return response
 
