@@ -3,8 +3,8 @@
 {% extends 'admin/change_list.html' %}
 
 {% block extrastyle %}
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.16.1/dist/full.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.50.1/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 {% endblock %}
 
 {% block pagination %}{% endblock %}
@@ -21,13 +21,25 @@
 
 {% block result_list %}
     <div>
-        <div class="text-3xl text-center mb-8">Send Email To Users</div>
-        <div class="p-10 card bg-base-200">
+        <div class="text-3xl text-center my-4">Send Email To Users</div>
+        <div class="card">
             <div class="card-body">
-                {{ form.as_p }}
+                <div>
+                    <label class="label">
+                        <span class="label-text">{{ form.subject.label_tag }}</span>
+                    </label>
+                    <div>{{ form.subject }}</div>
+                </div>
+                <div>
+                    <label class="label">
+                        <span class="label-text">{{ form.message.label_tag }}</span>
+                    </label>
+                    <div>{{ form.message }}</div>
+                </div>
+            </div>
+            <div class="card-actions justify-center">
                 <button class="btn btn-primary" type="submit">Send</button>
             </div>
         </div>
     </div>
-
 {% endblock result_list %}

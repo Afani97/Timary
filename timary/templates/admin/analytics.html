@@ -1,21 +1,19 @@
 {% extends 'admin/custom_page.html' %}
 
+{% block extrastyle %}
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.50.1/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
 
 {% block result_list %}
-
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.2.2/dist/full.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" type="text/css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <div>
-
+    <div class="h-full">
         <div class="text-4xl font-bold tracking-wide text-center mb-2">Users</div>
         <div class="flex justify-center my-5">
             <div class="stats shadow">
-
                 <div class="stat">
                     <div class="stat-title">Total Users</div>
                     <div class="stat-value">{{ users.total }}</div>
                 </div>
-
             </div>
         </div>
 
@@ -74,12 +72,7 @@
 
                 <div class="stat">
                     <div class="stat-title">Recurring</div>
-                    <div class="stat-value">{{ money_stats.recurring }}</div>
-                </div>
-
-                <div class="stat">
-                    <div class="stat-title">Fees made this month</div>
-                    <div class="stat-value">{{ money_stats.fees }}</div>
+                    <div class="stat-value">{{ money_stats.recurring|floatformat:-2 }}</div>
                 </div>
             </div>
             <div class="radial-progress" style="--value:70; --size:8rem; --thickness: 2px;">{{ money_stats.mrr_goal }}%</div>
