@@ -21,7 +21,7 @@
 
     {% if show_repeat == 1 %}
         <div class="repeat-day"></div>
-        <div class="text-3xl font-semibold tracking-wide">{% now "M. j, Y" %}</div>
+        <div class="text-3xl font-medium tracking-wide">{% now "M. j, Y" %}</div>
         <div id="repeat-day" >
             <div class="flex justify-center">
                 <button class="btn btn-secondary" hx-get="{% url 'timary:repeat_hours' %}" hx-target="#hours-list" hx-swap="outerHTML" _="on click add .loading to me">
@@ -30,7 +30,7 @@
             <div class="divider"></div>
         </div>
     {% elif show_repeat == 2 %}
-        <div class="text-3xl font-semibold tracking-wide">{% now "M. j, Y" %}</div>
+        <div class="text-3xl font-medium tracking-wide">{% now "M. j, Y" %}</div>
         <p class="text-xl text-center">Add your hours for today.</p>
         <div class="divider"></div>
     {% endif %}
