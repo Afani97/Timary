@@ -79,8 +79,12 @@
             {% for invoice in invoices %}
                 {% if invoice.invoice_type == "single" %}
                     {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
-                {% else %}
-                    {% include 'partials/_invoice.html' with invoice=invoice %}
+                {% elif invoice.invoice_type == "interval" %}
+                    {% include "invoices/interval/_card.html" with invoice=invoice %}
+                {% elif invoice.invoice_type == "milestone" %}
+                    {% include 'invoices/milestone/_card.html' with invoice=invoice %}
+                {% elif invoice.invoice_type == "weekly" %}
+                    {% include 'invoices/weekly/_card.html' with invoice=invoice %}
                 {% endif %}
             {% empty %}
                 <div class="my-10">

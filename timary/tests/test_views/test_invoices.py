@@ -71,7 +71,7 @@ class TestRecurringInvoices(BaseTest):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
 
         invoice = Invoice.objects.first()
         inv_name = invoice.client_name
@@ -146,7 +146,7 @@ class TestRecurringInvoices(BaseTest):
                 """,
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/milestone/_card.html")
         self.assertEqual(response.status_code, 200)
 
     @patch(
@@ -181,7 +181,7 @@ class TestRecurringInvoices(BaseTest):
             ).title(),
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/weekly/_card.html")
         self.assertEqual(response.status_code, 200)
 
     def test_manage_invoices(self):
@@ -237,7 +237,7 @@ class TestRecurringInvoices(BaseTest):
 
     def test_get_invoice(self):
         rendered_template = self.setup_template(
-            "partials/_invoice.html", {"invoice": self.invoice}
+            "invoices/interval/_card.html", {"invoice": self.invoice}
         )
         response = self.client.get(
             reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
@@ -248,7 +248,7 @@ class TestRecurringInvoices(BaseTest):
         hour = HoursLineItemFactory(invoice=self.invoice)
 
         rendered_template = self.setup_template(
-            "partials/_invoice.html", {"invoice": self.invoice}
+            "invoices/interval/_card.html", {"invoice": self.invoice}
         )
         response = self.client.get(
             reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
@@ -316,7 +316,7 @@ class TestRecurringInvoices(BaseTest):
             data=urlencode(url_params),  # HTML PUT FORM
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         self.invoice.refresh_from_db()
         inv_name = self.invoice.client_name
         inv_email = self.invoice.client_email
@@ -373,7 +373,7 @@ class TestRecurringInvoices(BaseTest):
             """,
             response.content.decode("utf-8"),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/milestone/_card.html")
         self.assertEqual(response.status_code, 200)
 
     def test_update_weekly_invoice(self):
@@ -389,7 +389,7 @@ class TestRecurringInvoices(BaseTest):
             data=urlencode(url_params),  # HTML PUT FORM
         )
         invoice.refresh_from_db()
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/weekly/_card.html")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(invoice.rate, 100)
 
@@ -465,7 +465,7 @@ class TestRecurringInvoices(BaseTest):
         )
         invoice.refresh_from_db()
         self.assertTrue(invoice.is_paused)
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         self.assertEqual(response.status_code, 200)
 
         response = self.client.get(
@@ -480,7 +480,7 @@ class TestRecurringInvoices(BaseTest):
             ).date(),
             (now + invoice.get_next_date()).date(),
         )
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         self.assertEqual(response.status_code, 200)
 
     def test_pause_invoice_does_not_override_last_date(self):
@@ -498,7 +498,7 @@ class TestRecurringInvoices(BaseTest):
         )
         invoice.refresh_from_db()
         self.assertTrue(invoice.next_date)
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         self.assertEqual(response.status_code, 200)
 
         # Unpause invoice
@@ -508,7 +508,7 @@ class TestRecurringInvoices(BaseTest):
         invoice.refresh_from_db()
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, "partials/_invoice.html")
+        self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         now = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
         self.assertEqual(
             invoice.next_date.astimezone(
@@ -679,7 +679,7 @@ class TestRecurringInvoices(BaseTest):
             mail.outbox[0].subject,
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {current_month}",
         )
-        self.assertTemplateUsed(response, "partials/_invoice.html")
+        self.assertTemplateUsed(response, "invoices/interval/_card.html")
 
     def test_generate_invoice_milestone(self):
         invoice = MilestoneInvoiceFactory(

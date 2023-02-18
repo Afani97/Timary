@@ -82,7 +82,9 @@ def create_invoice(request):
     invoice.save()
     invoice.sync_customer()
 
-    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    response = render(
+        request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
+    )
     response["HX-Trigger-After-Swap"] = "clearInvoiceModal"  # To trigger modal closing
     # "newInvoice" - To trigger button refresh
     show_alert_message(response, "success", "New invoice created!", "newInvoice")
@@ -97,7 +99,9 @@ def get_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.user != invoice.user:
         raise Http404
-    return render(request, "partials/_invoice.html", {"invoice": invoice})
+    return render(
+        request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
+    )
 
 
 @login_required()
@@ -113,7 +117,9 @@ def pause_invoice(request, invoice_id):
     ):
         invoice.calculate_next_date(update_last=True)
     invoice.save()
-    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    response = render(
+        request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
+    )
     show_alert_message(
         response,
         "info",
@@ -175,7 +181,11 @@ def update_invoice(request, invoice_id):
             and not invoice.is_paused
         ):
             saved_invoice.calculate_next_date(update_last=False)
-        response = render(request, "partials/_invoice.html", {"invoice": saved_invoice})
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": saved_invoice},
+        )
         show_alert_message(response, "success", f"{saved_invoice.title} was updated.")
         return response
     else:
@@ -226,7 +236,11 @@ def generate_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     if not request.user.settings["subscription_active"]:
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": invoice},
+        )
         show_alert_message(
             response,
             "warning",
@@ -238,7 +252,11 @@ def generate_invoice(request, invoice_id):
         invoice.invoice_type() == "milestone"
         and invoice.milestone_step > invoice.milestone_total_steps
     ):
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": invoice},
+        )
         show_alert_message(
             response,
             "info",
@@ -246,7 +264,11 @@ def generate_invoice(request, invoice_id):
         )
         return response
     if invoice.get_hours_tracked().count() == 0:
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": invoice},
+        )
         show_alert_message(
             response,
             "info",
@@ -258,7 +280,9 @@ def generate_invoice(request, invoice_id):
     send_invoice(invoice.id)
     invoice.refresh_from_db()
 
-    response = render(request, "partials/_invoice.html", {"invoice": invoice})
+    response = render(
+        request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
+    )
 
     show_alert_message(
         response,
@@ -312,7 +336,11 @@ def sync_invoice(request, invoice_id):
             request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
         )
     else:
-        response = render(request, "partials/_invoice.html", {"invoice": invoice})
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": invoice},
+        )
 
     if customer_synced:
         show_alert_message(
