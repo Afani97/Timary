@@ -88,6 +88,14 @@ class LineItem(PolymorphicModel, BaseModel):
     def total_amount(self):
         return self.quantity * self.unit_price
 
+    def should_lock(self):
+        """Prevent editing of any kind to a line item"""
+        try:
+            return self.invoice.can_lock_line_items()
+        except LineItem.invoice.RelatedObjectDoesNotExist:
+            pass
+        return False
+
 
 class HoursLineItem(LineItem):
     recurring_logic = models.JSONField(blank=True, null=True, default=dict)
@@ -334,6 +342,13 @@ class SingleInvoice(Invoice):
 
     def get_hours_stats(self):
         raise NotImplementedError()
+
+    def can_lock_line_items(self):
+        if self.installments > 1:
+            installments = self.get_sent_invoice()
+            if installments.count() > 0:
+                return True
+        return False
 
     def can_sync_invoice(self):
         if self.installments == 1:

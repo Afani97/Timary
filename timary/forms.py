@@ -33,6 +33,13 @@ class LineItemForm(forms.ModelForm):
         model = LineItem
         fields = ["description", "quantity", "unit_price"]
 
+    def __init__(self, *args, **kwargs):
+        super(LineItemForm, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.should_lock():
+            self.fields["description"].widget.attrs["readonly"] = True
+            self.fields["quantity"].widget.attrs["readonly"] = True
+            self.fields["unit_price"].widget.attrs["readonly"] = True
+
 
 class HoursLineItemForm(forms.ModelForm):
     date_tracked = forms.DateTimeField(
@@ -565,6 +572,11 @@ class SingleInvoiceForm(InvoiceForm):
             # For the contacts logic
             self.fields["client_name"].required = False
             self.fields["client_email"].required = False
+
+        if self.instance and self.instance.can_lock_line_items():
+            self.fields["late_penalty_amount"].widget.attrs["readonly"] = True
+            self.fields["discount_amount"].widget.attrs["readonly"] = True
+            self.fields["tax_amount"].widget.attrs["readonly"] = True
 
     def clean_due_date(self):
         due_date = self.cleaned_data.get("due_date")
