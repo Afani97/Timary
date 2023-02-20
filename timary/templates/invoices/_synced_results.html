@@ -1,5 +1,9 @@
 <div>
-    <h2 class="mb-4">Synced invoices:</h2>
+    <h2 class="mb-4">Synced summary</h2>
+    <div class="my-4">
+        <div>Clients synced: <span class="font-bold">{{ total_clients_synced }}</span> / {{ total_clients }}</div>
+        <div>Sent invoices synced: <span class="font-bold">{{ total_sent_invoices_synced }}</span> / {{ total_sent_invoices }}</div>
+    </div>
     {% for sync_invoice in synced_invoices %}
         <div class="text-xl font-bold">{{ sync_invoice.invoice.title }}</div>
         <div class="pl-5">

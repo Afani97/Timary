@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
-from timary.models import SentInvoice, User
+from timary.models import Invoice, SentInvoice, User
 from timary.services.accounting_service import AccountingService
 
 
@@ -136,10 +136,39 @@ def accounting_sync(request):
         synced_invoice["synced_sent_invoices"] = synced_sent_invoices
         synced_invoices.append(synced_invoice)
 
+    total_clients = len(
+        {
+            (
+                inv.client_stripe_customer_id,
+                f"{inv.client_name} - {inv.client_email}",
+            )
+            for inv in Invoice.objects.filter(user=request.user)
+        }
+    )
+    total_clients_synced = len(
+        {
+            (
+                inv.client_stripe_customer_id,
+                f"{inv.client_name} - {inv.client_email}",
+            )
+            for inv in Invoice.objects.filter(
+                user=request.user, accounting_customer_id__isnull=False
+            )
+        }
+    )
+    total_sent_invoices = SentInvoice.objects.filter(user=request.user).count()
+    total_sent_invoices_synced = SentInvoice.objects.filter(
+        user=request.user, accounting_invoice_id__isnull=False
+    ).count()
+
     return render(
         request,
         "invoices/_synced_results.html",
         {
             "synced_invoices": synced_invoices,
+            "total_sent_invoices": total_sent_invoices,
+            "total_sent_invoices_synced": total_sent_invoices_synced,
+            "total_clients_synced": total_clients_synced,
+            "total_clients": total_clients,
         },
     )
