@@ -577,6 +577,7 @@ class SingleInvoiceForm(InvoiceForm):
             self.fields["late_penalty_amount"].widget.attrs["readonly"] = True
             self.fields["discount_amount"].widget.attrs["readonly"] = True
             self.fields["tax_amount"].widget.attrs["readonly"] = True
+            self.fields["installments"].widget.attrs["disabled"] = "disabled"
 
     def clean_due_date(self):
         due_date = self.cleaned_data.get("due_date")

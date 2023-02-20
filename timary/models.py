@@ -378,10 +378,9 @@ class SingleInvoice(Invoice):
     def render_line_items(self, sent_invoice_id):
         ctx = {"line_items": self.line_items.all(), "single_invoice": self}
         if self.installments > 1:
-            installments_left = self.installments - self.invoice_snapshots.count()
             # Add one installment to include this sent invoice in amount
             line_items = self.line_items.all().annotate(
-                total_amount=(F("quantity") * F("unit_price")) / (installments_left + 1)
+                total_amount=(F("quantity") * F("unit_price")) / self.installments
             )
             ctx["line_items"] = line_items
             sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
