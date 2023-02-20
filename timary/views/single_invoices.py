@@ -125,6 +125,7 @@ def update_single_invoice(request, single_invoice_id):
         response["HX-Redirect"] = "/invoices/manage/"
         return response
     if request.method == "POST":
+        prev_installment = single_invoice_obj.installments
         if not invoice_form.is_valid():
             messages.warning(
                 request,
@@ -152,6 +153,11 @@ def update_single_invoice(request, single_invoice_id):
                 line_item_saved.save()
 
         saved_single_invoice.update()
+        if (
+            prev_installment > 1
+            and saved_single_invoice.installments > prev_installment
+        ):
+            saved_single_invoice.update_next_installment_date()
         single_invoice_obj = saved_single_invoice
         line_item_forms = [
             LineItemForm(instance=line_item)
