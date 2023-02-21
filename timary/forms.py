@@ -11,6 +11,7 @@ from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
+    Client,
     HoursLineItem,
     IntervalInvoice,
     Invoice,
@@ -20,7 +21,6 @@ from timary.models import (
     SingleInvoice,
     User,
     WeeklyInvoice,
-    Client,
 )
 from timary.utils import get_starting_week_from_date, get_users_localtime
 
@@ -476,19 +476,9 @@ def next_month():
 
 
 class SingleInvoiceForm(InvoiceForm):
-    # client_second_email = forms.CharField(required=False)
     late_penalty = forms.BooleanField(required=False)
     send_reminder = forms.BooleanField(required=False)
     save_for_reuse = forms.BooleanField(required=False, label="Save as template")
-    client = forms.ChoiceField(
-        required=False,
-        label="Client",
-        widget=forms.Select(
-            attrs={
-                "class": "select select-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
     due_date = forms.DateTimeField(
         required=False,
         widget=DateInput(
@@ -514,13 +504,17 @@ class SingleInvoiceForm(InvoiceForm):
             "late_penalty",
             "late_penalty_amount",
             "send_reminder",
-            # "contacts",
         ]
         labels = {
             "discount_amount": "Discount",
             "tax_amount": "Tax",
         }
         widgets = {
+            "client": forms.Select(
+                attrs={
+                    "class": "select select-bordered border-2 text-lg w-full",
+                }
+            ),
             "invoice_interval": forms.Select(
                 attrs={
                     "class": "select select-bordered bg-neutral border-2 text-lg w-full",
@@ -543,17 +537,14 @@ class SingleInvoiceForm(InvoiceForm):
         user = kwargs.get("user", None)
         super().__init__(*args, **kwargs)
         if user:
-            self.fields["contacts"].choices = {
+            self.fields["client"].choices = {
                 (
-                    inv.client_stripe_customer_id,
-                    f"{inv.client_name} - {inv.client_email}",
+                    cl.id,
+                    f"{cl.name} - {cl.email}",
                 )
-                for inv in Invoice.objects.filter(user=self.user)
+                for cl in Client.objects.filter(user=self.user)
             }
-            self.fields["contacts"].choices.insert(0, ("", "Select a client"))
-            # For the contacts logic
-            # self.fields["client_name"].required = False
-            # self.fields["client_email"].required = False
+            self.fields["client"].choices.insert(0, ("", "Select a client"))
 
         if self.instance and self.instance.can_lock_line_items():
             self.fields["late_penalty_amount"].widget.attrs["readonly"] = True

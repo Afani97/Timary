@@ -201,6 +201,11 @@
             htmx.find("#sent-invoices-inner").innerHTML = LOADER;
         }
 
+        htmx.on("clearClientModal", function() {
+            htmx.find("#close-client-modal").click();
+            clearClientModal()
+        })
+
         htmx.on("clearInvoiceModal", function(){
             htmx.find("#close-invoice-modal").click();
             htmx.find("#new-invoice-inner").innerHTML = LOADER;

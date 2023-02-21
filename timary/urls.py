@@ -98,6 +98,12 @@ urlpatterns += [
 urlpatterns += [
     path("clients/", views.get_clients, name="get_clients"),
     path("clients/create/", views.create_client, name="create_client"),
+    path("clients/<uuid:client_id>/", views.get_client, name="get_client"),
+    path(
+        "clients/<uuid:client_id>/update/",
+        views.update_client,
+        name="update_client",
+    ),
     path(
         "clients/<uuid:client_id>/sync/",
         views.sync_client,

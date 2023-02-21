@@ -1,8 +1,14 @@
 <form class="bg-neutral rounded-xl max-w-5xl mx-auto w-full"
-    hx-post="{% url 'timary:create_client' %}"
-    hx-swap="beforeend"
-    hx-target="#clients-list"
-    id="new-client-form"
+    {% if form.initial %}
+        hx-post="{% url 'timary:update_client' client_id=form.instance.id%}"
+        hx-swap="outerHTML"
+        hx-target="this"
+    {% else %}
+        hx-post="{% url 'timary:create_client' %}"
+        hx-swap="beforeend"
+        hx-target="#clients-list"
+        id="new-client-form"
+    {% endif %}
     _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
 >
     {% if form.errors %}
@@ -11,23 +17,33 @@
 
     <div class="flex card-body -mx-5 md:mx-0">
         <div class="flex flex-col justify-center space-y-2">
-            <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0 contact-info">
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.name.label_tag }}</span>
-                    </label>
-                    <div>{{ form.name }}</div>
-                </div>
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.email.label_tag }}</span>
-                    </label>
-                    <div>{{ form.email }}</div>
-                </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.name.label_tag }}</span>
+                </label>
+                <div>{{ form.name }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.email.label_tag }}</span>
+                </label>
+                <div>{{ form.email }}</div>
             </div>
         </div>
     </div>
-    <div class="card-actions flex justify-center">
-        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Add new client</button>
+    <div class="card-actions flex justify-center space-x-5 mb-4">
+        {% if form.initial %}
+            <button hx-get="{% url 'timary:get_client' client_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML"
+                class="btn btn-outline" type="button">
+                Cancel
+            </button>
+            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit">
+                Update
+            </button>
+        {% else %}
+            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit">
+                Add new client
+            </button>
+        {% endif %}
     </div>
 </form>

@@ -23,6 +23,15 @@ def get_clients(request):
 
 
 @login_required()
+@require_http_methods(["GET"])
+def get_client(request, client_id):
+    client = Client.objects.get(id=client_id)
+    if request.user != client.user:
+        raise Http404
+    return render(request, "clients/_client.html", {"client": client})
+
+
+@login_required()
 @require_http_methods(["GET", "POST"])
 def create_client(request):
     client_form = ClientForm(request.POST or None)
@@ -31,6 +40,24 @@ def create_client(request):
         client_saved.user = request.user
         client_saved.save()
         client_saved.sync_customer()
+        response = render(request, "clients/_client.html", {"client": client_saved})
+        response[
+            "HX-Trigger-After-Swap"
+        ] = "clearClientModal"  # To trigger modal closing
+        return response
+    else:
+        return render(request, "clients/_form.html", {"form": client_form})
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def update_client(request, client_id):
+    client = Client.objects.get(id=client_id)
+    if request.user != client.user:
+        raise Http404
+    client_form = ClientForm(request.POST or None, instance=client)
+    if client_form.is_valid():
+        client_saved = client_form.save()
         return render(request, "clients/_client.html", {"client": client_saved})
     else:
         return render(request, "clients/_form.html", {"form": client_form})

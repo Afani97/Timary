@@ -14,7 +14,7 @@
         </div>
         <div class="card-actions flex flex-col space-y-2">
             <a class="btn btn-sm edit-hours"
-                {#                hx-get="{% url 'timary:edit_hours' hour.id %}"#}
+                hx-get="{% url 'timary:update_client' client_id=client.id %}"
                 hx-target="closest li"
                 hx-swap="outerHTML"
                 _="on click add .loading to me">
