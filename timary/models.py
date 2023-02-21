@@ -210,7 +210,7 @@ class Client(BaseModel):
         if self.accounting_customer_id:
             return True, None
         try:
-            AccountingService({"user": self.user, "invoice": self}).create_customer()
+            AccountingService({"user": self.user, "client": self}).create_customer()
         except AccountingError as ae:
             error_reason = ae.log()
             return False, error_reason  # Failed to sync customer

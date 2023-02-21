@@ -96,14 +96,14 @@ class StripeService:
         return stripe_connect_id, stripe_customer_id
 
     @classmethod
-    def create_customer_for_invoice(cls, invoice):
+    def create_customer_for_invoice(cls, client):
         stripe.api_key = cls.stripe_api_key
         stripe_customer = stripe.Customer.create(
-            email=invoice.client_email,
-            name=invoice.client_name,
+            email=client.email,
+            name=client.name,
         )
-        invoice.client_stripe_customer_id = stripe_customer["id"]
-        invoice.save()
+        client.stripe_customer_id = stripe_customer["id"]
+        client.save()
 
     @classmethod
     def retrieve_customer(cls, customer_id):

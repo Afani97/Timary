@@ -48,9 +48,9 @@ class AccountingService:
             return self.service_klass().get_refreshed_tokens(user)
 
     def create_customer(self):
-        invoice = self.kwargs.get("invoice")
-        if self.service_klass and invoice.user.settings["subscription_active"]:
-            self.service_klass().create_customer(invoice)
+        client = self.kwargs.get("client")
+        if self.service_klass and client.user.settings["subscription_active"]:
+            self.service_klass().create_customer(client)
 
     def create_invoice(self):
         sent_invoice = self.kwargs.get("sent_invoice")
