@@ -3,131 +3,137 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
-    <div class="max-w-5xl mx-auto md:px-5">
-        {% if invoices|length != 0 %}
-            <div class="flex flex-row justify-between my-8 md:m-8 items-baseline">
-                <h1 class="text-3xl text-center font-bold" id="current-invoices">Invoices</h1>
-                <div class="flex justify-center">
-                    <div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
-                        <label tabindex="0" class="btn m-1 btn-primary">New invoice</label>
-                        <div tabindex="0" class="dropdown-content">
-                            <ul class="menu bg-neutral w-56 rounded-box">
-                                <li
-                                    hx-get="{% url 'timary:create_invoice' %}?type=interval"
-                                    hx-target="#new-invoice-inner"
-                                    hx-trigger="click"
-                                    hx-swap="innerHTML"
-                                >
-                                    <label class="flex flex-col" for="new-invoice-modal">
-                                        <span class="text-xl font-bold text-left">Interval</span>
-                                        <span class="text-sm">A recurring invoice sent out on a schedule</span>
+    <div class="flex flex-col md:flex-row w-full mt-10 md:mt-20">
+
+        <div class="flex flex-col space-y-5 mb-4 md:mb-0">
+            <div class="btn-group btn-group-horizontal md:btn-group-vertical"
+                _="on click take .btn-active from .btn for event.target">
+                <button class="btn btn-active">Invoices</button>
+                <button class="btn">Clients</button>
+                <button class="btn">Archived Invoices</button>
+            </div>
+            <div class="divider"></div>
+            <div class="dropdown dropdown-hover dropdown-bottom dropdown-end">
+                <label tabindex="0" class="btn m-1 btn-primary w-full">New invoice</label>
+                <div tabindex="0" class="dropdown-content">
+                    <ul class="menu bg-neutral w-56 rounded-box">
+                        <li
+                            hx-get="{% url 'timary:create_invoice' %}?type=interval"
+                            hx-target="#new-invoice-inner"
+                            hx-trigger="click"
+                            hx-swap="innerHTML"
+                        >
+                            <label class="flex flex-col" for="new-invoice-modal">
+                                <span class="text-xl font-bold text-left">Interval</span>
+                                <span class="text-sm">A recurring invoice sent out on a schedule</span>
+                            </label>
+                        </li>
+                        <li
+                            hx-get="{% url 'timary:create_invoice' %}?type=milestone"
+                            hx-target="#new-invoice-inner"
+                            hx-trigger="click"
+                            hx-swap="innerHTML">
+                            <label class="flex flex-col" for="new-invoice-modal">
+                                <span class="text-xl font-bold text-left">Milestone</span>
+                                <span class="text-sm">Break up your invoice into steps</span>
+                            </label>
+                        </li>
+                        <li
+                            hx-get="{% url 'timary:create_invoice' %}?type=weekly"
+                            hx-target="#new-invoice-inner"
+                            hx-trigger="click"
+                            hx-swap="innerHTML">
+                            <label class="flex flex-col" for="new-invoice-modal">
+                                <span class="text-xl font-bold text-left">Weekly</span>
+                                <span class="text-sm">Flat rate bill sent out Mondays</span>
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <a href="{% url 'timary:single_invoice' %}?">
+                                    <label class="flex flex-col">
+                                        <span class="text-xl font-bold text-center mb-2">Single Invoice</span>
+                                        <span class="text-sm">Non-recurring one-time invoice</span>
                                     </label>
-                                </li>
-                                <li
-                                    hx-get="{% url 'timary:create_invoice' %}?type=milestone"
-                                    hx-target="#new-invoice-inner"
-                                    hx-trigger="click"
-                                    hx-swap="innerHTML">
-                                    <label class="flex flex-col" for="new-invoice-modal">
-                                        <span class="text-xl font-bold text-left">Milestone</span>
-                                        <span class="text-sm">Break up your invoice into steps</span>
-                                    </label>
-                                </li>
-                                <li
-                                    hx-get="{% url 'timary:create_invoice' %}?type=weekly"
-                                    hx-target="#new-invoice-inner"
-                                    hx-trigger="click"
-                                    hx-swap="innerHTML">
-                                    <label class="flex flex-col" for="new-invoice-modal">
-                                        <span class="text-xl font-bold text-left">Weekly</span>
-                                        <span class="text-sm">Flat rate bill sent out Mondays</span>
-                                    </label>
-                                </li>
-                                <li>
-                                    <label>
-                                        <a href="{% url 'timary:single_invoice' %}?">
-                                            <label class="flex flex-col">
-                                                <span class="text-xl font-bold text-center mb-2">Single Invoice</span>
-                                                <span class="text-sm">Non-recurring one-time invoice</span>
-                                            </label>
-                                        </a>
-                                    </label>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                                </a>
+                            </label>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        {% endif %}
+            <div class="divider"></div>
+            <div class="hidden md:flex justify-center">
+                <div class="stats shadow stats-vertical">
+                    <div class="stat place-items-center">
+                        <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>
+                        <div class="stat-desc">owed</div>
+                    </div>
+                    <div class="stat place-items-center">
+                        <div class="stat-value">${{ sent_invoices_earned|floatformat:-2 }}</div>
+                        <div class="stat-desc">total earned</div>
+                    </div>
 
-        <div class="md:flex justify-center mb-4 hidden">
-            <div class="stats shadow">
-                <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>
-                    <div class="stat-desc">owed</div>
                 </div>
-
-                <div class="stat place-items-center">
-                    <div class="stat-value">${{ sent_invoices_earned|floatformat:-2 }}</div>
-                    <div class="stat-desc">total earned</div>
-                </div>
-
             </div>
         </div>
+        <div class="divider divider-horizontal"></div>
 
-        <ul class="space-y-5" id="invoices-list">
-            {% for invoice in invoices %}
-                {% if invoice.invoice_type == "single" %}
-                    {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
-                {% elif invoice.invoice_type == "interval" %}
-                    {% include "invoices/interval/_card.html" with invoice=invoice %}
-                {% elif invoice.invoice_type == "milestone" %}
-                    {% include 'invoices/milestone/_card.html' with invoice=invoice %}
-                {% elif invoice.invoice_type == "weekly" %}
-                    {% include 'invoices/weekly/_card.html' with invoice=invoice %}
-                {% endif %}
-            {% empty %}
-                <div class="my-10">
-                    <div class="flex flex-col justify-center space-y-5">
-                        <div class="text-center">
-                            <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
-                                {% if archived_invoices|length == 0 %}
-                                    Hello there
-                                {% else %}
-                                    New beginning?
-                                {% endif %}
-                            </h1>
-                            <p class="mb-5">
-                                {% if archived_invoices|length == 0 %}
-                                    We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
-                                {% else %}
-                                    No rush to starting something new, we'll still be here when you begin again
-                                {% endif %}
-                            </p>
+        <div class="flex-1 max-w-5xl mx-auto md:px-5 w-full">
+            <ul class="space-y-5" id="invoices-list">
+                {% for invoice in invoices %}
+                    {% if invoice.invoice_type == "single" %}
+                        {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
+                    {% elif invoice.invoice_type == "interval" %}
+                        {% include "invoices/interval/_card.html" with invoice=invoice %}
+                    {% elif invoice.invoice_type == "milestone" %}
+                        {% include 'invoices/milestone/_card.html' with invoice=invoice %}
+                    {% elif invoice.invoice_type == "weekly" %}
+                        {% include 'invoices/weekly/_card.html' with invoice=invoice %}
+                    {% endif %}
+                {% empty %}
+                    <div class="my-10">
+                        <div class="flex flex-col justify-center space-y-5">
+                            <div class="text-center">
+                                <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
+                                    {% if archived_invoices|length == 0 %}
+                                        Hello there
+                                    {% else %}
+                                        New beginning?
+                                    {% endif %}
+                                </h1>
+                                <p class="mb-5">
+                                    {% if archived_invoices|length == 0 %}
+                                        We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
+                                    {% else %}
+                                        No rush to starting something new, we'll still be here when you begin again
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% include 'invoices/_invoice_selection.html' %}
                         </div>
-                        {% include 'invoices/_invoice_selection.html' %}
                     </div>
-                </div>
-            {% endfor %}
-        </ul>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 
-    {% if invoices.count > 0 %}
-        <div class="divider"></div>
 
-        <div class="max-w-5xl mx-auto">
-            <h3 class="text-xl my-3 font-bold mx-5">Archived invoices</h3>
-
-            {% if archived_invoices.count > 0 %}
-                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {% for archive_invoice in archived_invoices %}
-                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-
-    {% endif %}
+    {#    {% if invoices.count > 0 %}#}
+    {#        <div class="divider"></div>#}
+    {##}
+    {#        <div class="max-w-5xl mx-auto">#}
+    {#            <h3 class="text-xl my-3 font-bold mx-5">Archived invoices</h3>#}
+    {##}
+    {#            {% if archived_invoices.count > 0 %}#}
+    {#                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">#}
+    {#                    {% for archive_invoice in archived_invoices %}#}
+    {#                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}#}
+    {#                    {% endfor %}#}
+    {#                </ul>#}
+    {#            {% endif %}#}
+    {#        </div>#}
+    {##}
+    {#    {% endif %}#}
 
     {# New invoice modal #}
     <input type="checkbox" id="new-invoice-modal" class="modal-toggle">
