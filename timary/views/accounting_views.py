@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -152,13 +153,13 @@ def accounting_sync(request):
                 f"{inv.client_name} - {inv.client_email}",
             )
             for inv in Invoice.objects.filter(
-                user=request.user, accounting_customer_id__isnull=False
+                Q(user=request.user) & Q(accounting_customer_id__isnull=False)
             )
         }
     )
     total_sent_invoices = SentInvoice.objects.filter(user=request.user).count()
     total_sent_invoices_synced = SentInvoice.objects.filter(
-        user=request.user, accounting_invoice_id__isnull=False
+        Q(user=request.user) & Q(accounting_invoice_id__isnull=False)
     ).count()
 
     return render(
