@@ -17,9 +17,6 @@ def bad_request(request, exception):
 @require_http_methods(["GET"])
 def index(request):
     user: User = request.user
-    if user.get_invoices.count() == 0:
-        return redirect(reverse("timary:manage_invoices"))
-
     hours_manager = HoursManager(user)
     show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
     show_most_frequent_options = hours_manager.show_most_frequent_options()

@@ -23,14 +23,6 @@
                     </li>
                     {% block actions %}
                     {% endblock actions %}
-                    {% if invoice.user.accounting_org_id and not invoice.accounting_customer_id and invoice.user.settings.subscription_active %}
-                        <li>
-                            <a hx-get="{% url 'timary:sync_invoice' invoice_id=invoice.id %}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
-                                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from m">
-                                Sync client
-                            </a>
-                        </li>
-                    {% endif %}
                     <li>
                         <a hx-get="{% url 'timary:archive_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to archive this invoice?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
                             _="on htmx:beforeRequest add .loading to me">

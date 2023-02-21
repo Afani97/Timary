@@ -14,18 +14,10 @@
             <div class="flex flex-col justify-center space-y-5">
                 <div class="text-center">
                     <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
-                        {% if archived_invoices|length == 0 %}
-                            Hello there
-                        {% else %}
-                            New beginning?
-                        {% endif %}
+                        Get Started
                     </h1>
                     <p class="mb-5">
-                        {% if archived_invoices|length == 0 %}
-                            We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
-                        {% else %}
-                            No rush to starting something new, we'll still be here when you begin again
-                        {% endif %}
+                        We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
                     </p>
                 </div>
                 {% include 'invoices/_invoice_selection.html' %}

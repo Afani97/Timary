@@ -98,12 +98,20 @@ urlpatterns += [
 urlpatterns += [
     path("clients/", views.get_clients, name="get_clients"),
     path("clients/create/", views.create_client, name="create_client"),
+    path(
+        "clients/<uuid:client_id>/sync/",
+        views.sync_client,
+        name="sync_client",
+    ),
 ]
 
 # RECURRING INVOICE URLS
 urlpatterns += [
     path("invoices/", views.create_invoice, name="create_invoice"),
     path("invoices/list/", views.get_invoices, name="get_invoices"),
+    path(
+        "invoices/archive-list/", views.get_archived_invoices, name="get_archive_list"
+    ),
     path("invoices/manage/", views.manage_invoices, name="manage_invoices"),
     path("invoices/<uuid:invoice_id>/", views.get_invoice, name="get_single_invoice"),
     path("invoices/<uuid:invoice_id>/edit/", views.edit_invoice, name="edit_invoice"),
@@ -139,11 +147,6 @@ urlpatterns += [
         "invoices/<uuid:invoice_id>/invoice_hour_stats/",
         views.invoice_hour_stats,
         name="invoice_hour_stats",
-    ),
-    path(
-        "invoices/<uuid:invoice_id>/sync/",
-        views.sync_invoice,
-        name="sync_invoice",
     ),
 ]
 

@@ -1,8 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import ClientForm
+from timary.models import Client
+from timary.utils import show_alert_message
 
 
 @login_required()
@@ -31,3 +34,38 @@ def create_client(request):
         return render(request, "clients/_client.html", {"client": client_saved})
     else:
         return render(request, "clients/_form.html", {"form": client_form})
+
+
+@login_required()
+@require_http_methods(["GET"])
+def sync_client(request, client_id):
+    client = Client.objects.get(id=client_id)
+    if request.user != client.user:
+        raise Http404
+
+    response = render(request, "clients/_client.html", {"client": client})
+
+    if not client.user.settings["subscription_active"]:
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to sync invoice, your subscription is inactive.",
+        )
+        return response
+
+    customer_synced, error_raised = client.sync_customer()
+
+    if customer_synced:
+        show_alert_message(
+            response,
+            "success",
+            f"{client.name.title()} is now synced with {client.user.accounting_org}",
+        )
+    else:
+        show_alert_message(
+            response,
+            "error",
+            f"We had trouble syncing {client.name.title()}. {error_raised}",
+            persist=True,
+        )
+    return response

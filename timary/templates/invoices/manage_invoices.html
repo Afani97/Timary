@@ -20,10 +20,15 @@
                 >
                     Clients
                 </button>
-                <button class="btn">Archived Invoices</button>
+                <button class="btn"
+                    _="on click add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
+                    hx-get="{% url 'timary:get_archive_list' %}" hx-target="#inner-content" hx-swap="innerHTML"
+                >
+                    Archived Invoices
+                </button>
             </div>
             <div class="divider"></div>
-            <div class="dropdown dropdown-hover dropdown-bottom dropdown-end" id="new-invoice-btn">
+            <div class="dropdown dropdown-hover dropdown-bottom dropdown-end" id="new-invoice-btn" >
                 <label tabindex="0" class="btn m-1 btn-primary w-full">New invoice</label>
                 <div tabindex="0" class="dropdown-content">
                     <ul class="menu bg-neutral w-56 rounded-box">
@@ -94,24 +99,6 @@
         </div>
     </div>
 
-
-    {#    {% if invoices.count > 0 %}#}
-    {#        <div class="divider"></div>#}
-    {##}
-    {#        <div class="max-w-5xl mx-auto">#}
-    {#            <h3 class="text-xl my-3 font-bold mx-5">Archived invoices</h3>#}
-    {##}
-    {#            {% if archived_invoices.count > 0 %}#}
-    {#                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">#}
-    {#                    {% for archive_invoice in archived_invoices %}#}
-    {#                        {% include "partials/_archive_invoice.html" with archive_invoice=archive_invoice %}#}
-    {#                    {% endfor %}#}
-    {#                </ul>#}
-    {#            {% endif %}#}
-    {#        </div>#}
-    {##}
-    {#    {% endif %}#}
-
     {# New invoice modal #}
     <input type="checkbox" id="new-invoice-modal" class="modal-toggle">
     <div class="modal items-end md:items-center">
@@ -175,8 +162,8 @@
     <div class="modal items-end md:items-center">
         <div class="modal-box relative bg-neutral w-full max-w-3xl mx-auto">
             <label _="on click call clearClientModal()"
-                for="new-invoice-modal"
-                id="close-invoice-modal"
+                for="new-client-modal"
+                id="close-client-modal"
                 class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
             <div id="new-client-inner" class="w-full">
                 {% include "clients/_form.html" with form=new_client %}
@@ -202,8 +189,8 @@
         }
 
         function clearClientModal() {
-            htmx.find("#new-client-inner").innerHTML = LOADER;
-            htmx.process(document.body)
+            htmx.find("#id_name").value = "";
+            htmx.find("#id_email").value = "";
         }
 
         function resetEditHoursView() {
