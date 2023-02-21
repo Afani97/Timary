@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from timary.forms import (
+    ClientForm,
     CreateIntervalForm,
     CreateMilestoneForm,
     CreateWeeklyForm,
@@ -19,6 +20,7 @@ from timary.forms import (
     UserForm,
 )
 from timary.tests.factories import (
+    ClientFactory,
     IntervalInvoiceFactory,
     MilestoneInvoiceFactory,
     SentInvoiceFactory,
@@ -126,15 +128,58 @@ class TestRegister(TestCase):
         )
 
 
+class TestClients(TestCase):
+    def test_missing_client_name(self):
+        form = ClientForm(
+            data={
+                "email": "user@test.com",
+            }
+        )
+
+        self.assertEqual(form.errors, {"name": ["This field is required."]})
+
+    def test_invalid_client_name(self):
+        form = ClientForm(
+            data={
+                "name": "12345",
+                "email": "user@test.com",
+            }
+        )
+
+        self.assertEqual(form.errors, {"name": ["Only valid names allowed."]})
+
+    def test_missing_client_email(self):
+        form = ClientForm(
+            data={
+                "name": "John Smith",
+            }
+        )
+
+        self.assertEqual(form.errors, {"email": ["This field is required."]})
+
+    def test_invalid_client_email(self):
+        form = ClientForm(
+            data={
+                "name": "John Smith",
+                "email": "user@test",
+            }
+        )
+
+        self.assertEqual(form.errors, {"email": ["Enter a valid email address."]})
+
+
 class TestInvoices(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake_client = ClientFactory()
+
     def test_invoice_success(self):
         form = CreateIntervalForm(
             data={
                 "title": "Some title",
                 "rate": 100,
                 "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
         self.assertTrue(form.is_valid())
@@ -145,8 +190,7 @@ class TestInvoices(TestCase):
             data={
                 "rate": 100,
                 "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
         self.assertEqual(form.errors, {"title": ["This field is required."]})
@@ -156,8 +200,7 @@ class TestInvoices(TestCase):
             data={
                 "title": "Some title",
                 "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -169,8 +212,7 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "rate": 0,
                 "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -184,8 +226,7 @@ class TestInvoices(TestCase):
             data={
                 "title": "Some title",
                 "rate": 100,
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -197,8 +238,7 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "rate": 100,
                 "invoice_interval": "I",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
         self.assertEqual(
@@ -215,8 +255,7 @@ class TestInvoices(TestCase):
             data={
                 "title": "Some title",
                 "rate": 100,
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -233,8 +272,7 @@ class TestInvoices(TestCase):
                 "title": "Some title",
                 "rate": 100,
                 "milestone_total_steps": 3,
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             },
         )
 
@@ -247,60 +285,6 @@ class TestInvoices(TestCase):
             },
         )
 
-    def test_invoice_error_missing_client_name(self):
-        form = CreateIntervalForm(
-            data={
-                "title": "Some title",
-                "rate": 100,
-                "invoice_interval": "M",
-                "client_email": "user@test.com",
-            }
-        )
-
-        self.assertIn(
-            "A client needs be entered or selected from list", str(form.errors)
-        )
-
-    def test_invoice_error_invalid_client_name(self):
-        form = CreateIntervalForm(
-            data={
-                "title": "Some title",
-                "rate": 100,
-                "invoice_interval": "M",
-                "client_name": "12345",
-                "client_email": "user@test.com",
-            }
-        )
-
-        self.assertIn("Only valid names allowed.", str(form.errors))
-
-    def test_invoice_error_missing_client_email(self):
-        form = CreateIntervalForm(
-            data={
-                "title": "Some title",
-                "rate": 100,
-                "invoice_interval": "M",
-                "client_name": "John Smith",
-            }
-        )
-
-        self.assertIn(
-            "A client needs be entered or selected from list", str(form.errors)
-        )
-
-    def test_invoice_error_invalid_client_email(self):
-        form = CreateIntervalForm(
-            data={
-                "title": "Some title",
-                "rate": 100,
-                "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test",
-            }
-        )
-
-        self.assertIn("Enter a valid email address.", str(form.errors))
-
     def test_invoice_error_duplicate_title(self):
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user)
@@ -310,8 +294,7 @@ class TestInvoices(TestCase):
                 "title": invoice.title,
                 "rate": 100,
                 "invoice_interval": "M",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             },
         )
 
@@ -325,8 +308,7 @@ class TestInvoices(TestCase):
                 "title": "1Password dev",
                 "rate": 100,
                 "invoice_interval": "M",
-                "client_name": "User Test",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -336,8 +318,7 @@ class TestInvoices(TestCase):
         form = CreateWeeklyForm(
             data={
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
 
@@ -348,8 +329,7 @@ class TestInvoices(TestCase):
             data={
                 "title": "Some title",
                 "rate": 2500,
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
             }
         )
         self.assertTrue(form.is_valid())
@@ -359,8 +339,7 @@ class TestInvoices(TestCase):
         form = SingleInvoiceForm(
             data={
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
                 "due_date": timezone.now().date() + timezone.timedelta(weeks=1),
             }
         )
@@ -371,8 +350,7 @@ class TestInvoices(TestCase):
         form = SingleInvoiceForm(
             data={
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
                 "due_date": timezone.now().date(),
             }
         )
@@ -389,8 +367,7 @@ class TestInvoices(TestCase):
             instance=single_invoice,
             data={
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
                 "due_date": timezone.now().date(),
             },
         )
@@ -401,8 +378,7 @@ class TestInvoices(TestCase):
         form = SingleInvoiceForm(
             data={
                 "title": "2Some title",
-                "client_name": "John Smith",
-                "client_email": "user@test.com",
+                "client": self.fake_client.id,
                 "due_date": timezone.now().date() + timezone.timedelta(weeks=1),
             }
         )
@@ -415,8 +391,7 @@ class TestInvoices(TestCase):
             instance=single_invoice,
             data={
                 "title": single_invoice.title,
-                "client_name": single_invoice.client_name,
-                "client_email": single_invoice.client_email,
+                "client": self.fake_client.id,
                 "due_date": single_invoice.due_date,
                 "installments": 3,
             },
@@ -429,24 +404,28 @@ class TestInvoices(TestCase):
 
 class TestPayInvoice(TestCase):
     def test_invoice_success(self):
-        sent_invoice = SentInvoiceFactory()
+        fake_client = ClientFactory()
+        invoice = IntervalInvoiceFactory(client=fake_client)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
         form = PayInvoiceForm(
             sent_invoice=sent_invoice,
             data={
-                "email": sent_invoice.invoice.client_email,
-                "first_name": sent_invoice.invoice.client_name,
+                "email": sent_invoice.invoice.client.email,
+                "first_name": sent_invoice.invoice.client.name,
             },
         )
         self.assertTrue(form.is_valid())
         self.assertEqual(form.errors, {})
 
     def test_sent_invoice_error_wrong_email(self):
-        sent_invoice = SentInvoiceFactory()
+        fake_client = ClientFactory()
+        invoice = IntervalInvoiceFactory(client=fake_client)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
         form = PayInvoiceForm(
             sent_invoice=sent_invoice,
             data={
                 "email": "test@test.com",
-                "first_name": sent_invoice.invoice.client_name,
+                "first_name": sent_invoice.invoice.client.name,
             },
         )
         self.assertEqual(
@@ -455,11 +434,13 @@ class TestPayInvoice(TestCase):
         )
 
     def test_sent_invoice_error_wrong_first_name(self):
-        sent_invoice = SentInvoiceFactory()
+        fake_client = ClientFactory()
+        invoice = IntervalInvoiceFactory(client=fake_client)
+        sent_invoice = SentInvoiceFactory(invoice=invoice)
         form = PayInvoiceForm(
             sent_invoice=sent_invoice,
             data={
-                "email": sent_invoice.invoice.client_email,
+                "email": sent_invoice.invoice.client.email,
                 "first_name": "User User",
             },
         )
@@ -479,7 +460,8 @@ class TestHoursLineItem(TestCase):
         cls.timezone = zoneinfo.ZoneInfo("America/New_York")
         cls.user = UserFactory()
         cls.today = timezone.now().astimezone(tz=cls.timezone)
-        cls.invoice = IntervalInvoiceFactory(user=cls.user)
+        cls.fake_client = ClientFactory(user=cls.user)
+        cls.invoice = IntervalInvoiceFactory(user=cls.user, client=cls.fake_client)
 
     def test_hours_success(self):
         form = HoursLineItemForm(

@@ -302,7 +302,7 @@ def generate_invoice(request, invoice_id):
     show_alert_message(
         response,
         "success",
-        f"Invoice for {invoice.title} has been sent to {invoice.client_name}",
+        f"Invoice for {invoice.title} has been sent to {invoice.client.name}",
     )
     return response
 

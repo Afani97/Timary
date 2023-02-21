@@ -152,7 +152,7 @@ def send_invoice_installment(invoice_id):
     EmailService.send_html(
         f"{installment.title}'s Installment Invoice from {installment.user.first_name} for {current_month}",
         msg_body,
-        [installment.client_email, installment.client_second_email],
+        [installment.client.email, installment.client.second_email],
     )
     installment.update_next_installment_date()
     return True
@@ -233,7 +233,7 @@ def send_invoice_reminder(invoice_id):
     EmailService.send_html(
         f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} for {current_month}",
         msg_body,
-        [single_invoice_obj.client_email, single_invoice_obj.client_second_email],
+        [single_invoice_obj.client.email, single_invoice_obj.client_second.email],
     )
 
 
@@ -265,7 +265,7 @@ def send_invoice(invoice_id):
     EmailService.send_html(
         msg_subject,
         msg_body,
-        invoice.client_email,
+        invoice.client.email,
     )
     invoice.update()
 
@@ -372,7 +372,7 @@ def send_weekly_updates():
         EmailService.send_html(
             f"Here is a weekly progress update for {invoice.title}",
             msg_body,
-            invoice.client_email,
+            invoice.client.email,
         )
 
 

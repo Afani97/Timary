@@ -203,7 +203,7 @@ def stripe_webhook(request, stripe_secret):
                 f"An error occurred while trying to "
                 f"transfer the funds for this invoice. Please give it another try.",
                 msg_body,
-                sent_invoice.invoice.client_email,
+                sent_invoice.invoice.client.email,
             )
         else:
             # Other stripe webhook event

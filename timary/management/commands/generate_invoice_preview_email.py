@@ -17,7 +17,7 @@ class Command(BaseCommand):
         )
         invoice = InvoiceFactory(
             user=user,
-            client_email="aristotelf@gmail.com",
+            client__email="aristotelf@gmail.com",
             last_date=datetime.date.today() - datetime.timedelta(days=3),
             accounting_customer_id="58",
         )

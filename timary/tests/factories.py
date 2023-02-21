@@ -56,6 +56,7 @@ class ClientFactory(DjangoModelFactory):
 
     email = factory.Faker("email")
     name = factory.Faker("name")
+    user = factory.SubFactory(UserFactory)
 
 
 class InvoiceFactory(DjangoModelFactory):
@@ -63,8 +64,8 @@ class InvoiceFactory(DjangoModelFactory):
         model = Invoice
 
     user = factory.SubFactory(UserFactory)
-    title = factory.Faker("first_name")
     client = factory.SubFactory(ClientFactory)
+    title = factory.Faker("first_name")
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
     rate = factory.Faker("pyint", min_value=100, max_value=1000)
     balance_due = factory.Faker("pyint", min_value=1000, max_value=1000)

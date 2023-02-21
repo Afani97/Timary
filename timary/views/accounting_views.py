@@ -137,26 +137,11 @@ def accounting_sync(request):
         synced_invoice["synced_sent_invoices"] = synced_sent_invoices
         synced_invoices.append(synced_invoice)
 
-    total_clients = len(
-        {
-            (
-                inv.client_stripe_customer_id,
-                f"{inv.client_name} - {inv.client_email}",
-            )
-            for inv in Invoice.objects.filter(user=request.user)
-        }
-    )
-    total_clients_synced = len(
-        {
-            (
-                inv.client_stripe_customer_id,
-                f"{inv.client_name} - {inv.client_email}",
-            )
-            for inv in Invoice.objects.filter(
-                Q(user=request.user) & Q(accounting_customer_id__isnull=False)
-            )
-        }
-    )
+    total_clients = Invoice.objects.filter(user=request.user).count()
+
+    total_clients_synced = Invoice.objects.filter(
+        user=request.user, accounting_customer_id__isnull=False
+    ).count()
     total_sent_invoices = SentInvoice.objects.filter(user=request.user).count()
     total_sent_invoices_synced = SentInvoice.objects.filter(
         Q(user=request.user) & Q(accounting_invoice_id__isnull=False)

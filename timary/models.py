@@ -517,7 +517,7 @@ class RecurringInvoice(Invoice):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.rate}, "
-            f"client_email={self.client_email}, "
+            f"client_email={self.client.email}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -613,7 +613,7 @@ class IntervalInvoice(RecurringInvoice):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.rate}, "
-            f"client_email={self.client_email}, "
+            f"client_email={self.client.email}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -655,7 +655,7 @@ class WeeklyInvoice(RecurringInvoice):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.rate}, "
-            f"client_email={self.client_email}, "
+            f"client_email={self.client.email}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -710,7 +710,7 @@ class MilestoneInvoice(RecurringInvoice):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.rate}, "
-            f"client_email={self.client_email}, "
+            f"client_email={self.client.email}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -880,7 +880,7 @@ class SentInvoice(BaseModel):
         EmailService.send_html(
             f"Here is a receipt for {self.invoice.user.first_name}'s services for {self.invoice.title}",
             msg_body,
-            self.invoice.client_email,
+            self.invoice.client.email,
         )
         EmailService.send_plain(
             "Success! Your getting paid!",

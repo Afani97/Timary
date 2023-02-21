@@ -617,7 +617,7 @@ class PayInvoiceForm(forms.Form):
         cleaned_email = self.cleaned_data.get("email")
         if (
             cleaned_email.lower().strip()
-            != self.sent_invoice.invoice.client_email.lower()
+            != self.sent_invoice.invoice.client.email.lower()
         ):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
@@ -627,7 +627,7 @@ class PayInvoiceForm(forms.Form):
         cleaned_name = self.cleaned_data.get("first_name")
         if (
             cleaned_name.lower().strip()
-            not in self.sent_invoice.invoice.client_name.lower()
+            not in self.sent_invoice.invoice.client.name.lower()
         ):
             raise ValidationError(
                 "Unable to process payment, please enter correct details."
