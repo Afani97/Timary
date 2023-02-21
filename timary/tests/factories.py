@@ -6,6 +6,7 @@ from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDecimal
 
 from timary.models import (
+    Client,
     HoursLineItem,
     IntervalInvoice,
     Invoice,
@@ -49,14 +50,21 @@ def get_last_date():
     return timezone.now() - timezone.timedelta(weeks=1)
 
 
+class ClientFactory(DjangoModelFactory):
+    class Meta:
+        model = Client
+
+    email = factory.Faker("email")
+    name = factory.Faker("name")
+
+
 class InvoiceFactory(DjangoModelFactory):
     class Meta:
         model = Invoice
 
     user = factory.SubFactory(UserFactory)
     title = factory.Faker("first_name")
-    client_email = factory.Faker("email")
-    client_name = factory.Faker("name")
+    client = factory.SubFactory(ClientFactory)
     total_budget = factory.Faker("pyint", min_value=1000, max_value=10_000)
     rate = factory.Faker("pyint", min_value=100, max_value=1000)
     balance_due = factory.Faker("pyint", min_value=1000, max_value=1000)

@@ -5,7 +5,12 @@ from requests import Response
 
 from timary.custom_errors import AccountingError
 from timary.services.xero_service import XeroService
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    ClientFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class XeroMocks:
@@ -146,22 +151,23 @@ class TestXeroService(TestCase):
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_customer_mock):
-            XeroService.create_customer(invoice)
-            invoice.refresh_from_db()
-            self.assertEquals(invoice.accounting_customer_id, "abc123")
+            XeroService.create_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_error_customer_mock):
             with self.assertRaises(AccountingError):
-                XeroService.create_customer(invoice)
+                XeroService.create_customer(client)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             XeroMocks.xero_oauth_mock,
@@ -174,7 +180,8 @@ class TestXeroService(TestCase):
 
     def test_error_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             XeroMocks.xero_oauth_mock,

@@ -114,21 +114,21 @@ class ZohoService:
             user.save()
 
     @staticmethod
-    def create_customer(invoice, auth_token=None):
+    def create_customer(client, auth_token=None):
         if auth_token:
             zoho_auth_token = auth_token
         else:
-            zoho_auth_token = ZohoService.get_refreshed_tokens(invoice.user)
+            zoho_auth_token = ZohoService.get_refreshed_tokens(client.user)
 
-        recipient_name = invoice.client_name.split(" ")
+        recipient_name = client.name.split(" ")
         data = {
-            "contact_name": invoice.client_name,
-            "email": invoice.client_email,
+            "contact_name": client.name,
+            "email": client.email,
             "contact_persons": [
                 {
                     "first_name": recipient_name[0],
                     "last_name": recipient_name[1],
-                    "email": invoice.client_email,
+                    "email": client.email,
                     "is_primary_contact": True,
                 }
             ],
@@ -136,23 +136,23 @@ class ZohoService:
         try:
             response = ZohoService.create_request(
                 zoho_auth_token,
-                invoice.user.accounting_org_id,
+                client.user.accounting_org_id,
                 "contacts",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=ae.requests_response,
             )
         if "contact" not in response or "contact_id" not in response["contact"]:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=response,
             )
-        invoice.accounting_customer_id = response["contact"]["contact_id"]
-        invoice.save()
+        client.accounting_customer_id = response["contact"]["contact_id"]
+        client.save()
 
     @staticmethod
     def create_invoice(sent_invoice, auth_token=False):
@@ -201,7 +201,7 @@ class ZohoService:
 
         # Generate invoice
         data = {
-            "customer_id": sent_invoice.invoice.accounting_customer_id,
+            "customer_id": sent_invoice.invoice.client.accounting_customer_id,
             "date": today_formatted,
             "line_items": [
                 {
@@ -235,7 +235,7 @@ class ZohoService:
 
         # Generate payment for invoice
         data = {
-            "customer_id": sent_invoice.invoice.accounting_customer_id,
+            "customer_id": sent_invoice.invoice.client.accounting_customer_id,
             "payment_mode": "creditcard",
             "amount": int(float(sent_invoice.total_price)),
             "date": today_formatted,

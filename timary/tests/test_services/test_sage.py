@@ -5,7 +5,12 @@ from requests import Response
 
 from timary.custom_errors import AccountingError
 from timary.services.sage_service import SageService
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    ClientFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class SageMocks:
@@ -187,22 +192,23 @@ class TestSageService(TestCase):
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_customer_mock):
-            SageService.create_customer(invoice)
-            invoice.refresh_from_db()
-            self.assertEquals(invoice.accounting_customer_id, "abc123")
+            SageService.create_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_error_customer_mock):
             with self.assertRaises(AccountingError):
-                SageService.create_customer(invoice)
+                SageService.create_customer(client)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             SageMocks.sage_oauth_mock,
@@ -218,7 +224,8 @@ class TestSageService(TestCase):
 
     def test_error_create_invoice(self):
         self.user.sage_account_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             SageMocks.sage_oauth_mock,

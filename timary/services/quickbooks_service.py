@@ -158,7 +158,9 @@ class QuickbooksService:
                     },
                 }
             ],
-            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
+            "CustomerRef": {
+                "value": sent_invoice.invoice.client.accounting_customer_id
+            },
         }
         try:
             response = QuickbooksService.create_request(
@@ -178,7 +180,9 @@ class QuickbooksService:
         )
         data = {
             "TotalAmt": float(sent_invoice.total_price),
-            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
+            "CustomerRef": {
+                "value": sent_invoice.invoice.client.accounting_customer_id
+            },
             "Line": [
                 {
                     "Amount": float(sent_invoice.total_price),

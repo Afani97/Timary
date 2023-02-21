@@ -117,38 +117,38 @@ class XeroService:
             return None
 
     @staticmethod
-    def create_customer(invoice, auth_token=None):
+    def create_customer(client, auth_token=None):
         if auth_token:
             xero_auth_token = auth_token
         else:
-            xero_auth_token = XeroService.get_refreshed_tokens(invoice.user)
+            xero_auth_token = XeroService.get_refreshed_tokens(client.user)
 
         data = {
-            "Name": invoice.client_name,
-            "EmailAddress": invoice.client_email,
+            "Name": client.name,
+            "EmailAddress": client.email,
         }
 
         try:
             response = XeroService.create_request(
                 xero_auth_token,
-                invoice.user.accounting_org_id,
+                client.user.accounting_org_id,
                 "Contacts",
                 "post",
                 data=data,
             )
         except AccountingError as ae:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=ae.requests_response,
             )
         response_json = response.json()
         if "Contacts" not in response_json:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=response,
             )
-        invoice.accounting_customer_id = response_json["Contacts"][0]["ContactID"]
-        invoice.save()
+        client.accounting_customer_id = response_json["Contacts"][0]["ContactID"]
+        client.save()
 
     @staticmethod
     def create_invoice(sent_invoice, auth_token=None):
@@ -162,7 +162,9 @@ class XeroService:
         today_formatted = today.strftime("%Y-%m-%d")
         data = {
             "Type": "ACCREC",
-            "Contact": {"ContactID": sent_invoice.invoice.accounting_customer_id},
+            "Contact": {
+                "ContactID": sent_invoice.invoice.client.accounting_customer_id
+            },
             "DueDate": today_formatted,
             "LineAmountTypes": "Exclusive",
             "Status": "AUTHORISED",

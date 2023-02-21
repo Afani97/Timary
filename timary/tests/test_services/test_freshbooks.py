@@ -5,7 +5,12 @@ from requests import Response
 
 from timary.custom_errors import AccountingError
 from timary.services.freshbooks_service import FreshbooksService
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    ClientFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class FreshbookMocks:
@@ -148,27 +153,28 @@ class TestFreshbooksService(TestCase):
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock, FreshbookMocks.freshbook_customer_mock
         ):
-            FreshbooksService.create_customer(invoice)
-            invoice.refresh_from_db()
-            self.assertEquals(invoice.accounting_customer_id, "abc123")
+            FreshbooksService.create_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
             FreshbookMocks.freshbook_error_customer_mock,
         ):
             with self.assertRaises(AccountingError):
-                FreshbooksService.create_customer(invoice)
+                FreshbooksService.create_customer(client)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
@@ -181,7 +187,8 @@ class TestFreshbooksService(TestCase):
 
     def test_error_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             FreshbookMocks.freshbook_oauth_mock,
