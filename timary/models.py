@@ -181,6 +181,42 @@ class HoursLineItem(LineItem):
         self.save()
 
 
+class Client(BaseModel):
+    name = models.CharField(max_length=200, null=False, blank=False)
+    email = models.EmailField(null=False, blank=False)
+    second_email = models.EmailField(null=True, blank=True)
+    stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
+    user = models.ForeignKey(
+        "timary.User", on_delete=models.CASCADE, related_name="my_clients", null=True
+    )
+
+    # Accounting
+    accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def sync_customer(self):
+        if not self.stripe_customer_id:
+            StripeService.create_customer_for_invoice(self)
+
+        if not self.user.accounting_org_id:
+            return None, None
+
+        if self.accounting_customer_id:
+            return True, None
+        try:
+            AccountingService({"user": self.user, "invoice": self}).create_customer()
+        except AccountingError as ae:
+            error_reason = ae.log()
+            return False, error_reason  # Failed to sync customer
+        return True, None  # Customer synced
+
+
 class Invoice(PolymorphicModel, BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)
@@ -202,9 +238,9 @@ class Invoice(PolymorphicModel, BaseModel):
         null=True,
         blank=True,
     )
-    client_name = models.CharField(max_length=200, null=False, blank=False)
-    client_email = models.EmailField(null=False, blank=False)
-    client_stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
+    client = models.ForeignKey(
+        "timary.Client", on_delete=models.SET_NULL, related_name="clients", null=True
+    )
 
     email_id = models.CharField(
         max_length=10, null=False, unique=True, default=create_new_ref_number
@@ -212,9 +248,6 @@ class Invoice(PolymorphicModel, BaseModel):
     is_paused = models.BooleanField(default=False, null=True, blank=True)
     is_archived = models.BooleanField(default=False, null=True, blank=True)
     total_budget = models.IntegerField(null=True, blank=True)
-
-    # Accounting
-    accounting_customer_id = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return f"{self.title}"
@@ -225,7 +258,7 @@ class Invoice(PolymorphicModel, BaseModel):
             f"email_id={self.email_id}, "
             f"user={self.user}, "
             f"invoice_rate={self.rate}, "
-            f"client_email={self.client_email}, "
+            f"client_email={self.client.email}, "
             f"is_archived={self.is_archived})"
         )
 
@@ -251,22 +284,6 @@ class Invoice(PolymorphicModel, BaseModel):
 
     def form_class(self, action="create"):
         raise NotImplementedError()
-
-    def sync_customer(self):
-        if not self.client_stripe_customer_id:
-            StripeService.create_customer_for_invoice(self)
-
-        if not self.user.accounting_org_id:
-            return None, None
-
-        if self.accounting_customer_id:
-            return True, None
-        try:
-            AccountingService({"user": self.user, "invoice": self}).create_customer()
-        except AccountingError as ae:
-            error_reason = ae.log()
-            return False, error_reason  # Failed to sync customer
-        return True, None  # Customer synced
 
     def get_hours_sent(self, sent_invoice_id):
         return (
@@ -306,7 +323,6 @@ class SingleInvoice(Invoice):
         null=True,
         blank=True,
     )
-    client_second_email = models.EmailField(null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     send_reminder = models.BooleanField(default=False, null=True, blank=True)
 
@@ -363,7 +379,7 @@ class SingleInvoice(Invoice):
         return False
 
     def is_client_synced(self):
-        return self.accounting_customer_id is not None
+        return self.client.accounting_customer_id is not None
 
     def is_sent_invoice_synced(self):
         if self.installments == 1:

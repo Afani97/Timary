@@ -1,0 +1,5 @@
+<div class="" id="clients-list">
+    {% for client in clients %}
+        {% include "clients/_client.html" with client=client %}
+    {% endfor %}
+</div>

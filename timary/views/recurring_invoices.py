@@ -7,10 +7,22 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import HoursLineItemForm, InvoiceForm
+from timary.forms import HoursLineItemForm, InvoiceForm, ClientForm
 from timary.models import Invoice, InvoiceManager, SentInvoice
 from timary.tasks import send_invoice
 from timary.utils import get_users_localtime, show_active_timer, show_alert_message
+
+
+@login_required()
+@require_http_methods(["GET"])
+def get_invoices(request):
+    return render(
+        request,
+        "invoices/list.html",
+        {
+            "invoices": request.user.get_invoices.order_by("title"),
+        },
+    )
 
 
 @login_required()
@@ -34,6 +46,7 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
+        "new_client": ClientForm(),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
         "archived_invoices": request.user.invoices.filter(is_archived=True).order_by(
@@ -80,7 +93,6 @@ def create_invoice(request):
         invoice.save()
     invoice.update()
     invoice.save()
-    invoice.sync_customer()
 
     response = render(
         request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}

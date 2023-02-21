@@ -94,9 +94,16 @@ urlpatterns += [
 ]
 
 
+# CLIENTS URLS
+urlpatterns += [
+    path("clients/", views.get_clients, name="get_clients"),
+    path("clients/create/", views.create_client, name="create_client"),
+]
+
 # RECURRING INVOICE URLS
 urlpatterns += [
     path("invoices/", views.create_invoice, name="create_invoice"),
+    path("invoices/list/", views.get_invoices, name="get_invoices"),
     path("invoices/manage/", views.manage_invoices, name="manage_invoices"),
     path("invoices/<uuid:invoice_id>/", views.get_invoice, name="get_single_invoice"),
     path("invoices/<uuid:invoice_id>/edit/", views.edit_invoice, name="edit_invoice"),

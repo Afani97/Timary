@@ -20,6 +20,7 @@ from timary.models import (
     SingleInvoice,
     User,
     WeeklyInvoice,
+    Client,
 )
 from timary.utils import get_starting_week_from_date, get_users_localtime
 
@@ -255,37 +256,25 @@ class HoursLineItemForm(forms.ModelForm):
         return validated_data
 
 
-class InvoiceForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user") if "user" in kwargs else None
-        super(InvoiceForm, self).__init__(*args, **kwargs)
-
+class ClientForm(forms.ModelForm):
     class Meta:
-        model = Invoice
+        model = Client
         fields = [
-            "title",
-            "rate",
-            "client_name",
-            "client_email",
+            "name",
+            "email",
         ]
         labels = {
-            "client_name": "Client's name",
-            "client_email": "Client's email",
+            "name": "Client's name",
+            "email": "Client's email",
         }
         widgets = {
-            "title": forms.TextInput(
-                attrs={
-                    "placeholder": "New Saas App...",
-                    "class": "input input-bordered border-2 text-lg w-full",
-                }
-            ),
-            "client_name": forms.TextInput(
+            "name": forms.TextInput(
                 attrs={
                     "placeholder": "John Smith",
                     "class": "input input-bordered border-2 text-lg w-full",
                 }
             ),
-            "client_email": forms.EmailInput(
+            "email": forms.EmailInput(
                 attrs={
                     "placeholder": "john@company.com",
                     "class": "input input-bordered border-2 text-lg w-full",
@@ -293,11 +282,43 @@ class InvoiceForm(forms.ModelForm):
             ),
         }
 
-    def clean_client_name(self):
-        client_name = self.cleaned_data.get("client_name")
-        if not all(x.isalpha() or x.isspace() for x in client_name):
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if not all(x.isalpha() or x.isspace() for x in name):
             raise ValidationError("Only valid names allowed.")
-        return client_name
+        return name
+
+
+class InvoiceForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user") if "user" in kwargs else None
+        super(InvoiceForm, self).__init__(*args, **kwargs)
+
+        self.fields["client"].choices = {
+            (
+                cl.id,
+                f"{cl.name} - {cl.email}",
+            )
+            for cl in Client.objects.filter(user=self.user)
+        }
+        self.fields["client"].choices.insert(0, ("", "Select a client"))
+
+    class Meta:
+        model = Invoice
+        fields = ["title", "rate", "client"]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "placeholder": "New Saas App...",
+                    "class": "input input-bordered border-2 text-lg w-full",
+                }
+            ),
+            "client": forms.Select(
+                attrs={
+                    "class": "select select-bordered border-2 text-lg w-full",
+                }
+            ),
+        }
 
     def clean_title(self):
         title = self.cleaned_data.get("title")
@@ -314,45 +335,8 @@ class InvoiceForm(forms.ModelForm):
 
 
 class CreateInvoiceForm(InvoiceForm):
-    contacts = forms.ChoiceField(
-        required=False,
-        label="Clients",
-        widget=forms.Select(
-            attrs={
-                "class": "select select-bordered border-2 text-lg w-full",
-            }
-        ),
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["contacts"].choices = {
-            (
-                inv.client_stripe_customer_id,
-                f"{inv.client_name} - {inv.client_email}",
-            )
-            for inv in Invoice.objects.filter(user=self.user)
-        }
-        self.fields["contacts"].choices.insert(0, ("", "Select a client"))
-        # For the contacts logic
-        self.fields["client_name"].required = False
-        self.fields["client_email"].required = False
-
     class Meta(InvoiceForm.Meta):
-        fields = InvoiceForm.Meta.fields + [
-            "contacts",
-        ]
-
-    def clean(self):
-        validated_data = super().clean()
-
-        if validated_data.get("contacts") or (
-            validated_data.get("client_email") and validated_data.get("client_name")
-        ):
-            # No missing client info
-            pass
-        else:
-            raise ValidationError("A client needs be entered or selected from list")
+        fields = InvoiceForm.Meta.fields
 
 
 class UpdateInvoiceForm(InvoiceForm):
@@ -492,13 +476,13 @@ def next_month():
 
 
 class SingleInvoiceForm(InvoiceForm):
-    client_second_email = forms.CharField(required=False)
+    # client_second_email = forms.CharField(required=False)
     late_penalty = forms.BooleanField(required=False)
     send_reminder = forms.BooleanField(required=False)
     save_for_reuse = forms.BooleanField(required=False, label="Save as template")
-    contacts = forms.ChoiceField(
+    client = forms.ChoiceField(
         required=False,
-        label="Clients",
+        label="Client",
         widget=forms.Select(
             attrs={
                 "class": "select select-bordered border-2 text-lg w-full",
@@ -519,9 +503,7 @@ class SingleInvoiceForm(InvoiceForm):
         model = SingleInvoice
         fields = [
             "title",
-            "client_name",
-            "client_email",
-            "client_second_email",
+            "client",
             # "invoice_interval",
             # "end_interval_date",
             "installments",
@@ -532,7 +514,7 @@ class SingleInvoiceForm(InvoiceForm):
             "late_penalty",
             "late_penalty_amount",
             "send_reminder",
-            "contacts",
+            # "contacts",
         ]
         labels = {
             "discount_amount": "Discount",
@@ -570,8 +552,8 @@ class SingleInvoiceForm(InvoiceForm):
             }
             self.fields["contacts"].choices.insert(0, ("", "Select a client"))
             # For the contacts logic
-            self.fields["client_name"].required = False
-            self.fields["client_email"].required = False
+            # self.fields["client_name"].required = False
+            # self.fields["client_email"].required = False
 
         if self.instance and self.instance.can_lock_line_items():
             self.fields["late_penalty_amount"].widget.attrs["readonly"] = True
