@@ -233,7 +233,7 @@ def send_invoice_reminder(invoice_id):
     EmailService.send_html(
         f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} for {current_month}",
         msg_body,
-        [single_invoice_obj.client.email, single_invoice_obj.client_second.email],
+        [single_invoice_obj.client.email, single_invoice_obj.client.second_email],
     )
 
 

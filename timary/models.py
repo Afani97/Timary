@@ -918,7 +918,7 @@ ari@usetimary.com
             self.user.accounting_org_id is not None
             and self.paid_status == SentInvoice.PaidStatus.PAID
             and self.accounting_invoice_id is None
-            and self.invoice.accounting_customer_id is not None
+            and self.invoice.client.accounting_customer_id is not None
             and self.user.settings["subscription_active"]
         )
 
