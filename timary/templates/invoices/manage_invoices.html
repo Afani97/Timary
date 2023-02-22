@@ -9,19 +9,19 @@
             <div class="btn-group btn-group-horizontal md:btn-group-vertical justify-center"
                 _="on click take .btn-active from .btn for event.target">
                 <button class="btn btn-active"
-                    _="on click add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
+                    _="on click call clearInnerContent() then add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
                     hx-get="{% url 'timary:get_invoices' %}" hx-target="#inner-content" hx-swap="innerHTML"
                 >
                     Invoices
                 </button>
                 <button class="btn"
-                    _="on click add .hidden to #new-invoice-btn then remove .hidden from #new-client-btn"
+                    _="on click call clearInnerContent() then add .hidden to #new-invoice-btn then remove .hidden from #new-client-btn"
                     hx-get="{% url 'timary:get_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
                 >
                     Clients
                 </button>
                 <button class="btn"
-                    _="on click add .hidden to #new-client-btn then add .hidden to #new-invoice-btn"
+                    _="on click call clearInnerContent() then add .hidden to #new-client-btn then add .hidden to #new-invoice-btn"
                     hx-get="{% url 'timary:get_archive_list' %}" hx-target="#inner-content" hx-swap="innerHTML"
                 >
                     Archived Invoices
@@ -93,7 +93,7 @@
         </div>
         <div class="divider divider-horizontal"></div>
 
-        <div class="flex-1 max-w-5xl mx-auto md:px-5 w-full" id="inner-content">
+        <div class="flex-1 max-w-5xl mx-auto md:px-5 w-full mt-5 md:mt-0" id="inner-content">
             {% include "invoices/list.html" %}
         </div>
     </div>
@@ -181,6 +181,10 @@
             <button class="btn btn-lg loading">loading</button>
         </div>
         `;
+
+        function clearInnerContent() {
+            htmx.find("#inner-content").innerHTML = LOADER;
+        }
 
         function clearInvoiceModal() {
             htmx.find("#new-invoice-inner").innerHTML = LOADER;
