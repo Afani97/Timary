@@ -23,6 +23,7 @@ from timary.tasks import (
     send_weekly_updates,
 )
 from timary.tests.factories import (
+    ClientFactory,
     HoursLineItemFactory,
     IntervalInvoiceFactory,
     LineItemFactory,
@@ -499,7 +500,8 @@ class TestGatherAndSendSingleInvoices(TestCase):
         self.assertEqual("Invoices sent: 1", invoices_sent)
 
     def test_send_invoice_reminder(self):
-        invoice = SingleInvoiceFactory()
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(client=fake_client)
         LineItemFactory(invoice=invoice)
         send_invoice_reminder(invoice.id)
         self.assertEquals(len(mail.outbox), 1)
@@ -510,7 +512,8 @@ class TestGatherAndSendSingleInvoices(TestCase):
         self.assertEquals(SentInvoice.objects.count(), 1)
 
     def test_do_not_send_invoice_reminder_if_pending_or_paid(self):
-        invoice = SingleInvoiceFactory()
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(client=fake_client)
         LineItemFactory(invoice=invoice)
         sent_invoice = SentInvoiceFactory(
             invoice=invoice,
@@ -640,7 +643,7 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client.name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is an invoice for {invoice.user.first_name}'s services.</div>
             """
@@ -684,7 +687,7 @@ class TestSendInvoice(TestCase):
 
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client.name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is an invoice for {invoice.user.first_name}'s services.</div>
             """
@@ -706,7 +709,10 @@ class TestSendInvoice(TestCase):
             self.assertInHTML(msg, html_message)
 
     def test_invoice_cannot_accept_payments_without_stripe_enabled(self):
-        invoice = IntervalInvoiceFactory(user__stripe_payouts_enabled=False)
+        fake_client = ClientFactory()
+        invoice = IntervalInvoiceFactory(
+            user__stripe_payouts_enabled=False, client=fake_client
+        )
         HoursLineItemFactory(invoice=invoice)
         send_invoice(invoice.id)
 
@@ -774,7 +780,7 @@ class TestSendInvoice(TestCase):
         html_message = TestSendInvoice.extract_html()
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client.name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is a copy of the invoice paid for Bob's services on
             {template_date(sent_invoice.date_sent, "M. j, Y")}.

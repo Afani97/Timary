@@ -5,7 +5,12 @@ from requests import Response
 
 from timary.custom_errors import AccountingError
 from timary.services.zoho_service import ZohoService
-from timary.tests.factories import InvoiceFactory, SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    ClientFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 
 
 class ZohoMocks:
@@ -174,22 +179,23 @@ class TestZohoService(TestCase):
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_customer_mock):
-            ZohoService.create_customer(invoice)
-            invoice.refresh_from_db()
-            self.assertEquals(invoice.accounting_customer_id, "abc123")
+            ZohoService.create_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user)
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_error_customer_mock):
             with self.assertRaises(AccountingError):
-                ZohoService.create_customer(invoice)
+                ZohoService.create_customer(client)
 
     def test_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             ZohoMocks.zoho_oauth_mock,
@@ -204,7 +210,8 @@ class TestZohoService(TestCase):
 
     def test_error_create_invoice(self):
         self.user.accounting_org_id = "abc123"
-        invoice = InvoiceFactory(user=self.user, accounting_customer_id="abc123")
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        invoice = InvoiceFactory(user=self.user, client=client)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         with HTTMock(
             ZohoMocks.zoho_oauth_mock,

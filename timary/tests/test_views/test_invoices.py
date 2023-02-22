@@ -23,6 +23,7 @@ from timary.models import (
 )
 from timary.templatetags.filters import nextmonday
 from timary.tests.factories import (
+    ClientFactory,
     HoursLineItemFactory,
     IntervalInvoiceFactory,
     LineItemFactory,
@@ -59,6 +60,7 @@ class TestRecurringInvoices(BaseTest):
     )
     def test_create_invoice(self, customer_mock):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
@@ -66,16 +68,13 @@ class TestRecurringInvoices(BaseTest):
                 "rate": 50,
                 "invoice_type": "interval",
                 "invoice_interval": "W",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
             },
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
 
         invoice = Invoice.objects.first()
-        inv_name = invoice.client_name
-        inv_email = invoice.client_email
         self.assertInHTML(
             f"""
             <h2 class="text-3xl font-bold overflow-x-hidden">{invoice.title}</h2>
@@ -83,7 +82,7 @@ class TestRecurringInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertIn(
-            f"{inv_name} - {inv_email}",
+            fake_client.name,
             response.content.decode("utf-8"),
         )
         local_date = invoice.next_date.astimezone(
@@ -94,30 +93,13 @@ class TestRecurringInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
 
-    def test_create_invoice_from_client_list(self):
-        IntervalInvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
-        response = self.client.post(
-            reverse("timary:create_invoice"),
-            {
-                "title": "Some title",
-                "rate": 50,
-                "invoice_type": "interval",
-                "invoice_interval": "W",
-                "contacts": "abc123",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            Invoice.objects.filter(client_stripe_customer_id="abc123").count(),
-            2,
-        )
-
     @patch(
         "timary.services.stripe_service.StripeService.create_customer_for_invoice",
         return_value=None,
     )
     def test_create_invoice_milestone(self, customer_mock):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory()
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
@@ -125,8 +107,7 @@ class TestRecurringInvoices(BaseTest):
                 "rate": 50,
                 "invoice_type": "milestone",
                 "milestone_total_steps": 3,
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
             },
         )
         invoice = MilestoneInvoice.objects.first()
@@ -155,21 +136,18 @@ class TestRecurringInvoices(BaseTest):
     )
     def test_create_weekly_invoice(self, customer_mock):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory()
         response = self.client.post(
             reverse("timary:create_invoice"),
             {
                 "title": "Some title",
                 "invoice_type": "weekly",
                 "rate": 1200,
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
             },
         )
-        invoice = Invoice.objects.first()
-        inv_name = invoice.client_name
-        inv_email = invoice.client_email
         self.assertIn(
-            f"{inv_name} - {inv_email}",
+            fake_client.name,
             response.content.decode("utf-8"),
         )
         date = timezone.now().astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
@@ -198,7 +176,7 @@ class TestRecurringInvoices(BaseTest):
         Invoice.objects.filter(user=self.user).all().delete()
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertIn(
-            "Hello there",  # Intro text
+            "Get Started",  # Intro text
             response.content.decode("utf-8"),
         )
         self.assertIn(
@@ -207,12 +185,6 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertTemplateUsed(response, "invoices/manage_invoices.html")
         self.assertEqual(response.status_code, 200)
-
-    def test_zero_invoices_redirects_main_page(self):
-        Invoice.objects.filter(user=self.user).all().delete()
-        response = self.client.get(reverse("timary:index"))
-        self.assertRedirects(response, reverse("timary:manage_invoices"))
-        self.assertEqual(response.status_code, 302)
 
     @patch(
         "timary.services.stripe_service.StripeService.create_customer_for_invoice",
@@ -304,12 +276,12 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 302)
 
     def test_update_invoice(self):
+        fake_client = ClientFactory()
         url_params = {
             "title": "Some title",
             "rate": 100,
             "invoice_interval": "W",
-            "client_name": "John Smith",
-            "client_email": "john@test.com",
+            "client": fake_client.id,
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": self.invoice.id}),
@@ -318,8 +290,6 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, "invoices/interval/_card.html")
         self.invoice.refresh_from_db()
-        inv_name = self.invoice.client_name
-        inv_email = self.invoice.client_email
         self.assertInHTML(
             f"""
             <h2 class="text-3xl font-bold overflow-x-hidden">{self.invoice.title}</h2>
@@ -331,7 +301,7 @@ class TestRecurringInvoices(BaseTest):
             response.content.decode("utf-8"),
         )
         self.assertIn(
-            f"{inv_name} - {inv_email}",
+            fake_client.name,
             response.content.decode("utf-8"),
         )
         self.assertIn(
@@ -340,13 +310,13 @@ class TestRecurringInvoices(BaseTest):
         )
 
     def test_update_invoice_milestone(self):
+        fake_client = ClientFactory()
         invoice = MilestoneInvoiceFactory(user=self.user, milestone_step=3)
         url_params = {
             "title": "Some title",
             "rate": 100,
             "milestone_total_steps": 5,
-            "client_name": "John Smith",
-            "client_email": "john@test.com",
+            "client": fake_client.id,
         }
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
@@ -377,13 +347,9 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_update_weekly_invoice(self):
+        fake_client = ClientFactory()
         invoice = WeeklyInvoiceFactory(user=self.user, rate=50)
-        url_params = {
-            "title": "Some title",
-            "rate": 100,
-            "client_name": "John Smith",
-            "client_email": "john@test.com",
-        }
+        url_params = {"title": "Some title", "rate": 100, "client": fake_client.id}
         response = self.client.put(
             reverse("timary:update_invoice", kwargs={"invoice_id": invoice.id}),
             data=urlencode(url_params),  # HTML PUT FORM
@@ -633,7 +599,7 @@ class TestRecurringInvoices(BaseTest):
 
         self.assertInHTML(
             f"""
-            <div class="stats shadow">
+            <div class="stats shadow stats-vertical">
               <div class="stat place-items-center">
                 <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
                 <div class="stat-desc">owed</div>
@@ -1042,13 +1008,10 @@ class TestSingleInvoices(BaseTest):
 
     def test_create_invoice(self):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory()
         response = self.client.post(
             reverse("timary:single_invoice"),
-            {
-                "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
-            },
+            {"title": "Some title", "client": fake_client.id},
         )
 
         invoice = SingleInvoice.objects.first()
@@ -1065,12 +1028,12 @@ class TestSingleInvoices(BaseTest):
 
     def test_create_invoice_single_line_item(self):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory()
         self.client.post(
             reverse("timary:single_invoice"),
             {
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
                 "id": "",
                 "description": "Test",
                 "quantity": 1,
@@ -1084,13 +1047,13 @@ class TestSingleInvoices(BaseTest):
 
     def test_create_invoice_multiple_line_items(self):
         Invoice.objects.all().delete()
+        fake_client = ClientFactory()
 
         self.client.post(
             reverse("timary:single_invoice"),
             {
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
                 "id": ["", ""],
                 "description": ["Test", "Test2"],
                 "quantity": [1, 2],
@@ -1102,28 +1065,13 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(invoice.line_items.count(), 2)
         self.assertEqual(invoice.balance_due, 8.5)
 
-    def test_create_invoice_from_client_list(self):
-        SingleInvoiceFactory(user=self.user, client_stripe_customer_id="abc123")
-        response = self.client.post(
-            reverse("timary:single_invoice"),
-            {
-                "title": "Some title",
-                "contacts": "abc123",
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            Invoice.objects.filter(client_stripe_customer_id="abc123").count(),
-            2,
-        )
-
     def test_create_invoice_error(self):
+        fake_client = ClientFactory()
         response = self.client.post(
             reverse("timary:single_invoice"),
             {
                 "title": "2Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
             },
         )
         self.assertIn(
@@ -1132,22 +1080,20 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(SingleInvoice.objects.all().count(), 0)
 
     def test_update_invoice(self):
-        invoice = SingleInvoiceFactory(user=self.user)
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
         self.client.post(
             reverse(
                 "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
             ),
-            {
-                "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
-            },
+            {"title": "Some title", "client": fake_client.id},
         )
         invoice.refresh_from_db()
         self.assertEqual(invoice.title, "Some title")
 
     def test_update_invoice_single_line_item(self):
-        invoice = SingleInvoiceFactory(user=self.user)
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
         line_item = LineItemFactory(invoice=invoice)
         response = self.client.post(
             reverse(
@@ -1155,8 +1101,7 @@ class TestSingleInvoices(BaseTest):
             ),
             {
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
                 "id": line_item.id,
                 "description": "Test",
                 "quantity": 1,
@@ -1172,7 +1117,8 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(str(messages[0]), f"Updated {invoice.title}")
 
     def test_update_invoice_multiple_line_items(self):
-        invoice = SingleInvoiceFactory(user=self.user)
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
         line_item = LineItemFactory(invoice=invoice)
         second_line_item = LineItemFactory(invoice=invoice)
         self.client.post(
@@ -1181,8 +1127,7 @@ class TestSingleInvoices(BaseTest):
             ),
             {
                 "title": "Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
                 "id": [line_item.id, second_line_item.id],
                 "description": ["Test", "Test2"],
                 "quantity": [1, 2],
@@ -1193,7 +1138,8 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(invoice.balance_due, 8.5)
 
     def test_update_invoice_error(self):
-        invoice = SingleInvoiceFactory(user=self.user)
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
         line_item = LineItemFactory(invoice=invoice)
         response = self.client.post(
             reverse(
@@ -1201,8 +1147,7 @@ class TestSingleInvoices(BaseTest):
             ),
             {
                 "title": "2Some title",
-                "client_name": "John Smith",
-                "client_email": "john@test.com",
+                "client": fake_client.id,
                 "id": line_item.id,
                 "description": "Test",
                 "quantity": 1,
@@ -1247,7 +1192,8 @@ class TestSingleInvoices(BaseTest):
         self.assertEqual(invoice.status, SingleInvoice.InvoiceStatus.DRAFT)
 
     def test_send_invoice_email(self):
-        invoice = SingleInvoiceFactory(user=self.user, status=1)
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, status=1, client=fake_client)
         line_item = LineItemFactory(invoice=invoice, quantity=1, unit_price=2.5)
         second_line_item = LineItemFactory(invoice=invoice, quantity=2, unit_price=3)
         invoice.update()
@@ -1262,7 +1208,7 @@ class TestSingleInvoices(BaseTest):
         html_message = TestSingleInvoices.extract_html()
         with self.subTest("Testing title"):
             msg = f"""
-            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {invoice.client_name},</div>
+            <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {fake_client.name},</div>
             <div class="my-2 text-xl leading-7">Thanks for using Timary.
             This is an invoice for {invoice.user.first_name}'s services.</div>
             """

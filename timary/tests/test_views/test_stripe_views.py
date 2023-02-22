@@ -79,8 +79,8 @@ class TestStripeViews(BaseTest):
         response = self.client.post(
             reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id}),
             data={
-                "email": sent_invoice.invoice.client_email,
-                "first_name": sent_invoice.invoice.client_name,
+                "email": sent_invoice.invoice.client.email,
+                "first_name": sent_invoice.invoice.client.name,
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -307,7 +307,7 @@ class TestStripeViews(BaseTest):
             "id": "abc123",
         }
 
-        sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
+        sent_invoice = SentInvoiceFactory(invoice__client__stripe_customer_id=12345)
         HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
         response = self.client.get(
@@ -341,7 +341,7 @@ class TestStripeViews(BaseTest):
             "id": "abc123",
         }
 
-        sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
+        sent_invoice = SentInvoiceFactory(invoice__client__stripe_customer_id=12345)
         HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
         response = self.client.get(
@@ -376,7 +376,7 @@ class TestStripeViews(BaseTest):
     def test_quick_pay_confirm(self, stripe_payment_mock):
         stripe_payment_mock.return_value = {"id": "12345"}
 
-        sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
+        sent_invoice = SentInvoiceFactory(invoice__client__stripe_customer_id=12345)
         HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
 
@@ -394,7 +394,7 @@ class TestStripeViews(BaseTest):
     def test_quick_pay_confirm_fails(self, stripe_payment_mock):
         stripe_payment_mock.return_value = None
 
-        sent_invoice = SentInvoiceFactory(invoice__client_stripe_customer_id=12345)
+        sent_invoice = SentInvoiceFactory(invoice__client__stripe_customer_id=12345)
         HoursLineItemFactory(invoice=sent_invoice.invoice)
         sent_invoice.refresh_from_db()
 

@@ -57,9 +57,9 @@ def pay_invoice(request, sent_invoice_id):
 
         saved_payment_method = False
         last_4_bank = ""
-        if sent_invoice.invoice.client_stripe_customer_id:
+        if sent_invoice.invoice.client.stripe_customer_id:
             invoicee_payment_method = StripeService.retrieve_customer_payment_method(
-                sent_invoice.invoice.client_stripe_customer_id
+                sent_invoice.invoice.client.stripe_customer_id
             )
             if invoicee_payment_method:
                 saved_payment_method = True
@@ -203,7 +203,7 @@ def stripe_webhook(request, stripe_secret):
                 f"An error occurred while trying to "
                 f"transfer the funds for this invoice. Please give it another try.",
                 msg_body,
-                sent_invoice.invoice.client_email,
+                sent_invoice.invoice.client.email,
             )
         else:
             # Other stripe webhook event

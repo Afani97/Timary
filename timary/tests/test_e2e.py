@@ -11,6 +11,7 @@ from django.utils import timezone
 from playwright.sync_api import sync_playwright
 
 from timary.tests.factories import (
+    ClientFactory,
     HoursLineItemFactory,
     IntervalInvoiceFactory,
     SentInvoiceFactory,
@@ -80,23 +81,20 @@ class TestUI(BaseUITest):
         page.close()
 
     @tag("ui")
-    def test_login_for_first_time_view_welcome_invoice_page(self):
-        with self.start_test(UserFactory()) as page:
-            page.wait_for_selector("#intro-text", timeout=2000)
-            self.assertEqual(page.inner_text("#intro-text"), "Hello there")
-
-    @tag("ui")
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
     def test_create_first_invoice(self, stripe_customer_mock):
         stripe_customer_mock.return_value = None
-        with self.start_test(UserFactory()) as page:
+        user = UserFactory()
+        client = ClientFactory(user=user)
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#intro-text", timeout=2000)
             page.click("#new-interval")
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
             page.fill("#id_rate", "100")
-            page.fill("#id_client_name", "John Smith")
-            page.fill("#id_client_email", "john@smith.com")
+            client_label = f"{client.name} - {client.email}"
+            page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
             page.wait_for_selector("#dashboard-title", timeout=2000)
             self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
@@ -105,15 +103,18 @@ class TestUI(BaseUITest):
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
     def test_create_first_invoice_milestone(self, stripe_customer_mock):
         stripe_customer_mock.return_value = None
-        with self.start_test(UserFactory()) as page:
+        user = UserFactory()
+        client = ClientFactory(user=user)
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#intro-text", timeout=2000)
             page.click("#new-milestone", timeout=2000)
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
             page.fill("#id_rate", "100")
             page.fill("#id_milestone_total_steps", "5")
-            page.fill("#id_client_name", "John Smith")
-            page.fill("#id_client_email", "john@smith.com")
+            client_label = f"{client.name} - {client.email}"
+            page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
             page.wait_for_selector("#dashboard-title", timeout=2000)
             self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
@@ -122,14 +123,17 @@ class TestUI(BaseUITest):
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
     def test_create_first_invoice_weekly(self, stripe_customer_mock):
         stripe_customer_mock.return_value = None
-        with self.start_test(UserFactory()) as page:
+        user = UserFactory()
+        client = ClientFactory(user=user)
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#intro-text", timeout=2000)
             page.click("#new-weekly", timeout=2000)
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
             page.fill("#id_rate", "100")
-            page.fill("#id_client_name", "John Smith")
-            page.fill("#id_client_email", "john@smith.com")
+            client_label = f"{client.name} - {client.email}"
+            page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
             page.wait_for_selector("#dashboard-title", timeout=2000)
             self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
@@ -174,17 +178,18 @@ class TestUI(BaseUITest):
 
     @tag("ui")
     def test_edit_invoice(self):
-        invoice = IntervalInvoiceFactory()
-        with self.start_test(invoice.user) as page:
+        user = UserFactory()
+        client = ClientFactory(user=user)
+        IntervalInvoiceFactory(user=user, client=client)
+        with self.start_test(user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.wait_for_selector("#current-invoices", timeout=2000)
             page.click(".card-body .dropdown")
             page.click('a:has-text("Edit")')
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
             page.fill("#id_title", "Timary 2")
             page.fill("#id_rate", "100")
-            page.fill("#id_client_name", "John Smith")
-            page.fill("#id_client_email", "john@smith.com")
+            client_label = f"{client.name} - {client.email}"
+            page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Update")')
             page.wait_for_selector(".card-body h2", timeout=2000)
             self.assertEqual(page.inner_text(".card-body h2"), "Timary 2")
@@ -200,7 +205,6 @@ class TestUI(BaseUITest):
         )
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.wait_for_selector("#current-invoices", timeout=2000)
             page.click('input[type="checkbox"]')
             page.wait_for_selector(".modal-button", timeout=2000)
             page.click(".modal-button")
@@ -228,7 +232,6 @@ class TestUI(BaseUITest):
         hours.save()
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.wait_for_selector("#current-invoices", timeout=2000)
             page.click(".card-body .dropdown")
             page.click('label:has-text("View sent invoices")')
             page.wait_for_selector('h3:has-text("View sent invoices")', timeout=3000)
@@ -270,13 +273,16 @@ class TestUI(BaseUITest):
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
     def test_create_first_invoice_single(self, stripe_customer_mock):
         stripe_customer_mock.return_value = None
-        with self.start_test(UserFactory()) as page:
+        user = UserFactory()
+        client = ClientFactory(user=user)
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
             page.wait_for_selector("#intro-text", timeout=2000)
             page.click("#new-single", timeout=2000)
             page.wait_for_selector("#id_title", timeout=2000)
             page.fill("#id_title", "Timary")
-            page.fill("#id_client_name", "John Smith")
-            page.fill("#id_client_email", "john@smith.com")
+            client_label = f"{client.name} - {client.email}"
+            page.get_by_label("Client:").select_option(label=client_label)
             page.fill("#id_description", "Test")
             page.fill("#id_quantity", "1")
             page.fill("#id_unit_price", "2.5")

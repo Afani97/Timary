@@ -104,19 +104,19 @@ class SageService:
         return None
 
     @staticmethod
-    def create_customer(invoice, auth_token=None):
+    def create_customer(client, auth_token=None):
         if auth_token:
             sage_auth_token = auth_token
         else:
-            sage_auth_token = SageService.get_refreshed_tokens(invoice.user)
+            sage_auth_token = SageService.get_refreshed_tokens(client.user)
         data = {
             "contact": {
                 "contact_type_ids": ["CUSTOMER"],
-                "name": invoice.client_name,
+                "name": client.name,
                 "main_contact_person": {
                     "contact_person_type_ids": ["CUSTOMER"],
-                    "name": invoice.client_name,
-                    "email": invoice.client_email,
+                    "name": client.name,
+                    "email": client.email,
                     "is_main_contact": True,
                     "is_preferred_contact": True,
                 },
@@ -131,11 +131,11 @@ class SageService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=ae.requests_response,
             )
-        invoice.accounting_customer_id = response["id"]
-        invoice.save()
+        client.accounting_customer_id = response["id"]
+        client.save()
 
     @staticmethod
     def create_invoice(sent_invoice, auth_token=None):
@@ -195,11 +195,11 @@ class SageService:
         # Generate invoice
         data = {
             "sales_invoice": {
-                "contact_id": sent_invoice.invoice.accounting_customer_id,
+                "contact_id": sent_invoice.invoice.client.accounting_customer_id,
                 "date": today_formatted,
                 "invoice_lines": [
                     {
-                        "description": f"Invoice for {sent_invoice.invoice.client_name}",
+                        "description": f"Invoice for {sent_invoice.invoice.client.name}",
                         "ledger_account_id": ledger_account_id,
                         "quantity": "1",
                         "tax_rate_id": no_tax_id,
@@ -229,7 +229,7 @@ class SageService:
             "contact_payment": {
                 "transaction_type_id": "CUSTOMER_RECEIPT",
                 "payment_method_id": "CREDIT_DEBIT",
-                "contact_id": sent_invoice.invoice.accounting_customer_id,
+                "contact_id": sent_invoice.invoice.client.accounting_customer_id,
                 "bank_account_id": bank_account_id,
                 "date": today_formatted,
                 "total_amount": str(float(sent_invoice.total_price)),

@@ -66,7 +66,7 @@ def resend_invoice_email(request, sent_invoice_id):
     EmailService.send_html(
         f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}",
         msg_body,
-        invoice.client_email,
+        invoice.client.email,
     )
 
     response = render(

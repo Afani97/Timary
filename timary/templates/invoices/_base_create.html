@@ -24,42 +24,12 @@
         </div>
 
         <div class="flex flex-col justify-center space-y-2">
-            <div class="flex flex-col space-y-2 md:flex-row md:space-x-5 md:space-y-0 contact-info">
+            <div class="flex flex-col space-y-2" id="contacts-list">
                 <div class="form-control w-full">
                     <label class="label">
-                        <span class="label-text">{{ form.client_name.label_tag }}</span>
+                        <span class="label-text">{{ form.client.label_tag }}</span>
                     </label>
-                    <div>{{ form.client_name }}</div>
-                </div>
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.client_email.label_tag }}</span>
-                    </label>
-                    <div>{{ form.client_email }}</div>
-                </div>
-
-            </div>
-            <div class="flex flex-start">
-                <button class="contact-info cursor-pointer hover:underline" type="button"
-                    _="on click remove .hidden from #contacts-list then add .hidden to .contact-info end"
-                >
-                    Select from previous clients?
-                </button>
-            </div>
-
-            <div class="flex flex-col space-y-2 hidden" id="contacts-list">
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">{{ form.contacts.label_tag }}</span>
-                    </label>
-                    <div>{{ form.contacts }}</div>
-                </div>
-                <div class="flex flex-start">
-                    <button class="cursor-pointer hover:underline" type="button"
-                        _="on click add .hidden to #contacts-list then remove .hidden from .contact-info"
-                    >
-                        Manually enter client info
-                    </button>
+                    <div>{{ form.client }}</div>
                 </div>
             </div>
         </div>

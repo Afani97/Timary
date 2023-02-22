@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django_q.tasks import schedule
 
 from timary.forms import LineItemForm, SingleInvoiceForm
-from timary.models import Invoice, LineItem, SentInvoice, SingleInvoice
+from timary.models import LineItem, SentInvoice, SingleInvoice
 from timary.tasks import send_invoice_installment, send_invoice_reminder
 from timary.utils import get_users_localtime, show_alert_message
 
@@ -71,17 +71,6 @@ def single_invoice(request):
             )
 
         saved_single_invoice = invoice_form.save(commit=False)
-        # If user selects from list of contacts, get that contact's info
-        if contact_id := invoice_form.cleaned_data.get("contacts"):
-            contact = Invoice.objects.filter(
-                client_stripe_customer_id=contact_id
-            ).first()
-            saved_single_invoice.client_email = contact.client_email
-            saved_single_invoice.client_name = contact.client_name
-            saved_single_invoice.client_stripe_customer_id = (
-                contact.client_stripe_customer_id
-            )
-            saved_single_invoice.accounting_customer_id = contact.accounting_customer_id
         saved_single_invoice.user = request.user
         saved_single_invoice.save()
 
@@ -113,7 +102,9 @@ def update_single_invoice(request, single_invoice_id):
     single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
     if single_invoice_obj.user != request.user:
         return redirect(reverse("timary:login"))
-    invoice_form = SingleInvoiceForm(request.POST or None, instance=single_invoice_obj)
+    invoice_form = SingleInvoiceForm(
+        request.POST or None, instance=single_invoice_obj, user=request.user
+    )
     line_item_forms = [
         LineItemForm(instance=line_item)
         for line_item in single_invoice_obj.line_items.all()
@@ -233,14 +224,14 @@ def sync_single_invoice(request, single_invoice_id):
             show_alert_message(
                 response,
                 "success",
-                f"{single_invoice_obj.client_name.title()} is "
+                f"{single_invoice_obj.client.name.title()} is "
                 f"now synced with {single_invoice_obj.user.accounting_org}",
             )
         else:
             show_alert_message(
                 response,
                 "error",
-                f"We had trouble syncing {single_invoice_obj.client_name.title()}. {error_raised}",
+                f"We had trouble syncing {single_invoice_obj.client.name.title()}. {error_raised}",
                 persist=True,
             )
         return response

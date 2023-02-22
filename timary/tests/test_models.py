@@ -20,6 +20,7 @@ from timary.models import (
     WeeklyInvoice,
 )
 from timary.tests.factories import (
+    ClientFactory,
     HoursLineItemFactory,
     IntervalInvoiceFactory,
     LineItemFactory,
@@ -165,20 +166,18 @@ class TestInvoice(TestCase):
             self.assertEqual(inv.title, "Some title")
             self.assertEqual(inv.user, user)
             self.assertEqual(inv.rate, 100)
-            self.assertEqual(inv.client_name, "User")
-            self.assertEqual(inv.client_email, "user@test.com")
             self.assertEqual(inv.next_date.date(), next_date.date())
             self.assertEqual(inv.last_date.date(), timezone.now().date())
             self.assertEqual(inv.slug_title, slugify(inv.title))
 
         with self.subTest("Interval"):
             next_date = timezone.now() + timezone.timedelta(weeks=1)
+            fake_client = ClientFactory()
             invoice = IntervalInvoice.objects.create(
                 title="Some title",
                 user=user,
                 rate=100,
-                client_name="User",
-                client_email="user@test.com",
+                client=fake_client,
                 invoice_interval="W",
                 next_date=next_date,
                 last_date=timezone.now(),
@@ -187,12 +186,12 @@ class TestInvoice(TestCase):
 
         with self.subTest("Milestone"):
             next_date = timezone.now() + timezone.timedelta(weeks=1)
+            fake_client = ClientFactory()
             invoice = MilestoneInvoice.objects.create(
                 title="Some title",
                 user=user,
                 rate=100,
-                client_name="User",
-                client_email="user@test.com",
+                client=fake_client,
                 milestone_total_steps="3",
                 next_date=next_date,
                 last_date=timezone.now(),
@@ -201,12 +200,12 @@ class TestInvoice(TestCase):
 
         with self.subTest("Weekly"):
             next_date = timezone.now() + timezone.timedelta(weeks=1)
+            fake_client = ClientFactory()
             invoice = WeeklyInvoice.objects.create(
                 title="Some title",
                 user=user,
                 rate=100,
-                client_name="User",
-                client_email="user@test.com",
+                client=fake_client,
                 next_date=next_date,
                 last_date=timezone.now(),
             )
@@ -214,42 +213,17 @@ class TestInvoice(TestCase):
 
     def test_error_creating_invoice_rate_less_than_1(self):
         user = UserFactory()
+        fake_client = ClientFactory()
         with self.assertRaises(ValidationError):
             IntervalInvoice.objects.create(
-                title="Some title",
-                user=user,
-                rate=-10,
-                client_name="User",
-                client_email="user@test.com",
+                title="Some title", user=user, rate=-10, client=fake_client
             )
 
     def test_error_creating_invoice_without_user(self):
+        fake_client = ClientFactory()
         with self.assertRaises(ValidationError):
             IntervalInvoice.objects.create(
-                title="Some title",
-                rate=-10,
-                client_name="User",
-                client_email="user@test.com",
-            )
-
-    def test_error_creating_invoice_without_client_name(self):
-        user = UserFactory()
-        with self.assertRaises(ValidationError):
-            IntervalInvoice.objects.create(
-                title="Some title",
-                user=user,
-                rate=-10,
-                client_email="user@test.com",
-            )
-
-    def test_error_creating_invoice_without_client_email(self):
-        user = UserFactory()
-        with self.assertRaises(ValidationError):
-            IntervalInvoice.objects.create(
-                title="Some title",
-                user=user,
-                rate=-10,
-                client_name="User",
+                title="Some title", rate=-10, client=fake_client
             )
 
     def test_invoice_calculate_next_date(self):
@@ -599,11 +573,13 @@ class TestInvoice(TestCase):
             )
 
     def test_multiple_installments_invoice_is_client_synced(self):
-        invoice = SingleInvoiceFactory(installments=2, accounting_customer_id="abc123")
+        fake_client = ClientFactory(accounting_customer_id="abc123")
+        invoice = SingleInvoiceFactory(installments=2, client=fake_client)
         self.assertTrue(invoice.is_client_synced())
 
     def test_single_installment_is_synced(self):
-        invoice = SingleInvoiceFactory(installments=1, accounting_customer_id="abc123")
+        fake_client = ClientFactory(accounting_customer_id="abc123")
+        invoice = SingleInvoiceFactory(installments=1, client=fake_client)
         SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
         self.assertTrue(invoice.is_client_synced())
 

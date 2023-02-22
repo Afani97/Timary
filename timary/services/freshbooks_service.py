@@ -140,30 +140,30 @@ class FreshbooksService:
         return None
 
     @staticmethod
-    def create_customer(invoice, auth_token=None):
+    def create_customer(client, auth_token=None):
         if auth_token:
             freshbooks_auth_token = auth_token
         else:
-            freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(invoice.user)
+            freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(client.user)
         data = {
             "client": {
-                "email": invoice.client_email,
-                "fname": invoice.client_name.split(" ")[0],
-                "lname": invoice.client_name.split(" ")[1],
+                "email": client.email,
+                "fname": client.name.split(" ")[0],
+                "lname": client.name.split(" ")[1],
             }
         }
-        endpoint = f"accounting/account/{invoice.user.accounting_org_id}/users/clients"
+        endpoint = f"accounting/account/{client.user.accounting_org_id}/users/clients"
         try:
             response = FreshbooksService.create_request(
                 freshbooks_auth_token, endpoint, method_type="post", data=data
             )
         except AccountingError as ae:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=ae.requests_response,
             )
-        invoice.accounting_customer_id = response["response"]["result"]["client"]["id"]
-        invoice.save()
+        client.accounting_customer_id = response["response"]["result"]["client"]["id"]
+        client.save()
 
     @staticmethod
     def create_invoice(sent_invoice, auth_token=None):
@@ -179,7 +179,7 @@ class FreshbooksService:
 
         data = {
             "invoice": {
-                "customerid": sent_invoice.invoice.accounting_customer_id,
+                "customerid": sent_invoice.invoice.client.accounting_customer_id,
                 "create_date": today_formatted,
                 "status": 2,
                 "lines": [

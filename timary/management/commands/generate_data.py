@@ -20,7 +20,7 @@ class Command(BaseCommand):
         for i in range(0, 3):
             invoice = InvoiceFactory(
                 user=user,
-                client_email="aristotelf@gmail.com",
+                client__email="aristotelf@gmail.com",
                 last_date=datetime.date.today() - datetime.timedelta(days=3),
             )
             for _ in range(0, 50):

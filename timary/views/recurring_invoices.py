@@ -7,10 +7,36 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import HoursLineItemForm, InvoiceForm
+from timary.forms import ClientForm, HoursLineItemForm, InvoiceForm
 from timary.models import Invoice, InvoiceManager, SentInvoice
 from timary.tasks import send_invoice
 from timary.utils import get_users_localtime, show_active_timer, show_alert_message
+
+
+@login_required()
+@require_http_methods(["GET"])
+def get_invoices(request):
+    return render(
+        request,
+        "invoices/list.html",
+        {
+            "invoices": request.user.get_invoices.order_by("title"),
+        },
+    )
+
+
+@login_required()
+@require_http_methods(["GET"])
+def get_archived_invoices(request):
+    return render(
+        request,
+        "invoices/archive_list.html",
+        {
+            "archived_invoices": request.user.invoices.filter(
+                is_archived=True
+            ).order_by("title"),
+        },
+    )
 
 
 @login_required()
@@ -34,11 +60,9 @@ def manage_invoices(request):
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
+        "new_client": ClientForm(),
         "sent_invoices_owed": sent_invoices_owed,
         "sent_invoices_earned": sent_invoices_paid,
-        "archived_invoices": request.user.invoices.filter(is_archived=True).order_by(
-            "title"
-        ),
     }
     context.update(show_active_timer(request.user))
     return render(
@@ -70,17 +94,8 @@ def create_invoice(request):
     prev_invoice_count = request.user.get_invoices.count()
     invoice = invoice_form.save(commit=False)
     invoice.user = request.user
-    # If user selects from list of contacts, get that contact's info
-    if contact_id := invoice_form.cleaned_data.get("contacts"):
-        contact = Invoice.objects.filter(client_stripe_customer_id=contact_id).first()
-        invoice.client_email = contact.client_email
-        invoice.client_name = contact.client_name
-        invoice.client_stripe_customer_id = contact.client_stripe_customer_id
-        invoice.accounting_customer_id = contact.accounting_customer_id
-        invoice.save()
     invoice.update()
     invoice.save()
-    invoice.sync_customer()
 
     response = render(
         request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
@@ -287,7 +302,7 @@ def generate_invoice(request, invoice_id):
     show_alert_message(
         response,
         "success",
-        f"Invoice for {invoice.title} has been sent to {invoice.client_name}",
+        f"Invoice for {invoice.title} has been sent to {invoice.client.name}",
     )
     return response
 
@@ -310,49 +325,3 @@ def invoice_hour_stats(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     return render(request, "partials/_invoice_period_hours.html", {"invoice": invoice})
-
-
-@login_required()
-@require_http_methods(["GET"])
-def sync_invoice(request, invoice_id):
-    invoice = InvoiceManager(invoice_id).invoice
-    if request.user != invoice.user:
-        raise Http404
-
-    if not invoice.user.settings["subscription_active"]:
-        response = render(
-            request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
-        )
-        show_alert_message(
-            response,
-            "warning",
-            "Unable to sync invoice, your subscription is inactive.",
-        )
-        return response
-
-    customer_synced, error_raised = invoice.sync_customer()
-    if invoice.is_archived:
-        response = render(
-            request, "partials/_archive_invoice.html", {"archive_invoice": invoice}
-        )
-    else:
-        response = render(
-            request,
-            f"invoices/{invoice.invoice_type()}/_card.html",
-            {"invoice": invoice},
-        )
-
-    if customer_synced:
-        show_alert_message(
-            response,
-            "success",
-            f"{invoice.client_name.title()} is now synced with {invoice.user.accounting_org}",
-        )
-    else:
-        show_alert_message(
-            response,
-            "error",
-            f"We had trouble syncing {invoice.client_name.title()}. {error_raised}",
-            persist=True,
-        )
-    return response

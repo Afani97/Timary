@@ -110,18 +110,18 @@ class QuickbooksService:
         return None
 
     @staticmethod
-    def create_customer(invoice, auth_token=None):
+    def create_customer(client, auth_token=None):
         if auth_token:
             quickbooks_auth_token = auth_token
         else:
-            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(invoice.user)
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(client.user)
         endpoint = (
-            f"v3/company/{invoice.user.accounting_org_id}/customer?minorversion=63"
+            f"v3/company/{client.user.accounting_org_id}/customer?minorversion=63"
         )
         data = {
-            "DisplayName": invoice.client_name,
-            "FullyQualifiedName": invoice.client_name,
-            "PrimaryEmailAddr": {"Address": invoice.client_email},
+            "DisplayName": client.name,
+            "FullyQualifiedName": client.name,
+            "PrimaryEmailAddr": {"Address": client.email},
         }
         try:
             response = QuickbooksService.create_request(
@@ -129,11 +129,11 @@ class QuickbooksService:
             )
         except AccountingError as ae:
             raise AccountingError(
-                user=invoice.user,
+                user=client.user,
                 requests_response=ae.requests_response,
             )
-        invoice.accounting_customer_id = response["Customer"]["Id"]
-        invoice.save()
+        client.accounting_customer_id = response["Customer"]["Id"]
+        client.save()
 
     @staticmethod
     def create_invoice(sent_invoice, auth_token=None):
@@ -158,7 +158,9 @@ class QuickbooksService:
                     },
                 }
             ],
-            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
+            "CustomerRef": {
+                "value": sent_invoice.invoice.client.accounting_customer_id
+            },
         }
         try:
             response = QuickbooksService.create_request(
@@ -178,7 +180,9 @@ class QuickbooksService:
         )
         data = {
             "TotalAmt": float(sent_invoice.total_price),
-            "CustomerRef": {"value": sent_invoice.invoice.accounting_customer_id},
+            "CustomerRef": {
+                "value": sent_invoice.invoice.client.accounting_customer_id
+            },
             "Line": [
                 {
                     "Amount": float(sent_invoice.total_price),

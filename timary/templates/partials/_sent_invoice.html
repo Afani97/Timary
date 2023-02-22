@@ -67,7 +67,7 @@
             {% endif %}
 
             {# EDIT/CANCEL INVOICE BUTTONS #}
-            {% if sent_invoice.invoice.insallments == 1 %}
+            {% if not sent_invoice.invoice.installments or sent_invoice.invoice.insallments == 1 %}
                 {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
                     <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-5 mt-4">
                         {% if sent_invoice.invoice.invoice_type != "weekly" and sent_invoice.invoice.invoice_type != "single" %}

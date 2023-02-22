@@ -1,0 +1,27 @@
+<ul class="space-y-5" id="invoices-list">
+    {% for invoice in invoices %}
+        {% if invoice.invoice_type == "single" %}
+            {% include 'partials/_single_invoice.html' with single_invoice=invoice %}
+        {% elif invoice.invoice_type == "interval" %}
+            {% include "invoices/interval/_card.html" with invoice=invoice %}
+        {% elif invoice.invoice_type == "milestone" %}
+            {% include 'invoices/milestone/_card.html' with invoice=invoice %}
+        {% elif invoice.invoice_type == "weekly" %}
+            {% include 'invoices/weekly/_card.html' with invoice=invoice %}
+        {% endif %}
+    {% empty %}
+        <div class="my-10">
+            <div class="flex flex-col justify-center space-y-5">
+                <div class="text-center">
+                    <h1 class="mb-5 text-3xl md:text-5xl font-bold" id="intro-text">
+                        Get Started
+                    </h1>
+                    <p class="mb-5">
+                        We all gotta start somewhere right? Begin your journey by adding your first invoicing details.
+                    </p>
+                </div>
+                {% include 'invoices/_invoice_selection.html' %}
+            </div>
+        </div>
+    {% endfor %}
+</ul>
