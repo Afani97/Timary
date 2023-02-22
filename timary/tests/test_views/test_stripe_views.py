@@ -578,7 +578,7 @@ class TestStripeViews(BaseTest):
             f"""
             <div class="flex justify-between py-3 text-xl">
                 <div>{floatformat(hours.quantity, -2)} hours on {formatted_date}</div>
-                <div>${floatformat(hours.quantity * self.invoice.rate, -2)}</div>
+                <div>${floatformat(hours.quantity * sent_invoice.hourly_rate_snapshot, -2)}</div>
             </div>
             """,
             self.extract_html_body().encode().decode("utf-8"),

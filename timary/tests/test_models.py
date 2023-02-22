@@ -623,7 +623,10 @@ class TestSentInvoice(TestCase):
         yesterday = timezone.now().astimezone(
             tz=zoneinfo.ZoneInfo("America/New_York")
         ) - timezone.timedelta(days=1)
-        invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
+        invoice_rate_snapshot = 50
+        invoice = IntervalInvoiceFactory(
+            rate=invoice_rate_snapshot, last_date=three_days_ago
+        )
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
         )
@@ -647,14 +650,14 @@ class TestSentInvoice(TestCase):
         self.assertInHTML(
             f"""
             <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
-            <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+            <div>${floatformat(hours1.quantity * invoice_rate_snapshot, -2)}</div>
             """,
             line_items,
         )
         self.assertInHTML(
             f"""
             <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
-            <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+            <div>${floatformat(hours2.quantity * invoice_rate_snapshot, -2)}</div>
             """,
             line_items,
         )
@@ -664,7 +667,10 @@ class TestSentInvoice(TestCase):
         yesterday = timezone.now().astimezone(
             tz=zoneinfo.ZoneInfo("America/New_York")
         ) - timezone.timedelta(days=1)
-        invoice = MilestoneInvoiceFactory(rate=50, last_date=three_days_ago)
+        invoice_rate_snapshot = 50
+        invoice = MilestoneInvoiceFactory(
+            rate=invoice_rate_snapshot, last_date=three_days_ago
+        )
         hours1 = HoursLineItemFactory(
             quantity=1, invoice=invoice, date_tracked=yesterday
         )
@@ -688,14 +694,14 @@ class TestSentInvoice(TestCase):
         self.assertInHTML(
             f"""
             <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
-            <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+            <div>${floatformat(hours1.quantity * invoice_rate_snapshot, -2)}</div>
             """,
             line_items,
         )
         self.assertInHTML(
             f"""
             <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
-            <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+            <div>${floatformat(hours2.quantity * invoice_rate_snapshot, -2)}</div>
             """,
             line_items,
         )
@@ -722,7 +728,10 @@ class TestSentInvoice(TestCase):
         yesterday = timezone.now().astimezone(
             tz=zoneinfo.ZoneInfo("America/New_York")
         ) - timezone.timedelta(days=1)
-        invoice = IntervalInvoiceFactory(rate=50, last_date=three_days_ago)
+        invoice_rate_snapshot = 50
+        invoice = IntervalInvoiceFactory(
+            rate=invoice_rate_snapshot, last_date=three_days_ago
+        )
         hours1 = HoursLineItemFactory(
             quantity=0, invoice=invoice, date_tracked=yesterday
         )
@@ -747,14 +756,14 @@ class TestSentInvoice(TestCase):
             self.assertInHTML(
                 f"""
                 <div>{floatformat(hours1.quantity, -2)} hours on {template_date(hours1.date_tracked, "M j")}</div>
-                <div>${floatformat(hours1.quantity * invoice.rate, -2)}</div>
+                <div>${floatformat(hours1.quantity * invoice_rate_snapshot, -2)}</div>
                 """,
                 line_items,
             )
         self.assertInHTML(
             f"""
             <div>{floatformat(hours2.quantity, -2)} hours on {template_date(hours2.date_tracked, "M j")}</div>
-            <div>${floatformat(hours2.quantity * invoice.rate, -2)}</div>
+            <div>${floatformat(hours2.quantity * invoice_rate_snapshot, -2)}</div>
             """,
             line_items,
         )

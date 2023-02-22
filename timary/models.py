@@ -286,10 +286,11 @@ class Invoice(PolymorphicModel, BaseModel):
         raise NotImplementedError()
 
     def get_hours_sent(self, sent_invoice_id):
+        sent_invoice = SentInvoice.objects.get(id=sent_invoice_id)
         return (
             self.line_items.filter(sent_invoice_id=sent_invoice_id)
             .exclude(quantity=0)
-            .annotate(cost=self.rate * Sum("quantity"))
+            .annotate(cost=sent_invoice.hourly_rate_snapshot * Sum("quantity"))
             .order_by("date_tracked")
         )
 
