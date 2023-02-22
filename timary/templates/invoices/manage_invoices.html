@@ -6,7 +6,7 @@
     <div class="flex flex-col md:flex-row w-full mt-10 md:mt-20">
 
         <div class="flex flex-col space-y-5 mb-4 md:mb-0">
-            <div class="btn-group btn-group-horizontal md:btn-group-vertical"
+            <div class="btn-group btn-group-horizontal md:btn-group-vertical justify-center"
                 _="on click take .btn-active from .btn for event.target">
                 <button class="btn btn-active"
                     _="on click add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
@@ -21,7 +21,7 @@
                     Clients
                 </button>
                 <button class="btn"
-                    _="on click add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
+                    _="on click add .hidden to #new-client-btn then add .hidden to #new-invoice-btn"
                     hx-get="{% url 'timary:get_archive_list' %}" hx-target="#inner-content" hx-swap="innerHTML"
                 >
                     Archived Invoices
@@ -77,8 +77,7 @@
                 </div>
             </div>
             <label tabindex="0" class="btn m-1 btn-primary w-full hidden" for="new-client-modal" id="new-client-btn">New client</label>
-            <div class="divider"></div>
-            <div class="hidden md:flex justify-center">
+            <div class="hidden md:flex justify-center mt-5">
                 <div class="stats shadow stats-vertical">
                     <div class="stat place-items-center">
                         <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>

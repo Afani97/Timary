@@ -1,4 +1,4 @@
-<li class="card shadow-lg bordered mb-2 bg-base-200" id="{{archive_invoice.slug_title}}">
+<li class="card card-bordered border-neutral bg-base-200" id="{{archive_invoice.slug_title}}">
     <div class="card-body">
         <div>
             <div class="flex justify-between">
@@ -21,7 +21,7 @@
 
             <p class="text-xl">
                 {% if archive_invoice.invoice_type != "single" %}
-                    Interval: {{ archive_invoice.invoice_type | lower }}
+                    Type: {{ archive_invoice.invoice_type | lower }}
                 {% else %}
                     Balance: ${{ archive_invoice.balance_due }}
                 {% endif %}
