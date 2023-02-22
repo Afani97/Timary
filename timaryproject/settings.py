@@ -233,7 +233,8 @@ CSP_SCRIPT_SRC = (
     "'nonce-manage-invoices'",
     "'nonce-update-subscription'",
     "'nonce-update-payment-method'",
-    "https://unpkg.com/htmx.org@1.7.0",
+    "https://unpkg.com/htmx.org@1.8.5",
+    "https://unpkg.com/hyperscript.org@0.9.7",
     "https://js.stripe.com",
 )
 CSP_IMG_SRC = ("'self'",)

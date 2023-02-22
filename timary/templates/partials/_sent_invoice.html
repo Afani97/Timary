@@ -65,6 +65,9 @@
                     Sync Invoice
                 </a>
             {% endif %}
+            {% if sent_invoice.why_cannot_sync %}
+                <p class="text-yellow-300">To sync this invoice, the client needs to be synced first.</p>
+            {% endif %}
 
             {# EDIT/CANCEL INVOICE BUTTONS #}
             {% if not sent_invoice.invoice.installments or sent_invoice.invoice.insallments == 1 %}

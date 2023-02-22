@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
-from timary.models import Invoice, SentInvoice, User
+from timary.models import Client, SentInvoice, User
 from timary.services.accounting_service import AccountingService
 
 
@@ -109,9 +109,11 @@ def accounting_sync(request):
             "customer_synced_error": None,
             "synced_sent_invoices": [],
         }
-        if not invoice.accounting_customer_id:
+        if not invoice.client.accounting_customer_id:
             try:
-                accounting_service.service_klass().create_customer(invoice, auth_token)
+                accounting_service.service_klass().create_customer(
+                    invoice.client, auth_token
+                )
             except AccountingError as ae:
                 synced_invoice["customer_synced_error"] = ae.log()
                 synced_invoice["customer_synced"] = False
@@ -137,9 +139,8 @@ def accounting_sync(request):
         synced_invoice["synced_sent_invoices"] = synced_sent_invoices
         synced_invoices.append(synced_invoice)
 
-    total_clients = Invoice.objects.filter(user=request.user).count()
-
-    total_clients_synced = Invoice.objects.filter(
+    total_clients = Client.objects.filter(user=request.user).count()
+    total_clients_synced = Client.objects.filter(
         user=request.user, accounting_customer_id__isnull=False
     ).count()
     total_sent_invoices = SentInvoice.objects.filter(user=request.user).count()

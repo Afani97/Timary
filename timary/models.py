@@ -923,6 +923,15 @@ ari@usetimary.com
             and self.user.settings["subscription_active"]
         )
 
+    def why_cannot_sync(self):
+        return (
+            self.user.accounting_org_id is not None
+            and self.paid_status == SentInvoice.PaidStatus.PAID
+            and self.accounting_invoice_id is None
+            and self.invoice.client.accounting_customer_id is None
+            and self.user.settings["subscription_active"]
+        )
+
     def sync_invoice(self):
         if self.paid_status != SentInvoice.PaidStatus.PAID:
             return None, "Invoice isn't paid"
