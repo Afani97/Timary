@@ -176,7 +176,7 @@ class TestRecurringInvoices(BaseTest):
         Invoice.objects.filter(user=self.user).all().delete()
         response = self.client.get(reverse("timary:manage_invoices"))
         self.assertIn(
-            "Hello there",  # Intro text
+            "Get Started",  # Intro text
             response.content.decode("utf-8"),
         )
         self.assertIn(
@@ -599,7 +599,7 @@ class TestRecurringInvoices(BaseTest):
 
         self.assertInHTML(
             f"""
-            <div class="stats shadow">
+            <div class="stats shadow stats-vertical">
               <div class="stat place-items-center">
                 <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
                 <div class="stat-desc">owed</div>
