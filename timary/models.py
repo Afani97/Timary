@@ -526,9 +526,7 @@ class RecurringInvoice(Invoice):
     def get_hours_tracked(self):
         return (
             self.line_items.filter(
-                date_tracked__gte=self.last_date.astimezone(
-                    tz=zoneinfo.ZoneInfo(self.user.timezone)
-                ),
+                date_tracked__gte=self.last_date,
                 sent_invoice_id__isnull=True,
             )
             .exclude(quantity=0)

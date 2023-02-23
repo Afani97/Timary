@@ -130,7 +130,7 @@ def pause_invoice(request, invoice_id):
         invoice.invoice_type() == "interval"
         and invoice.next_date.date() <= timezone.now().date()
     ):
-        invoice.calculate_next_date(update_last=True)
+        invoice.calculate_next_date()
     invoice.save()
     response = render(
         request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
