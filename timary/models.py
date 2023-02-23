@@ -526,7 +526,9 @@ class RecurringInvoice(Invoice):
     def get_hours_tracked(self):
         return (
             self.line_items.filter(
-                date_tracked__gte=self.last_date,
+                date_tracked__gte=self.last_date.astimezone(
+                    tz=zoneinfo.ZoneInfo(self.user.timezone)
+                ),
                 sent_invoice_id__isnull=True,
             )
             .exclude(quantity=0)
@@ -1072,7 +1074,7 @@ class User(AbstractUser, BaseModel):
     def invoices_not_logged(self):
         remaining_invoices = list(
             RecurringInvoice.objects.filter(user=self, sms_ping_today=False).exclude(
-                is_paused=True, is_archived=True
+                is_paused=True
             )
         )
         return remaining_invoices if len(remaining_invoices) > 0 else None
