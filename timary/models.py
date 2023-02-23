@@ -1072,7 +1072,7 @@ class User(AbstractUser, BaseModel):
     def invoices_not_logged(self):
         remaining_invoices = list(
             RecurringInvoice.objects.filter(user=self, sms_ping_today=False).exclude(
-                is_paused=True
+                is_paused=True, is_archived=True
             )
         )
         return remaining_invoices if len(remaining_invoices) > 0 else None
