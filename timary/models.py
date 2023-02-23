@@ -511,6 +511,7 @@ class SingleInvoice(Invoice):
 class RecurringInvoice(Invoice):
     next_date = models.DateTimeField(null=True, blank=True)
     last_date = models.DateTimeField(null=True, blank=True)
+    sms_ping_today = models.BooleanField(null=True, blank=True, default=False)
 
     def __repr__(self):
         return (
@@ -1071,16 +1072,11 @@ class User(AbstractUser, BaseModel):
         return self.invoices.all()
 
     def invoices_not_logged(self):
-        today = get_users_localtime(self)
-        today_range = (
-            today.replace(hour=0, minute=0, second=0),
-            today.replace(hour=23, minute=59, second=59),
+        remaining_invoices = list(
+            RecurringInvoice.objects.filter(user=self, sms_ping_today=False).exclude(
+                is_paused=True
+            )
         )
-        invoices = self.get_invoices.exclude(is_paused=True).exclude(
-            line_items__date_tracked__range=today_range
-        )
-
-        remaining_invoices = [inv for inv in invoices if inv.invoice_type() != "single"]
         return remaining_invoices if len(remaining_invoices) > 0 else None
 
     @property

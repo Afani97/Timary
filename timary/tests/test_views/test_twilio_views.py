@@ -54,8 +54,9 @@ class TestTwilioSendReminderSMS(TestCase):
     def test_send_1_message_filtered_by_already_tracked(
         self, localtime_mock, today_mock, message_create_mock
     ):
-        IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
-        invoice = IntervalInvoiceFactory(user__phone_number_availability=["Mon"])
+        user = UserFactory(phone_number_availability=["Mon"])
+        IntervalInvoiceFactory(user=user)
+        invoice = IntervalInvoiceFactory(user=user, sms_ping_today=True)
         HoursLineItemFactory(
             invoice=invoice,
             date_tracked=timezone.datetime(

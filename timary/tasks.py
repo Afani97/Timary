@@ -15,6 +15,7 @@ from timary.models import (
     IntervalInvoice,
     Invoice,
     MilestoneInvoice,
+    RecurringInvoice,
     SentInvoice,
     SingleInvoice,
     User,
@@ -297,6 +298,7 @@ def send_reminder_sms():
 
     invoices_sent_count = 0
     for user in users:
+        RecurringInvoice.objects.filter(user=user).update(sms_ping_today=False)
         now = get_users_localtime(user)
         weekday = now.strftime("%a")
         if weekday not in user.settings.get("phone_number_availability"):

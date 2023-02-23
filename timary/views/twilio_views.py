@@ -70,6 +70,8 @@ def twilio_reply(request):
                 date_tracked=timezone.now(),
                 invoice=invoice,
             )
+            invoice.sms_ping_today = True
+            invoice.save()
         else:
             r = MessagingResponse()
             r.message(
@@ -82,6 +84,8 @@ def twilio_reply(request):
             date_tracked=timezone.now(),
             invoice=invoice,
         )
+        invoice.sms_ping_today = True
+        invoice.save()
 
     remaining_invoices = user.invoices_not_logged()
     if remaining_invoices:
