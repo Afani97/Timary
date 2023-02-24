@@ -10,8 +10,8 @@
         <h2 class="card-title">{{user.first_name }} {{ user.last_name }}</h2>
         <p>{{ user.email }}</p>
         <p>{{ user.phone_number|default:"" }}</p>
-        <div class="card-actions flex justify-center my-4">
-            <button class="btn btn-primary"
+        <div class="card-actions flex justify-center mt-4">
+            <button class="btn btn-primary btn-sm md:btn-md"
                 hx-get="{% url 'timary:edit_user_profile' %}"
                 hx-target="#user-profile"
                 hx-swap="outerHTML"

@@ -55,8 +55,8 @@
 
 
     </div>
-    <div class="card-actions mb-5 flex justify-center space-x-10">
-        <a class="btn btn-ghost" hx-get="{% url 'timary:user_profile_partial' %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
-        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit"> Update </button>
+    <div class="card-actions mb-5 flex justify-center space-x-10 ">
+        <a class="btn btn-ghost btn-sm md:btn-md" hx-get="{% url 'timary:user_profile_partial' %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit"> Update </button>
     </div>
 </form>

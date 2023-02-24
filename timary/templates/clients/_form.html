@@ -34,14 +34,14 @@
     <div class="card-actions flex justify-center space-x-5 mb-4">
         {% if form.initial %}
             <button hx-get="{% url 'timary:get_client' client_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML"
-                class="btn btn-outline" type="button">
+                class="btn btn-outline btn-sm md:btn-md" type="button">
                 Cancel
             </button>
-            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit">
+            <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
                 Update
             </button>
         {% else %}
-            <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn" type="submit">
+            <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
                 Add new client
             </button>
         {% endif %}

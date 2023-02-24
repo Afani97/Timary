@@ -41,7 +41,7 @@
         </div>
     </div>
     <div class="card-actions flex justify-center space-x-10">
-        <a href="#" class="btn" id="close-invoice-modal" hx-get="{% url 'timary:get_single_invoice' invoice_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me">Cancel</a>
-        <button hx-trigger="enterKey, click" class="btn btn-primary submit-btn mb-4" type="submit"> Update </button>
+        <a href="#" class="btn btn-sm md:btn-md" id="close-invoice-modal" hx-get="{% url 'timary:get_single_invoice' invoice_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me">Cancel</a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn mb-4" type="submit"> Update </button>
     </div>
 </form>
