@@ -26,7 +26,7 @@
         <input type="checkbox" name="phone_number_repeat_sms" {% if settings_form.phone_number_repeat_sms.value %} checked="checked" {% endif %} class="checkbox" />
     </div>
     <div class="flex justify-center space-x-4">
-        <a hx-get="{% url 'timary:settings_partial' setting='sms'%}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost" _="on click add .loading to me">Cancel</a>
-        <button type="submit" class="btn btn-primary" _="on click add .loading to me">Update</button>
+        <a hx-get="{% url 'timary:settings_partial' setting='sms'%}" hx-target="closest form" hx-swap="outerHTML" class="btn btn-ghost btn-sm md:btn-md" _="on click add .loading to me">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-sm md:btn-md" _="on click add .loading to me">Update</button>
     </div>
 </form>

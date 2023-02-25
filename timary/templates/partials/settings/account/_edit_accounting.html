@@ -31,7 +31,7 @@
                 </div>
             {% endif %}
         </div>
-        <div class="card-actions flex justify-center mt-10">
+        <div class="card-actions flex justify-center mt-10 space-x-10">
             {% if settings.accounting_connected %}
                 <label for="sync-modal" hx-get="{% url 'timary:accounting_sync' %}" hx-target=".sync-inner-modal" hx-swap="innerHTML" class="btn btn-sm btn-accent"
                     _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">Sync All Data</label>

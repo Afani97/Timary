@@ -17,10 +17,10 @@
     </div>
 
     <div class="flex justify-center space-x-10 mt-4">
-        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="#update-payment-element" hx-swap="outerHTML" class="btn btn-ghost"  _="on click add .loading to me">
+        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="#update-payment-element" hx-swap="outerHTML" class="btn btn-ghost btn-sm md:btn-md"  _="on click add .loading to me">
             Cancel
         </a>
-        <button class="btn btn-disabled update-btn" _="on click add .loading to me then call updateCard()">
+        <button class="btn btn-disabled update-btn btn-sm md:btn-md" _="on click add .loading to me then call updateCard()">
             Update
         </button>
     </div>

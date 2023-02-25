@@ -1,5 +1,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="clients-list">
     {% for client in clients %}
         {% include "clients/_client.html" with client=client %}
+    {% empty %}
+        <h1 class="text-3xl mt-10 text-center">No clients added</h1>
     {% endfor %}
 </div>
