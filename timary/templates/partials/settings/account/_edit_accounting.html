@@ -37,7 +37,7 @@
                     _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">Sync All Data</label>
             {% endif %}
 
-            <a hx-get="{% url 'timary:settings_partial' setting='accounting'%}" hx-target="#integrations-container" hx-swap="outerHTML" class="btn btn-sm btn-ghost" _="on click add .loading to me">Close</a>
+            <a hx-get="{% url 'timary:settings_partial' setting='accounting'%}" hx-target="#integrations-container" hx-swap="outerHTML" class="btn btn-sm btn-ghost">Close</a>
         </div>
     </div>
 </div>
