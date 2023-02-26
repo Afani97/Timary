@@ -298,15 +298,16 @@ def send_reminder_sms():
 
     invoices_sent_count = 0
     for user in users:
-        RecurringInvoice.objects.filter(user=user).update(sms_ping_today=False)
         now = get_users_localtime(user)
         weekday = now.strftime("%a")
-        if weekday not in user.settings.get("phone_number_availability"):
-            continue
-        if not user.settings["subscription_active"]:
+        if (
+            weekday not in user.settings.get("phone_number_availability")
+            or not user.settings["subscription_active"]
+        ):
             continue
         five_pm_localtime = now.replace(hour=17, minute=0, second=0, microsecond=0)
         if now.replace(second=0, microsecond=0) == five_pm_localtime:
+            RecurringInvoice.objects.filter(user=user).update(sms_ping_today=False)
             remaining_invoices = user.invoices_not_logged()
             if remaining_invoices:
                 invoice = remaining_invoices.pop()
