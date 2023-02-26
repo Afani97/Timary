@@ -80,6 +80,7 @@ class WeeklyInvoiceFactory(InvoiceFactory):
     next_date = factory.LazyFunction(get_next_date)
     last_date = factory.LazyFunction(get_last_date)
     rate = factory.Faker("pyint", min_value=1000, max_value=1000)
+    sms_ping_today = False
 
 
 class IntervalInvoiceFactory(WeeklyInvoiceFactory):
@@ -95,7 +96,6 @@ class IntervalInvoiceFactory(WeeklyInvoiceFactory):
             IntervalInvoice.Interval.YEARLY,
         ]
     )
-    rate = factory.Faker("pyint", min_value=1000, max_value=1000)
 
 
 class MilestoneInvoiceFactory(WeeklyInvoiceFactory):
@@ -104,7 +104,6 @@ class MilestoneInvoiceFactory(WeeklyInvoiceFactory):
 
     milestone_total_steps = factory.Faker("pyint", min_value=2, max_value=10)
     milestone_step = factory.Faker("pyint", min_value=3, max_value=9)
-    rate = factory.Faker("pyint", min_value=1000, max_value=10_000)
 
 
 class SingleInvoiceFactory(InvoiceFactory):

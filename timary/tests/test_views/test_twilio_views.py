@@ -11,7 +11,7 @@ from django.utils import timezone
 from django_twilio.decorators import twilio_view
 
 from timary.models import HoursLineItem
-from timary.tasks import send_reminder_sms
+from timary.tasks import remind_sms_again, send_reminder_sms
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
@@ -130,6 +130,22 @@ class TestTwilioSendReminderSMS(TestCase):
         invoices_sent = send_reminder_sms()
         self.assertEqual("1 message(s) sent.", invoices_sent)
 
+    def test_resend_sms_reminder(self, localtime, today_mock, message_create_mock):
+        user = UserFactory(phone_number_availability=["Mon"], email="test@test.com")
+        IntervalInvoiceFactory(user=user)
+
+        invoices_sent = remind_sms_again(user_email=user.email)
+        self.assertEqual("1 message(s) resent.", invoices_sent)
+
+    def test_do_not_resend_sms_reminder_if_set_prior(
+        self, localtime, today_mock, message_create_mock
+    ):
+        user = UserFactory(phone_number_availability=["Mon"], email="test@test.com")
+        IntervalInvoiceFactory(user=user, sms_ping_today=True)
+
+        invoices_sent = remind_sms_again(user_email=user.email)
+        self.assertEqual("0 message(s) resent.", invoices_sent)
+
 
 @dataclass
 class Message:
@@ -222,6 +238,33 @@ class TestTwilioReplyWebhook(TestCase):
         self.assertEqual(
             HoursLineItem.objects.aggregate(total=Sum("quantity"))["total"], 3
         )
+
+    @patch("timary.views.twilio_views.MessagingResponse")
+    @patch("twilio.rest.api.v2010.account.message.MessageList.list")
+    def test_1_invoice_left_to_sms_already_sent(
+        self, message_list_mock, message_response_mock
+    ):
+        IntervalInvoiceFactory(user=self.user, sms_ping_today=True)
+        invoice2 = IntervalInvoiceFactory(user=self.user)
+
+        self.assertEqual(len(self.user.invoices_not_logged()), 1)
+
+        # FIRST INVOICE SMS SENT
+        message_list_mock.return_value = [
+            Message(f"How many hours to log for: {invoice2.title}.")
+        ]
+        message_response_mock.return_value = MessageResponse(response="")
+
+        request = self.factory.post(
+            reverse("timary:twilio_reply"),
+            data=self.data,
+        )
+
+        with override_settings(DEBUG=True):
+            response = twilio_view(twilio_reply(request))
+
+        self.assertIn("All set for today", response.response)
+        self.assertEqual(self.user.invoices_not_logged(), None)
 
     @patch("timary.views.twilio_views.MessagingResponse")
     @patch("twilio.rest.api.v2010.account.message.MessageList.list")
