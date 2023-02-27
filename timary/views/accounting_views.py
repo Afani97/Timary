@@ -81,7 +81,7 @@ def accounting_disconnect(request):
     user.account_org = None
     user.accounting_org_id = None
     user.accounting_refresh_token = None
-    user.my_clients().update(accounting_customer_id=None)
+    user.my_clients.all().update(accounting_customer_id=None)
     user.sent_invoices.all().update(accounting_invoice_id=None)
     user.save()
     return render(
