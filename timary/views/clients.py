@@ -6,8 +6,10 @@ from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
+from timary.custom_errors import AccountingError
 from timary.forms import ClientForm
 from timary.models import Client
+from timary.services.accounting_service import AccountingService
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
 
@@ -62,10 +64,20 @@ def update_client(request, client_id):
     client_form = ClientForm(request.POST or None, instance=client)
     if client_form.is_valid():
         client_saved = client_form.save()
-        try:
-            StripeService.update_customer(client_saved)
-        except stripe.error.InvalidRequestError as e:
-            print(str(e), file=sys.stderr)
+        if client_saved.stripe_customer_id:
+            try:
+                StripeService.update_customer(client_saved)
+            except stripe.error.InvalidRequestError as e:
+                print(str(e), file=sys.stderr)
+
+        if client_saved.accounting_customer_id:
+            accounting_service = AccountingService(
+                {"user": request.user, "client": client_saved}
+            )
+            try:
+                accounting_service.update_customer()
+            except AccountingError as ae:
+                ae.log()
         return render(request, "clients/_client.html", {"client": client_saved})
     else:
         return render(request, "clients/_form.html", {"form": client_form})

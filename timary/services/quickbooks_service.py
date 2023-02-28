@@ -236,3 +236,32 @@ class QuickbooksService:
                 user=user,
                 requests_response=ae.requests_response,
             )
+
+    @staticmethod
+    def update_customer(client, auth_token=None):
+        if auth_token:
+            quickbooks_auth_token = auth_token
+        else:
+            quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(client.user)
+        endpoint = (
+            f"v3/company/{client.user.accounting_org_id}/customer?minorversion=63"
+        )
+        data = {
+            "DisplayName": client.name,
+            "FullyQualifiedName": client.name,
+            "PrimaryEmailAddr": {"Address": client.email},
+            "SyncToken": "0",
+            "Id": client.accounting_customer_id,
+            "sparse": True,
+        }
+        try:
+            response = QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "post", data=data
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=client.user,
+                requests_response=ae.requests_response,
+            )
+        client.accounting_customer_id = response["Customer"]["Id"]
+        client.save()

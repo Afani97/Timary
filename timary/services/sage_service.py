@@ -298,3 +298,37 @@ class SageService:
                 user=user,
                 requests_response=ae.requests_response,
             )
+
+    @staticmethod
+    def update_customer(client, auth_token=None):
+        if auth_token:
+            sage_auth_token = auth_token
+        else:
+            sage_auth_token = SageService.get_refreshed_tokens(client.user)
+        data = {
+            "contact": {
+                "contact_type_ids": ["CUSTOMER"],
+                "name": client.name,
+                "main_contact_person": {
+                    "contact_person_type_ids": ["CUSTOMER"],
+                    "name": client.name,
+                    "email": client.email,
+                    "is_main_contact": True,
+                    "is_preferred_contact": True,
+                },
+            }
+        }
+        try:
+            response = SageService.create_request(
+                sage_auth_token,
+                f"contacts/{client.accounting_customer_id}",
+                "put",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=client.user,
+                requests_response=ae.requests_response,
+            )
+        client.accounting_customer_id = response["id"]
+        client.save()

@@ -308,3 +308,44 @@ class ZohoService:
                 user=user,
                 requests_response=ae.requests_response,
             )
+
+    @staticmethod
+    def update_customer(client, auth_token=None):
+        if auth_token:
+            zoho_auth_token = auth_token
+        else:
+            zoho_auth_token = ZohoService.get_refreshed_tokens(client.user)
+
+        recipient_name = client.name.split(" ")
+        data = {
+            "contact_name": client.name,
+            "email": client.email,
+            "contact_persons": [
+                {
+                    "first_name": recipient_name[0],
+                    "last_name": recipient_name[1],
+                    "email": client.email,
+                    "is_primary_contact": True,
+                }
+            ],
+        }
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token,
+                client.user.accounting_org_id,
+                f"contacts/{client.accounting_customer_id}",
+                "put",
+                data=data,
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=client.user,
+                requests_response=ae.requests_response,
+            )
+        if "contact" not in response or "contact_id" not in response["contact"]:
+            raise AccountingError(
+                user=client.user,
+                requests_response=response,
+            )
+        client.accounting_customer_id = response["contact"]["contact_id"]
+        client.save()

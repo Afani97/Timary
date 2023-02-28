@@ -52,6 +52,11 @@ class AccountingService:
         if self.service_klass and client.user.settings["subscription_active"]:
             self.service_klass().create_customer(client)
 
+    def update_customer(self):
+        client = self.kwargs.get("client")
+        if self.service_klass and client.user.settings["subscription_active"]:
+            self.service_klass().update_customer(client)
+
     def create_invoice(self):
         sent_invoice = self.kwargs.get("sent_invoice")
         if self.service_klass and sent_invoice.user.settings["subscription_active"]:
