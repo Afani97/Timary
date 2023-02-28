@@ -1,3 +1,6 @@
+import sys
+
+import stripe
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
@@ -5,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import ClientForm
 from timary.models import Client
+from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
 
 
@@ -58,6 +62,10 @@ def update_client(request, client_id):
     client_form = ClientForm(request.POST or None, instance=client)
     if client_form.is_valid():
         client_saved = client_form.save()
+        try:
+            StripeService.update_customer(client_saved)
+        except stripe.error.InvalidRequestError as e:
+            print(str(e), file=sys.stderr)
         return render(request, "clients/_client.html", {"client": client_saved})
     else:
         return render(request, "clients/_form.html", {"form": client_form})

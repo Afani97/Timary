@@ -106,6 +106,16 @@ class StripeService:
         client.save()
 
     @classmethod
+    def update_customer(cls, client):
+        stripe.api_key = cls.stripe_api_key
+        stripe.Customer.modify(
+            client.stripe_customer_id,
+            email=client.email,
+            name=client.name,
+        )
+        client.save()
+
+    @classmethod
     def retrieve_customer(cls, customer_id):
         stripe.api_key = cls.stripe_api_key
         stripe_customer = stripe.Customer.retrieve(customer_id)
