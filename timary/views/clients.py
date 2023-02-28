@@ -78,6 +78,7 @@ def update_client(request, client_id):
                 accounting_service.update_customer()
             except AccountingError as ae:
                 ae.log()
+        client_saved.refresh_from_db()
         return render(request, "clients/_client.html", {"client": client_saved})
     else:
         return render(request, "clients/_form.html", {"form": client_form})
