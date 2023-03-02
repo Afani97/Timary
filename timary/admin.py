@@ -20,13 +20,149 @@ from timary.models import (
 # Register your models here.
 from timary.services.email_service import EmailService
 
-admin.site.register(User)
-admin.site.register(IntervalInvoice)
-admin.site.register(MilestoneInvoice)
-admin.site.register(WeeklyInvoice)
+
+@admin.action(description="Pause selected invoices")
+def pause_invoices(modeladmin, request, queryset):
+    updated = queryset.update(is_paused=True)
+    modeladmin.message_user(
+        request,
+        f"{updated} invoices were paused",
+        messages.SUCCESS,
+    )
+
+
+@admin.action(description="Unpause selected invoices")
+def unpause_invoices(modeladmin, request, queryset):
+    updated = queryset.update(is_paused=False)
+    modeladmin.message_user(
+        request,
+        f"{updated} invoices were unpaused",
+        messages.SUCCESS,
+    )
+
+
+@admin.action(description="Archive selected invoices")
+def archive_invoices(modeladmin, request, queryset):
+    updated = queryset.update(is_archived=True)
+    modeladmin.message_user(
+        request,
+        f"{updated} invoices were archived",
+        messages.SUCCESS,
+    )
+
+
+@admin.action(description="Unarchive selected invoices")
+def unarchive_invoices(modeladmin, request, queryset):
+    updated = queryset.update(is_archived=False)
+    modeladmin.message_user(
+        request,
+        f"{updated} invoices were unarchived",
+        messages.SUCCESS,
+    )
+
+
+class InvoiceAdminMixin:
+    list_display = ["title"]
+    actions = [pause_invoices, unpause_invoices, archive_invoices, unarchive_invoices]
+
+
+class IntervalInvoiceAdmin(InvoiceAdminMixin, admin.ModelAdmin):
+    pass
+
+
+class MilestoneInvoiceAdmin(InvoiceAdminMixin, admin.ModelAdmin):
+    pass
+
+
+class WeeklyInvoiceAdmin(InvoiceAdminMixin, admin.ModelAdmin):
+    pass
+
+
+class SentInvoiceAdmin(admin.ModelAdmin):
+    actions = ["cancel_sent_invoice"]
+
+    @admin.action(description="Cancel selected sent invoices")
+    def cancel_sent_invoice(self, request, queryset):
+        updated = queryset.update(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        self.message_user(
+            request,
+            f"{updated} sent invoices were cancelled",
+            messages.SUCCESS,
+        )
+
+
+class HoursLineItemAdmin(admin.ModelAdmin):
+    actions = ["cancel_recurring_hours"]
+    ordering = ["-created_at"]
+
+    @admin.action(description="Cancel recurring schedule for selected hour line items")
+    def cancel_recurring_hours(self, request, queryset):
+        updated = queryset.update(recurring_logic=None)
+
+        self.message_user(
+            request,
+            f"{updated} recurring line items were cancelled",
+            messages.SUCCESS,
+        )
+
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = [
+        "first_name",
+        "last_name",
+        "email",
+        "stripe_subscription_status",
+        "stripe_payouts_enabled",
+        "accounting_org",
+    ]
+    actions = ["cancel_subscriptions", "re_add_subscriptions"]
+
+    @admin.action(description="Cancel subscription for selected users")
+    def cancel_subscriptions(self, request, queryset):
+        updated = 0
+        for user in queryset:
+            from timary.services.stripe_service import StripeService
+
+            subscription_cancelled = StripeService.cancel_subscription(user)
+            if subscription_cancelled:
+                updated += 1
+
+        self.message_user(
+            request,
+            f"{updated} users have cancelled their subscriptions",
+            messages.SUCCESS,
+        )
+
+    @admin.action(description="Re-add subscriptions for selected users")
+    def re_add_subscriptions(self, request, queryset):
+        updated = 0
+        for user in queryset:
+            from timary.services.stripe_service import StripeService
+
+            subscription_created = StripeService.readd_subscription(user)
+            if subscription_created:
+                updated += 1
+
+        if updated > 0:
+            self.message_user(
+                request,
+                f"{updated} users have re-added their subscriptions",
+                messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                f"{queryset.count() - updated} users could not re-add their subscriptions",
+            )
+
+
+admin.site.register(User, UserAdmin)
+admin.site.register(IntervalInvoice, IntervalInvoiceAdmin)
+admin.site.register(MilestoneInvoice, MilestoneInvoiceAdmin)
+admin.site.register(WeeklyInvoice, WeeklyInvoiceAdmin)
 admin.site.register(SingleInvoice)
-admin.site.register(SentInvoice)
-admin.site.register(HoursLineItem)
+admin.site.register(SentInvoice, SentInvoiceAdmin)
+admin.site.register(HoursLineItem, HoursLineItemAdmin)
 
 
 class SendEmailForm(forms.Form):
