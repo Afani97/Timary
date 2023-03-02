@@ -5,6 +5,7 @@ from django.template.response import TemplateResponse
 from django.urls import path
 from django_otp.admin import OTPAdminSite
 
+from timary.invoice_builder import InvoiceBuilder
 from timary.models import (
     Contract,
     HoursLineItem,
@@ -78,8 +79,52 @@ class WeeklyInvoiceAdmin(InvoiceAdminMixin, admin.ModelAdmin):
     pass
 
 
+def resend_invoice(sent_invoice):
+    if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+        return False
+    if not sent_invoice.user.settings["subscription_active"]:
+        return False
+    invoice = sent_invoice.invoice
+
+    if (
+        isinstance(sent_invoice.invoice, SingleInvoice)
+        and sent_invoice.invoice.installments > 1
+    ):
+        sent_invoice.update_installments()
+
+    from datetime import date
+
+    month_sent = date.strftime(sent_invoice.date_sent, "%m/%Y")
+    msg_body = InvoiceBuilder(invoice.user).send_invoice(
+        {
+            "sent_invoice": sent_invoice,
+            "line_items": sent_invoice.get_rendered_line_items(),
+        }
+    )
+    EmailService.send_html(
+        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}",
+        msg_body,
+        invoice.client.email,
+    )
+    return True
+
+
 class SentInvoiceAdmin(admin.ModelAdmin):
-    actions = ["cancel_sent_invoice"]
+    actions = ["resend_sent_invoice", "cancel_sent_invoice"]
+
+    @admin.action(description="Resend selected sent invoices")
+    def resend_sent_invoice(self, request, queryset):
+        sent_ctn = 0
+        for invoice in queryset:
+            invoice_sent = resend_invoice(invoice)
+            if invoice_sent:
+                sent_ctn += 1
+
+        self.message_user(
+            request,
+            f"{sent_ctn} sent invoices have been resent",
+            messages.SUCCESS,
+        )
 
     @admin.action(description="Cancel selected sent invoices")
     def cancel_sent_invoice(self, request, queryset):
