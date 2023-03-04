@@ -361,7 +361,9 @@ class TestRecurringInvoices(BaseTest):
 
     def test_update_invoice_next_date_manually(self):
         invoice = IntervalInvoiceFactory(user=self.user)
-        next_date = get_users_localtime(self.user) + timezone.timedelta(days=14)
+        next_date = (
+            get_users_localtime(self.user) + timezone.timedelta(weeks=2)
+        ).astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
         url_params = {f"start_on_{invoice.email_id}": next_date.strftime("%Y-%m-%d")}
         response = self.client.put(
             reverse(
@@ -369,11 +371,11 @@ class TestRecurringInvoices(BaseTest):
             ),
             data=urlencode(url_params),  # HTML PUT FORM
         )
-        self.invoice.refresh_from_db()
+        invoice.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            self.invoice.next_date.astimezone(
-                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            invoice.next_date.astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
             ).date(),
             next_date.date(),
         )

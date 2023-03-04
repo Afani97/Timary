@@ -1,4 +1,4 @@
-{% load tz %}
+{% load filters tz %}
 <ul id="hours-list"
     class="mt-10 md:mt-0 space-y-5 w-full">
     {% if frequent_options|length > 0 %}
@@ -36,7 +36,27 @@
     {% endif %}
     {% regroup hours by date_tracked|date:"M. j, Y" as grouped_hours %}
     {% for hours in grouped_hours %}
-        <div class="text-3xl font-medium text-center md:text-left tracking-wide">{{ hours.grouper }}</div>
+        <div class="flex justify-between items-end">
+            <div class="text-3xl font-medium text-left md:text-left tracking-wide">{{ hours.grouper }}</div>
+            <div class="dropdown dropdown-bottom dropdown-end">
+                <label tabindex="0" class="link-hover">Copy hours...</label>
+                <ul tabindex="0" class="dropdown-content menu shadow bg-base-100 rounded-box w-52">
+                    {% now "Y-m-d" as today %}
+                    <li class="bg-base-300">
+                        <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'-1'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
+                            _="on click add .loading to me">
+                            From {{ hours.grouper|adddays:"-1"|date:"M. j, Y"}}
+                        </a>
+                    </li>
+                    <li class="bg-base-300">
+                        <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'1'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
+                            _="on click add .loading to me">
+                            To {{ hours.grouper|adddays:"1"|date:"M. j, Y"}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
         {% include "partials/_hours_grid.html"  with hours=hours.list %}
     {% empty %}
         {% if not request.user.phone_number %}

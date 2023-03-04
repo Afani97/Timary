@@ -43,7 +43,9 @@ def get_localtime():
 
 
 def get_next_date():
-    return timezone.now() + timezone.timedelta(weeks=2)
+    return (timezone.now() + timezone.timedelta(weeks=2)).astimezone(
+        tz=zoneinfo.ZoneInfo("America/New_York")
+    )
 
 
 def get_last_date():

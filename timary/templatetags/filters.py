@@ -29,7 +29,17 @@ def addfloats(val, arg):
 
 @register.filter(name="adddays")
 def adddays(value, days):
-    return datetime.date.fromisoformat(value) + datetime.timedelta(days=int(days))
+    date_val = None
+    try:
+        date_val = datetime.date.fromisoformat(value)
+    except ValueError:
+        try:
+            date_val = datetime.datetime.strptime(value, "%b. %d, %Y").date()
+        except ValueError:
+            pass
+    if date_val:
+        return date_val + datetime.timedelta(days=int(days))
+    return None
 
 
 @register.filter(name="python_any")

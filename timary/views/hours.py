@@ -1,4 +1,6 @@
+import datetime
 import json
+import zoneinfo
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -196,31 +198,94 @@ def delete_hours(request, hours_id):
 @login_required()
 @require_http_methods(["GET"])
 def repeat_hours(request):
-    users_localtime = get_users_localtime(request.user)
-    yesterday = users_localtime - timezone.timedelta(days=1)
-    yesterday_range = (
-        yesterday.replace(hour=0, minute=0, second=0),
-        yesterday.replace(hour=23, minute=59, second=59),
+    """Allow users to repeat hours for any day"""
+    from_repeating_date = request.GET.get("from", None)
+    to_repeating_date = request.GET.get("to", None)
+    today = get_users_localtime(request.user)
+    if from_repeating_date:
+        # Get dates to fetch repeating hours that we want to copy hours from to the new date
+        try:
+            date_to_repeat = datetime.datetime.strptime(
+                from_repeating_date, "%b. %d, %Y"
+            )
+            new_date = datetime.datetime.strptime(
+                to_repeating_date, "%b. %d, %Y"
+            ).replace(
+                hour=today.hour,
+                minute=today.minute,
+                tzinfo=zoneinfo.ZoneInfo(request.user.timezone),
+            )
+        except ValueError:
+            # Date formatted incorrectly
+            response = HttpResponse(status=204)
+            response["HX-Retarget"] = None
+            response["HX-Swap"] = None
+            show_alert_message(response, "warning", "Unable to repeat new hours")
+            return response
+    else:
+        # Default to yesterday's date
+        date_to_repeat = today - timezone.timedelta(days=1)
+        new_date = today
+    if new_date.astimezone(tz=zoneinfo.ZoneInfo(request.user.timezone)) > today:
+        # Don't allow future dates
+        response = HttpResponse(status=204)
+        response["HX-Retarget"] = None
+        response["HX-Swap"] = None
+        show_alert_message(response, "warning", "Unable to repeat new hours")
+        return response
+
+    date_to_repeat_range = (
+        date_to_repeat.replace(
+            hour=0, minute=0, second=0, tzinfo=zoneinfo.ZoneInfo(request.user.timezone)
+        ),
+        date_to_repeat.replace(
+            hour=23,
+            minute=59,
+            second=59,
+            tzinfo=zoneinfo.ZoneInfo(request.user.timezone),
+        ),
     )
-    yesterday_hours = HoursLineItem.objects.filter(
+    # Get hours from the date requested, return if none is found.
+    repeating_hours = HoursLineItem.objects.filter(
         invoice__user=request.user,
-        date_tracked__range=yesterday_range,
+        date_tracked__range=date_to_repeat_range,
         invoice__is_archived=False,
         quantity__gt=0,
     ).filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
+    if repeating_hours.count() == 0:
+        response = HttpResponse(status=204)
+        response["HX-Retarget"] = None
+        response["HX-Swap"] = None
+        show_alert_message(response, "warning", "Unable to repeat new hours")
+        return response
+
+    # Repeat the hours invoice and quantity for thw new date selected
     hours = []
-    for hour in yesterday_hours:
-        hours.append(
-            HoursLineItem.objects.create(
-                date_tracked=users_localtime,
-                quantity=hour.quantity,
-                invoice=hour.invoice,
+    hours_repeated = 0
+    for hour in repeating_hours:
+        # Only repeat previous day hours if they don't reach last_date limit
+        if new_date >= hour.invoice.last_date:
+            hours.append(
+                HoursLineItem.objects.create(
+                    date_tracked=new_date,
+                    quantity=hour.quantity,
+                    invoice=hour.invoice,
+                )
             )
-        )
+            hours_repeated += 1
+
+    if hours_repeated == 0:
+        # Return a warning if no hours are created
+        response = HttpResponse(status=204)
+        response["HX-Retarget"] = None
+        response["HX-Swap"] = None
+        show_alert_message(response, "warning", "Unable to repeat new hours")
+        return response
 
     # Add recurring hours if scheduled for today or daily
     gather_recurring_hours()
 
+    # Updated the hours stats
     hours_manager = HoursManager(request.user)
     show_most_frequent_options = hours_manager.show_most_frequent_options()
     context = {
@@ -230,9 +295,7 @@ def repeat_hours(request):
         context["frequent_options"] = show_most_frequent_options
     response = render(request, "partials/_hours_list.html", context)
     # "newHours" - To trigger dashboard stats refresh
-    show_alert_message(
-        response, "success", "Yesterday's hours repeated again today", "newHours"
-    )
+    show_alert_message(response, "success", "New hours copied!", "newHours")
     return response
 
 

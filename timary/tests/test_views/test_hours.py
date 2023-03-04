@@ -288,6 +288,130 @@ class TestHourLineItems(BaseTest):
 
         self.assertEqual(HoursLineItem.objects.count(), 4)
 
+    def test_repeat_daily_hours_for_next_day(self):
+        HoursLineItem.objects.all().delete()
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=(timezone.now() - timezone.timedelta(days=2)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=(timezone.now() - timezone.timedelta(days=2)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+        _from = (
+            (timezone.now() - timezone.timedelta(days=2))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        _to = (
+            (timezone.now() - timezone.timedelta(days=1))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        url_params = f"from={_from}&to={_to}"
+        response = self.client.get(f'{reverse("timary:repeat_hours")}?{url_params}')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(HoursLineItem.objects.count(), 4)
+        self.assertIn(
+            "New hours copied!",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_repeat_daily_hours_for_previous_day(self):
+        HoursLineItem.objects.all().delete()
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=(timezone.now() - timezone.timedelta(days=1)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=(timezone.now() - timezone.timedelta(days=1)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+        _from = (
+            (timezone.now() - timezone.timedelta(days=1))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        _to = (
+            (timezone.now() - timezone.timedelta(days=2))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        url_params = f"from={_from}&to={_to}"
+        response = self.client.get(f'{reverse("timary:repeat_hours")}?{url_params}')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(HoursLineItem.objects.count(), 4)
+        self.assertIn(
+            "New hours copied!",
+            response.headers["HX-Trigger"],
+        )
+
+    def test_error_repeat_daily_hours_for_specific_day_missing_hours(self):
+        HoursLineItem.objects.all().delete()
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=timezone.now() - timezone.timedelta(days=2),
+        )
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=timezone.now() - timezone.timedelta(days=2),
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 204)
+
+        self.assertIn("Unable to repeat new hours", str(response.headers))
+
+    def test_error_repeat_daily_hours_for_specific_day_previous_to_invoice_last_date(
+        self,
+    ):
+        HoursLineItem.objects.all().delete()
+        last_date = (timezone.now() - timezone.timedelta(days=1)).astimezone(
+            tz=zoneinfo.ZoneInfo("America/New_York")
+        )
+        invoice = IntervalInvoiceFactory(last_date=last_date)
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=last_date,
+        )
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=last_date,
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+
+        _from = (
+            (timezone.now() - timezone.timedelta(days=1))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        _to = (
+            (timezone.now() - timezone.timedelta(days=2))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        url_params = f"from={_from}&to={_to}"
+        response = self.client.get(f'{reverse("timary:repeat_hours")}?{url_params}')
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+        self.assertIn(
+            "Unable to repeat new hours",
+            response.headers["HX-Trigger"],
+        )
+
+        self.assertIn("Unable to repeat new hours", str(response.headers))
+
     def test_repeat_daily_hours_excluding_skipped(self):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
