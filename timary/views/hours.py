@@ -287,9 +287,11 @@ def repeat_hours(request):
 
     # Updated the hours stats
     hours_manager = HoursManager(request.user)
+    show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
     show_most_frequent_options = hours_manager.show_most_frequent_options()
     context = {
         "hours": hours_manager.hours,
+        "show_repeat": show_repeat_option,
     }
     if len(show_most_frequent_options) > 0:
         context["frequent_options"] = show_most_frequent_options

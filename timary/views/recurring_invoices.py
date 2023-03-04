@@ -219,12 +219,12 @@ def update_invoice_next_date(request, invoice_id):
         raise Http404
     users_localtime = get_users_localtime(request.user)
     put_params = QueryDict(request.body).copy()
-    next_date = (
-        timezone.datetime.strptime(
-            put_params.get(f"start_on_{invoice.email_id}"), "%Y-%m-%d"
-        )
-        .replace(hour=users_localtime.hour, minute=users_localtime.minute)
-        .astimezone(tz=zoneinfo.ZoneInfo(invoice.user.timezone))
+    next_date = timezone.datetime.strptime(
+        put_params.get(f"start_on_{invoice.email_id}"), "%Y-%m-%d"
+    ).replace(
+        hour=users_localtime.hour,
+        minute=users_localtime.minute,
+        tzinfo=zoneinfo.ZoneInfo(invoice.user.timezone),
     )
     next_date_updated = False
     if next_date.date() > users_localtime.date():
