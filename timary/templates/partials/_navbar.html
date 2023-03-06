@@ -1,3 +1,4 @@
+{% load filters %}
 <div class="navbar mb-2 md:px-12 shadow-lg bg-neutral text-neutral-content">
     <div class="invisible md:visible flex-1 title-font font-medium items-center text-white">
         {% include "partials/_logo.html" %}
@@ -14,6 +15,34 @@
     <div class="flex-none hidden md:flex">
         <div class="flex space-x-1">
             {% if request.user.is_authenticated %}
+                {% if not request.user.onboarding_tasks_done.0 %}
+                    <div class="dropdown dropdown-end cursor-pointer">
+                        <label tabindex="0" class="mr-5 cursor-pointer">
+                            Onboarding Tasks:
+                            <span class="radial-progress ml-1"
+                                style="--value:{{ request.user.onboarding_tasks_done.1 }}; --size:2.5rem; --thickness: 2px;">
+                                <span class="text-xs">{{ request.user.onboarding_tasks_done.1 }}%</span>
+                            </span>
+                        </label>
+                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-80">
+                            {% for task, status in request.user.onboarding_tasks.items %}
+                                <li>
+                                    <a class="flex justify-between">
+                                        {% if status %}
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-2">
+                                                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                                            </svg>
+                                        {% else %}
+                                            {# Trick css into text align right #}
+                                            <span></span>
+                                        {% endif %}
+                                        <span class="text-right">{{ task|format_str }}</span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                 <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
                     Home
                 </a>

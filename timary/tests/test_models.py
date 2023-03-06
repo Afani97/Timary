@@ -18,6 +18,7 @@ from timary.models import (
     SentInvoice,
     User,
     WeeklyInvoice,
+    default_tasks,
 )
 from timary.tests.factories import (
     ClientFactory,
@@ -916,3 +917,21 @@ class TestUser(TestCase):
         user.stripe_subscription_status = 3
         user.save()
         self.assertIsNone(user.add_referral_discount())
+
+    def test_onboarding_tasks_not_all_complete(self):
+        tasks = default_tasks()
+        tasks["first_client"] = True
+        tasks["first_invoice"] = True
+        user = UserFactory(onboarding_tasks=tasks)
+        tasks_done = user.onboarding_tasks_done()
+        self.assertFalse(tasks_done[0])
+        self.assertEqual(tasks_done[1], 33)
+
+    def test_onboarding_tasks_all_complete(self):
+        tasks = default_tasks()
+        for k, _ in tasks.items():
+            tasks[k] = True
+        user = UserFactory(onboarding_tasks=tasks)
+        tasks_done = user.onboarding_tasks_done()
+        self.assertTrue(tasks_done[0])
+        self.assertIsNone(tasks_done[1])

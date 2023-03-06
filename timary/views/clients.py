@@ -46,6 +46,10 @@ def create_client(request):
         client_saved.user = request.user
         client_saved.save()
         client_saved.sync_customer()
+        user = request.user
+        if not user.onboarding_tasks["first_client"]:
+            user.onboarding_tasks["first_client"] = True
+            user.save()
         response = render(request, "clients/_client.html", {"client": client_saved})
         response[
             "HX-Trigger-After-Swap"

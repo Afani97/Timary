@@ -71,6 +71,9 @@ def accounting_redirect(request):
         f"Successfully connected {user.accounting_org.title()}.",
         extra_tags="success-msg",
     )
+    if not user.onboarding_tasks["accounting_service_connected"]:
+        user.onboarding_tasks["accounting_service_connected"] = True
+        user.save()
     return redirect(reverse("timary:user_profile"))
 
 

@@ -45,3 +45,8 @@ def adddays(value, days):
 @register.filter(name="python_any")
 def python_any(values):
     return any(values)
+
+
+@register.filter(name="format_str")
+def format_str(value):
+    return value.replace("_", " ").title()

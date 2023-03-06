@@ -59,6 +59,11 @@ def create_daily_hours(request):
             hours_saved.recurring_logic = hour_form.cleaned_data.get("recurring_logic")
             hours_saved.save()
 
+    user = request.user
+    if not user.onboarding_tasks["first_hours"]:
+        user.onboarding_tasks["first_hours"] = True
+        user.save()
+
     hours_manager = HoursManager(request.user)
     show_repeat_option = hours_manager.can_repeat_previous_hours_logged()
     show_most_frequent_options = hours_manager.show_most_frequent_options()

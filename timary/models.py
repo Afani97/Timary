@@ -981,6 +981,17 @@ ari@usetimary.com
         return now > due_date
 
 
+def default_tasks():
+    return {
+        "first_client": False,
+        "first_invoice": False,
+        "first_hours": False,
+        "phone_number_added": False,
+        "stripe_connect_complete": False,
+        "accounting_service_connected": False,
+    }
+
+
 class User(AbstractUser, BaseModel):
     class StripeConnectDisabledReasons(models.IntegerChoices):
         NONE = 1, "NONE"
@@ -1040,6 +1051,9 @@ class User(AbstractUser, BaseModel):
     )
     referrer_id = models.CharField(max_length=10, blank=True, null=True)
 
+    # Onboarding tasks to be done
+    onboarding_tasks = models.JSONField(blank=True, null=True, default=default_tasks)
+
     # Keep track of active timer
     timer_is_active = models.CharField(max_length=50, blank=True, null=True)
 
@@ -1081,7 +1095,11 @@ class User(AbstractUser, BaseModel):
 
     @property
     def formatted_phone_number(self):
-        return f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+        if self.phone_number:
+            return (
+                f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+            )
+        return None
 
     @property
     def get_accounting_connected(self):
@@ -1132,6 +1150,8 @@ class User(AbstractUser, BaseModel):
         if not reason:
             self.stripe_payouts_enabled = True
             self.stripe_connect_reason = User.StripeConnectDisabledReasons.NONE
+            if self.onboarding_tasks["stripe_connect_complete"]:
+                self.onboarding_tasks["stripe_connect_complete"] = True
         elif reason in ["requirements.pending_verification", "under_review"]:
             self.stripe_payouts_enabled = False
             self.stripe_connect_reason = User.StripeConnectDisabledReasons.PENDING
@@ -1139,6 +1159,16 @@ class User(AbstractUser, BaseModel):
             self.stripe_payouts_enabled = False
             self.stripe_connect_reason = User.StripeConnectDisabledReasons.MORE_INFO
         self.save()
+
+    def onboarding_tasks_done(self):
+        tasks_done = all(self.onboarding_tasks.values())
+        tasks_left_ctn = len(list(filter(bool, self.onboarding_tasks.values())))
+        if tasks_done:
+            return True, None
+        else:
+            tasks_left_percentage = tasks_left_ctn / len(self.onboarding_tasks.values())
+
+            return False, round(tasks_left_percentage * 100)
 
     def onboard_user(self):
         """Don't block the main process for these tasks"""

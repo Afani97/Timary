@@ -97,6 +97,11 @@ def create_invoice(request):
     invoice.update()
     invoice.save()
 
+    user = request.user
+    if not user.onboarding_tasks["first_invoice"]:
+        user.onboarding_tasks["first_invoice"] = True
+        user.save()
+
     response = render(
         request, f"invoices/{invoice.invoice_type()}/_card.html", {"invoice": invoice}
     )

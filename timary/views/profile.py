@@ -36,6 +36,12 @@ def update_user_profile(request):
     user_form = UserForm(request.POST, request.FILES, instance=request.user)
     if user_form.is_valid():
         user = user_form.save()
+        if (
+            not user.onboarding_tasks["phone_number_added"]
+            and user.formatted_phone_number is not None
+        ):
+            user.onboarding_tasks["phone_number_added"] = True
+            user.save()
         response = render(request, "partials/_profile.html", {"user": user})
         show_alert_message(
             response,
