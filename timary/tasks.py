@@ -1,3 +1,4 @@
+import datetime
 import zoneinfo
 from datetime import date, timedelta
 from pathlib import Path
@@ -6,6 +7,7 @@ import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q, Sum
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django_q.tasks import async_task, schedule
 
@@ -106,6 +108,70 @@ def gather_invoices():
         invoices_sent += len(list(invoices_sent_only_on_mondays))
 
     return f"Invoices sent: {invoices_sent}"
+
+
+def previous_week_range(date):
+    start_date = date + datetime.timedelta(-date.weekday(), weeks=-1)
+    end_date = date + datetime.timedelta(-date.weekday() - 1)
+    return start_date, end_date
+
+
+def gather_invoices_summary():
+    updates_sent = 0
+    users = User.objects.filter(
+        stripe_subscription_status__in=[
+            User.StripeSubscriptionStatus.ACTIVE,
+            User.StripeSubscriptionStatus.TRIAL,
+        ]
+    )
+    now = timezone.now()
+    if now.weekday() == 0:
+        for user in users:
+            today = now.astimezone(tz=zoneinfo.ZoneInfo(user.timezone))
+            invoices_sent_last_week = SentInvoice.objects.filter(
+                user=user, date_sent__range=previous_week_range(today.date())
+            )
+            invoices_pending = invoices_sent_last_week.filter(
+                paid_status__in=[
+                    SentInvoice.PaidStatus.NOT_STARTED,
+                    SentInvoice.PaidStatus.PENDING,
+                ]
+            ).count()
+            invoices_paid = invoices_sent_last_week.filter(
+                paid_status=SentInvoice.PaidStatus.PAID
+            ).count()
+            # Monday to Sunday
+            this_week_range = (today, today + datetime.timedelta(days=6))
+            upcoming_recurring_invoices = RecurringInvoice.objects.filter(
+                user=user,
+                next_date__range=this_week_range,
+            ).count()
+            upcoming_single_invoices_due = SingleInvoice.objects.filter(
+                due_date__range=this_week_range
+            ).count()
+            upcoming_single_invoice_installments_due = SingleInvoice.objects.filter(
+                next_installment_date__range=this_week_range
+            ).count()
+            msg_body = render_to_string(
+                "email/invoice_summary.html",
+                {
+                    "user_name": user.first_name,
+                    "invoices_sent_last_week": invoices_sent_last_week.count(),
+                    "invoices_pending": invoices_pending,
+                    "invoices_paid": invoices_paid,
+                    "upcoming_recurring_invoices": upcoming_recurring_invoices,
+                    "upcoming_single_invoices": upcoming_single_invoices_due
+                    + upcoming_single_invoice_installments_due,
+                },
+            )
+            EmailService.send_html(
+                "Here is a invoice summary from Timary",
+                msg_body,
+                user.email,
+            )
+
+            updates_sent += 1
+    return f"Invoice updates sent: {updates_sent}"
 
 
 def gather_invoice_installments():

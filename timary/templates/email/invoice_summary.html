@@ -1,0 +1,15 @@
+{% extends "email/base_invoice.html" %}
+
+{% block main %}
+    <div class="mb-6">
+        <div class="mt-0 mb-4 text-3xl font-semibold text-left">Hi {{ user_name }},</div>
+        <div class="my-2 text-xl leading-7">Thanks for using Timary. Here is your latest invoice summary.</div>
+    </div>
+    <div class="mx-1 my-10">
+        <div class="text-xl my-2">Sent Invoices sent out last week: {{ invoices_sent_last_week }}</div>
+        <div class="text-xl my-2">Sent Invoices pending from last week: {{ invoices_pending }}</div>
+        <div class="text-xl my-2">Sent Invoices paid from last week: {{ invoices_paid }}</div>
+        <div class="text-xl my-2">Recurring Invoices being sent this week: {{ upcoming_recurring_invoices }}</div>
+        <div class="text-xl my-2">Single Invoices being sent this week: {{ upcoming_single_invoices }}</div>
+    </div>
+{% endblock %}
