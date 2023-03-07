@@ -81,7 +81,7 @@ def accounting_redirect(request):
 @require_http_methods(["DELETE"])
 def accounting_disconnect(request):
     user: User = request.user
-    user.account_org = None
+    user.accounting_org = None
     user.accounting_org_id = None
     user.accounting_refresh_token = None
     user.my_clients.all().update(accounting_customer_id=None)

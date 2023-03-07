@@ -38,6 +38,53 @@ def get_client(request, client_id):
 
 
 @login_required()
+@require_http_methods(["GET"])
+def get_accounting_clients(request):
+    if request.user.accounting_org is None:
+        response = get_clients(request)
+        show_alert_message(
+            response,
+            "error",
+            f"Unable to sync clients from {request.user.accounting_org.title()}",
+            persist=True,
+        )
+        return response
+    accounting_service = AccountingService({"user": request.user})
+    try:
+        customers = accounting_service.get_customers()
+    except AccountingError as ae:
+        ae.log()
+        response = get_clients(request)
+        show_alert_message(
+            response,
+            "error",
+            f"Unable to sync clients from {request.user.accounting_org.title()}",
+            persist=True,
+        )
+        return response
+    for customer in customers:
+        if not Client.objects.filter(
+            user=request.user, accounting_customer_id=customer["accounting_customer_id"]
+        ).exists():
+            customer_form = ClientForm(customer)
+            if customer_form.is_valid():
+                new_client = customer_form.save(commit=False)
+                new_client.user = request.user
+                new_client.save()
+    if len(customers) > 0:
+        if not request.user.onboarding_tasks["first_client"]:
+            request.user.onboarding_tasks["first_client"] = True
+            request.user.save()
+    response = get_clients(request)
+    show_alert_message(
+        response,
+        "success",
+        f"Clients synced from {request.user.accounting_org.title()}",
+    )
+    return response
+
+
+@login_required()
 @require_http_methods(["GET", "POST"])
 def create_client(request):
     client_form = ClientForm(request.POST or None)

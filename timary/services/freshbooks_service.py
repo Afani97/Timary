@@ -294,3 +294,27 @@ class FreshbooksService:
             )
         client.accounting_customer_id = response["response"]["result"]["client"]["id"]
         client.save()
+
+    @staticmethod
+    def get_customers(user):
+        freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(user)
+        endpoint = f"v3/company/{user.accounting_org_id}/users/client"
+        try:
+            response = FreshbooksService.create_request(
+                freshbooks_auth_token, endpoint, "get"
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customers = []
+        for customer in response["response"]["result"]["clients"]:
+            ctx = {
+                "accounting_customer_id": customer["id"],
+                "name": f"{customer['fname']} {customer['lname']}",
+            }
+            if "email" in customer:
+                ctx["email"] = customer["email"]
+            customers.append(ctx)
+        return customers

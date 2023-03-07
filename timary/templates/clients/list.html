@@ -2,6 +2,6 @@
     {% for client in clients %}
         {% include "clients/_client.html" with client=client %}
     {% empty %}
-        <h1 class="text-3xl mt-10 text-center">No clients added</h1>
+        <h1 class="text-3xl mt-10 text-center col-span-1 lg:col-span-2">No clients added</h1>
     {% endfor %}
 </div>

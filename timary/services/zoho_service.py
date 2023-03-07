@@ -349,3 +349,26 @@ class ZohoService:
             )
         client.accounting_customer_id = response["contact"]["contact_id"]
         client.save()
+
+    @staticmethod
+    def get_customers(user):
+        zoho_auth_token = ZohoService.get_refreshed_tokens(user)
+        try:
+            response = ZohoService.create_request(
+                zoho_auth_token, user.accounting_org_id, "contacts", "get"
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customers = []
+        for customer in response["contacts"]:
+            ctx = {
+                "accounting_customer_id": customer["contact_id"],
+                "name": f"{customer['first_name']} {customer['last_name']}",
+            }
+            if "email" in customer:
+                ctx["email"] = customer["email"]
+            customers.append(ctx)
+        return customers

@@ -265,3 +265,30 @@ class QuickbooksService:
             )
         client.accounting_customer_id = response["Customer"]["Id"]
         client.save()
+
+    @staticmethod
+    def get_customers(user):
+        quickbooks_auth_token = QuickbooksService.get_refreshed_tokens(user)
+        endpoint = f"v3/company/{user.accounting_org_id}/query?query=select * from Customer&minorversion=63"
+        try:
+            response = QuickbooksService.create_request(
+                quickbooks_auth_token, endpoint, "get"
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customers = []
+        for customer in response["QueryResponse"]["Customer"]:
+            ctx = {
+                "accounting_customer_id": customer["Id"],
+                "name": customer["DisplayName"],
+            }
+            if (
+                "PrimaryEmailAddr" in customer
+                and "Address" in customer["PrimaryEmailAddr"]
+            ):
+                ctx["email"] = customer["PrimaryEmailAddr"]["Address"]
+            customers.append(ctx)
+        return customers

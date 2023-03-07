@@ -303,3 +303,26 @@ class XeroService:
             )
         client.accounting_customer_id = response_json["Contacts"][0]["ContactID"]
         client.save()
+
+    @staticmethod
+    def get_customers(user):
+        xero_auth_token = XeroService.get_refreshed_tokens(user)
+        try:
+            response = XeroService.create_request(
+                xero_auth_token, user.accounting_org_id, "Contacts", "get"
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customers = []
+        for customer in response["Contacts"]:
+            customers.append(
+                {
+                    "accounting_customer_id": customer["ContactID"],
+                    "name": customer["Name"],
+                    "email": customer["EmailAddress"],
+                }
+            )
+        return customers

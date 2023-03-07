@@ -257,10 +257,7 @@ class HoursLineItemForm(forms.ModelForm):
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = [
-            "name",
-            "email",
-        ]
+        fields = ["name", "email", "accounting_customer_id"]
         labels = {
             "name": "Client's name",
             "email": "Client's email",

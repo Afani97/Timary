@@ -76,7 +76,18 @@
                     </ul>
                 </div>
             </div>
-            <label tabindex="0" class="btn m-1 btn-primary w-full hidden" for="new-client-modal" id="new-client-btn">New client</label>
+            <div id="new-client-btn" class="hidden w-full">
+                <label tabindex="0" class="btn m-1 btn-primary w-full " for="new-client-modal" >New client</label>
+                <div class="divider"></div>
+                {% if request.user.accounting_org %}
+                    <div class="flex justify-center">
+                        <a hx-get="{% url 'timary:get_accounting_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
+                            class="link-hover">Sync clients with {{ request.user.accounting_org|title }}</a>
+                    </div>
+                    <div class="divider"></div>
+                {% endif %}
+            </div>
+
             <div class="hidden md:flex justify-center mt-5">
                 <div class="stats shadow stats-vertical">
                     <div class="stat place-items-center">

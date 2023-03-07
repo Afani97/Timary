@@ -332,3 +332,26 @@ class SageService:
             )
         client.accounting_customer_id = response["id"]
         client.save()
+
+    @staticmethod
+    def get_customers(user):
+        sage_auth_token = SageService.get_refreshed_tokens(user)
+        try:
+            response = SageService.create_request(
+                sage_auth_token, user.accounting_org_id, "contacts", "get"
+            )
+        except AccountingError as ae:
+            raise AccountingError(
+                user=user,
+                requests_response=ae.requests_response,
+            )
+        customers = []
+        for customer in response:
+            customers.append(
+                {
+                    "accounting_customer_id": customer["id"],
+                    "name": customer["name"],
+                    "email": customer["email"],
+                }
+            )
+        return customers
