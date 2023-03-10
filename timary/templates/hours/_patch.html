@@ -34,7 +34,7 @@
         <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
             <button class="btn btn-error btn-sm btn-outline"
                 {% if form.instance.recurring_logic %}
-                    hx-confirm="Are you sure you want to delete these hours? You will be cancelling the repeating hours for future days."
+                    hx-confirm="Are you sure you want to remove these hours? You will be cancelling the repeating hours for future days."
                 {% endif %}
                 hx-trigger="click"
                 hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}"

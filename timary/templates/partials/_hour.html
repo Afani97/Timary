@@ -28,9 +28,9 @@
                 <a class="btn btn-sm btn-error btn-outline"
                     hx-delete="{% url 'timary:delete_hours' hour.id %}"
                     {% if hour.recurring_logic %}
-                        hx-confirm="Are you sure you want to delete these hours? You will be cancelling the repeating hours for future days."
+                        hx-confirm="Are you sure you want to remove these hours? You will be cancelling the repeating hours for future days."
                     {% else %}
-                        hx-confirm="Are you sure you want to delete these hours?"
+                        hx-confirm="Are you sure you want to remove these hours?"
                     {% endif %}
                     hx-target="closest li"
                     hx-swap="outerHTML"

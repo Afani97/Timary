@@ -45,7 +45,7 @@
         <button class="btn btn-error btn-sm my-4" type="button"
             {% if line_item_form.initial %}
                 hx-delete="{% url 'timary:single_invoice_line_item'%}?line_item_id={{ line_item_form.instance.id }}"
-                hx-confirm="Are you sure you want to delete?"
+                hx-confirm="Are you sure you want to remove?"
                 hx-target="closest .line-item-wrapper"
             {% else %}
                 _="on click remove closest .line-item-wrapper" {% endif %}
