@@ -2,6 +2,7 @@ import datetime
 import json
 import zoneinfo
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import Http404, HttpResponse, QueryDict
@@ -71,6 +72,7 @@ def create_daily_hours(request):
     context = {
         "hours": hours_manager.hours,
         "show_repeat": show_repeat_option,
+        "last_month_date": datetime.date.today() - relativedelta(months=1),
     }
     if len(show_most_frequent_options) > 0:
         context["frequent_options"] = show_most_frequent_options
@@ -104,6 +106,7 @@ def quick_hours(request):
         show_most_frequent_options = hours_manager.show_most_frequent_options()
         context = {
             "hours": hours_manager.hours,
+            "last_month_date": datetime.date.today() - relativedelta(months=1),
         }
         if len(show_most_frequent_options) > 0:
             context["frequent_options"] = show_most_frequent_options
@@ -297,6 +300,7 @@ def repeat_hours(request):
     context = {
         "hours": hours_manager.hours,
         "show_repeat": show_repeat_option,
+        "last_month_date": datetime.date.today() - relativedelta(months=1),
     }
     if len(show_most_frequent_options) > 0:
         context["frequent_options"] = show_most_frequent_options

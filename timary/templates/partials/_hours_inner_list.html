@@ -1,0 +1,69 @@
+{% load filters tz %}
+
+<div id="hours-inner-list" class="space-y-5">
+    {% regroup hours by date_tracked|date:"M. j, Y" as grouped_hours %}
+    {% for hours in grouped_hours %}
+        <div class="flex justify-between items-end">
+            <div class="text-3xl font-medium text-left md:text-left tracking-wide">{{ hours.grouper }}</div>
+            <div class="dropdown dropdown-bottom dropdown-end">
+                <label tabindex="0" class="link-hover">Copy hours...</label>
+                <ul tabindex="0" class="dropdown-content menu shadow bg-base-100 rounded-box w-52">
+                    {% now "Y-m-d" as today %}
+                    <li class="bg-base-300">
+                        <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'-1'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
+                            _="on click add .loading to me">
+                            From {{ hours.grouper|adddays:"-1"|date:"M. j, Y"}}
+                        </a>
+                    </li>
+                    <li class="bg-base-300">
+                        <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'1'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
+                            _="on click add .loading to me">
+                            To {{ hours.grouper|adddays:"1"|date:"M. j, Y"}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% include "partials/_hours_grid.html"  with hours=hours.list %}
+    {% empty %}
+        {% if not request.user.phone_number %}
+            <p class="text-xl text-center">Tip: If you want to log hours by text, add your phone number to your profile.</p>
+        {% endif %}
+        <p class="text-xl text-center my-10">
+            No hours tracked for
+            {% if specific_month %}
+                {{ specific_month|date:"M Y" }}
+            {% else %}
+                this month
+            {% endif %}
+        </p>
+    {% endfor %}
+    <div class="flex justify-between">
+        <div class="btn btn-sm md:btn-md"
+            hx-get="{% url 'timary:hours_for_month' %}?month={{ last_month_date|date:"M. j, Y" }}"
+            hx-target="#hours-inner-list"
+            hx-swap="innerHTML"
+            _="on htmx:beforeRequest add .loading to me then go to the top of the body"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            {{ last_month_date|date:"M Y" }}
+        </div>
+        {% if next_month %}
+            <div class="btn btn-sm md:btn-md"
+                hx-get="{% url 'timary:hours_for_month' %}?month={{ next_month|date:"M. j, Y" }}"
+                hx-target="#hours-inner-list"
+                hx-swap="innerHTML"
+                _="on htmx:beforeRequest add .loading to me then go to the top of the body"
+            >
+                {{ next_month|date:"M Y"  }}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 ml-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+            </div>
+        {% else %}
+            <div></div>
+        {% endif %}
+    </div>
+</div>

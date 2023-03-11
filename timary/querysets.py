@@ -1,3 +1,4 @@
+import calendar
 import zoneinfo
 from datetime import timedelta
 
@@ -23,6 +24,37 @@ class HoursQuerySet(models.QuerySet):
                 invoice__user=user,
                 invoice__is_archived=False,
                 date_tracked__gte=beginning_of_month,
+            )
+            .exclude(quantity=0)
+            .select_related("invoice", "invoice__user")
+            .order_by("-date_tracked")
+        )
+
+    def for_month_range(self, user, month):
+        last_day = calendar.monthrange(month.year, month.month)[1]
+        month_range = (
+            month.replace(
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
+                tzinfo=zoneinfo.ZoneInfo(user.timezone),
+            ),
+            month.replace(
+                day=last_day,
+                hour=23,
+                minute=59,
+                second=59,
+                microsecond=59,
+                tzinfo=zoneinfo.ZoneInfo(user.timezone),
+            ),
+        )
+        return (
+            self.filter(
+                invoice__user=user,
+                invoice__is_archived=False,
+                date_tracked__range=month_range,
             )
             .exclude(quantity=0)
             .select_related("invoice", "invoice__user")

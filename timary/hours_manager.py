@@ -10,9 +10,12 @@ from timary.utils import get_users_localtime
 
 
 class HoursManager:
-    def __init__(self, user):
+    def __init__(self, user, month=None):
         self.user = user
-        self.hours = HoursLineItem.all_hours.current_month(user)
+        if month:
+            self.hours = HoursLineItem.all_hours.for_month_range(user, month)
+        else:
+            self.hours = HoursLineItem.all_hours.current_month(user)
 
     def can_repeat_previous_hours_logged(self):
         """
