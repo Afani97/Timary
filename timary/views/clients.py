@@ -71,6 +71,7 @@ def get_accounting_clients(request):
                 new_client = customer_form.save(commit=False)
                 new_client.user = request.user
                 new_client.save()
+                new_client.sync_customer()
     if len(customers) > 0:
         if not request.user.onboarding_tasks["first_client"]:
             request.user.onboarding_tasks["first_client"] = True
