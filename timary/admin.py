@@ -101,11 +101,15 @@ def resend_invoice(sent_invoice):
             "line_items": sent_invoice.get_rendered_line_items(),
         }
     )
+    msg_subject = (
+        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}"
+    )
     EmailService.send_html(
-        f"{invoice.title}'s Invoice from {invoice.user.first_name} for {month_sent}",
+        msg_subject,
         msg_body,
         invoice.client.email,
     )
+    sent_invoice.send_sms_message(msg_subject)
     return True
 
 

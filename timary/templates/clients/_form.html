@@ -30,6 +30,26 @@
                 <div>{{ form.email }}</div>
             </div>
         </div>
+        <div class="flex flex-col justify-center space-y-2">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.phone_number.label_tag }}</span>
+                </label>
+                <div>{{ form.phone_number }}</div>
+                <label class="label -mb-2">
+                    <span class="label-text-alt">Optional</span>
+                </label>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.address.label_tag }}</span>
+                </label>
+                <div>{{ form.address }}</div>
+                <label class="label -mb-2">
+                    <span class="label-text-alt">Optional</span>
+                </label>
+            </div>
+        </div>
     </div>
     <div class="card-actions flex justify-center space-x-5 mb-4">
         {% if form.initial %}

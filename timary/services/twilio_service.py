@@ -32,6 +32,14 @@ class TwilioClient:
         )
 
     @staticmethod
+    def send_generic_message(phone_number, message):
+        _ = twilio_client.messages.create(
+            to=phone_number,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            body=message,
+        )
+
+    @staticmethod
     def invite_user(phone_number, message):
         _ = twilio_client.messages.create(
             to=f"{phone_number.country_code}{phone_number.national_number}",

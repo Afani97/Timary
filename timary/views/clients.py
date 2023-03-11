@@ -70,6 +70,7 @@ def get_accounting_clients(request):
             if customer_form.is_valid():
                 new_client = customer_form.save(commit=False)
                 new_client.user = request.user
+                new_client.accounting_customer_id = customer["accounting_customer_id"]
                 new_client.save()
                 new_client.sync_customer()
     if len(customers) > 0:

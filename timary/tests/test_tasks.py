@@ -544,7 +544,7 @@ class TestSendInvoice(TestCase):
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} for {self.current_month}",
+            f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} is ready to view.",
         )
         self.assertEquals(SentInvoice.objects.count(), 1)
 
@@ -622,11 +622,11 @@ class TestSendInvoice(TestCase):
         self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.first_name} for {self.current_month}",
+            f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.first_name} is ready to view.",
         )
         self.assertEquals(
             mail.outbox[1].subject,
-            f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.first_name} for {self.current_month}",
+            f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.first_name} is ready to view.",
         )
         self.assertEquals(SentInvoice.objects.count(), 2)
 

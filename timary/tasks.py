@@ -313,10 +313,10 @@ def send_invoice(invoice_id):
         # There is nothing to invoice, update next date for invoice email.
         invoice.update()
         return
-    today = timezone.now()
-    current_month = date.strftime(today, "%m/%Y")
 
-    msg_subject = f"{invoice.title }'s Invoice from { invoice.user.first_name } for { current_month }"
+    msg_subject = (
+        f"{invoice.title }'s Invoice from { invoice.user.first_name } is ready to view."
+    )
 
     sent_invoice = SentInvoice.create(invoice=invoice)
     for hour in hours_tracked:
@@ -334,6 +334,7 @@ def send_invoice(invoice_id):
         msg_body,
         invoice.client.email,
     )
+    sent_invoice.send_sms_message(msg_subject)
     invoice.update()
 
 

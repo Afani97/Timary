@@ -3,6 +3,12 @@
         <div class="flex flex-col w-full">
             <h2 class="text-3xl font-bold mb-2">{{ client.name }}</h2>
             <p class="text-sm mb-2">{{ client.email }}</p>
+            {% if client.phone_number %}
+                <p class="text-sm mb-2">{{ client.phone_number }}</p>
+            {% endif %}
+            {% if client.address %}
+                <p class="text-sm mb-2">{{ client.address }}</p>
+            {% endif %}
             {% if client.user.accounting_org_id and client.accounting_customer_id %}
                 <div class="flex flex-row items-center text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-2">

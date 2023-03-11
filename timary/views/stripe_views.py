@@ -84,6 +84,21 @@ def pay_invoice(request, sent_invoice_id):
         return render(request, "invoices/pay_invoice.html", context)
 
 
+@require_http_methods(["GET", "POST"])
+@csrf_exempt
+def pay_invoice_email(request, email_id):
+    sent_invoice = get_object_or_404(SentInvoice, email_id=email_id)
+    if not sent_invoice.user.settings["subscription_active"]:
+        return redirect(reverse("timary:landing_page"))
+    if (
+        sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
+        or sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
+        or sent_invoice.paid_status == SentInvoice.PaidStatus.CANCELLED
+    ):
+        return redirect(reverse("timary:landing_page"))
+    return pay_invoice(request, sent_invoice.id)
+
+
 @require_http_methods(["GET"])
 def quick_pay_invoice(request, sent_invoice_id):
     sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)

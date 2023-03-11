@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -14,6 +15,7 @@ from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from django_q.tasks import async_task
@@ -184,6 +186,8 @@ class HoursLineItem(LineItem):
 class Client(BaseModel):
     name = models.CharField(max_length=200, null=False, blank=False)
     email = models.EmailField(null=False, blank=False)
+    phone_number = PhoneNumberField(blank=True, null=True)
+    address = models.CharField(max_length=500, null=True, blank=True)
     second_email = models.EmailField(null=True, blank=True)
     stripe_customer_id = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(
@@ -199,6 +203,14 @@ class Client(BaseModel):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    @property
+    def formatted_phone_number(self):
+        if self.phone_number:
+            return (
+                f"+{self.phone_number.country_code}{self.phone_number.national_number}"
+            )
+        return None
 
     def sync_customer(self):
         if not self.stripe_customer_id:
@@ -826,6 +838,9 @@ class SentInvoice(BaseModel):
         default=PaidStatus.NOT_STARTED, choices=PaidStatus.choices
     )
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
+    email_id = models.CharField(
+        max_length=10, null=False, unique=True, default=create_new_ref_number
+    )
 
     # Accounting
     accounting_invoice_id = models.CharField(max_length=200, blank=True, null=True)
@@ -854,10 +869,6 @@ class SentInvoice(BaseModel):
             total_price=total_cost,
             hourly_rate_snapshot=invoice.rate,
         )
-
-    @property
-    def email_id(self):
-        return f"{str(self.id).split('-')[0]}"
 
     def get_hours_tracked(self):
         return self.invoice.get_hours_sent(sent_invoice_id=self.id)
@@ -905,6 +916,29 @@ ari@usetimary.com
                 ).create_invoice()
             except AccountingError as ae:
                 ae.log()
+
+    def send_sms_message(self, msg_subject):
+        """Send a sms link to clients that have valid phone numbers to pay"""
+        if not self.invoice.client.phone_number:
+            return
+        sms_payment_link = reverse(
+            "timary:pay_invoice_email", kwargs={"email_id": self.email_id}
+        )
+        sms_url = f"{settings.SITE_URL}{sms_payment_link}"
+        TwilioClient.send_generic_message(
+            self.invoice.client.formatted_phone_number,
+            f"""
+Hi {self.invoice.client.name},
+Thanks for using Timary,
+
+{msg_subject}
+
+You can visit this link to pay: {sms_url}
+
+Regards,
+Ari from Timary
+        """,
+        )
 
     @property
     def is_synced(self):
