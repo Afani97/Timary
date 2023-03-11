@@ -45,7 +45,7 @@ def get_accounting_clients(request):
         show_alert_message(
             response,
             "error",
-            f"Unable to sync clients from {request.user.accounting_org.title()}",
+            "Unable to sync clients from your accounting service",
             persist=True,
         )
         return response
