@@ -225,6 +225,11 @@ urlpatterns += [
         views.edit_sent_invoice_hours,
         name="edit_sent_invoice_hours",
     ),
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/download/",
+        views.download_sent_invoice_copy,
+        name="download_sent_invoice",
+    ),
 ]
 
 # AUTH URLS

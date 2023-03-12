@@ -33,6 +33,9 @@ class InvoiceBuilder:
     def send_invoice_receipt(self, ctx):
         return self.build_invoice("receipt_invoice", ctx)
 
+    def send_invoice_download_copy(self, ctx):
+        return self.build_invoice("download_sent_invoice", ctx)
+
     def send_invoice_update(self, ctx):
         today = date.today()
         ctx.update(

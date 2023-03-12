@@ -1,10 +1,12 @@
 from uuid import UUID
 
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from weasyprint import HTML
 
 from timary.forms import HoursLineItemForm
 from timary.invoice_builder import InvoiceBuilder
@@ -36,7 +38,7 @@ def resend_invoice_email(request, sent_invoice_id):
         return redirect(reverse("timary:user_profile"))
     if not request.user.settings["subscription_active"]:
         response = render(
-            request, "partials/_sent_invoice.html", {"_sent_invoice": sent_invoice}
+            request, "partials/_sent_invoice.html", {"sent_invoice": sent_invoice}
         )
         show_alert_message(
             response,
@@ -278,3 +280,32 @@ def edit_sent_invoice_hours(request, sent_invoice_id):
         show_alert_message(response, "success", "Sent updated invoice")
         return response
     raise Http404()
+
+
+@login_required()
+@require_http_methods(["GET", "PATCH", "PUT", "DELETE"])
+def download_sent_invoice_copy(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+
+    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice_download_copy(
+        {
+            "sent_invoice": sent_invoice,
+            "line_items": sent_invoice.get_rendered_line_items(),
+        }
+    )
+    html = HTML(string=msg_body)
+    html.write_pdf(target="/tmp/mypdf.pdf")
+
+    fs = FileSystemStorage("/tmp")
+    with fs.open("mypdf.pdf") as pdf:
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response[
+            "Content-Disposition"
+        ] = f'attachment; filename="sent_invoice_{sent_invoice.email_id}.pdf"'
+
+    show_alert_message(
+        response, "success", "You should see the pdf downloading shortly"
+    )
+    return response
