@@ -170,7 +170,6 @@ def update_invoice_branding(request):
         return render(request, "invoices/invoice_branding.html", context)
 
     else:
-
         if invoice_branding_form.is_valid():
             for k, v in invoice_branding_form.cleaned_data.items():
                 user.invoice_branding[k] = v
@@ -245,6 +244,9 @@ def update_subscription(request):
     if action.lower() == "cancel":
         subscription_cancelled = StripeService.cancel_subscription(request.user)
         response = render(request, "partials/settings/account/_add_subscription.html")
+        if "from_delete_account" in request.GET:
+            # Canceling the subscription from the account delete page
+            response["HX-Redirect"] = "/profile/"
         if subscription_cancelled:
             show_alert_message(
                 response,

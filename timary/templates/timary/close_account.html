@@ -5,12 +5,21 @@
     <div id="container">
 
         <h1 class="text-5xl text-center mt-5">Are you 1000% positive?</h1>
-        <p class="my-5 text-center">All your data will be lost, forever!</p>
-        <form action="/confirm_close_account/" method="post">
+        <p class="my-5 text-2xl text-center">All your data will be lost, forever!</p>
+        <div class="divider"></div>
+        <p class="link underline text-center w-full my-10"
+            hx-get="{% url 'timary:update_subscription' %}?action=cancel&from_delete_account=true"
+            hx-confirm="Are you sure you want to cancel? No data will be lost but you can't receive payments anymore"
+        >
+            Would you like to cancel your subscription instead and keep your account?
+        </p>
+        <div class="divider"></div>
+        <form action="/confirm_close_account/" method="post" class="mt-10 flex justify-center flex-col max-w-lg mx-auto">
             {% csrf_token %}
-            <p class="mb-5 text-center">Enter your password to confirm:
-                <input class="input input-bordered border-2 text-lg ml-5" name="password" type="password"/>
-            </p>
+            <div class="mb-5 form-control">
+                <label>Enter your password to cancel your subscription & account:</label>
+                <input class="input input-bordered border-2 text-lg" name="password" type="password" />
+            </div>
             {% if error %}
                 <p class="text-lg text-center">{{ error}}</p>
             {% endif %}
