@@ -868,6 +868,7 @@ class SentInvoice(BaseModel):
             user=invoice.user,
             total_price=total_cost,
             hourly_rate_snapshot=invoice.rate,
+            email_id=create_new_ref_number(),
         )
 
     def get_hours_tracked(self):
