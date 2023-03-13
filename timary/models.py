@@ -586,9 +586,7 @@ class RecurringInvoice(Invoice):
         if not self.total_budget:
             return 0
 
-        total_hours = self.line_items.filter(
-            date_tracked__lte=timezone.now()
-        ).aggregate(total_hours=Sum("quantity"))
+        total_hours = self.line_items.filter().aggregate(total_hours=Sum("quantity"))
         total_cost_amount = 0
         if total_hours["total_hours"]:
             total_cost_amount = total_hours["total_hours"] * self.rate
