@@ -319,8 +319,17 @@ def edit_invoice_hours(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     hours = invoice.get_hours_tracked()
+
     hour_forms = [HoursLineItemForm(instance=hour, user=request.user) for hour in hours]
-    return render(request, "partials/_edit_hours.html", {"hour_forms": hour_forms})
+    return render(
+        request,
+        "partials/_edit_hours.html",
+        {
+            "hour_forms": hour_forms,
+            "new_hours": HoursLineItemForm(user=request.user),
+            "invoice": invoice,
+        },
+    )
 
 
 @login_required()
@@ -330,3 +339,33 @@ def invoice_hour_stats(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     return render(request, "partials/_invoice_period_hours.html", {"invoice": invoice})
+
+
+@login_required()
+@require_http_methods(["POST"])
+def invoice_add_hours(request, invoice_id):
+    invoice = InvoiceManager(invoice_id).invoice
+    if request.user != invoice.user:
+        raise Http404
+    hours_form = HoursLineItemForm(request.POST, user=request.user)
+    if hours_form.is_valid():
+        hours_saved = hours_form.save(commit=False)
+        hours_saved.invoice = invoice
+        hours_saved.save()
+        response = render(
+            request,
+            "hours/_patch.html",
+            {"form": hours_form, "success_msg": "Successfully added new hours!"},
+        )
+        response[
+            "HX-Trigger"
+        ] = f"refreshHourStats-{hours_saved.invoice.email_id}"  # To trigger hours stats refresh
+        return response
+    else:
+        response = render(
+            request,
+            "partials/_edit_hours_post.html",
+            {"form": hours_form, "invoice": invoice},
+        )
+        response["HX-Reswap"] = "outerHTML"
+        return response

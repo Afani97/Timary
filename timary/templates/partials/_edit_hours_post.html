@@ -1,0 +1,28 @@
+<form class="card"
+    id="new_hours_{{ invoice.email_id|escape }}"
+    hx-post="{% url 'timary:invoice_add_hours' invoice_id=invoice.id %}"
+    hx-swap="afterend"
+    hx-target="this"
+    hx-vals='{"invoice": "{{ invoice.id }}" }'
+>
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    {% if success_msg %}
+        {% include "partials/_form_success.html" with message=success_msg %}
+    {% endif %}
+
+    <div class="card-body -mx-5 sm:mx-0">
+        <div class="flex flex-row space-x-2 w-full">
+            <div class="w-30 sm:w-full">{{ form.quantity }}</div>
+            <div class="w-full">{{ form.date_tracked }}</div>
+        </div>
+        <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
+            <button class="btn btn-primary btn-sm submit-btn"
+                _="on htmx:beforeRequest add .loading to me then call convertHoursInput(htmx.find('#new_hours_{{ invoice.email_id|escape }}')) then send submit to #new_hours_{{ invoice.email_id|escape }} end on htmx:afterRequest remove .loading from me">
+                Add new hours
+            </button>
+        </div>
+    </div>
+</form>

@@ -127,6 +127,11 @@ urlpatterns += [
         "invoices/<uuid:invoice_id>/pause/", views.pause_invoice, name="pause_invoice"
     ),
     path(
+        "invoices/<uuid:invoice_id>/new-hours/",
+        views.invoice_add_hours,
+        name="invoice_add_hours",
+    ),
+    path(
         "invoices/<uuid:invoice_id>/archive/",
         views.archive_invoice,
         name="archive_invoice",

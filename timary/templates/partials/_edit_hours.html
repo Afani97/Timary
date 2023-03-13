@@ -1,4 +1,7 @@
 <div>
+    {% include "partials/_edit_hours_post.html" with form=new_hours invoice=invoice %}
+    <div class="divider"></div>
+
     {% for hour_form in hour_forms %}
         {% include "hours/_patch.html" with form=hour_form %}
         {% if not forloop.last %}
