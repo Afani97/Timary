@@ -4,26 +4,33 @@
         <div>Clients synced: <span class="font-bold">{{ total_clients_synced }}</span> / {{ total_clients }}</div>
         <div>Paid invoices synced: <span class="font-bold">{{ total_sent_invoices_synced }}</span> / {{ total_sent_invoices }}</div>
     </div>
-    {% for sync_invoice in synced_invoices %}
-        <div class="text-xl font-bold">{{ sync_invoice.invoice.title }}</div>
-        <div class="pl-5">
+    <div class="divider"></div>
+    <div class="text-2xl font-bold mb-2">Your clients</div>
+    {% for client in clients %}
+        <div>
             <div class="flex">
-                <div class="pr-5">Client: <span class="font-bold">{{ sync_invoice.invoice.client.name }}</span></div>
-                {% if sync_invoice.customer_synced %}
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
+                <div class="text-xl font-bold">{{ client.client_name }}</div>
+                {% if client.customer_synced %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 ml-5">
                         <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
                     </svg>
                 {% endif %}
             </div>
-            {% if sync_invoice.customer_synced_error %}
-                <div class="text-red-300">{{ sync_invoice.customer_synced_error }}</div>
+            <p>{{ client.client_email }}</p>
+            {% if client.customer_synced_error %}
+                <div class="text-red-300">{{ client.customer_synced_error }}</div>
             {% endif %}
             <div class="divider"></div>
         </div>
+    {% endfor %}
+    <div class="text-2xl font-bold my-2">Your invoices</div>
+    {% for sync_invoice in synced_sent_invoices %}
+        <div class="text-xl font-bold">{{ sync_invoice.invoice.title }}</div>
         {% for sent_invoice, sent_invoice_synced, sent_invoice_synced_error in sync_invoice.synced_sent_invoices %}
+            <div class="font-bold">{{ sent_invoice.invoice.title|title }}</div>
             <div class="pl-5">
                 <div class="flex">
-                    <div class="pr-5">{{ sent_invoice.date_sent }} - ${{ sent_invoice.total_price }}</div>
+                    <div class="pr-5">{{ sent_invoice.date_sent|date:"M. j, Y" }} - ${{ sent_invoice.total_price }}</div>
                     {% if sent_invoice_synced %}
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
                             <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
@@ -32,6 +39,7 @@
                 </div>
 
                 {% if sent_invoice_synced_error %}
+                    <div>{{ sent_invoice.invoice.client.name }} - {{ sent_invoice.invoice.client.email }}</div>
                     <div class="text-red-300">{{ sent_invoice_synced_error }}</div>
                 {% endif %}
                 <div class="divider"></div>

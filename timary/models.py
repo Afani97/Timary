@@ -944,7 +944,7 @@ Ari from Timary
         return (
             self.paid_status == SentInvoice.PaidStatus.PAID
             and self.accounting_invoice_id is not None
-            and self.invoice.accounting_customer_id is not None
+            and self.invoice.client.accounting_customer_id is not None
         )
 
     @property

@@ -103,32 +103,44 @@ def accounting_sync(request):
         )
     accounting_service = AccountingService({"user": request.user})
     # Sync the current invoice customers first
-    synced_invoices = []
+    clients = []
     auth_token = accounting_service.get_request_auth_token()
-    for invoice in request.user.get_all_invoices():
-        synced_invoice = {
-            "invoice": invoice,
+    for client in request.user.my_clients.all():
+        synced_client = {
+            "client_email": client.email,
+            "client_name": client.name,
             "customer_synced": True,
             "customer_synced_error": None,
-            "synced_sent_invoices": [],
         }
-        if not invoice.client.accounting_customer_id:
+        if not client.accounting_customer_id:
             try:
-                accounting_service.service_klass().create_customer(
-                    invoice.client, auth_token
-                )
+                accounting_service.service_klass().create_customer(client, auth_token)
             except AccountingError as ae:
-                synced_invoice["customer_synced_error"] = ae.log()
-                synced_invoice["customer_synced"] = False
+                synced_client["customer_synced_error"] = ae.log()
+                synced_client["customer_synced"] = False
+        clients.append(synced_client)
 
-        # Then sync the current paid sent invoices
+    sent_invoices = []
+    for invoice in request.user.get_all_invoices():
+        # Sync your sent invoices if not already
         synced_sent_invoices = []
-        for sent_invoice in invoice.invoice_snapshots.filter(
-            paid_status=SentInvoice.PaidStatus.PAID
-        ):
+        for sent_invoice in invoice.invoice_snapshots.all():
             sent_invoice_synced = True
             sent_invoice_synced_error = None
-            if not sent_invoice.accounting_invoice_id:
+
+            if sent_invoice.is_synced:
+                synced_sent_invoices.append(
+                    (sent_invoice, sent_invoice_synced, sent_invoice_synced_error)
+                )
+                continue
+            elif (
+                sent_invoice.paid_status != SentInvoice.PaidStatus.PAID
+                and sent_invoice.accounting_invoice_id is None
+            ):
+                sent_invoice_synced = False
+                sent_invoice_synced_error = "Cannot sync due to invoice isn't paid yet"
+            else:
+                # Only sync if invoice isn't synced and paid already
                 try:
                     accounting_service.service_klass().create_invoice(
                         sent_invoice, auth_token
@@ -139,8 +151,7 @@ def accounting_sync(request):
             synced_sent_invoices.append(
                 (sent_invoice, sent_invoice_synced, sent_invoice_synced_error)
             )
-        synced_invoice["synced_sent_invoices"] = synced_sent_invoices
-        synced_invoices.append(synced_invoice)
+        sent_invoices.append({"synced_sent_invoices": synced_sent_invoices})
 
     total_clients = Client.objects.filter(user=request.user).count()
     total_clients_synced = Client.objects.filter(
@@ -155,7 +166,8 @@ def accounting_sync(request):
         request,
         "invoices/_synced_results.html",
         {
-            "synced_invoices": synced_invoices,
+            "clients": clients,
+            "synced_sent_invoices": sent_invoices,
             "total_sent_invoices": total_sent_invoices,
             "total_sent_invoices_synced": total_sent_invoices_synced,
             "total_clients_synced": total_clients_synced,
