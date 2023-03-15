@@ -172,6 +172,19 @@ def patch_hours(request, hours_id):
         raise Http404
     put_params = QueryDict(request.body)
     hours_form = HoursLineItemForm(put_params, instance=hour, user=request.user)
+    if hour.invoice.is_paused:
+        response = render(
+            request,
+            "hours/_patch.html",
+            {"form": hours_form},
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to edit these hours since the invoice is paused.",
+        )
+        return response
+
     if hours_form.is_valid():
         hour.quantity = hours_form.cleaned_data.get("quantity")
         hour.date_tracked = hours_form.cleaned_data.get("date_tracked")

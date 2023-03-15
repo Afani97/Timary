@@ -82,19 +82,21 @@
                                     hx-swap="innerHTML">
                                     {% include 'partials/_invoice_period_hours.html' with invoice=invoice %}
                                 </ul>
-                                <div class="flex justify-center">
-                                    <label
-                                        for="edit-hours-modal"
-                                        class="btn btn-outline btn-sm modal-button my-5"
-                                        hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"
-                                        hx-target=".inner-modal"
-                                        hx-swap="innerHTML"
-                                        _="on click add .loading to me end
-                                            on htmx:afterRequest remove .loading from me end"
-                                    >
-                                        Edit hours
-                                    </label>
-                                </div>
+                                {% if not invoice.is_paused %}
+                                    <div class="flex justify-center">
+                                        <label
+                                            for="edit-hours-modal"
+                                            class="btn btn-outline btn-sm modal-button my-5"
+                                            hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"
+                                            hx-target=".inner-modal"
+                                            hx-swap="innerHTML"
+                                            _="on click add .loading to me end
+                                                on htmx:afterRequest remove .loading from me end"
+                                        >
+                                            Edit hours
+                                        </label>
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="divider md:divider-horizontal"></div>

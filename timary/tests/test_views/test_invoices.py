@@ -662,6 +662,19 @@ class TestRecurringInvoices(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEquals(len(mail.outbox), 1)
 
+    def test_cannot_generate_invoice_if_paused(self):
+        invoice = IntervalInvoiceFactory(is_paused=True, user=self.user)
+        HoursLineItemFactory(invoice=invoice)
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id}),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(len(mail.outbox), 0)
+        self.assertIn(
+            "Cannot send an invoice while it is been paused", str(response.headers)
+        )
+
     def test_get_hour_forms_for_invoice(self):
         """Only hours1 and hours2 show since its date_tracked
         is within invoice's last date and current date"""

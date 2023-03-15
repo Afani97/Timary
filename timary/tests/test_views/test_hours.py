@@ -622,6 +622,37 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(HoursLineItem.objects.first())
 
+    def test_get_hour_for_paused_invoice(self):
+        user = UserFactory()
+        invoice = IntervalInvoiceFactory(user=user, is_paused=True)
+        hours = HoursLineItemFactory(invoice=invoice)
+        self.client.force_login(user)
+        response = self.client.get(
+            reverse("timary:get_single_hours", kwargs={"hours_id": hours.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Unpause invoice to edit.", response.content.decode("utf-8"))
+
+    def test_cannot_patch_hour_for_paused_invoice(self):
+        invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
+        hours = HoursLineItemFactory(invoice=invoice)
+        random_hours = random.randint(1, 23)
+        url_params = {
+            "quantity": random_hours,
+            "date_tracked": timezone.now() - timezone.timedelta(days=1),
+            "invoice": invoice.id,
+        }
+        response = self.client.patch(
+            reverse("timary:patch_hours", kwargs={"hours_id": hours.id}),
+            data=urlencode(url_params),  # HTML PATCH FORM
+        )
+        self.hours.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "Unable to edit these hours since the invoice is paused.",
+            str(response.headers),
+        )
+
     def test_get_hours_ny_timezone(self):
         user = UserFactory()
         user.timezone = "America/New_York"

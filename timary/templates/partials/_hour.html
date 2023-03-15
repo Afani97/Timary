@@ -13,7 +13,10 @@
             {% endif %}
 
         </div>
-        {% if not hour.sent_invoice_id %}
+        {% if hour.invoice.is_paused %}
+            <p class="text-xs">Unpause invoice to edit.</p>
+        {% endif %}
+        {% if not hour.sent_invoice_id and not hour.invoice.is_paused %}
             <div class="card-actions flex flex-col space-y-2">
                 <a class="btn btn-sm edit-hours"
                     hx-get="{% url 'timary:edit_hours' hour.id %}"

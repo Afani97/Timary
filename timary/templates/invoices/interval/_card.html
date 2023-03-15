@@ -2,12 +2,14 @@
 {% load tz %}
 
 {% block actions %}
-    <li>
-        <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to generate an invoice now?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
-            _="on htmx:beforeRequest add .loading to me">
-            Generate invoice
-        </a>
-    </li>
+    {% if not invoice.is_paused %}
+        <li>
+            <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to generate an invoice now?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
+                _="on htmx:beforeRequest add .loading to me">
+                Generate invoice
+            </a>
+        </li>
+    {% endif %}
     <li>
         <a hx-get="{% url 'timary:pause_invoice' invoice_id=invoice.id%}" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
             _="on click add .loading to me">

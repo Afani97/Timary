@@ -17,6 +17,14 @@
         </svg>
         Hourly ${{ invoice.rate|floatformat:-2 }}
     </div>
+    {% if invoice.is_paused %}
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-5">
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
+            </svg>
+            Paused
+        </div>
+    {% endif %}
 {% endblock body %}
 
 {% block footer %}
@@ -32,12 +40,14 @@
             {% endwith %}
         </ul>
         {% if invoice.milestone_step <= invoice.milestone_total_steps %}
-            <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
-                hx-confirm="Are you sure you want to complete this milestone?"
-                hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-ghost btn-outline my-5"
-                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
-                Complete milestone
-            </a>
+            {% if not invoice.is_paused %}
+                <a hx-get="{% url 'timary:generate_invoice' invoice_id=invoice.id %}"
+                    hx-confirm="Are you sure you want to complete this milestone?"
+                    hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-ghost btn-outline my-5"
+                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me">
+                    Complete milestone
+                </a>
+            {% endif %}
         {% else %}
             <button class="btn btn-accent mt-5">Milestones all complete!</button>
         {% endif %}

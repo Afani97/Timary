@@ -268,6 +268,19 @@ def generate_invoice(request, invoice_id):
             persist=True,
         )
         return response
+    if invoice.is_paused:
+        response = render(
+            request,
+            f"invoices/{invoice.invoice_type()}/_card.html",
+            {"invoice": invoice},
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Cannot send an invoice while it is been paused. Unpause to generate new invoices",
+            persist=True,
+        )
+        return response
     if (
         invoice.invoice_type() == "milestone"
         and invoice.milestone_step > invoice.milestone_total_steps
