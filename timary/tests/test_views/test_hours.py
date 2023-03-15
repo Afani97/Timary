@@ -147,6 +147,18 @@ class TestHourLineItems(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_cannot_create_quick_hours_if_invoice_paused(self):
+        invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
+        hours_ref_id = f"{1.0}_{invoice.email_id}"
+        response = self.client.get(
+            f"{reverse('timary:quick_hours')}?hours_ref_id={hours_ref_id}"
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertIn(
+            "Unable to add new hours for paused invoice",
+            response.headers["HX-Trigger"],
+        )
+
     def test_create_quick_hours_error(self):
         response = self.client.get(
             f"{reverse('timary:quick_hours')}?hours_ref_id=abc123"
@@ -231,6 +243,26 @@ class TestHourLineItems(BaseTest):
             data={},
         )
         self.assertEqual(response.status_code, 302)
+
+    def test_cannot_hour_hour_for_paused_invoice(self):
+        invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
+        hours = HoursLineItemFactory(invoice=invoice)
+        random_hours = random.randint(1, 23)
+        url_params = {
+            "quantity": random_hours,
+            "date_tracked": timezone.now() - timezone.timedelta(days=1),
+            "invoice": invoice.id,
+        }
+        response = self.client.put(
+            reverse("timary:update_hours", kwargs={"hours_id": hours.id}),
+            data=urlencode(url_params),  # HTML PATCH FORM
+        )
+        self.hours.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "Unable to edit these hours since the invoice is paused.",
+            str(response.headers),
+        )
 
     def test_patch_daily_hours(self):
         random_hours = random.randint(1, 23)
@@ -452,6 +484,33 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(
             HoursLineItem.objects.count(),
             5,
+        )
+
+    def test_repeat_daily_hours_excluding_paused_invoices(self):
+        HoursLineItem.objects.all().delete()
+        invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
+        HoursLineItemFactory(
+            quantity=1,
+            invoice=invoice,
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        self.assertEqual(
+            HoursLineItem.objects.count(),
+            1,
+        )
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(
+            int(
+                HoursLineItem.objects.aggregate(hours_sum=Sum("quantity"))["hours_sum"]
+            ),
+            1,
+        )
+        # Only two are created because 0 hours are skipped
+        self.assertEqual(
+            HoursLineItem.objects.count(),
+            1,
         )
 
     def test_repeat_hours_including_repeating(self):

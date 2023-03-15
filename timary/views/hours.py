@@ -92,11 +92,18 @@ def quick_hours(request):
         response = HttpResponse(status=204)
         show_alert_message(response, "warning", "Error adding hours")
         return response
+    invoice = Invoice.objects.get(email_id=invoice_id)
+    if invoice.is_paused:
+        response = HttpResponse(status=204)
+        show_alert_message(
+            response, "warning", "Unable to add new hours for paused invoice"
+        )
+        return response
     hours_form = HoursLineItemForm(
         data={
             "quantity": hours,
             "date_tracked": get_users_localtime(request.user),
-            "invoice": Invoice.objects.get(email_id=invoice_id),
+            "invoice": invoice,
         },
         user=request.user,
     )
@@ -147,6 +154,18 @@ def update_hours(request, hours_id):
         raise Http404
     put_params = QueryDict(request.body)
     hours_form = HoursLineItemForm(put_params, instance=hours, user=request.user)
+    if hours.invoice.is_paused:
+        response = render(
+            request,
+            "hours/_patch.html",
+            {"form": hours_form},
+        )
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to edit these hours since the invoice is paused.",
+        )
+        return response
     if hours_form.is_valid():
         updated_hours = hours_form.save()
         if "recurring_logic" in hours_form.cleaned_data:
@@ -270,6 +289,7 @@ def repeat_hours(request):
     repeating_hours = HoursLineItem.objects.filter(
         invoice__user=request.user,
         date_tracked__range=date_to_repeat_range,
+        invoice__is_paused=False,
         invoice__is_archived=False,
         quantity__gt=0,
     ).filter(Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True))
