@@ -82,7 +82,7 @@
                 {% if request.user.accounting_org %}
                     <div class="flex justify-center">
                         <a hx-get="{% url 'timary:get_accounting_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
-                            class="link-hover">Fetch clients from {{ request.user.accounting_org|title }}</a>
+                            class="link-hover">Fetch from {{ request.user.accounting_org|title }}</a>
                     </div>
                     <div class="divider"></div>
                 {% endif %}
