@@ -13,7 +13,7 @@
             {% endif %}
 
         </div>
-        {% if hour.invoice.is_paused %}
+        {% if not hour.sent_invoice_id and hour.invoice.is_paused %}
             <p class="text-xs">Unpause invoice to edit.</p>
         {% endif %}
         {% if not hour.sent_invoice_id and not hour.invoice.is_paused %}
