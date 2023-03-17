@@ -124,7 +124,9 @@ def accounting_sync(request):
     for invoice in request.user.get_all_invoices():
         # Sync your sent invoices if not already
         synced_sent_invoices = []
-        for sent_invoice in invoice.invoice_snapshots.all():
+        for sent_invoice in invoice.invoice_snapshots.exclude(
+            paid_status=SentInvoice.PaidStatus.CANCELLED
+        ):
             sent_invoice_synced = True
             sent_invoice_synced_error = None
 
@@ -157,10 +159,18 @@ def accounting_sync(request):
     total_clients_synced = Client.objects.filter(
         user=request.user, accounting_customer_id__isnull=False
     ).count()
-    total_sent_invoices = SentInvoice.objects.filter(user=request.user).count()
-    total_sent_invoices_synced = SentInvoice.objects.filter(
-        Q(user=request.user) & Q(accounting_invoice_id__isnull=False)
-    ).count()
+    total_sent_invoices = (
+        SentInvoice.objects.filter(user=request.user)
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .count()
+    )
+    total_sent_invoices_synced = (
+        SentInvoice.objects.filter(
+            Q(user=request.user) & Q(accounting_invoice_id__isnull=False)
+        )
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .count()
+    )
 
     return render(
         request,
