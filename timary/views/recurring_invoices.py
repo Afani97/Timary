@@ -43,16 +43,21 @@ def get_archived_invoices(request):
 @require_http_methods(["GET"])
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
-    sent_invoices_owed = request.user.sent_invoices.exclude(
-        Q(paid_status=SentInvoice.PaidStatus.PAID)
-        | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
-    ).aggregate(total=Sum("total_price"))
+    beginning_of_year = get_users_localtime(request.user).replace(month=1, day=1)
+    sent_invoices_owed = (
+        request.user.sent_invoices.filter(date_sent__gte=beginning_of_year)
+        .exclude(
+            Q(paid_status=SentInvoice.PaidStatus.PAID)
+            | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        )
+        .aggregate(total=Sum("total_price"))
+    )
     sent_invoices_owed = (
         sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
     )
 
     sent_invoices_paid = request.user.sent_invoices.filter(
-        paid_status=SentInvoice.PaidStatus.PAID
+        Q(date_sent__gte=beginning_of_year) & Q(paid_status=SentInvoice.PaidStatus.PAID)
     ).aggregate(total=Sum("total_price"))
     sent_invoices_paid = (
         sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0

@@ -515,7 +515,10 @@ class TestStripeViews(BaseTest):
             "type": "charge.succeeded",
             "data": {"object": {"id": "abc123"}},
         }
-        sent_invoice = SentInvoiceFactory(stripe_payment_intent_id="abc123")
+        sent_invoice = SentInvoiceFactory(
+            stripe_payment_intent_id="abc123",
+            due_date=timezone.now() - timezone.timedelta(days=2),
+        )
 
         response = self.client.post(
             reverse("timary:stripe_webhook"), data={}, HTTP_STRIPE_SIGNATURE="abc123"
@@ -524,6 +527,7 @@ class TestStripeViews(BaseTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.PAID)
+        self.assertEqual(sent_invoice.date_paid.date(), timezone.now().date())
 
     @patch("stripe.Webhook.construct_event")
     def test_stripe_webhook_payment_error(self, stripe_webhook_mock):

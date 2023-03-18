@@ -600,17 +600,63 @@ class TestRecurringInvoices(BaseTest):
 
         self.assertInHTML(
             f"""
-            <div class="stats shadow stats-vertical">
-              <div class="stat place-items-center">
                 <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
-                <div class="stat-desc">owed</div>
-              </div>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertInHTML(
+            f"""
+                <div class="stat-value">${floatformat(s2.total_price, -2)}</div>
+            """,
+            response.content.decode("utf-8"),
+        )
 
-              <div class="stat place-items-center">
-                <div class="stat-value">${ floatformat(s2.total_price, -2) }</div>
-                <div class="stat-desc">total earned</div>
-              </div>
-            </div>""",
+    def test_total_invoice_stats_only_current_year(self):
+        self.client.logout()
+        self.client.force_login(self.user)
+
+        hours1 = HoursLineItemFactory(invoice__user=self.user)
+        hours2 = HoursLineItemFactory(invoice__user=self.user)
+        s1 = SentInvoiceFactory(
+            invoice=hours1.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PENDING,
+        )
+        s2 = SentInvoiceFactory(
+            invoice=hours2.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+        )
+        s3 = SentInvoiceFactory(
+            invoice=hours2.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.PAID,
+            date_sent=get_users_localtime(self.user) - relativedelta(years=1),
+        )
+
+        response = self.client.get(
+            reverse(
+                "timary:manage_invoices",
+            ),
+        )
+
+        self.assertInHTML(
+            f"""
+                <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
+            """,
+            response.content.decode("utf-8"),
+        )
+        # Only calculate sent invoices for current year
+        self.assertNotIn(
+            f"""
+            <div class="stat-value">${floatformat((s2.total_price + s3.total_price), -2)}</div>
+            """,
+            response.content.decode("utf-8"),
+        )
+        self.assertInHTML(
+            f"""
+                <div class="stat-value">${floatformat(s2.total_price, -2)}</div>
+            """,
             response.content.decode("utf-8"),
         )
 

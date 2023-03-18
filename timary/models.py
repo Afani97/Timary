@@ -806,6 +806,7 @@ class SentInvoice(BaseModel):
         CANCELLED = 4, "CANCELLED"
 
     date_sent = models.DateTimeField(null=False, blank=False)
+    date_paid = models.DateTimeField(null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     invoice = models.ForeignKey(
         "timary.Invoice",

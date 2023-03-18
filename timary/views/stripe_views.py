@@ -241,7 +241,7 @@ def stripe_webhook(request, stripe_secret):
                 return JsonResponse({"success": True})
 
             sent_invoice.paid_status = SentInvoice.PaidStatus.PAID
-            sent_invoice.date_sent = timezone.now()
+            sent_invoice.date_paid = timezone.now()
             sent_invoice.save()
             sent_invoice.success_notification()
         else:
