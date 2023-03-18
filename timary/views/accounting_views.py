@@ -140,7 +140,7 @@ def accounting_sync(request):
                 and sent_invoice.accounting_invoice_id is None
             ):
                 sent_invoice_synced = False
-                sent_invoice_synced_error = "Cannot sync due to invoice isn't paid yet"
+                sent_invoice_synced_error = "Cannot sync because invoice isn't paid yet"
             else:
                 # Only sync if invoice isn't synced and paid already
                 try:
