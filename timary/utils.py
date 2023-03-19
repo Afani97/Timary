@@ -86,9 +86,6 @@ def generate_spreadsheet(sent_invoices):
             "Date Paid",
             "Invoice #",
             "Invoice Title",
-            "User #",
-            "Hours Start Date",
-            "Hours End Date",
             "Total Hours",
             "Total Price",
             "Paid Status",
@@ -106,14 +103,13 @@ def generate_spreadsheet(sent_invoices):
                 else "",
                 str(sent_invoice.invoice.id),
                 sent_invoice.invoice.title,
-                str(sent_invoice.user.id),
                 total_hours["hours"],
                 str(sent_invoice.total_price),
                 sent_invoice.get_paid_status_display(),
             ]
         )
 
-    tab = Table(displayName="Table1", ref=f"A1:I{len(sent_invoices) + 1}")
+    tab = Table(displayName="Table1", ref=f"A1:G{len(sent_invoices) + 1}")
 
     style = TableStyleInfo(
         name="TableStyleMedium9",
