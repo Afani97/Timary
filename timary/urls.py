@@ -62,6 +62,12 @@ urlpatterns += [
         name="update_subscription",
     ),
     path(
+        "profile/settings/password/",
+        views.update_user_password,
+        name="update_user_password",
+    ),
+    path("profile/settings/tax_center/", views.view_tax_center, name="view_tax_center"),
+    path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",
@@ -70,11 +76,6 @@ urlpatterns += [
         "profile/invoice_branding/",
         views.update_invoice_branding,
         name="update_invoice_branding",
-    ),
-    path(
-        "profile/settings/password/",
-        views.update_user_password,
-        name="update_user_password",
     ),
     path("audit/", views.audit, name="audit"),
     path("invite/", views.invite_new_user, name="invite_new_user"),

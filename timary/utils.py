@@ -2,6 +2,7 @@ import json
 import zoneinfo
 from datetime import datetime
 
+from django.db.models import Sum
 from django.utils import timezone
 from requests import Response
 
@@ -65,3 +66,74 @@ def get_date_parsed(date):
 
 def get_users_localtime(user):
     return timezone.now().astimezone(tz=zoneinfo.ZoneInfo(user.timezone))
+
+
+def generate_spreadsheet(sent_invoices):
+    from tempfile import NamedTemporaryFile
+
+    from django.http import HttpResponse
+    from openpyxl import Workbook
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Your Timary audit activity"
+
+    # add column headings. NB. these must be strings
+    ws.append(
+        [
+            "Date Sent",
+            "Date Paid",
+            "Invoice #",
+            "Invoice Title",
+            "User #",
+            "Hours Start Date",
+            "Hours End Date",
+            "Total Hours",
+            "Total Price",
+            "Paid Status",
+        ]
+    )
+
+    # add sent invoice data per row
+    for sent_invoice in sent_invoices:
+        total_hours = sent_invoice.invoice.line_items.aggregate(hours=Sum("quantity"))
+        ws.append(
+            [
+                sent_invoice.date_sent.strftime("%Y-%m-%d"),
+                sent_invoice.date_paid.strftime("%Y-%m-%d")
+                if sent_invoice.date_paid
+                else "",
+                str(sent_invoice.invoice.id),
+                sent_invoice.invoice.title,
+                str(sent_invoice.user.id),
+                total_hours["hours"],
+                str(sent_invoice.total_price),
+                sent_invoice.get_paid_status_display(),
+            ]
+        )
+
+    tab = Table(displayName="Table1", ref=f"A1:I{len(sent_invoices) + 1}")
+
+    style = TableStyleInfo(
+        name="TableStyleMedium9",
+        showFirstColumn=False,
+        showLastColumn=False,
+        showRowStripes=True,
+        showColumnStripes=True,
+    )
+    tab.tableStyleInfo = style
+    ws.add_table(tab)
+
+    # save to temp file for Django to send in response
+    with NamedTemporaryFile() as tmp:
+        wb.save(tmp.name)
+        tmp.seek(0)
+        stream = tmp.read()
+
+    response = HttpResponse(
+        content=stream,
+        content_type="application/ms-excel",
+    )
+    response["Content-Disposition"] = "attachment; filename=Timary-Audit-Activity.xlsx"
+    return response

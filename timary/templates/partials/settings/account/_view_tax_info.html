@@ -1,0 +1,48 @@
+<div id="integrations-container">
+    <div class="overflow-x-auto">
+        <table class="table w-full">
+            <!-- head -->
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Actual earnings</th>
+                    <th>Potential earnings</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for year in years %}
+                    <tr>
+                        <td>{{ year.year }}</td>
+                        <td>${{ year.actual|floatformat:"-2" }}</td>
+                        <td>${{ year.potential|floatformat:"-2" }}</td>
+                        {% if year.actual > 0 %}
+                            <td>
+                                <a  class="link underline"
+                                    href="{% url 'timary:audit' %}?year={{ year.year }}"
+                                    hx-swap="none"
+                                >
+                                    Download paid invoices
+                                </a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td>No earnings yet for {% now "Y" %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-center mt-10">
+        <a hx-get="{% url 'timary:settings_partial' setting='tax_center' %}"
+            hx-target="#integrations-container"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-ghost">
+            Close
+        </a>
+    </div>
+
+</div>

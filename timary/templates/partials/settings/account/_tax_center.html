@@ -1,0 +1,12 @@
+<div class="wrapper flex justify-between">
+    <div class="text-left">
+        Tax Center
+    </div>
+    <a class="link text-right"
+        hx-get="{% url 'timary:view_tax_center' %}"
+        hx-target="closest .wrapper"
+        hx-swap="outerHTML"
+        _="on click add .loading to me">
+        View
+    </a>
+</div>

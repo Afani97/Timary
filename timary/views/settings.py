@@ -1,17 +1,16 @@
+import itertools
 import sys
-from tempfile import NamedTemporaryFile
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.http import Http404, HttpResponse, QueryDict
+from django.db.models.functions import TruncYear
+from django.http import Http404, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from openpyxl import Workbook
-from openpyxl.worksheet.table import Table, TableStyleInfo
 from stripe.error import CardError, InvalidRequestError
 
 from timary.forms import (
@@ -25,7 +24,7 @@ from timary.models import SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
-from timary.utils import get_users_localtime, show_alert_message
+from timary.utils import generate_spreadsheet, get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -42,6 +41,8 @@ def settings_partial(request, setting):
         template = "partials/settings/account/_referrals.html"
     if setting == "password":
         template = "partials/settings/account/_password.html"
+    if setting == "tax_center":
+        template = "partials/settings/account/_tax_center.html"
     return render(
         request,
         template,
@@ -287,69 +288,69 @@ def update_subscription(request):
     return Http404
 
 
+@login_required()
+@require_http_methods(["GET"])
+def view_tax_center(request):
+    years = (
+        SentInvoice.objects.filter(user=request.user)
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .annotate(actual=TruncYear("date_paid"), potential=TruncYear("date_sent"))
+        .values_list("actual", "potential")
+        .distinct()
+    )
+    # All this craziness just to get a list of distinct years for actual and potential
+    years = list(dict.fromkeys(list(filter(None, list(itertools.chain(*years))))))
+
+    actual_earnings = (
+        SentInvoice.objects.filter(user=request.user)
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .annotate(actual=TruncYear("date_paid"))
+        .values("actual")
+        .exclude(actual__isnull=True)
+        .annotate(actual_paid=Sum("total_price"))
+        .values("actual", "actual_paid")
+    )
+    potential_earnings = (
+        SentInvoice.objects.filter(user=request.user)
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .annotate(potential=TruncYear("date_sent"))
+        .values("potential")
+        .exclude(potential__isnull=True)
+        .annotate(potential_paid=Sum("total_price"))
+        .values("potential", "potential_paid")
+    )
+    years_paid = []
+    for year in years:
+        actual = list(actual_earnings.filter(actual=year.date()))
+        actual_paid = 0
+        if len(actual) > 0:
+            actual_paid = actual[0]["actual_paid"]
+
+        potential = list(potential_earnings.filter(potential=year.date()))
+        potential_paid = 0
+        if len(potential) > 0:
+            potential_paid = potential[0]["potential_paid"]
+        years_paid.append(
+            {
+                "year": year.strftime("%Y"),
+                "actual": actual_paid,
+                "potential": potential_paid,
+            }
+        )
+    years_paid.sort(reverse=True, key=lambda y: y["year"])
+    context = {"years": years_paid}
+    return render(request, "partials/settings/account/_view_tax_info.html", context)
+
+
 @login_required
 @require_http_methods(["GET"])
 def audit(request):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Your Timary audit activity"
-
-    sent_invoices = SentInvoice.objects.filter(user=request.user).order_by("date_sent")
-
-    # add column headings. NB. these must be strings
-    ws.append(
-        [
-            "Date Sent",
-            "Invoice #",
-            "Invoice Title",
-            "User #",
-            "Hours Start Date",
-            "Hours End Date",
-            "Total Hours",
-            "Total Price",
-            "Paid Status",
-        ]
-    )
-
-    # add sent invoice data per row
-    for sent_invoice in sent_invoices:
-        total_hours = sent_invoice.invoice.line_items.aggregate(hours=Sum("quantity"))
-        ws.append(
-            [
-                sent_invoice.date_sent.strftime("%Y-%m-%d"),
-                str(sent_invoice.invoice.id),
-                sent_invoice.invoice.title,
-                str(sent_invoice.user.id),
-                total_hours["hours"],
-                str(sent_invoice.total_price),
-                sent_invoice.get_paid_status_display(),
-            ]
-        )
-
-    tab = Table(displayName="Table1", ref=f"A1:I{len(sent_invoices) + 1}")
-
-    style = TableStyleInfo(
-        name="TableStyleMedium9",
-        showFirstColumn=False,
-        showLastColumn=False,
-        showRowStripes=True,
-        showColumnStripes=True,
-    )
-    tab.tableStyleInfo = style
-    ws.add_table(tab)
-
-    # save to temp file for Django to send in response
-    with NamedTemporaryFile() as tmp:
-        wb.save(tmp.name)
-        tmp.seek(0)
-        stream = tmp.read()
-
-    response = HttpResponse(
-        content=stream,
-        content_type="application/ms-excel",
-    )
-    response["Content-Disposition"] = "attachment; filename=Timary-Audit-Activity.xlsx"
-    return response
+    filter_by_year = request.GET.get("year")
+    sent_invoices = SentInvoice.objects.filter(user=request.user)
+    if filter_by_year:
+        sent_invoices = sent_invoices.filter(date_paid__year=filter_by_year)
+    sent_invoices = sent_invoices.order_by("date_paid")
+    return generate_spreadsheet(sent_invoices)
 
 
 @login_required()
