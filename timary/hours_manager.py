@@ -46,7 +46,7 @@ class HoursManager:
         return show_repeat
 
     def show_most_frequent_options(self):
-        """Get current months hours and get top 3 most frequent hours logged"""
+        """Get current months hours and get top 5 most frequent hours logged"""
         today = get_users_localtime(self.user)
         today_range = (
             today.replace(hour=0, minute=0, second=59),
@@ -56,6 +56,7 @@ class HoursManager:
             self.hours.filter(
                 Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
             )
+            .exclude(Q(invoice__is_paused=True) | Q(invoice__is_archived=True))
             .annotate(
                 repeat_hours=Concat(
                     Cast(

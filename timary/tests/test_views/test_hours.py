@@ -55,6 +55,42 @@ class TestHourLineItems(BaseTest):
             hours_not_invoiced_template,
         )
 
+    def test_get_quick_hours(self):
+        users_time = get_users_localtime(self.user)
+        yesterday = users_time - timezone.timedelta(days=1)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        HoursLineItemFactory(invoice=invoice, quantity=2, date_tracked=yesterday)
+        HoursLineItemFactory(invoice=invoice, quantity=3, date_tracked=yesterday)
+        HoursLineItemFactory(invoice=invoice, quantity=4, date_tracked=yesterday)
+
+        response = self.client.get(reverse("timary:index"))
+        response_content = response.content.decode("utf-8")
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML("<h1>Quick hours</h1>", response_content)
+        self.assertIn("Add 2.0hr", response_content)
+        self.assertIn("Add 3.0hr", response_content)
+        self.assertIn("Add 4.0hr", response_content)
+
+    def test_get_quick_hours_only_non_paused_or_archived_invoices(self):
+        users_time = get_users_localtime(self.user)
+        yesterday = users_time - timezone.timedelta(days=1)
+        invoice = IntervalInvoiceFactory(user=self.user)
+        paused_invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
+        archived_invoice = IntervalInvoiceFactory(user=self.user, is_archived=True)
+        HoursLineItemFactory(invoice=paused_invoice, quantity=2, date_tracked=yesterday)
+        HoursLineItemFactory(
+            invoice=archived_invoice, quantity=3, date_tracked=yesterday
+        )
+        HoursLineItemFactory(invoice=invoice, quantity=4, date_tracked=yesterday)
+
+        response = self.client.get(reverse("timary:index"))
+        response_content = response.content.decode("utf-8")
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML("<h1>Quick hours</h1>", response_content)
+        self.assertNotIn("Add 2.0hr", response_content)
+        self.assertNotIn("Add 3.0hr", response_content)
+        self.assertIn("Add 4.0hr", response_content)
+
     def test_create_daily_hours(self):
         invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
