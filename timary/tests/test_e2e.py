@@ -8,7 +8,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 from timary.tests.factories import (
     ClientFactory,
@@ -286,3 +286,43 @@ class TestUI(BaseUITest):
             page.click('button:has-text("Create")')
             page.wait_for_selector("h1", timeout=2000)
             self.assertEqual(page.inner_text("h1"), "Update Invoice")
+
+    @tag("ui")
+    @patch("timary.models.Client.sync_customer")
+    def test_create_client(self, sync_customer_mock):
+        sync_customer_mock.return_value = None
+        user = UserFactory()
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-client-tab")
+            page.click("#create-new-client")
+            page.wait_for_selector("#id_name", timeout=2000)
+            page.fill("#id_name", "John Smith")
+            page.fill("#id_email", "johns@test.com")
+            page.fill("#id_phone_number", "+17742345678")
+            page.fill("#id_address", "123 Main St, Boston, MA")
+            page.click('button:has-text("Add new client")')
+            page.wait_for_selector("#clients-list", timeout=2000)
+            expect(page.get_by_text("John Smith")).to_be_visible()
+
+    @tag("ui")
+    @patch("timary.models.Client.sync_customer")
+    def test_update_client(self, sync_customer_mock):
+        sync_customer_mock.return_value = None
+        user = UserFactory()
+        ClientFactory(user=user, name="Ari Fani")
+        with self.start_test(user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.wait_for_selector("#intro-text", timeout=2000)
+            page.click("#new-client-tab")
+            page.wait_for_selector(".edit-client", timeout=2000).click()
+            page.wait_for_selector("#id_name", timeout=2000)
+            page.fill("#id_name", "John Smith")
+            page.fill("#id_email", "johns@test.com")
+            page.fill("#id_phone_number", "+17742345678")
+            page.fill("#id_address", "123 Main St, Boston, MA")
+            page.click('button:has-text("Update")')
+            page.wait_for_selector("#clients-list", timeout=2000)
+            expect(page.locator("#clients-list")).not_to_have_text("Ari Fani")
+            expect(page.get_by_text("John Smith")).to_be_visible()

@@ -14,7 +14,7 @@
                 >
                     Invoices
                 </button>
-                <button class="btn"
+                <button class="btn" id="new-client-tab"
                     _="on click call clearInnerContent() then add .hidden to #new-invoice-btn then remove .hidden from #new-client-btn"
                     hx-get="{% url 'timary:get_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
                 >
@@ -77,7 +77,7 @@
                 </div>
             </div>
             <div id="new-client-btn" class="hidden w-full">
-                <label tabindex="0" class="btn m-1 btn-primary w-full " for="new-client-modal" >New client</label>
+                <label tabindex="0" class="btn m-1 btn-primary w-full " for="new-client-modal" id="create-new-client">New client</label>
                 <div class="divider"></div>
                 {% if request.user.accounting_org %}
                     <div class="flex justify-center">
