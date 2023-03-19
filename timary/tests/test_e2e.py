@@ -345,3 +345,27 @@ class TestUI(BaseUITest):
             page.click(".copy-hours")
             page.click('li:has-text("From")')
             self.assertEqual(page.inner_text(".stat-value"), "5")
+
+    @tag("ui")
+    def test_create_hours_within_invoice(self):
+        invoice = IntervalInvoiceFactory(
+            next_date=timezone.now() + timezone.timedelta(days=1)
+        )
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        with self.start_test(invoice.user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.click('input[type="checkbox"]')
+            page.wait_for_selector(".modal-button", timeout=2000)
+            page.click(".modal-button")
+            page.wait_for_selector(
+                'h3:has-text("Update hours for this invoice period")', timeout=3000
+            )
+            page.fill("#id_quantity", ":30")
+            page.click('button:has-text("Add new hours")')
+            page.wait_for_selector(".text-success", timeout=2000)
+            self.assertEqual(
+                page.inner_text(".text-success"), "Successfully added new hours!"
+            )
