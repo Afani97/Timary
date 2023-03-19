@@ -17,6 +17,7 @@ from timary.tests.factories import (
     SentInvoiceFactory,
     UserFactory,
 )
+from timary.utils import get_users_localtime
 
 
 @override_settings(DEBUG=True)
@@ -326,3 +327,21 @@ class TestUI(BaseUITest):
             page.wait_for_selector("#clients-list", timeout=2000)
             expect(page.locator("#clients-list")).not_to_have_text("Ari Fani")
             expect(page.get_by_text("John Smith")).to_be_visible()
+
+    @tag("ui")
+    def test_copy_hours_from_yesterday(self):
+        invoice = IntervalInvoiceFactory()
+        HoursLineItemFactory(
+            invoice=invoice,
+            quantity=1,
+        )
+        HoursLineItemFactory(
+            invoice=invoice,
+            quantity=2,
+            date_tracked=get_users_localtime(invoice.user) - timezone.timedelta(days=1),
+        )
+        with self.start_test(invoice.user) as page:
+            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.click(".copy-hours")
+            page.click('li:has-text("From")')
+            self.assertEqual(page.inner_text(".stat-value"), "5")
