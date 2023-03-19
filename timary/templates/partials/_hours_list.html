@@ -6,13 +6,13 @@
         <div class="flex flex-row items-center gap-1 md:gap-3 overflow-x-auto xl:overflow-x-hidden xl:flex-wrap md:max-w-screen-sm md:max-w-screen-xl">
             {% for hour in frequent_options %}
                 <button class="btn gap-2 flex flex-col xl:flex-row">
-                    {{ hour.quantity }}hr for {{ hour.invoice_name }}
+                    {{ hour.invoice_name }}
                     <div class="badge badge-secondary"
                         _="on htmx:beforeRequest add .loading to the closest .btn then add .hidden to me end on htmx:afterRequest remove .loading from the closest .btn end"
                         hx-get="{% url 'timary:quick_hours' %}?hours_ref_id={{ hour.invoice_reference_id }}"
                         hx-swap="outerHTML"
                         hx-target="#hours-list">
-                        + add
+                        Add {{ hour.quantity }}hr
                     </div>
                 </button>
             {% endfor %}

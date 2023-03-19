@@ -263,6 +263,7 @@ class ClientForm(forms.ModelForm):
     phone_number = forms.CharField(
         required=False,
         validators=[phone_number_regex],
+        label="Client's phone number",
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
@@ -277,7 +278,6 @@ class ClientForm(forms.ModelForm):
         labels = {
             "name": "Client's name",
             "email": "Client's email",
-            "phone_number": "Client's phone number",
             "address": "Client's primary address",
         }
         widgets = {
