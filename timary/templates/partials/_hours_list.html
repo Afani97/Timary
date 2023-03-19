@@ -1,9 +1,9 @@
 {% load filters tz %}
 <ul id="hours-list"
-    class="mt-10 md:mt-0 space-y-5 w-full">
+    class="mt-10 md:mt-0 space-y-5 w-full overflow-x-hidden">
     {% if frequent_options|length > 0 %}
         <h1>Quick hours</h1>
-        <div class="flex flex-row items-center gap-1 md:gap-3 overflow-x-auto xl:flex-wrap">
+        <div class="flex flex-row items-center gap-1 md:gap-3 overflow-x-auto xl:overflow-x-hidden xl:flex-wrap md:max-w-screen-sm md:max-w-screen-xl">
             {% for hour in frequent_options %}
                 <button class="btn gap-2 flex flex-col xl:flex-row">
                     {{ hour.quantity }}hr for {{ hour.invoice_name }}
@@ -22,10 +22,16 @@
     {% if show_repeat == 1 %}
         <div class="repeat-day"></div>
         <div class="text-3xl font-medium tracking-wide">{% now "M. j, Y" %}</div>
-        <div id="repeat-day" >
+        <div id="repeat-day">
             <div class="flex justify-center">
-                <button class="btn btn-secondary" hx-get="{% url 'timary:repeat_hours' %}" hx-target="#hours-list" hx-swap="outerHTML" _="on click add .loading to me">
-                    Repeat previous day?</button>
+                <button class="btn btn-secondary"
+                    hx-get="{% url 'timary:repeat_hours' %}"
+                    hx-target="#hours-list"
+                    hx-swap="outerHTML"
+                    _="on click add .loading to me"
+                >
+                    Repeat previous day?
+                </button>
             </div>
             <div class="divider"></div>
         </div>
