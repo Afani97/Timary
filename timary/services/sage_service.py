@@ -96,6 +96,15 @@ class SageService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
+        elif method_type == "put":
+            response = requests.put(
+                url,
+                headers=headers,
+                data=json.dumps(data),
+            )
+            if not response.ok:
+                raise AccountingError(requests_response=response)
+            return response.json()
         elif method_type == "delete":
             response = requests.delete(url, headers=headers)
             if not response.ok:
@@ -337,9 +346,7 @@ class SageService:
     def get_customers(user):
         sage_auth_token = SageService.get_refreshed_tokens(user)
         try:
-            response = SageService.create_request(
-                sage_auth_token, user.accounting_org_id, "contacts", "get"
-            )
+            response = SageService.create_request(sage_auth_token, "contacts", "get")
         except AccountingError as ae:
             raise AccountingError(
                 user=user,

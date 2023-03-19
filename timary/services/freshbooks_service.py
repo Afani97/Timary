@@ -298,7 +298,7 @@ class FreshbooksService:
     @staticmethod
     def get_customers(user):
         freshbooks_auth_token = FreshbooksService.get_refreshed_tokens(user)
-        endpoint = f"v3/company/{user.accounting_org_id}/users/client"
+        endpoint = f"accounting/account/{user.accounting_org_id}/users/client"
         try:
             response = FreshbooksService.create_request(
                 freshbooks_auth_token, endpoint, "get"

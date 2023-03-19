@@ -70,6 +70,32 @@ class SageMocks:
     @urlmatch(
         scheme="https",
         netloc="api.accounting.sage.com",
+        path="/v3.1/contacts/abc123",
+        method="PUT",
+    )
+    def sage_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"id": "abc123"}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
+        path="/v3.1/contacts/abc123",
+        method="PUT",
+    )
+    def sage_error_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
         path="/v3.1/ledger_accounts",
         method="GET",
     )
@@ -159,6 +185,19 @@ class SageMocks:
         r._content = b"{}"
         return r
 
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.accounting.sage.com",
+        path="/v3.1/contacts",
+        method="GET",
+    )
+    def sage_fetch_customers_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"$items": [{ "id": "abc123", "name": "Ari Fani", "email": "ari@test.com" }]}'
+        return r
+
 
 class TestSageService(TestCase):
     def setUp(self):
@@ -237,3 +276,26 @@ class TestSageService(TestCase):
         ):
             with self.assertRaises(AccountingError):
                 SageService.create_invoice(sent_invoice)
+
+    def test_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_update_customer_mock):
+            SageService.update_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
+
+    def test_error_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(
+            SageMocks.sage_oauth_mock, SageMocks.sage_error_update_customer_mock
+        ):
+            with self.assertRaises(AccountingError):
+                SageService.update_customer(client)
+
+    def test_fetch_customers(self):
+        self.user.accounting_org_id = "abc123"
+        with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_fetch_customers_mock):
+            customers = SageService.get_customers(self.user)
+            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")

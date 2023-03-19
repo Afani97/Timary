@@ -83,6 +83,32 @@ class XeroMocks:
     @urlmatch(
         scheme="https",
         netloc="api.xero.com",
+        path="/api.xro/2.0/Contacts",
+        method="POST",
+    )
+    def xero_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"Contacts": [{ "ContactID": "abc123"}] }'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.xero.com",
+        path="/api.xro/2.0/Contacts",
+        method="POST",
+    )
+    def xero_error_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.xero.com",
         path="/api.xro/2.0/Invoices",
         method="POST",
     )
@@ -116,6 +142,19 @@ class XeroMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"Invoices": [{"InvoiceID": "abc123"}]}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.xero.com",
+        path="/api.xro/2.0/Contacts",
+        method="GET",
+    )
+    def xero_fetch_customers_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"Contacts": [{ "ContactID": "abc123", "Name": "Ari Fani", "EmailAddress": "ari@test.com"}] }'
         return r
 
 
@@ -190,3 +229,26 @@ class TestXeroService(TestCase):
         ):
             with self.assertRaises(AccountingError):
                 XeroService.create_invoice(sent_invoice)
+
+    def test_update_create_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_update_customer_mock):
+            XeroService.create_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
+
+    def test_update_error_create_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(
+            XeroMocks.xero_oauth_mock, XeroMocks.xero_error_update_customer_mock
+        ):
+            with self.assertRaises(AccountingError):
+                XeroService.create_customer(client)
+
+    def test_fetch_customers(self):
+        self.user.accounting_org_id = "abc123"
+        with HTTMock(XeroMocks.xero_oauth_mock, XeroMocks.xero_fetch_customers_mock):
+            customers = XeroService.get_customers(self.user)
+            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")

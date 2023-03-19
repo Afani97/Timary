@@ -85,6 +85,32 @@ class ZohoMocks:
     @urlmatch(
         scheme="https",
         netloc="invoice.zoho.com",
+        path="/api/v3/contacts/abc123",
+        method="PUT",
+    )
+    def zoho_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"contact": { "contact_id": "abc123", "contact_persons": [{"contact_person_id": "abc123"}] }}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="invoice.zoho.com",
+        path="/api/v3/contacts/abc123",
+        method="PUT",
+    )
+    def zoho_error_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b'{"contact": { }}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="invoice.zoho.com",
         path="/api/v3/items",
         method="POST",
     )
@@ -144,6 +170,24 @@ class ZohoMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"invoice": {"invoice_id": "abc123"}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="invoice.zoho.com",
+        path="/api/v3/contacts",
+        method="GET",
+    )
+    def zoho_fetch_customers_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = (
+            b'{"contacts": [{ '
+            b'"first_name": "Ari", "last_name": "Fani", '
+            b'"contact_id": "abc123", "contact_persons": '
+            b'[{"contact_person_id": "abc123"}] }]}'
+        )
         return r
 
 
@@ -222,3 +266,26 @@ class TestZohoService(TestCase):
         ):
             with self.assertRaises(AccountingError):
                 ZohoService.create_invoice(sent_invoice)
+
+    def test_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_update_customer_mock):
+            ZohoService.update_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
+
+    def test_error_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(
+            ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_error_update_customer_mock
+        ):
+            with self.assertRaises(AccountingError):
+                ZohoService.update_customer(client)
+
+    def test_fetch_customers(self):
+        self.user.accounting_org_id = "abc123"
+        with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_fetch_customers_mock):
+            customers = ZohoService.get_customers(self.user)
+            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")

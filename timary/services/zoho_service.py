@@ -93,7 +93,16 @@ class ZohoService:
             if not response.ok:
                 raise AccountingError(requests_response=response)
             return response.json()
-        if method_type == "delete":
+        elif method_type == "put":
+            response = requests.put(
+                url,
+                headers=headers,
+                data=urllib.parse.urlencode({"JSONString": json.dumps(data)}),
+            )
+            if not response.ok:
+                raise AccountingError(requests_response=response)
+            return response.json()
+        elif method_type == "delete":
             response = requests.delete(url, headers=headers)
             return response.json()
         return None

@@ -70,10 +70,36 @@ class FreshbookMocks:
     @urlmatch(
         scheme="https",
         netloc="api.freshbooks.com",
+        path="/accounting/account/abc123/users/clients/abc123",
+        method="POST",
+    )
+    def freshbook_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"response": {"result": {"client": {"id": "abc123"}}}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.freshbooks.com",
         path="/accounting/account/abc123/users/clients",
         method="POST",
     )
     def freshbook_error_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.freshbooks.com",
+        path="/accounting/account/abc123/users/clients/abc123",
+        method="POST",
+    )
+    def freshbook_error_update_customer_mock(url, request):
         r = Response()
         r.status_code = 400
         r._content = b"{}"
@@ -116,6 +142,19 @@ class FreshbookMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"response": {"result": {"invoice": {"id": "abc123"}}}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="api.freshbooks.com",
+        path="/accounting/account/abc123/users/client",
+        method="GET",
+    )
+    def freshbook_fetch_customers_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"response": {"result": {"clients": [{"id": "abc123", "fname": "Ari", "lname": "Fani"}]}}}'
         return r
 
 
@@ -197,3 +236,33 @@ class TestFreshbooksService(TestCase):
         ):
             with self.assertRaises(AccountingError):
                 FreshbooksService.create_invoice(sent_invoice)
+
+    def test_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(
+            FreshbookMocks.freshbook_oauth_mock,
+            FreshbookMocks.freshbook_update_customer_mock,
+        ):
+            FreshbooksService.update_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
+
+    def test_error_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user, accounting_customer_id="abc123")
+        with HTTMock(
+            FreshbookMocks.freshbook_oauth_mock,
+            FreshbookMocks.freshbook_error_update_customer_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                FreshbooksService.update_customer(client)
+
+    def test_fetch_customers(self):
+        self.user.accounting_org_id = "abc123"
+        with HTTMock(
+            FreshbookMocks.freshbook_oauth_mock,
+            FreshbookMocks.freshbook_fetch_customers_mock,
+        ):
+            customers = FreshbooksService.get_customers(self.user)
+            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")

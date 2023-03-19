@@ -70,6 +70,32 @@ class QuickbookMocks:
     @urlmatch(
         scheme="https",
         netloc="sandbox-quickbooks.api.intuit.com",
+        path="/v3/company/abc123/customer",
+        method="POST",
+    )
+    def quickbook_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"Customer": {"Id": "abc123"}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="sandbox-quickbooks.api.intuit.com",
+        path="/v3/company/abc123/customer",
+        method="POST",
+    )
+    def quickbook_error_update_customer_mock(url, request):
+        r = Response()
+        r.status_code = 400
+        r._content = b"{}"
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="sandbox-quickbooks.api.intuit.com",
         path="/v3/company/abc123/invoice",
         method="POST",
     )
@@ -103,6 +129,19 @@ class QuickbookMocks:
         r = Response()
         r.status_code = 200
         r._content = b'{"Invoice": {"Id": "abc123"}}'
+        return r
+
+    @staticmethod
+    @urlmatch(
+        scheme="https",
+        netloc="sandbox-quickbooks.api.intuit.com",
+        path="/v3/company/abc123/query",
+        method="GET",
+    )
+    def quickbooks_fetch_customers_mock(url, request):
+        r = Response()
+        r.status_code = 200
+        r._content = b'{"QueryResponse": {"Customer": [{"Id": "abc123", "DisplayName": "Ari Fani"}]}}'
         return r
 
 
@@ -188,3 +227,33 @@ class TestQuickbooksService(TestCase):
         ):
             with self.assertRaises(AccountingError):
                 QuickbooksService.create_invoice(sent_invoice)
+
+    def test_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user)
+        with HTTMock(
+            QuickbookMocks.quickbook_oauth_mock,
+            QuickbookMocks.quickbook_update_customer_mock,
+        ):
+            QuickbooksService.update_customer(client)
+            client.refresh_from_db()
+            self.assertEquals(client.accounting_customer_id, "abc123")
+
+    def test_error_update_customer(self):
+        self.user.accounting_org_id = "abc123"
+        client = ClientFactory(user=self.user)
+        with HTTMock(
+            QuickbookMocks.quickbook_oauth_mock,
+            QuickbookMocks.quickbook_error_update_customer_mock,
+        ):
+            with self.assertRaises(AccountingError):
+                QuickbooksService.update_customer(client)
+
+    def test_fetch_customers(self):
+        self.user.accounting_org_id = "abc123"
+        with HTTMock(
+            QuickbookMocks.quickbook_oauth_mock,
+            QuickbookMocks.quickbooks_fetch_customers_mock,
+        ):
+            customers = QuickbooksService.get_customers(self.user)
+            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")
