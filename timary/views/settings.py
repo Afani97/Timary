@@ -339,7 +339,7 @@ def view_tax_center(request):
         )
     years_paid.sort(reverse=True, key=lambda y: y["year"])
     context = {"years": years_paid}
-    return render(request, "partials/settings/account/_view_tax_info.html", context)
+    return render(request, "partials/settings/account/_view_tax_center.html", context)
 
 
 @login_required
