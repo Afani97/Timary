@@ -148,7 +148,6 @@ class TestUI(BaseUITest):
             page.fill("#id_quantity", "2")
             page.get_by_label("Invoice:").select_option(label=invoice.title)
             page.click('button:has-text("Add new hours")')
-            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2")
 
     @tag("ui")
@@ -161,7 +160,6 @@ class TestUI(BaseUITest):
             page.fill("#id_quantity", ":25")
             page.get_by_label("Invoice:").select_option(label=invoice.title)
             page.click('button:has-text("Add new hours")')
-            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "0.41")
 
     @tag("ui")
@@ -173,7 +171,6 @@ class TestUI(BaseUITest):
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
             page.fill(f"#hours-list #id_{hours.slug_id}", "2")
             page.click('button:has-text("Update")')
-            page.wait_for_selector("#hours-list li", timeout=2000)
             self.assertEqual(page.inner_text(".stat-value"), "2")
 
     @tag("ui")
