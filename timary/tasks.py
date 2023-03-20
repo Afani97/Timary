@@ -147,10 +147,12 @@ def gather_invoices_summary():
                 next_date__range=this_week_range,
             ).count()
             upcoming_single_invoices_due = SingleInvoice.objects.filter(
-                due_date__range=this_week_range
+                user=user, due_date__range=this_week_range, installments=1
             ).count()
             upcoming_single_invoice_installments_due = SingleInvoice.objects.filter(
-                next_installment_date__range=this_week_range
+                user=user,
+                next_installment_date__range=this_week_range,
+                installments__gt=1,
             ).count()
             msg_body = render_to_string(
                 "email/invoice_summary.html",
