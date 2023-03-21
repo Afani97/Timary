@@ -15,8 +15,11 @@ class TestClients(BaseTest):
         self.user = UserFactory(accounting_org="Zoho", accounting_org_id="abc123")
         self.client.force_login(self.user)
 
+    @patch("timary.models.Client.sync_customer", return_value=None)
     @patch("timary.services.accounting_service.AccountingService.get_customers")
-    def test_fetch_clients_from_accounting_service(self, get_customers_mock):
+    def test_fetch_clients_from_accounting_service(
+        self, get_customers_mock, sync_client_mock
+    ):
         get_customers_mock.return_value = [
             {
                 "accounting_customer_id": "abc123",
@@ -29,8 +32,11 @@ class TestClients(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.user.my_clients.count(), 1)
 
+    @patch("timary.models.Client.sync_customer", return_value=None)
     @patch("timary.services.accounting_service.AccountingService.get_customers")
-    def test_fetch_new_clients_from_accounting_service(self, get_customers_mock):
+    def test_fetch_new_clients_from_accounting_service(
+        self, get_customers_mock, sync_client_mock
+    ):
         ClientFactory(user=self.user, accounting_customer_id="abc124")
         get_customers_mock.return_value = [
             {
