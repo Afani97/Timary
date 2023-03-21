@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
-from timary.models import HoursLineItem, Invoice
+from timary.models import HoursLineItem, Invoice, MilestoneInvoice
 from timary.tasks import gather_recurring_hours
 from timary.utils import get_users_localtime, show_alert_message
 
@@ -304,6 +304,12 @@ def repeat_hours(request):
     hours = []
     hours_repeated = 0
     for hour in repeating_hours:
+        if (
+            isinstance(hour.invoice, MilestoneInvoice)
+            and hour.invoice.milestones_completed
+        ):
+            # Don't include repeat hours for milestone invoices that have been completed
+            continue
         # Only repeat previous day hours if they don't reach last_date limit
         if new_date >= hour.invoice.last_date:
             hours.append(

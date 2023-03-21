@@ -43,6 +43,12 @@ def gather_recurring_hours():
     new_hours_added = []
 
     for recurring_hour in all_recurring_hours:
+        if (
+            isinstance(recurring_hour.invoice, MilestoneInvoice)
+            and recurring_hour.invoice.milestones_completed
+        ):
+            # Don't include repeat/recurring hours for milestone invoices that have been completed
+            continue
         if recurring_hour.is_recurring_date_today():
             new_hours = HoursLineItem.objects.create(
                 quantity=recurring_hour.quantity,

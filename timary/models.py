@@ -729,6 +729,10 @@ class MilestoneInvoice(RecurringInvoice):
     def invoice_type(self):
         return "milestone"
 
+    @property
+    def milestones_completed(self):
+        return self.milestone_step > self.milestone_total_steps
+
     def update(self):
         self.milestone_step += 1
         self.last_date = timezone.now()

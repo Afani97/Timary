@@ -547,9 +547,26 @@ class TestHoursLineItem(TestCase):
         )
         self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [self.invoice])
 
+    def test_hours_do_not_show_completed_milestones(self):
+        user = UserFactory()
+        milestone = MilestoneInvoiceFactory(
+            user=user, milestone_total_steps=3, milestone_step=4
+        )
+        interval = IntervalInvoiceFactory(user=user)
+        form = HoursLineItemForm(
+            data={
+                "quantity": 1,
+                "invoice": interval.id,
+                "date_tracked": self.today,
+            },
+            user=user,
+        )
+        self.assertQuerysetEqual(list(form.fields["invoice"].queryset), [interval])
+        self.assertNotIn(list(form.fields["invoice"].queryset), [milestone])
+
     def test_hours_with_user_and_associated_invoices(self):
         user = UserFactory()
-        IntervalInvoiceFactory()
+        MilestoneInvoiceFactory()
         inv_1 = IntervalInvoiceFactory(user=user)
         inv_2 = IntervalInvoiceFactory(user=user)
 

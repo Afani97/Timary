@@ -359,6 +359,29 @@ class TestGatherHours(TestCase):
         hours.refresh_from_db()
         self.assertIsNotNone(hours.recurring_logic)
 
+    def test_skip_hours_for_completed_milestone_invoices(self):
+        hours = HoursLineItemFactory(
+            invoice=MilestoneInvoiceFactory(milestone_step=3, milestone_total_steps=2),
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "w",
+                "interval_days": [
+                    get_date_parsed(
+                        (timezone.now() - timezone.timedelta(days=1)).date()
+                    )
+                ],
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+        self.assertEquals(HoursLineItem.objects.count(), 1)
+
+        hours.refresh_from_db()
+        self.assertIsNotNone(hours.recurring_logic)
+
     @patch("timary.models.HoursLineItem.update_recurring_starting_weeks")
     @patch("timary.tasks.timezone")
     def test_refresh_starting_weeks_on_saturday(self, date_mock, update_weeks_mock):

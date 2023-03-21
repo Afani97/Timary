@@ -4,7 +4,7 @@ from django.db.models import CharField, Count, F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 
-from timary.models import HoursLineItem, InvoiceManager
+from timary.models import HoursLineItem, Invoice, InvoiceManager, MilestoneInvoice
 from timary.querysets import HourStats
 from timary.utils import get_users_localtime
 
@@ -30,6 +30,11 @@ class HoursManager:
         latest_date_tracked = (
             latest_hour_tracked.date_tracked if latest_hour_tracked else None
         )
+        if (
+            isinstance(latest_hour_tracked, MilestoneInvoice)
+            and latest_hour_tracked.invoice.milestone_completed
+        ):
+            latest_date_tracked = None
         if not latest_date_tracked:
             return show_repeat
 
@@ -44,6 +49,10 @@ class HoursManager:
         ):
             show_repeat = 1
         return show_repeat
+
+    def filter_completed_milestones(self, hours):
+        inv = Invoice.objects.get(id=hours["invoice"])
+        return not (isinstance(inv, MilestoneInvoice) and inv.milestone_step)
 
     def show_most_frequent_options(self):
         """Get current months hours and get top 5 most frequent hours logged"""
@@ -69,11 +78,19 @@ class HoursManager:
             )
             .values("repeat_hours")
             .annotate(repeat_hours_count=Count("repeat_hours"))
-            .order_by("-repeat_hours_count")[:5]
-            .values("quantity", "invoice__email_id")
+            .order_by("-repeat_hours_count")
+            .values("quantity", "invoice__email_id", "invoice")
         )
+        # Filter out milestones that have been completed
+        repeated_hours = list(
+            filter(
+                self.filter_completed_milestones,
+                repeated_hours,
+            ),
+        )
+
         repeated_hours_set = {
-            (float(h["quantity"]), h["invoice__email_id"]) for h in repeated_hours
+            (float(h["quantity"]), h["invoice__email_id"]) for h in repeated_hours[:5]
         }
         hours_today_set = {
             (float(h["quantity"]), h["invoice__email_id"])

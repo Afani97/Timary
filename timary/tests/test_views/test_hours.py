@@ -12,6 +12,7 @@ from timary.models import HoursLineItem
 from timary.tests.factories import (
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    MilestoneInvoiceFactory,
     SentInvoiceFactory,
     UserFactory,
 )
@@ -90,6 +91,24 @@ class TestHourLineItems(BaseTest):
         self.assertNotIn("Add 2.0hr", response_content)
         self.assertNotIn("Add 3.0hr", response_content)
         self.assertIn("Add 4.0hr", response_content)
+
+    def test_get_quick_hours_excluding_completed_milestones(self):
+        users_time = get_users_localtime(self.user)
+        yesterday = users_time - timezone.timedelta(days=1)
+        HoursLineItem.objects.all().delete()
+        invoice = IntervalInvoiceFactory(user=self.user)
+        milestone = MilestoneInvoiceFactory(
+            user=self.user, milestone_step=3, milestone_total_steps=2
+        )
+        HoursLineItemFactory(invoice=invoice, quantity=2, date_tracked=yesterday)
+        HoursLineItemFactory(invoice=milestone, quantity=3, date_tracked=yesterday)
+
+        response = self.client.get(reverse("timary:index"))
+        response_content = response.content.decode("utf-8")
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML("<h1>Quick hours</h1>", response_content)
+        self.assertIn("Add 2.0hr", response_content)
+        self.assertNotIn("Add 3.0hr", response_content)
 
     def test_create_daily_hours(self):
         invoice = IntervalInvoiceFactory(user=self.user)
@@ -424,6 +443,43 @@ class TestHourLineItems(BaseTest):
             response.headers["HX-Trigger"],
         )
 
+    def test_skip_repeat_daily_hours_for_completed_milestone(self):
+        HoursLineItem.objects.all().delete()
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=(timezone.now() - timezone.timedelta(days=1)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        HoursLineItemFactory(
+            invoice=MilestoneInvoiceFactory(
+                user=self.user, milestone_step=3, milestone_total_steps=2
+            ),
+            date_tracked=(timezone.now() - timezone.timedelta(days=1)).astimezone(
+                tz=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 2)
+        _from = (
+            (timezone.now() - timezone.timedelta(days=1))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        _to = (
+            (timezone.now() - timezone.timedelta(days=2))
+            .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+            .strftime("%b. %-d, %Y")
+        )
+        url_params = f"from={_from}&to={_to}"
+        response = self.client.get(f'{reverse("timary:repeat_hours")}?{url_params}')
+        self.assertEqual(response.status_code, 200)
+        # The line item with completed milestone invoice isn't repeated
+        self.assertEqual(HoursLineItem.objects.count(), 3)
+        self.assertIn(
+            "New hours copied!",
+            response.headers["HX-Trigger"],
+        )
+
     def test_error_repeat_daily_hours_for_specific_day_missing_hours(self):
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
@@ -620,6 +676,40 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(HoursLineItem.objects.count(), 7)
+
+    def test_repeat_hours_including_repeating_not_completed_milestone_invoices(
+        self,
+    ):
+        HoursLineItem.objects.all().delete()
+        HoursLineItemFactory(
+            invoice=MilestoneInvoiceFactory(
+                user=self.user, milestone_step=3, milestone_total_steps=2
+            ),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        HoursLineItemFactory(
+            invoice=IntervalInvoiceFactory(user=self.user),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        start_week = get_starting_week_from_date(timezone.now()).isoformat()
+        HoursLineItemFactory(
+            invoice=MilestoneInvoiceFactory(
+                user=self.user, milestone_step=1, milestone_total_steps=2
+            ),
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            recurring_logic={
+                "type": "recurring",
+                "interval": "d",
+                "starting_week": start_week,
+            },
+        )
+        self.assertEqual(HoursLineItem.objects.count(), 3)
+
+        response = self.client.get(reverse("timary:repeat_hours"))
+        self.assertEqual(response.status_code, 200)
+
+        # Only 2 are created, the recurring milestone invoice has completed its milestones already
+        self.assertEqual(HoursLineItem.objects.count(), 5)
 
     def test_create_repeating_hours(self):
         HoursLineItem.objects.all().delete()

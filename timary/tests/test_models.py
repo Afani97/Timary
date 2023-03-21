@@ -584,6 +584,18 @@ class TestInvoice(TestCase):
         SentInvoiceFactory(invoice=invoice, accounting_invoice_id="abc123")
         self.assertTrue(invoice.is_client_synced())
 
+    def test_milestone_steps_all_completed(self):
+        invoice = MilestoneInvoiceFactory(milestone_step=3, milestone_total_steps=2)
+        self.assertTrue(invoice.milestones_completed)
+
+    def test_milestone_steps_not_all_complete(self):
+        invoice = MilestoneInvoiceFactory(milestone_step=3, milestone_total_steps=4)
+        self.assertFalse(invoice.milestones_completed)
+
+    def test_milestone_steps_not_all_complete_has_to_be_greater_than_total_steps(self):
+        invoice = MilestoneInvoiceFactory(milestone_step=3, milestone_total_steps=3)
+        self.assertFalse(invoice.milestones_completed)
+
 
 class TestSentInvoice(TestCase):
     def test_update_installments_price(self):

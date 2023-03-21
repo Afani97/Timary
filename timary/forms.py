@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField
 
@@ -92,7 +92,14 @@ class HoursLineItemForm(forms.ModelForm):
             if self.instance.pk and self.instance.sent_invoice_id is not None:
                 # For updating sent invoices hours that are eligible, include all invoices, not excluding paused
                 invoices = self.user.get_all_invoices()
-            invoice_qs = invoices.exclude(Q(instance_of=SingleInvoice))
+            # Exclude Single invoices and Milestone invoices that have been completed
+            invoice_qs = (
+                invoices.exclude(Q(instance_of=SingleInvoice))
+                .annotate(mts=F("MilestoneInvoice___milestone_total_steps"))
+                .exclude(
+                    Q(mts__isnull=False, MilestoneInvoice___milestone_step__gt=F("mts"))
+                )
+            )
             invoice_qs_count = invoice_qs.count()
             if invoice_qs.count() > 0:
                 self.fields["invoice"].queryset = invoice_qs
