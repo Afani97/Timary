@@ -49,11 +49,17 @@ class TestGatherInvoices(TestCase):
         HoursLineItemFactory(
             invoice__next_date=timezone.now() + timezone.timedelta(days=2)
         )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+
+    @patch("timary.tasks.async_task")
+    def test_gather_1_invoices_for_yesterday_not_sent(self, send_invoice_mock):
+        send_invoice_mock.return_value = None
         HoursLineItemFactory(
             invoice__next_date=timezone.now() - timezone.timedelta(days=1)
         )
         invoices_sent = gather_invoices()
-        self.assertEqual("Invoices sent: 0", invoices_sent)
+        self.assertEqual("Invoices sent: 1", invoices_sent)
 
     @patch("timary.tasks.async_task")
     def test_gather_0_invoices_with_next_date_null(self, send_invoice_mock):

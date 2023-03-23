@@ -71,20 +71,18 @@ def gather_recurring_hours():
 
 
 def gather_invoices():
-    today = timezone.now()
+    today = timezone.now().replace(hour=23, minute=59, second=59, microsecond=59)
     tomorrow = today + timedelta(days=1)
     paused_query = Q(is_paused=False)
     archived_query = Q(is_archived=False)
     user_active_query = Q(
         user__stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
     )
-    today_range_query = (
-        today.replace(hour=0, minute=0, second=0),
-        today.replace(hour=23, minute=59, second=59),
-    )
     invoices_sent_today = (
         IntervalInvoice.objects.filter(paused_query & archived_query)
-        .filter(next_date__range=today_range_query)
+        .filter(
+            next_date__lte=today
+        )  # Catch invoices that didn't get sent up until today
         .exclude(user_active_query)
     )
     for invoice in invoices_sent_today:
