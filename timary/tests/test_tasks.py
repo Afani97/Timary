@@ -267,6 +267,53 @@ class TestGatherHours(TestCase):
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
 
+    def test_gather_0_hours_with_paused_invoice(self):
+        HoursLineItemFactory(
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+            invoice__is_paused=True,
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("0 hours added.", hours_added)
+
+    def test_gather_1_hours_excluding_paused_and_archived_invoices(self):
+        HoursLineItemFactory(
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+        )
+        HoursLineItemFactory(
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+            invoice__is_archived=True,
+        )
+        HoursLineItemFactory(
+            date_tracked=self.date_tracked,
+            recurring_logic={
+                "type": "repeating",
+                "interval": "d",
+                "starting_week": self.start_week,
+                "end_date": self.next_week,
+            },
+            invoice__is_paused=True,
+        )
+        hours_added = gather_recurring_hours()
+        self.assertEqual("1 hours added.", hours_added)
+
     def test_gather_0_hours_if_already_tracked_today(self):
         HoursLineItemFactory(
             date_tracked=timezone.now().astimezone(

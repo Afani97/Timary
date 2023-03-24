@@ -34,7 +34,7 @@ def gather_recurring_hours():
         HoursLineItem.objects.exclude(
             Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
         )
-        .exclude(invoice__is_archived=True)
+        .exclude(Q(invoice__is_archived=True) | Q(invoice__is_paused=True))
         .exclude(date_tracked__date=today.date())
     )
 
