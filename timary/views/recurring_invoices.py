@@ -3,7 +3,7 @@ import zoneinfo
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -395,6 +395,9 @@ def invoice_add_hours(request, invoice_id):
 @require_http_methods(["GET", "POST"])
 def invoice_feedback(request, archive_invoice_id):
     invoice = InvoiceManager(archive_invoice_id).invoice
+
+    if invoice.feedback and len(invoice.feedback) != 0:
+        return redirect(reverse("timary:landing_page"))
 
     if request.GET.get("send") is not None:
         # Initial request to let the client know they can submit feedback
