@@ -42,7 +42,7 @@
             <p class="text-lg mb-4">Client: {{ archive_invoice.client.name }}</p>
             {% if archive_invoice.feedback|length > 0 %}
                 Feedback: <br>
-                <p>{{ archive_invoice.feedback }}</p>
+                <p>{{ archive_invoice.feedback|linebreaksbr }}</p>
             {% endif %}
         </div>
     </div>
