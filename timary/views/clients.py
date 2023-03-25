@@ -2,13 +2,13 @@ import sys
 
 import stripe
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from timary.custom_errors import AccountingError
 from timary.forms import ClientForm
-from timary.models import Client
+from timary.models import Client, Invoice
 from timary.services.accounting_service import AccountingService
 from timary.services.stripe_service import StripeService
 from timary.utils import show_alert_message
@@ -170,3 +170,31 @@ def get_accounting_clients(request):
         f"Clients synced from {request.user.accounting_org.title()}",
     )
     return response
+
+
+@login_required()
+@require_http_methods(["DELETE"])
+def delete_client(request, client_id):
+    client = Client.objects.get(id=client_id)
+    if request.user != client.user:
+        raise Http404
+
+    if Invoice.objects.filter(client=client).exists():
+        response = HttpResponse(status=204)
+        response["HX-Reswap"] = "none"
+        show_alert_message(
+            response,
+            "error",
+            f"{client.name} is associated with invoices, cannot remove.",
+        )
+        return response
+    else:
+        client_name = client.name
+        client.delete()
+        response = HttpResponse("")
+        show_alert_message(
+            response,
+            "success",
+            f"Successfully removed {client_name}",
+        )
+        return response

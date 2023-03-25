@@ -167,6 +167,28 @@ class TestClients(TestCase):
 
         self.assertEqual(form.errors, {"email": ["Enter a valid email address."]})
 
+    def test_client_address(self):
+        form = ClientForm(
+            data={
+                "name": "John Smith",
+                "email": "user@test.com",
+                "address": "123 Main St, New York, NY",
+            }
+        )
+
+        self.assertEqual(form.errors, {})
+
+    def test_client_phone_number(self):
+        form = ClientForm(
+            data={
+                "name": "John Smith",
+                "email": "user@test.com",
+                "phone_number": "+17742613186",
+            }
+        )
+
+        self.assertEqual(form.errors, {})
+
 
 class TestInvoices(TestCase):
     @classmethod

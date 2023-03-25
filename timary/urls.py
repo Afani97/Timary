@@ -112,6 +112,7 @@ urlpatterns += [
         views.sync_client,
         name="sync_client",
     ),
+    path("clients/<uuid:client_id>/delete/", views.delete_client, name="delete_client"),
 ]
 
 # RECURRING INVOICE URLS
