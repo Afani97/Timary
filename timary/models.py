@@ -1233,6 +1233,8 @@ I really appreciate for the opportunity to work with you,
 Aristotel F
 Timary
 
+P.S. If you have a quick second to reply, can you provide how you found Timary?
+
         """,
             self.email,
         )
