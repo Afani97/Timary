@@ -95,9 +95,8 @@ def sync_client(request, client_id):
     if request.user != client.user:
         raise Http404
 
-    response = render(request, "clients/_client.html", {"client": client})
-
     if not client.user.settings["subscription_active"]:
+        response = render(request, "clients/_client.html", {"client": client})
         show_alert_message(
             response,
             "warning",
@@ -107,6 +106,8 @@ def sync_client(request, client_id):
 
     customer_synced, error_raised = client.sync_customer()
 
+    client.refresh_from_db()  # Refresh client to show the synced badge on return
+    response = render(request, "clients/_client.html", {"client": client})
     if customer_synced:
         show_alert_message(
             response,
