@@ -81,10 +81,16 @@
                 <div class="divider"></div>
                 {% if request.user.accounting_org %}
                     <div class="flex justify-center">
-                        <a hx-get="{% url 'timary:get_accounting_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
-                            class="link-hover">Fetch from {{ request.user.accounting_org|title }}</a>
+                        <button
+                            hx-get="{% url 'timary:get_accounting_clients' %}"
+                            hx-target="#inner-content"
+                            hx-swap="innerHTML"
+                            class="btn btn-sm"
+                            _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+                        >
+                            Fetch from {{ request.user.accounting_org|title }}
+                        </button>
                     </div>
-                    <div class="divider"></div>
                 {% endif %}
             </div>
 
