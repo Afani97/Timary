@@ -4,11 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from timary.forms import ClientForm, HoursLineItemForm, InvoiceForm
+from timary.forms import ClientForm, HoursLineItemForm, InvoiceFeedbackForm, InvoiceForm
 from timary.models import Invoice, InvoiceManager, SentInvoice
+from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import get_users_localtime, show_active_timer, show_alert_message
 
@@ -387,3 +389,59 @@ def invoice_add_hours(request, invoice_id):
         )
         response["HX-Reswap"] = "outerHTML"
         return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def invoice_feedback(request, archive_invoice_id):
+    invoice = InvoiceManager(archive_invoice_id).invoice
+
+    if request.GET.get("send") is not None:
+        # Initial request to let the client know they can submit feedback
+        feedback_link = request.build_absolute_uri(
+            reverse(
+                "timary:invoice_feedback",
+                kwargs={"archive_invoice_id": invoice.id},
+            )
+        )
+        EmailService.send_plain(
+            f"Provide feedback for {invoice.user.first_name}",
+            f"""
+Hi {invoice.client.name},
+
+{invoice.user.first_name} has asked if you'd like to provide feedback on their latest performance for {invoice.title}.
+
+When you have a minute sometime, here is the link to submit your feedback: {feedback_link}
+
+Thank you once again for using Timary,
+
+Regards,
+Aristotel
+ari@usetimary.com
+            """,
+            invoice.client.email,
+        )
+        response = HttpResponse(status=204)
+        show_alert_message(
+            response,
+            "success",
+            "Successfully send the client a form to provide feedback.",
+        )
+        return response
+
+    if request.method == "POST":
+        feedback_form = InvoiceFeedbackForm(request.POST or None)
+        if feedback_form.is_valid():
+            feedback_provided = feedback_form.cleaned_data.get("feedback")
+            invoice.feedback = feedback_provided
+            invoice.save()
+            return HttpResponse(
+                """
+            <div class="text-xl text-center" _="on load wait 5s then go to url /">
+            Feedback submitted! Thank you for using Timary
+            </div>
+            <div class="text-center mt-4">Redirecting you to the home page.</div>
+            """
+            )
+
+    return render(request, "invoices/_feedback.html", {"archive_invoice": invoice})

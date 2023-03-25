@@ -163,6 +163,11 @@ urlpatterns += [
         views.invoice_hour_stats,
         name="invoice_hour_stats",
     ),
+    path(
+        "invoices/<uuid:archive_invoice_id>/feedback/",
+        views.invoice_feedback,
+        name="invoice_feedback",
+    ),
 ]
 
 # SINGLE INVOICE URLS

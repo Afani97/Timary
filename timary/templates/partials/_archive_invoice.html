@@ -15,6 +15,16 @@
                                 View sent invoices
                             </label>
                         </li>
+                        {% if archive_invoice.feedback|length == 0 %}
+                            <li>
+                                <label hx-get="{% url 'timary:invoice_feedback' archive_invoice.id %}?send=true"
+                                    class="btn btn-sm"
+                                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me end"
+                                >
+                                    Request feedback from client
+                                </label>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -29,7 +39,11 @@
             {% if archive_invoice.invoices_pending > 0 %}
                 <p class="text-xl text-yellow-200">Invoices pending: {{ archive_invoice.invoices_pending }}</p>
             {% endif %}
-            <p class="text-lg">Client: {{ archive_invoice.client.name }}</p>
+            <p class="text-lg mb-4">Client: {{ archive_invoice.client.name }}</p>
+            {% if archive_invoice.feedback|length > 0 %}
+                Feedback: <br>
+                <p>{{ archive_invoice.feedback }}</p>
+            {% endif %}
         </div>
     </div>
 </li>

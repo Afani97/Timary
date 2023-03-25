@@ -261,6 +261,8 @@ class Invoice(PolymorphicModel, BaseModel):
     is_archived = models.BooleanField(default=False, null=True, blank=True)
     total_budget = models.IntegerField(null=True, blank=True)
 
+    feedback = models.TextField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.title}"
 

@@ -975,3 +975,11 @@ class UpdatePasswordForm(forms.Form):
             raise ValidationError("Unable to update password")
 
         return validated_data
+
+
+class InvoiceFeedbackForm(forms.Form):
+    feedback = forms.CharField(required=True)
+
+    class Meta:
+        model = Invoice
+        fields = ["feedback"]
