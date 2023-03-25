@@ -16,6 +16,7 @@ from timary.tasks import (
     gather_invoices,
     gather_recurring_hours,
     gather_single_invoices_before_due_date,
+    remind_users_to_log_hours,
     send_invoice,
     send_invoice_installment,
     send_invoice_preview,
@@ -1041,3 +1042,65 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         with self.subTest("Test budget appears in weekly update"):
             self.assertIn("Invoice Budget", html_message)
+
+
+class TestRemindUsersToLogHours(TestCase):
+    @patch("timary.tasks.timezone")
+    def test_send_weekly_reminder(self, today_mock):
+        todays_date = datetime(
+            2023, 3, 24, 12, 30, 0, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        today_mock.now.return_value = todays_date
+        user = UserFactory()
+        fake_client = ClientFactory(user=user)
+        IntervalInvoiceFactory(user=user, client=fake_client)
+
+        remind_users_to_log_hours()
+
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(
+            mail.outbox[0].subject,
+            "Adding hours this week?",
+        )
+
+    @patch("timary.tasks.timezone")
+    def test_do_not_send_weekly_reminder_if_hours_logged(self, today_mock):
+        todays_date = datetime(
+            2023, 3, 24, 12, 30, 0, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        today_mock.now.return_value = todays_date
+        user = UserFactory()
+        fake_client = ClientFactory(user=user)
+        invoice = IntervalInvoiceFactory(user=user, client=fake_client)
+        HoursLineItemFactory(
+            date_tracked=todays_date - timedelta(days=1), invoice=invoice
+        )
+
+        remind_users_to_log_hours()
+
+        self.assertEquals(len(mail.outbox), 0)
+
+    @patch("timary.tasks.timezone")
+    def test_send_weekly_reminder_only_if_active_invoices(self, today_mock):
+        todays_date = datetime(
+            2023, 3, 24, 12, 30, 0, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        today_mock.now.return_value = todays_date
+        user = UserFactory()
+        fake_client = ClientFactory(user=user)
+        paused_invoice = IntervalInvoiceFactory(
+            user=user, client=fake_client, is_paused=True
+        )
+        HoursLineItemFactory(
+            date_tracked=todays_date - timedelta(days=1), invoice=paused_invoice
+        )
+        archived_invoice = IntervalInvoiceFactory(
+            user=user, client=fake_client, is_archived=True
+        )
+        HoursLineItemFactory(
+            date_tracked=todays_date - timedelta(days=1), invoice=archived_invoice
+        )
+
+        remind_users_to_log_hours()
+
+        self.assertEquals(len(mail.outbox), 0)

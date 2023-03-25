@@ -452,6 +452,49 @@ def send_weekly_updates():
         )
 
 
+def remind_users_to_log_hours():
+    users = User.objects.exclude(
+        stripe_subscription_status=User.StripeSubscriptionStatus.INACTIVE
+    )
+
+    today = timezone.now()
+    week_start = (
+        (today - timedelta(days=today.weekday()))
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .astimezone(tz=zoneinfo.ZoneInfo("America/New_York"))
+    )
+    hours_date_range = (week_start, today)
+
+    for user in users:
+        if user.get_invoices.filter(is_paused=False).count() == 0:
+            continue
+        hours_logged = HoursLineItem.objects.filter(
+            date_tracked__range=hours_date_range,
+            invoice__user=user,
+            invoice__is_archived=False,
+            invoice__is_paused=False,
+        ).count()
+
+        if hours_logged == 0:
+            EmailService.send_html(
+                "Adding hours this week?",
+                f"""
+Hi {user.first_name.title()},
+
+It looks like you didn't add any hours this week.
+
+Timary has multiple options to add hours quickly, i.e. copy hours previously added, repeating hours.
+
+If you have questions please don't hesitate to ask at ari@usetimary.com.
+
+Aristotel
+ari@usetimary.com
+Timary
+                """,
+                user.email,
+            )
+
+
 def backup_db_file():
     base_dir = Path(__file__).resolve().parent.parent
     file = base_dir / "db.sqlite3"
