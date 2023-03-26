@@ -29,20 +29,21 @@ from timary.utils import get_users_localtime
 
 
 def gather_recurring_hours():
-    today = timezone.now()
-    all_recurring_hours = (
-        HoursLineItem.objects.exclude(
-            Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
-        )
-        .exclude(Q(invoice__is_archived=True) | Q(invoice__is_paused=True))
-        .exclude(date_tracked__date=today.date())
-    )
-
-    is_today_saturday = today.weekday() == 5
+    all_recurring_hours = HoursLineItem.objects.exclude(
+        Q(recurring_logic__exact={}) | Q(recurring_logic__isnull=True)
+    ).exclude(Q(invoice__is_archived=True) | Q(invoice__is_paused=True))
 
     new_hours_added = []
 
     for recurring_hour in all_recurring_hours:
+        today = get_users_localtime(recurring_hour.invoice.user)
+        is_today_saturday = today.weekday() == 5
+        if (
+            recurring_hour.date_tracked.astimezone(tz=today.tzinfo).date()
+            == today.date()
+        ):
+            continue
+
         if (
             isinstance(recurring_hour.invoice, MilestoneInvoice)
             and recurring_hour.invoice.milestones_completed

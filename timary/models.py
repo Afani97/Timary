@@ -131,7 +131,7 @@ class HoursLineItem(LineItem):
 
         - Return false otherwise
         """
-        today = timezone.now()
+        today = get_users_localtime(self.invoice.user)
         if (
             not self.recurring_logic
             or "type" not in self.recurring_logic

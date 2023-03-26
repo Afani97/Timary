@@ -467,11 +467,12 @@ class TestGatherHours(TestCase):
         cancel_hours_mock.return_value = None
 
         HoursLineItemFactory(
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "d",
                 "starting_week": self.start_week,
-            }
+            },
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
