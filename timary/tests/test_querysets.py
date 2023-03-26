@@ -66,6 +66,50 @@ class TestHourStats(TestCase):
         self.assertEqual(float(current_month_stats["total_hours"]), 5)
         self.assertEqual(float(current_month_stats["total_amount"]), 1900)
 
+    @patch("timary.querysets.timezone")
+    def test_hour_stats_current_month_do_not_include_weekly_invoice_hours_without_sent_invoice(
+        self, date_mock
+    ):
+        # Don't calculate hours for weekly invoices, only their sent invoices
+        date_mock.now.return_value = timezone.datetime(
+            2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        user = UserFactory()
+        invoice = WeeklyInvoiceFactory(user=user, rate=1500)
+        sent_invoice = SentInvoiceFactory(
+            invoice=invoice,
+            user=user,
+            total_price=1500,
+            paid_status=2,
+            date_sent=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
+        )
+        sent_invoice.user = user
+        sent_invoice.save()
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
+            quantity=2,
+        )
+
+        HoursLineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.datetime(
+                2022, 8, 25, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            ),
+            sent_invoice_id=sent_invoice.id,
+            quantity=3,
+        )
+
+        hour_stats = HourStats(user=user)
+
+        current_month_stats = hour_stats.get_current_month_stats()
+        self.assertEqual(float(current_month_stats["total_hours"]), 5)
+        self.assertEqual(float(current_month_stats["total_amount"]), 1500)
+
     @patch("timary.querysets.get_last_month")
     @patch("timary.querysets.timezone")
     def test_hour_stats_last_month(self, date_mock, last_month_mock):

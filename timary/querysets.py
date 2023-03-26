@@ -3,7 +3,7 @@ import zoneinfo
 from datetime import timedelta
 
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from timary.utils import get_users_localtime
@@ -82,7 +82,10 @@ class HourStats:
 
         sent_invoices = self.user.sent_invoices.filter(
             date_sent__range=date_range
-        ).exclude(paid_status=SentInvoice.PaidStatus.FAILED)
+        ).exclude(
+            Q(paid_status=SentInvoice.PaidStatus.FAILED)
+            | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        )
 
         total_hours = HoursLineItem.objects.filter(
             sent_invoice_id__in=map(str, sent_invoices.values_list("id", flat=True)),
@@ -104,16 +107,17 @@ class HourStats:
                 date_tracked__range=date_range,
             )
             .exclude(quantity=0)
-            .select_related("invoice")
+            .prefetch_related("invoice")
             .order_by("-date_tracked")
         )
 
         total_hours_sum = qs.aggregate(total_hours=Sum("quantity"))["total_hours"]
-        total_amount_sum_non_weekly_invoice = qs.annotate(
-            total_amount=F("quantity") * F("invoice__rate")
-        ).aggregate(total=Sum("total_amount"))["total"]
+        total_amount = 0
+        for line_item in qs.all():
+            if line_item.invoice.invoice_type() != "weekly":
+                total_amount += line_item.quantity * line_item.invoice.rate
 
-        return total_hours_sum or 0, total_amount_sum_non_weekly_invoice or 0
+        return total_hours_sum or 0, total_amount or 0
 
     def get_stats(self, date_range=None):
         sent_invoice_stats = self.get_sent_invoices_stats(date_range)
