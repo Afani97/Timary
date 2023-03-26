@@ -172,7 +172,7 @@ urlpatterns += [
 
 # SINGLE INVOICE URLS
 urlpatterns += [
-    path("invoices/single/", views.single_invoice, name="single_invoice"),
+    path("invoices/single/", views.create_single_invoice, name="single_invoice"),
     path(
         "invoices/single/<uuid:single_invoice_id>/",
         views.update_single_invoice,

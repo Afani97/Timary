@@ -1069,26 +1069,6 @@ class TestSingleInvoices(BaseTest):
         fake_client = ClientFactory()
         response = self.client.post(
             reverse("timary:single_invoice"),
-            {"title": "Some title", "client": fake_client.id},
-        )
-
-        invoice = SingleInvoice.objects.first()
-        self.assertRedirects(
-            response,
-            reverse(
-                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
-            ),
-            fetch_redirect_response=True,
-        )
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), f"Successfully created {invoice.title}")
-
-    def test_create_invoice_single_line_item(self):
-        Invoice.objects.all().delete()
-        fake_client = ClientFactory()
-        self.client.post(
-            reverse("timary:single_invoice"),
             {
                 "title": "Some title",
                 "client": fake_client.id,
@@ -1098,8 +1078,11 @@ class TestSingleInvoices(BaseTest):
                 "unit_price": 2.5,
             },
         )
-
         invoice = SingleInvoice.objects.first()
+
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), f"Successfully created {invoice.title}")
         self.assertEqual(invoice.line_items.count(), 1)
         self.assertEqual(invoice.balance_due, 2.5)
 
@@ -1137,19 +1120,23 @@ class TestSingleInvoices(BaseTest):
         )
         self.assertEqual(SingleInvoice.objects.all().count(), 0)
 
-    def test_update_invoice(self):
+    def test_create_invoice_error_no_line_items_added(self):
         fake_client = ClientFactory()
-        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
-        self.client.post(
-            reverse(
-                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
-            ),
-            {"title": "Some title", "client": fake_client.id},
+        response = self.client.post(
+            reverse("timary:single_invoice"),
+            {
+                "title": "Some title",
+                "client": fake_client.id,
+            },
         )
-        invoice.refresh_from_db()
-        self.assertEqual(invoice.title, "Some title")
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]), "Cannot create an invoice without line items"
+        )
+        self.assertEqual(SingleInvoice.objects.all().count(), 0)
 
-    def test_update_invoice_single_line_item(self):
+    def test_update_invoice(self):
         fake_client = ClientFactory()
         invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
         line_item = LineItemFactory(invoice=invoice)
@@ -1167,6 +1154,7 @@ class TestSingleInvoices(BaseTest):
             },
         )
         invoice.refresh_from_db()
+        self.assertEqual(invoice.title, "Some title")
         self.assertEqual(invoice.balance_due, 2.5)
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(
@@ -1217,6 +1205,25 @@ class TestSingleInvoices(BaseTest):
             "Title cannot start with a number.", response.content.decode("utf-8")
         )
         self.assertNotEqual(invoice.title, "2Some title")
+
+    def test_update_invoice_error_no_line_items_added(self):
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(user=self.user, client=fake_client)
+        LineItemFactory(invoice=invoice)
+        response = self.client.post(
+            reverse(
+                "timary:update_single_invoice", kwargs={"single_invoice_id": invoice.id}
+            ),
+            {
+                "title": "Some title",
+                "client": fake_client.id,
+            },
+        )
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]), "Cannot update this invoice without line items"
+        )
 
     def test_delete_line_item(self):
         invoice = SingleInvoiceFactory(user=self.user)

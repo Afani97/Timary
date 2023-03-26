@@ -43,7 +43,7 @@ def format_line_items(request):
 
 @login_required()
 @require_http_methods(["GET", "POST"])
-def single_invoice(request):
+def create_single_invoice(request):
     if request.method == "GET":
         return render(
             request,
@@ -70,12 +70,28 @@ def single_invoice(request):
                 },
             )
 
+        line_items = format_line_items(request)
+        if len(line_items) == 0:
+            messages.warning(
+                request,
+                "Cannot create an invoice without line items",
+                extra_tags="line-items-err",
+            )
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "invoice_form": invoice_form,
+                    "line_item_forms": format_line_items(request),
+                },
+            )
+
         saved_single_invoice = invoice_form.save(commit=False)
         saved_single_invoice.user = request.user
         saved_single_invoice.save()
 
         # Save line items to the invoice if valid
-        for line_form in format_line_items(request):
+        for line_form in line_items:
             if line_form.is_valid():
                 line_item_saved = line_form.save(commit=False)
                 line_item_saved.invoice = saved_single_invoice
@@ -133,11 +149,28 @@ def update_single_invoice(request, single_invoice_id):
                 },
             )
 
+        line_items = format_line_items(request)
+        if len(line_items) == 0:
+            messages.warning(
+                request,
+                "Cannot update this invoice without line items",
+                extra_tags="line-items-err",
+            )
+            return render(
+                request,
+                "invoices/single_invoice.html",
+                {
+                    "single_invoice": single_invoice_obj,
+                    "invoice_form": invoice_form,
+                    "line_item_forms": line_item_forms,
+                },
+            )
+
         saved_single_invoice: SingleInvoice = invoice_form.save(commit=False)
         saved_single_invoice.user = request.user
         saved_single_invoice.save()
         # Save line items to the invoice if valid
-        for line_form in format_line_items(request):
+        for line_form in line_items:
             if line_form.is_valid():
                 line_item_saved = line_form.save(commit=False)
                 line_item_saved.invoice = saved_single_invoice
@@ -197,7 +230,9 @@ def single_invoice_line_item(request):
     if request.method == "DELETE":
         line_item_id = request.GET.get("line_item_id")
         line_item = get_object_or_404(LineItem, id=line_item_id)
+        line_item_invoice = line_item.invoice
         line_item.delete()
+        line_item_invoice.update()
         return HttpResponse("")
     raise Http404
 
