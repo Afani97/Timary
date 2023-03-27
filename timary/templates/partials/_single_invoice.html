@@ -1,4 +1,4 @@
-{% load filters %}
+{% load filters waffle_tags %}
 <li class="card card-bordered border-neutral bg-base-200">
     <div class="card-body">
         <div class="flex justify-between">
@@ -18,6 +18,13 @@
                             </a>
                         </li>
                     {% endif %}
+                    {% switch "can_view_expenses" %}
+                        <li>
+                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                Manage expenses
+                            </label>
+                        </li>
+                    {% endswitch %}
                     <li>
                         <a class="btn btn-sm" hx-get="{% url 'timary:update_single_invoice_status' single_invoice_id=single_invoice.id %}"
                             hx-target="closest .card" hx-swap="outerHTML" _="on htmx:beforeRequest add .loading to me">
@@ -30,16 +37,6 @@
                                 View sent invoices
                             </label>
                         </li>
-                        {# TODO: Send remaining balance #}
-                        {#                    <li>#}
-                        {#                        <label hx-get="{% url 'timary:send_invoice_installment' single_invoice_id=single_invoice.id %}?remaining=true"#}
-                        {#                               hx-confirm="Are you sure you want to send the remaining balance?"#}
-                        {#                               hx-target="closest .card"#}
-                        {#                               hx-swap="outerHTMl"#}
-                        {#                               class="btn btn-sm">#}
-                        {#                            Sent remaining balance#}
-                        {#                        </label>#}
-                        {#                    </li>#}
                     {% endif %}
                     <li>
                         <a hx-delete="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}"

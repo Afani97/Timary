@@ -17,6 +17,13 @@
                             Edit
                         </a>
                     </li>
+                    {% switch "can_view_expenses" %}
+                        <li>
+                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                Manage expenses
+                            </label>
+                        </li>
+                    {% endswitch %}
                     <li>
                         <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
                             View sent invoices
@@ -30,13 +37,6 @@
                             Archive
                         </a>
                     </li>
-                    {% switch "can_view_expenses" %}
-                        <li>
-                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
-                                Manage expenses
-                            </label>
-                        </li>
-                    {% endswitch %}
                 </ul>
             </div>
         </div>
