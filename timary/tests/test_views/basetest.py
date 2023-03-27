@@ -12,6 +12,7 @@ class BaseTest(TestCase):
             libraries={
                 "filters": "timary.templatetags.filters",
                 "tz": "django.templatetags.tz",
+                "waffle_tags": "waffle.templatetags.waffle_tags",
             },
         ).get_template(template_name)
         context = Context(context)

@@ -76,6 +76,8 @@ django-tailwind==3.4.0
     # via -r requirements.in
 django-twilio==0.14.3
     # via -r requirements.in
+django-waffle==3.0.0
+    # via -r requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
 factory-boy==3.2.1

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "storages",
     "tailwind",
     "timarytailwind",
+    "waffle",
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
     "timary.middlware.TimezoneMiddleware",
+    "waffle.middleware.WaffleMiddleware",
 ]
 
 ROOT_URLCONF = "timaryproject.urls"
