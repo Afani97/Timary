@@ -1,0 +1,11 @@
+<div id="expenses-list">
+    {% include "expenses/_form.html" with form=new_expense_form invoice=invoice %}
+    <div class="divider"></div>
+
+    {% for expense_form in expense_forms %}
+        {% include "partials/_expense.html" with form=expense_form %}
+        {% if not forloop.last %}
+            <div class="divider"></div>
+        {% endif %}
+    {% endfor %}
+</div>

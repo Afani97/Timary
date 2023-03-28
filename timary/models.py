@@ -183,6 +183,23 @@ class HoursLineItem(LineItem):
         self.save()
 
 
+class Expenses(BaseModel):
+    invoice = models.ForeignKey(
+        "timary.Invoice", on_delete=models.CASCADE, related_name="expenses"
+    )
+    date_tracked = models.DateTimeField(null=True, blank=True)
+    description = models.CharField(max_length=500)
+    cost = models.DecimalField(
+        default=0,
+        max_digits=9,
+        decimal_places=2,
+    )
+
+    @property
+    def slug_id(self):
+        return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"
+
+
 class Client(BaseModel):
     name = models.CharField(max_length=200, null=False, blank=False)
     email = models.EmailField(null=False, blank=False)

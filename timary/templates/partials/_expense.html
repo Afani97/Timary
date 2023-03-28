@@ -1,0 +1,41 @@
+<form class="card"
+    hx-post="{% url 'timary:update_expenses' expenses_id=form.instance.id %}"
+    hx-swap="outerHTML"
+    hx-target="this"
+    id="expense-{{ form.instance.slug_id }}"
+>
+
+    {% if form.errors %}
+        {% include "partials/_form_errors.html" with form_errors=form.errors %}
+    {% endif %}
+
+    <div class="card-body">
+        <div>
+            <label class="label">
+                <span class="label-text">{{ form.description.label_tag }}</span>
+            </label>
+            <div>{{ form.description }}</div>
+        </div>
+        <div>
+            <label class="label">
+                <span class="label-text">{{ form.cost.label_tag }}</span>
+            </label>
+            <div>{{ form.cost }}</div>
+        </div>
+        <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
+            <button class="btn btn-error btn-sm btn-outline"
+                hx-trigger="click"
+                hx-delete="{% url 'timary:delete_expenses' expenses_id=form.instance.id %}"
+                hx-confirm="Are you sure you want to remove this expense?"
+                hx-swap="outerHTML"
+                hx-target="closest form"
+                hx-disinherit="true"
+                type="button"
+            >
+                Remove
+            </button>
+            <button class="btn btn-primary btn-sm submit-btn">Update</button>
+        </div>
+    </div>
+
+</form>

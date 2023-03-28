@@ -606,23 +606,24 @@ class TestHourLineItems(BaseTest):
         )
 
     def test_repeat_hours_including_repeating(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
-        start_week = get_starting_week_from_date(timezone.now()).isoformat()
+        start_week = get_starting_week_from_date(now).isoformat()
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(timezone.now().date())],
+                "interval_days": [get_date_parsed(now.date())],
                 "starting_week": start_week,
             },
         )
@@ -636,37 +637,38 @@ class TestHourLineItems(BaseTest):
     def test_repeat_hours_including_repeating_not_including_hours_if_not_scheduled(
         self,
     ):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
-        start_week = get_starting_week_from_date(timezone.now()).isoformat()
+        start_week = get_starting_week_from_date(now).isoformat()
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(timezone.now())],
+                "interval_days": [get_date_parsed(now)],
                 "starting_week": start_week,
             },
         )
         # Biweekly shouldn't be added since not correct week
         bi_weekly_start_week = get_starting_week_from_date(
-            timezone.now() + timezone.timedelta(weeks=+1)
+            now + timezone.timedelta(weeks=+1)
         ).isoformat()
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "b",
-                "interval_days": [get_date_parsed(timezone.now())],
+                "interval_days": [get_date_parsed(now)],
                 "starting_week": bi_weekly_start_week,
             },
         )
@@ -680,23 +682,24 @@ class TestHourLineItems(BaseTest):
     def test_repeat_hours_including_repeating_not_completed_milestone_invoices(
         self,
     ):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         HoursLineItemFactory(
             invoice=MilestoneInvoiceFactory(
                 user=self.user, milestone_step=3, milestone_total_steps=2
             ),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
         HoursLineItemFactory(
             invoice=IntervalInvoiceFactory(user=self.user),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
         )
         start_week = get_starting_week_from_date(timezone.now()).isoformat()
         HoursLineItemFactory(
             invoice=MilestoneInvoiceFactory(
                 user=self.user, milestone_step=1, milestone_total_steps=2
             ),
-            date_tracked=timezone.now() - timezone.timedelta(days=1),
+            date_tracked=now - timezone.timedelta(days=1),
             recurring_logic={
                 "type": "recurring",
                 "interval": "d",
@@ -712,18 +715,17 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(HoursLineItem.objects.count(), 5)
 
     def test_create_repeating_hours(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now().astimezone(
-                    tz=zoneinfo.ZoneInfo("America/New_York")
-                ),
+                "date_tracked": now,
                 "invoice": invoice.id,
                 "repeating": True,
-                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
+                "repeat_end_date": now + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -732,6 +734,7 @@ class TestHourLineItems(BaseTest):
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_create_multiple_repeating_hours(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         invoice2 = IntervalInvoiceFactory(user=self.user)
@@ -739,12 +742,10 @@ class TestHourLineItems(BaseTest):
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now().astimezone(
-                    tz=zoneinfo.ZoneInfo("America/New_York")
-                ),
+                "date_tracked": now,
                 "invoice": [invoice.id, invoice2.id],
                 "repeating": True,
-                "repeat_end_date": timezone.now() + timezone.timedelta(weeks=1),
+                "repeat_end_date": now + timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -754,16 +755,17 @@ class TestHourLineItems(BaseTest):
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_create_repeating_hours_error(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now(),
+                "date_tracked": now,
                 "invoice": invoice.id,
                 "repeating": True,
-                "repeat_end_date": timezone.now() - timezone.timedelta(weeks=1),
+                "repeat_end_date": now - timezone.timedelta(weeks=1),
                 "repeat_interval_schedule": "d",
             },
         )
@@ -771,15 +773,14 @@ class TestHourLineItems(BaseTest):
         self.assertIsNone(HoursLineItem.objects.first())
 
     def test_create_recurring_hours(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now().astimezone(
-                    tz=zoneinfo.ZoneInfo("America/New_York")
-                ),
+                "date_tracked": now,
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "d",
@@ -790,15 +791,14 @@ class TestHourLineItems(BaseTest):
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_create_recurring_hours_error(self):
+        now = get_users_localtime(UserFactory())
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         response = self.client.post(
             reverse("timary:create_hours"),
             data={
                 "quantity": 1,
-                "date_tracked": timezone.now().astimezone(
-                    tz=zoneinfo.ZoneInfo("America/New_York")
-                ),
+                "date_tracked": now,
                 "invoice": invoice.id,
                 "recurring": True,
                 "repeat_interval_schedule": "m",

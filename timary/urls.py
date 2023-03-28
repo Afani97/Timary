@@ -95,6 +95,25 @@ urlpatterns += [
     path("hours/<uuid:hours_id>/delete/", views.delete_hours, name="delete_hours"),
 ]
 
+# CLIENTS URLS
+urlpatterns += [
+    path("expenses/<uuid:invoice_id>/", views.get_expenses, name="get_expenses"),
+    path(
+        "expenses/<uuid:invoice_id>/create/",
+        views.create_expenses,
+        name="create_expenses",
+    ),
+    path(
+        "expenses/<uuid:expenses_id>/update/",
+        views.update_expenses,
+        name="update_expenses",
+    ),
+    path(
+        "expenses/<uuid:expenses_id>/delete/",
+        views.delete_expenses,
+        name="delete_expenses",
+    ),
+]
 
 # CLIENTS URLS
 urlpatterns += [

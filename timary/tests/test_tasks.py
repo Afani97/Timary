@@ -34,7 +34,11 @@ from timary.tests.factories import (
     UserFactory,
     WeeklyInvoiceFactory,
 )
-from timary.utils import get_date_parsed, get_starting_week_from_date
+from timary.utils import (
+    get_date_parsed,
+    get_starting_week_from_date,
+    get_users_localtime,
+)
 
 
 class TestGatherInvoices(TestCase):
@@ -242,7 +246,7 @@ class TestGatherInvoiceInstallments(TestCase):
 class TestGatherHours(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.local_time = timezone.now()
+        cls.local_time = get_users_localtime(UserFactory())
         cls.start_week = get_starting_week_from_date(cls.local_time).isoformat()
         cls.next_week = get_starting_week_from_date(
             cls.local_time + timezone.timedelta(weeks=1)
@@ -392,15 +396,14 @@ class TestGatherHours(TestCase):
         self.assertIsNone(hours.recurring_logic)
 
     def test_hours_not_scheduled_do_not_get_created(self):
+        now = get_users_localtime(UserFactory())
         hours = HoursLineItemFactory(
             date_tracked=self.date_tracked,
             recurring_logic={
                 "type": "repeating",
                 "interval": "w",
                 "interval_days": [
-                    get_date_parsed(
-                        (timezone.now() - timezone.timedelta(days=1)).date()
-                    )
+                    get_date_parsed((now - timezone.timedelta(days=1)).date())
                 ],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,
@@ -414,6 +417,7 @@ class TestGatherHours(TestCase):
         self.assertIsNotNone(hours.recurring_logic)
 
     def test_skip_hours_for_completed_milestone_invoices(self):
+        now = get_users_localtime(UserFactory())
         hours = HoursLineItemFactory(
             invoice=MilestoneInvoiceFactory(milestone_step=3, milestone_total_steps=2),
             date_tracked=self.date_tracked,
@@ -421,9 +425,7 @@ class TestGatherHours(TestCase):
                 "type": "repeating",
                 "interval": "w",
                 "interval_days": [
-                    get_date_parsed(
-                        (timezone.now() - timezone.timedelta(days=1)).date()
-                    )
+                    get_date_parsed((now - timezone.timedelta(days=1)).date())
                 ],
                 "starting_week": self.start_week,
                 "end_date": self.next_week,

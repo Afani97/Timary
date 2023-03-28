@@ -12,6 +12,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from timary.models import (
     Client,
+    Expenses,
     HoursLineItem,
     IntervalInvoice,
     Invoice,
@@ -264,6 +265,26 @@ class HoursLineItemForm(forms.ModelForm):
             validated_data["recurring_logic"] = recurring_logic
 
         return validated_data
+
+
+class ExpensesForm(forms.ModelForm):
+    class Meta:
+        model = Expenses
+        fields = ["description", "cost"]
+        widgets = {
+            "description": forms.TextInput(
+                attrs={
+                    "placeholder": "New item... - Equipment",
+                    "class": "input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500",
+                },
+            ),
+            "cost": forms.NumberInput(
+                attrs={
+                    "placeholder": "125.00",
+                    "class": "input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500",
+                }
+            ),
+        }
 
 
 class ClientForm(forms.ModelForm):
