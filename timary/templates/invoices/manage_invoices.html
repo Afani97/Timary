@@ -170,7 +170,7 @@
 
     {# Sent invoices modal #}
     <input type="checkbox" id="sent-invoices-modal" class="modal-toggle" />
-    <div for="sent-invoices-modal" class="modal modal-bottom md:modal-middle">
+    <div class="modal modal-bottom md:modal-middle">
         <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
             <h3 class="font-bold text-lg my-6">View sent invoices</h3>
             <label
@@ -205,13 +205,12 @@
 
     {# Manage expeneses modal #}
     <input type="checkbox" id="manage-expenses-modal" class="modal-toggle">
-    <div class="modal items-end md:items-center">
+    <div class="modal modal-bottom md:modal-middle">
         <div class="modal-box relative bg-neutral lg:w-1/2 lg:max-w-5xl">
             <h3 class="font-bold text-lg my-6">Manage expenses</h3>
             <label _="on click call clearExpensesContent()"
                 for="manage-expenses-modal"
-                id="close-expenses-modal"
-                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
+                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2 close-expenses-modal">✕</label>
             <div id="manage-expenses-inner" class="manage-expenses-inner-modal">
                 <div class="flex justify-center">
                     <button class="btn btn-lg loading">loading</button>
