@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
@@ -59,7 +59,7 @@ def create_expenses(request, invoice_id):
 @login_required()
 @require_http_methods(["GET", "POST"])
 def update_expenses(request, expenses_id):
-    expense_obj = Expenses.objects.get(id=expenses_id)
+    expense_obj = get_object_or_404(Expenses, id=expenses_id)
     if expense_obj.invoice.user != request.user:
         raise Http404
     expense_form = ExpensesForm(request.POST or None, instance=expense_obj)
@@ -92,7 +92,7 @@ def update_expenses(request, expenses_id):
 @login_required()
 @require_http_methods(["DELETE"])
 def delete_expenses(request, expenses_id):
-    expense_obj = Expenses.objects.get(id=expenses_id)
+    expense_obj = get_object_or_404(Expenses, id=expenses_id)
     if expense_obj.invoice.user != request.user:
         raise Http404
     expense_obj.delete()

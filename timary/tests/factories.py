@@ -7,6 +7,7 @@ from factory.fuzzy import FuzzyDecimal
 
 from timary.models import (
     Client,
+    Expenses,
     HoursLineItem,
     IntervalInvoice,
     Invoice,
@@ -149,4 +150,14 @@ class LineItemFactory(DjangoModelFactory):
     description = factory.Faker("name")
     unit_price = FuzzyDecimal(1, 10, 1)
     quantity = FuzzyDecimal(1, 10, 1)
+    date_tracked = factory.LazyFunction(get_localtime)
+
+
+class ExpenseFactory(DjangoModelFactory):
+    class Meta:
+        model = Expenses
+
+    invoice = factory.SubFactory(IntervalInvoiceFactory)
+    description = factory.Faker("name")
+    cost = FuzzyDecimal(1, 10, 1)
     date_tracked = factory.LazyFunction(get_localtime)
