@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <li class="card card-bordered border-neutral bg-base-200" id="{{archive_invoice.slug_title}}">
     <div class="card-body">
         <div>
@@ -15,6 +16,13 @@
                                 View sent invoices
                             </label>
                         </li>
+                        {% switch "can_view_expenses" %}
+                            <li>
+                                <label for="manage-expenses-modal" hx-get="{% url 'timary:get_expenses' invoice_id=archive_invoice.id %}" hx-target=".manage-expenses-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                                    Manage expenses
+                                </label>
+                            </li>
+                        {% endswitch %}
                         {% if archive_invoice.feedback|length == 0 %}
                             <li>
                                 <label hx-get="{% url 'timary:invoice_feedback' archive_invoice.id %}?send=true"
