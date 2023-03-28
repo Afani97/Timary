@@ -20,7 +20,7 @@
                     {% endif %}
                     {% switch "can_view_expenses" %}
                         <li>
-                            <label for="sent-invoices-modal" hx-get="{% url 'timary:sent_invoices_list' invoice_id=invoice.id %}" hx-target=".sent-invoices-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
+                            <label for="manage-expenses-modal" hx-get="{% url 'timary:get_expenses' invoice_id=invoice.id %}" hx-target=".manage-expenses-inner-modal" hx-swap="innerHTML" class="btn btn-sm">
                                 Manage expenses
                             </label>
                         </li>
