@@ -180,7 +180,7 @@ class HoursLineItem(LineItem):
 
     def cancel_recurring_hour(self):
         self.recurring_logic = None
-        self.save()
+        self.save(update_fields=["recurring_logic"])
 
 
 class Expenses(BaseModel):
