@@ -270,6 +270,8 @@
         htmx.on("clearExpensesModal", function() {
             htmx.find("#id_description").value = "";
             htmx.find("#id_cost").value = "";
+            htmx.find("#id_date_tracked").value = new Date().toISOString().split('T')[0]
+            htmx.find(".expense-form .errorlist").remove()
         })
     </script>
 {% endblock  %}

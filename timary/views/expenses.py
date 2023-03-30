@@ -1,12 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import ExpensesForm
 from timary.models import Expenses, InvoiceManager
-from timary.utils import show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -16,7 +15,10 @@ def get_expenses(request, invoice_id):
     if invoice.user != request.user:
         raise Http404
 
-    expense_forms = [ExpensesForm(instance=exp) for exp in invoice.expenses.all()]
+    expense_forms = [
+        ExpensesForm(instance=exp)
+        for exp in invoice.expenses.all().order_by("-date_tracked")
+    ]
     return render(
         request,
         "expenses/list.html",
@@ -39,20 +41,34 @@ def create_expenses(request, invoice_id):
         if expense_form.is_valid():
             expense_saved = expense_form.save(commit=False)
             expense_saved.invoice = invoice
-            expense_saved.date_tracked = timezone.now()
+            if not expense_form.cleaned_data.get("date_tracked"):
+                expense_saved.date_tracked = get_users_localtime(request.user)
             expense_saved.save()
             response = render(
                 request,
                 "partials/_expense.html",
-                {"expense": expense_saved, "form": expense_form},
+                {
+                    "expense": expense_saved,
+                    "form": ExpensesForm(instance=expense_saved),
+                },
             )
             show_alert_message(
                 response, "success", "New expense added!", "clearExpensesModal"
             )
             return response
+        else:
+            response = render(
+                request,
+                "expenses/_form.html",
+                {"form": expense_form, "invoice": invoice},
+            )
+            response["HX-Reswap"] = "outerHTML"
+            show_alert_message(response, "warning", "Unable to create expense")
+            return response
 
-    response = render(request, "expenses/_form.html", {"form": expense_form})
-    response["HX-Retarget"] = "#new-hours-form"
+    response = render(
+        request, "expenses/_form.html", {"form": expense_form, "invoice": invoice}
+    )
     return response
 
 
@@ -67,7 +83,8 @@ def update_expenses(request, expenses_id):
         if expense_form.is_valid():
             expense_saved = expense_form.save(commit=False)
             expense_saved.invoice = expense_obj.invoice
-            expense_saved.date_tracked = timezone.now()
+            if not expense_form.cleaned_data.get("date_tracked"):
+                expense_saved.date_tracked = get_users_localtime(request.user)
             expense_saved.save()
             response = render(
                 request,
@@ -78,6 +95,14 @@ def update_expenses(request, expenses_id):
                 },
             )
             show_alert_message(response, "success", "Expense updated!")
+            return response
+        else:
+            response = render(
+                request,
+                "partials/_expense.html",
+                {"form": expense_form, "expense": expense_obj},
+            )
+            show_alert_message(response, "warning", "Unable to update expense")
             return response
 
     response = render(

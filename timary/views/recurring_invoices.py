@@ -391,7 +391,6 @@ def invoice_add_hours(request, invoice_id):
         return response
 
 
-@login_required()
 @require_http_methods(["GET", "POST"])
 def invoice_feedback(request, archive_invoice_id):
     invoice = InvoiceManager(archive_invoice_id).invoice

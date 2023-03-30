@@ -270,21 +270,34 @@ class HoursLineItemForm(forms.ModelForm):
 class ExpensesForm(forms.ModelForm):
     class Meta:
         model = Expenses
-        fields = ["description", "cost"]
+        fields = ["description", "cost", "date_tracked"]
+        labels = {"date_tracked": "Date purchased"}
         widgets = {
             "description": forms.TextInput(
                 attrs={
                     "placeholder": "New item... - Equipment",
-                    "class": "input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
                 },
+            ),
+            "date_tracked": DateInput(
+                attrs={
+                    "value": lambda _: timezone.now(),
+                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                }
             ),
             "cost": forms.NumberInput(
                 attrs={
                     "placeholder": "125.00",
-                    "class": "input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
         }
+
+    def clean_date_tracked(self):
+        date_tracked = self.cleaned_data.get("date_tracked")
+        if date_tracked and date_tracked.date() > timezone.now().date():
+            raise ValidationError("Cannot set date into the future!")
+        return date_tracked
 
 
 class ClientForm(forms.ModelForm):

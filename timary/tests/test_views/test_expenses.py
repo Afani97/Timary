@@ -24,6 +24,7 @@ class TestExpenses(BaseTest):
             },
         )
         self.assertEqual(invoice.expenses.count(), 1)
+        self.assertIsNotNone(invoice.expenses.first().date_tracked)
 
     def test_create_expense_error(self):
         response = self.client.post(
@@ -69,7 +70,7 @@ class TestExpenses(BaseTest):
         self.assertInHTML(
             """
             <input type="text" name="description" value="New expense" placeholder="New item... - Equipment"
-            class="input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500" maxlength="500"
+            class="input input-bordered border-2 text-lg w-full placeholder-gray-500" maxlength="500"
             required id="id_description">
             """,
             response.content.decode(),
@@ -77,7 +78,7 @@ class TestExpenses(BaseTest):
         self.assertInHTML(
             """
             <input type="number" name="cost" value="100.00" placeholder="125.00"
-            class="input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500" step="0.01"
+            class="input input-bordered border-2 text-lg w-full placeholder-gray-500" step="0.01"
              required id="id_cost">
             """,
             response.content.decode(),

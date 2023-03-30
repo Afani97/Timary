@@ -1,16 +1,15 @@
 {% load filters %}
-<form class=""
+<form class="expense-form"
     hx-post="{% url 'timary:create_expenses' invoice.id %}"
     hx-swap="afterend"
-    hx-target="#new-expenses-form"
+    hx-target="this"
     id="new-expenses-form"
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
     {% endif %}
 
-    <div class="card-body -mx-5 md:mx-0">
+    <div class="card-body -mx-10 md:mx-0">
         <div class="flex flex-row space-x-2 w-full">
             <div class="w-full">
                 <label class="label">
@@ -19,15 +18,21 @@
                 <div>{{ form.description }}</div>
             </div>
         </div>
-        <div class="w-full flex flex-row items-end space-x-5">
-            <div class="form-control grow">
+        <div class="w-full flex flex-row items-end space-x-1 md:space-x-3">
+            <div class="form-control">
                 <label class="label">
                     <span class="label-text">{{ form.cost.label_tag }}</span>
                 </label>
                 <div>{{ form.cost }}</div>
             </div>
-            <button class="btn btn-primary btn-sm md:btn-md submit-btn">
-                Add new expense
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">{{ form.date_tracked.label_tag }}</span>
+                </label>
+                <div>{{ form.date_tracked }}</div>
+            </div>
+            <button class="btn btn-primary submit-btn">
+                Add
             </button>
         </div>
 
