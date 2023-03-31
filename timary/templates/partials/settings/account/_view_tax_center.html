@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <div id="tax-container">
     <div class="overflow-x-auto">
         <table class="table w-full mt-5">
@@ -15,7 +16,8 @@
                             Potential earnings
                         </div>
                     </th>
-                    <th></th>
+                    <th>Download files</th>
+                    <th>View numbers</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,7 +35,19 @@
                                     Download paid invoices
                                 </a>
                             </td>
+                        {% else %}
+                            <td></td>
                         {% endif %}
+                        {% switch "can_view_"|add:year.year %}
+                            <td>
+                                <a  class="link underline"
+                                    href="{% url 'timary:audit' %}?year={{ year.year }}"
+                                    hx-swap="none"
+                                >
+                                    See {{ year.year }} numbers
+                                </a>
+                            </td>
+                        {% endswitch %}
                     </tr>
                 {% empty %}
                     <tr>
