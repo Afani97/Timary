@@ -267,6 +267,10 @@ class HoursLineItemForm(forms.ModelForm):
         return validated_data
 
 
+def today():
+    return timezone.now().date()
+
+
 class ExpensesForm(forms.ModelForm):
     class Meta:
         model = Expenses
@@ -281,7 +285,7 @@ class ExpensesForm(forms.ModelForm):
             ),
             "date_tracked": DateInput(
                 attrs={
-                    "value": lambda _: timezone.now(),
+                    "value": today(),
                     "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
