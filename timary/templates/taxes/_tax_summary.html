@@ -1,0 +1,46 @@
+{% load waffle_tags %}
+<div id="tax-container">
+    <div class="overflow-x-auto">
+        <table class="table w-full mt-5">
+            <thead>
+                <tr>
+                    <th>Income year</th>
+                    <th>Tax season</th>
+                    <th>
+                        <div class="tooltip" data-tip="Only paid invoices for tax year" style="z-index: 50 !important;">
+                            Gross profit
+                        </div>
+                    </th>
+                    <th>
+                        <div class="tooltip" data-tip="Expenses totaled for tax year">
+                            Total expenses
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tax_year in tax_summary %}
+                    <tr>
+                        <td>Jan {{ tax_year.income_year }} - Dec {{ tax_year.income_year }}</td>
+                        <td>Spring {{ tax_year.tax_year }}</td>
+                        <td>${{ tax_year.gross_profit|floatformat:"-2" }}</td>
+                        <td>${{ tax_year.total_expenses|floatformat:"-2" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td>No profit/loss summary available</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-center mt-10">
+        <a hx-get="{% url 'timary:settings_partial' setting='tax_center' %}"
+            hx-target="#tax-container"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-ghost">
+            Close
+        </a>
+    </div>
+</div>

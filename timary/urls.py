@@ -66,6 +66,7 @@ urlpatterns += [
         views.update_user_password,
         name="update_user_password",
     ),
+    path("profile/settings/tax_center/", views.view_tax_center, name="view_tax_center"),
     path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,

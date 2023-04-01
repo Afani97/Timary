@@ -1,8 +1,12 @@
+import datetime
 import sys
+import zoneinfo
 
+import waffle
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import Http404, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
@@ -17,7 +21,7 @@ from timary.forms import (
     SMSSettingsForm,
     UpdatePasswordForm,
 )
-from timary.models import SentInvoice, User
+from timary.models import Expenses, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
@@ -32,12 +36,14 @@ def settings_partial(request, setting):
         template = "partials/settings/preferences/_sms.html"
     if setting == "payment_method":
         template = "partials/settings/account/_payment_method.html"
-    if setting == "accounting":
-        template = "partials/settings/account/_accounting.html"
     if setting == "referral":
         template = "partials/settings/account/_referrals.html"
     if setting == "password":
         template = "partials/settings/account/_password.html"
+    if setting == "accounting":
+        template = "partials/settings/bookkeeping/_accounting.html"
+    if setting == "tax_center":
+        template = "partials/settings/bookkeeping/_tax_center.html"
     return render(
         request,
         template,
@@ -194,7 +200,11 @@ def update_accounting_integrations(request):
         "profile": request.user,
         "settings": request.user.settings,
     }
-    return render(request, "partials/settings/account/_edit_accounting.html", context)
+    return render(
+        request,
+        "partials/settings/bookkeeping/_edit_accounting.html",
+        context,
+    )
 
 
 @login_required()
@@ -281,6 +291,48 @@ def update_subscription(request):
             )
         return response
     return Http404
+
+
+@login_required
+@require_http_methods(["GET"])
+def view_tax_center(request):
+    local_tz = zoneinfo.ZoneInfo(request.user.timezone)
+    tax_years = [
+        "2024"
+    ]  # Add another year for new tax season to calculate previous year
+    tax_summary = []
+    for tax_year in tax_years:
+        if not waffle.switch_is_active(f"can_view_{tax_year}"):
+            continue
+        previous_year_range = (
+            datetime.datetime(year=int(tax_year) - 1, month=1, day=1, tzinfo=local_tz),
+            datetime.datetime(year=int(tax_year), month=1, day=1, tzinfo=local_tz),
+        )
+        gross_profit = (
+            SentInvoice.objects.filter(
+                user=request.user,
+                date_paid__range=previous_year_range,
+                paid_status=SentInvoice.PaidStatus.PAID,
+            ).aggregate(gross_profit=Sum("total_price"))["gross_profit"]
+            or 0
+        )
+        total_expenses = (
+            Expenses.objects.filter(
+                invoice__user=request.user, date_tracked__range=previous_year_range
+            ).aggregate(total_expenses=Sum("cost"))["total_expenses"]
+            or 0
+        )
+        tax_summary.append(
+            {
+                "tax_year": tax_year,
+                "income_year": int(tax_year) - 1,
+                "gross_profit": gross_profit,
+                "total_expenses": total_expenses,
+            }
+        )
+    context = {"tax_summary": tax_summary}
+
+    return render(request, "taxes/_tax_summary.html", context)
 
 
 @login_required

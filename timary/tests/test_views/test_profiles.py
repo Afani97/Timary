@@ -1,17 +1,23 @@
+import zoneinfo
 from unittest.mock import patch
 
 import stripe
-from dateutil.relativedelta import relativedelta
 from django.template.defaultfilters import floatformat
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
+from waffle.testutils import override_switch
 
 from timary.forms import SMSSettingsForm
 from timary.models import User
-from timary.tests.factories import SentInvoiceFactory, UserFactory
+from timary.tests.factories import (
+    ExpenseFactory,
+    IntervalInvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 from timary.tests.test_views.basetest import BaseTest
-from timary.utils import get_users_localtime
 
 
 class TestUserProfile(BaseTest):
@@ -367,36 +373,28 @@ class TestUserSettings(BaseTest):
             response.headers["HX-Trigger"],
         )
 
-    def test_get_tax_center_summary(self):
-        date_paid = get_users_localtime(self.user)
-        s1 = SentInvoiceFactory(user=self.user, date_paid=date_paid, paid_status=2)
-        s2 = SentInvoiceFactory(user=self.user)
-        s3 = SentInvoiceFactory(
-            user=self.user,
-            date_sent=date_paid - relativedelta(years=1),
-            date_paid=date_paid - relativedelta(years=1),
-            paid_status=2,
+    @override_switch("can_view_2024", active=True)
+    @patch("timary.tasks.timezone")
+    def test_get_tax_summary_for_previous_tax_year(self, today_mock):
+        today = timezone.datetime(
+            2023, 8, 23, tzinfo=zoneinfo.ZoneInfo("America/New_York")
         )
-        s4 = SentInvoiceFactory(
-            user=self.user, date_sent=date_paid - relativedelta(years=1)
-        )
-        response = self.client.get(f'{reverse("timary:view_tax_center")}')
+        today_mock.now.return_value = today
+        invoice = IntervalInvoiceFactory(user=self.user)
+        s1 = SentInvoiceFactory(user=invoice.user, date_paid=today, paid_status=2)
+        s2 = SentInvoiceFactory(user=invoice.user, date_paid=today, paid_status=2)
+        ex1 = ExpenseFactory(invoice=invoice)
+        ex2 = ExpenseFactory(invoice=invoice)
+        response = self.client.get(reverse("timary:view_tax_center"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("partials/settings/account/_view_tax_center.html")
+        self.assertTemplateUsed("partials/settings/bookkeeping/_tax_summary.html")
         self.assertInHTML(
             f"""
-            <td>{s1.date_paid.strftime("%Y")}</td>
-            <td>${floatformat(s1.total_price, -2)}</td>
-            <td>${floatformat(s1.total_price + s2.total_price, -2)}</td>
-            """,
-            response.content.decode("utf-8"),
-        )
-        self.assertInHTML(
-            f"""
-            <td>{s3.date_paid.strftime("%Y")}</td>
-            <td>${floatformat(s3.total_price, -2)}</td>
-            <td>${floatformat(s3.total_price + s4.total_price, -2)}</td>
+            <td>Jan {s1.date_paid.strftime("%Y")} - Dec {s1.date_paid.strftime("%Y")}</td>
+            <td>Spring 2024</td>
+            <td>${floatformat((s1.total_price + s2.total_price), -2)}</td>
+            <td>${floatformat((ex1.cost + ex2.cost), -2)}</td>
             """,
             response.content.decode("utf-8"),
         )
