@@ -41,6 +41,9 @@
                         <span class="label-text">{{ invoice_form.client.label_tag }}</span>
                     </label>
                     <div>{{ invoice_form.client }}</div>
+                    {% if invoice_form.client.field.widget.attrs.qs_count == 0 %}
+                        <div class="text-error text-sm">You don't have any clients.</div>
+                    {% endif %}
                 </div>
             </div>
 

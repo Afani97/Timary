@@ -354,13 +354,15 @@ class InvoiceForm(forms.ModelForm):
         self.user = kwargs.pop("user") if "user" in kwargs else None
         super(InvoiceForm, self).__init__(*args, **kwargs)
 
+        clients = Client.objects.filter(user=self.user)
         self.fields["client"].choices = {
             (
                 cl.id,
                 f"{cl.name} - {cl.email}",
             )
-            for cl in Client.objects.filter(user=self.user)
+            for cl in clients
         }
+        self.fields["client"].widget.attrs["qs_count"] = clients.count()
         self.fields["client"].choices.insert(0, ("", "Select a client"))
 
     class Meta:
@@ -597,13 +599,15 @@ class SingleInvoiceForm(InvoiceForm):
         user = kwargs.get("user", None)
         super().__init__(*args, **kwargs)
         if user:
+            clients = Client.objects.filter(user=self.user)
             self.fields["client"].choices = {
                 (
                     cl.id,
                     f"{cl.name} - {cl.email}",
                 )
-                for cl in Client.objects.filter(user=self.user)
+                for cl in clients
             }
+            self.fields["client"].widget.attrs["qs_count"] = clients.count()
             self.fields["client"].choices.insert(0, ("", "Select a client"))
 
         if self.instance and self.instance.can_lock_line_items():

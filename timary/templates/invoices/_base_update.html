@@ -37,6 +37,9 @@
                     <span class="label-text">{{ form.client.label_tag }}</span>
                 </label>
                 <div>{{ form.client }}</div>
+                {% if form.client.field.widget.attrs.qs_count == 0 %}
+                    <div class="text-error text-sm">You don't have any clients.</div>
+                {% endif %}
             </div>
         </div>
     </div>
