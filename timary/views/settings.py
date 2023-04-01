@@ -1,11 +1,8 @@
-import itertools
 import sys
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.db.models.functions import TruncYear
 from django.http import Http404, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
@@ -41,8 +38,6 @@ def settings_partial(request, setting):
         template = "partials/settings/account/_referrals.html"
     if setting == "password":
         template = "partials/settings/account/_password.html"
-    if setting == "tax_center":
-        template = "partials/settings/account/_tax_center.html"
     return render(
         request,
         template,
@@ -286,60 +281,6 @@ def update_subscription(request):
             )
         return response
     return Http404
-
-
-@login_required()
-@require_http_methods(["GET"])
-def view_tax_center(request):
-    years = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(actual=TruncYear("date_paid"), potential=TruncYear("date_sent"))
-        .values_list("actual", "potential")
-        .distinct()
-    )
-    # All this craziness just to get a list of distinct years for actual and potential
-    years = list(dict.fromkeys(list(filter(None, list(itertools.chain(*years))))))
-
-    actual_earnings = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(actual=TruncYear("date_paid"))
-        .values("actual")
-        .exclude(actual__isnull=True)
-        .annotate(actual_paid=Sum("total_price"))
-        .values("actual", "actual_paid")
-    )
-    potential_earnings = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(potential=TruncYear("date_sent"))
-        .values("potential")
-        .exclude(potential__isnull=True)
-        .annotate(potential_paid=Sum("total_price"))
-        .values("potential", "potential_paid")
-    )
-    years_paid = []
-    for year in years:
-        actual = list(actual_earnings.filter(actual=year.date()))
-        actual_paid = 0
-        if len(actual) > 0:
-            actual_paid = actual[0]["actual_paid"]
-
-        potential = list(potential_earnings.filter(potential=year.date()))
-        potential_paid = 0
-        if len(potential) > 0:
-            potential_paid = potential[0]["potential_paid"]
-        years_paid.append(
-            {
-                "year": year.strftime("%Y"),
-                "actual": actual_paid,
-                "potential": potential_paid,
-            }
-        )
-    years_paid.sort(reverse=True, key=lambda y: y["year"])
-    context = {"years": years_paid}
-    return render(request, "partials/settings/account/_view_tax_center.html", context)
 
 
 @login_required
