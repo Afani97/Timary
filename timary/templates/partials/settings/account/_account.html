@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <div class="flex flex-col w-full justify-center space-y-4 px-2" id="user-account">
 
     {% if settings.subscription_active %}
@@ -16,8 +17,10 @@
     {% include 'partials/settings/account/_accounting.html' %}
     <div class="divider"></div>
 
-    {% include 'partials/settings/account/_tax_center.html' %}
-    <div class="divider"></div>
+    {% switch "can_view_taxes" %}
+        {% include 'partials/settings/account/_tax_center.html' %}
+        <div class="divider"></div>
+    {% endswitch %}
 
     {% include "partials/settings/account/_referrals.html" %}
     <div class="divider"></div>

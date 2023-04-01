@@ -1,11 +1,10 @@
-import itertools
+import datetime
 import sys
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.db.models.functions import TruncYear
 from django.http import Http404, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
@@ -20,7 +19,7 @@ from timary.forms import (
     SMSSettingsForm,
     UpdatePasswordForm,
 )
-from timary.models import SentInvoice, User
+from timary.models import SentInvoice, User, Expenses
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
@@ -291,55 +290,38 @@ def update_subscription(request):
 @login_required()
 @require_http_methods(["GET"])
 def view_tax_center(request):
-    years = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(actual=TruncYear("date_paid"), potential=TruncYear("date_sent"))
-        .values_list("actual", "potential")
-        .distinct()
-    )
-    # All this craziness just to get a list of distinct years for actual and potential
-    years = list(dict.fromkeys(list(filter(None, list(itertools.chain(*years))))))
-
-    actual_earnings = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(actual=TruncYear("date_paid"))
-        .values("actual")
-        .exclude(actual__isnull=True)
-        .annotate(actual_paid=Sum("total_price"))
-        .values("actual", "actual_paid")
-    )
-    potential_earnings = (
-        SentInvoice.objects.filter(user=request.user)
-        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        .annotate(potential=TruncYear("date_sent"))
-        .values("potential")
-        .exclude(potential__isnull=True)
-        .annotate(potential_paid=Sum("total_price"))
-        .values("potential", "potential_paid")
-    )
-    years_paid = []
-    for year in years:
-        actual = list(actual_earnings.filter(actual=year.date()))
-        actual_paid = 0
-        if len(actual) > 0:
-            actual_paid = actual[0]["actual_paid"]
-
-        potential = list(potential_earnings.filter(potential=year.date()))
-        potential_paid = 0
-        if len(potential) > 0:
-            potential_paid = potential[0]["potential_paid"]
-        years_paid.append(
-            {
-                "year": year.strftime("%Y"),
-                "actual": actual_paid,
-                "potential": potential_paid,
-            }
+    if "year" in request.GET:
+        tax_year = int(request.GET.get("year"))
+        tax_year_range = (
+            datetime.datetime(year=tax_year - 1, month=1, day=1),
+            datetime.datetime(year=tax_year, month=1, day=1),
         )
-    years_paid.sort(reverse=True, key=lambda y: y["year"])
-    context = {"years": years_paid}
-    return render(request, "partials/settings/account/_view_tax_center.html", context)
+        earnings_made = (
+            SentInvoice.objects.filter(
+                user=request.user, date_paid__range=tax_year_range
+            )
+            .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+            .aggregate(earnings_made=Sum("total_price"))
+        )
+        context = {"tax_year": tax_year, "earnings_made": 0}
+
+        if earnings := earnings_made["earnings_made"]:
+            context["earnings_made"] = earnings
+
+        expenses_paid = Expenses.objects.filter(
+            invoice__user=request.user, date_tracked__range=tax_year_range
+        ).aggregate(expenses_paid=Sum("cost"))
+
+        if expenses := expenses_paid["expenses_paid"]:
+            context["expenses_paid"] = expenses
+
+        return render(request, "partials/_tax_year.html", context)
+    else:
+        return render(
+            request,
+            "partials/settings/account/_view_tax_center.html",
+            {"tax_years": ["2023", "2024"]},
+        )
 
 
 @login_required
