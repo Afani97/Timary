@@ -8,6 +8,7 @@ from django_otp.admin import OTPAdminSite
 from timary.invoice_builder import InvoiceBuilder
 from timary.models import (
     Contract,
+    Expenses,
     HoursLineItem,
     IntervalInvoice,
     Invoice,
@@ -212,6 +213,7 @@ admin.site.register(WeeklyInvoice, WeeklyInvoiceAdmin)
 admin.site.register(SingleInvoice)
 admin.site.register(SentInvoice, SentInvoiceAdmin)
 admin.site.register(HoursLineItem, HoursLineItemAdmin)
+admin.site.register(Expenses)
 
 
 class SendEmailForm(forms.Form):

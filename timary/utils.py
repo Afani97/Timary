@@ -1,3 +1,4 @@
+import csv
 import json
 import zoneinfo
 from datetime import datetime
@@ -68,68 +69,80 @@ def get_users_localtime(user):
     return timezone.now().astimezone(tz=zoneinfo.ZoneInfo(user.timezone))
 
 
-def generate_spreadsheet(sent_invoices):
-    from tempfile import NamedTemporaryFile
+def generate_spreadsheet(response, user, year_date_range=None):
+    sent_invoice_headers = [
+        "Invoices sent",
+        "Date Sent",
+        "Date Paid",
+        "Total Hours",
+        "Total Price",
+        "Paid Status",
+    ]
 
-    from django.http import HttpResponse
-    from openpyxl import Workbook
-    from openpyxl.worksheet.table import Table, TableStyleInfo
+    expense_headers = [
+        "Expenses",
+        "Description",
+        "Date Tracked",
+        "Cost",
+    ]
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Your Timary audit activity"
+    invoices = user.get_all_invoices()
 
-    # add column headings. NB. these must be strings
-    ws.append(
-        [
-            "Date Sent",
-            "Date Paid",
-            "Invoice #",
-            "Invoice Title",
-            "Total Hours",
-            "Total Price",
-            "Paid Status",
-        ]
-    )
+    writer = csv.writer(response)
 
-    # add sent invoice data per row
-    for sent_invoice in sent_invoices:
-        total_hours = sent_invoice.invoice.line_items.aggregate(hours=Sum("quantity"))
-        ws.append(
-            [
-                sent_invoice.date_sent.strftime("%Y-%m-%d"),
-                sent_invoice.date_paid.strftime("%Y-%m-%d")
-                if sent_invoice.date_paid
-                else "",
-                str(sent_invoice.invoice.id),
-                sent_invoice.invoice.title,
-                total_hours["hours"],
-                str(sent_invoice.total_price),
-                sent_invoice.get_paid_status_display(),
-            ]
-        )
+    for invoice in invoices:
+        total_gross_profit = 0
+        total_expenses_paid = 0
+        writer.writerow([invoice.title])
+        writer.writerow(sent_invoice_headers)
 
-    tab = Table(displayName="Table1", ref=f"A1:G{len(sent_invoices) + 1}")
+        sent_invoices = invoice.invoice_snapshots.all()
+        if year_date_range:
+            sent_invoices = sent_invoices.filter(date_paid__range=year_date_range)
 
-    style = TableStyleInfo(
-        name="TableStyleMedium9",
-        showFirstColumn=False,
-        showLastColumn=False,
-        showRowStripes=True,
-        showColumnStripes=True,
-    )
-    tab.tableStyleInfo = style
-    ws.add_table(tab)
+        # add sent invoice data per row
+        for sent_invoice in sent_invoices:
+            total_gross_profit += float(sent_invoice.total_price)
+            total_hours = sent_invoice.invoice.line_items.aggregate(
+                hours=Sum("quantity")
+            )
+            writer.writerow(
+                [
+                    "",
+                    sent_invoice.date_sent.strftime("%Y-%m-%d"),
+                    sent_invoice.date_paid.strftime("%Y-%m-%d")
+                    if sent_invoice.date_paid
+                    else "",
+                    total_hours["hours"],
+                    str(sent_invoice.total_price),
+                    sent_invoice.get_paid_status_display(),
+                ]
+            )
 
-    # save to temp file for Django to send in response
-    with NamedTemporaryFile() as tmp:
-        wb.save(tmp.name)
-        tmp.seek(0)
-        stream = tmp.read()
+        writer.writerow([""])
+        writer.writerow(expense_headers)
 
-    response = HttpResponse(
-        content=stream,
-        content_type="application/ms-excel",
-    )
-    response["Content-Disposition"] = "attachment; filename=Timary-Audit-Activity.xlsx"
+        expenses = invoice.expenses.all()
+        if year_date_range:
+            expenses = expenses.filter(date_tracked__range=year_date_range)
+
+        for expense in expenses:
+            total_expenses_paid += float(expense.cost)
+            writer.writerow(
+                [
+                    "",
+                    expense.description,
+                    expense.date_tracked.strftime("%Y-%m-%d"),
+                    expense.cost,
+                ]
+            )
+
+        writer.writerow([""])
+
+        writer.writerow(["Gross Profit", "", "Total Expenses"])
+        writer.writerow([total_gross_profit, "", total_expenses_paid])
+
+        writer.writerow([""])
+        writer.writerow([""])
+
     return response

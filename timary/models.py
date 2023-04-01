@@ -195,6 +195,9 @@ class Expenses(BaseModel):
         decimal_places=2,
     )
 
+    def __str__(self):
+        return f"{self.description} - {self.cost} for {self.invoice.title}"
+
     @property
     def slug_id(self):
         return f"{slugify(self.invoice.title)}-{str(self.id.int)[:6]}"

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.http import Http404, QueryDict
+from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -338,12 +338,22 @@ def view_tax_center(request):
 @login_required
 @require_http_methods(["GET"])
 def audit(request):
-    filter_by_year = request.GET.get("year")
-    sent_invoices = SentInvoice.objects.filter(user=request.user)
-    if filter_by_year:
-        sent_invoices = sent_invoices.filter(date_paid__year=filter_by_year)
-    sent_invoices = sent_invoices.order_by("date_paid")
-    return generate_spreadsheet(sent_invoices)
+    year = request.GET.get("year")
+    csv_filename = "Timary-Audit-Activity.csv"
+    year_date_range = None
+    if year:
+        csv_filename = f"timary_audit_activity_{year}.csv"
+        tz_info = zoneinfo.ZoneInfo(request.user.timezone)
+        year_date_range = (
+            datetime.datetime(year=int(year), month=1, day=1, tzinfo=tz_info),
+            datetime.datetime(year=int(year) + 1, month=1, day=1, tzinfo=tz_info),
+        )
+
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={csv_filename}"},
+    )
+    return generate_spreadsheet(response, request.user, year_date_range)
 
 
 @login_required()
