@@ -68,6 +68,11 @@ urlpatterns += [
     ),
     path("profile/settings/tax_center/", views.view_tax_center, name="view_tax_center"),
     path(
+        "profile/settings/tax_center/<int:tax_year>/",
+        views.view_tax_info_for_year,
+        name="taxes_for_year",
+    ),
+    path(
         "profile/settings_partial/<str:setting>/",
         views.settings_partial,
         name="settings_partial",

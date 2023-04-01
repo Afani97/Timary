@@ -4,16 +4,11 @@
     <div class="tax-wrapper mx-10">
         {% for year in tax_years %}
             {% switch "can_view_"|add:year %}
-            <div class="flex justify-between my-5">
-                <h1>{{ year }}</h1>
-                <a class="link text-right"
-                    hx-get="{% url 'timary:view_tax_center' %}?year={{ year }}"
-                    hx-target="closest .tax-wrapper"
-                    hx-swap="outerHTML">
-                    View
-                </a>
-            </div>
-            <div class="divider"></div>
+                <div class="flex justify-between my-5">
+                    <h1>{{ year }}</h1>
+                    <a class="link text-right" href="{% url 'timary:taxes_for_year' tax_year=year %}">View</a>
+                </div>
+                <div class="divider"></div>
             {% endswitch %}
         {% endfor %}
     </div>

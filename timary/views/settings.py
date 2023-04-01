@@ -290,38 +290,38 @@ def update_subscription(request):
 @login_required()
 @require_http_methods(["GET"])
 def view_tax_center(request):
-    if "year" in request.GET:
-        tax_year = int(request.GET.get("year"))
-        tax_year_range = (
-            datetime.datetime(year=tax_year - 1, month=1, day=1),
-            datetime.datetime(year=tax_year, month=1, day=1),
-        )
-        earnings_made = (
-            SentInvoice.objects.filter(
-                user=request.user, date_paid__range=tax_year_range
-            )
-            .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
-            .aggregate(earnings_made=Sum("total_price"))
-        )
-        context = {"tax_year": tax_year, "earnings_made": 0}
+    return render(
+        request,
+        "partials/settings/account/_view_tax_center.html",
+        {"tax_years": ["2023", "2024"]},
+    )
 
-        if earnings := earnings_made["earnings_made"]:
-            context["earnings_made"] = earnings
 
-        expenses_paid = Expenses.objects.filter(
-            invoice__user=request.user, date_tracked__range=tax_year_range
-        ).aggregate(expenses_paid=Sum("cost"))
+@login_required()
+@require_http_methods(["GET"])
+def view_tax_info_for_year(request, tax_year):
+    tax_year_range = (
+        datetime.datetime(year=tax_year - 1, month=1, day=1),
+        datetime.datetime(year=tax_year, month=1, day=1),
+    )
+    earnings_made = (
+        SentInvoice.objects.filter(user=request.user, date_paid__range=tax_year_range)
+        .exclude(paid_status=SentInvoice.PaidStatus.CANCELLED)
+        .aggregate(earnings_made=Sum("total_price"))
+    )
+    context = {"tax_year": tax_year, "earnings_made": 0}
 
-        if expenses := expenses_paid["expenses_paid"]:
-            context["expenses_paid"] = expenses
+    if earnings := earnings_made["earnings_made"]:
+        context["earnings_made"] = earnings
 
-        return render(request, "partials/_tax_year.html", context)
-    else:
-        return render(
-            request,
-            "partials/settings/account/_view_tax_center.html",
-            {"tax_years": ["2023", "2024"]},
-        )
+    expenses_paid = Expenses.objects.filter(
+        invoice__user=request.user, date_tracked__range=tax_year_range
+    ).aggregate(expenses_paid=Sum("cost"))
+
+    if expenses := expenses_paid["expenses_paid"]:
+        context["expenses_paid"] = expenses
+
+    return render(request, "taxes/tax_year.html", context)
 
 
 @login_required
