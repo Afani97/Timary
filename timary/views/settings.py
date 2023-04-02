@@ -339,7 +339,7 @@ def view_tax_center(request):
 @require_http_methods(["GET"])
 def audit(request):
     year = request.GET.get("year")
-    csv_filename = "Timary-Audit-Activity.csv"
+    csv_filename = "timary_audit_activity.csv"
     year_date_range = None
     if year:
         csv_filename = f"timary_audit_activity_{year}.csv"

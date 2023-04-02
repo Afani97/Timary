@@ -70,6 +70,8 @@ def get_users_localtime(user):
 
 
 def generate_spreadsheet(response, user, year_date_range=None):
+    from timary.models import SentInvoice
+
     sent_invoice_headers = [
         "Invoices sent",
         "Date Sent",
@@ -102,7 +104,6 @@ def generate_spreadsheet(response, user, year_date_range=None):
 
         # add sent invoice data per row
         for sent_invoice in sent_invoices:
-            total_gross_profit += float(sent_invoice.total_price)
             total_hours = sent_invoice.invoice.line_items.aggregate(
                 hours=Sum("quantity")
             )
@@ -118,6 +119,9 @@ def generate_spreadsheet(response, user, year_date_range=None):
                     sent_invoice.get_paid_status_display(),
                 ]
             )
+
+            if sent_invoice.paid_status == SentInvoice.PaidStatus.PAID:
+                total_gross_profit += float(sent_invoice.total_price)
 
         writer.writerow([""])
         writer.writerow(expense_headers)
