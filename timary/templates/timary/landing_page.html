@@ -1,4 +1,4 @@
-{% load tailwind_tags %}
+{% load tailwind_tags static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
     <head>
@@ -20,7 +20,7 @@
         <div>
             <header class="navbar mb-14 md:px-12 shadow-lg bg-neutral text-neutral-content w-full">
                 <div class="flex w-full flex-col md:flex-row items-center md:justify-between">
-                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white">
+                    <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white mb-2 sm:mb-0">
                         {% include "partials/_logo.html" %}
                         <span class="ml-3 text-xl">Timary</span>
                     </a>
@@ -64,7 +64,11 @@
                     <div class="flex flex-col md:flex-row text-left w-full mb-20 space-y-10 md:space-y-0 md:space-x-20 items-center justify-between px-5 md:px-10 max-w-6xl mx-auto">
                         <div>
                             <p class="text-2xl text-white mb-2">How does Timary help me?</p>
-                            <p class="text-xl ">Multiple convenient hour tracking tools that don't get in the way. Automatic recurring invoices done for you and easy online payments for your clients. Up to date accounting so tax season isn't a hassle.</p>
+                            <ul class="list-disc text-xl">
+                                <li>Multiple convenient hour tracking tools that don't get in the way.</li>
+                                <li>Automatic recurring invoices done for you and easy online payments for your clients.</li>
+                                <li>Up to date accounting so tax season isn't a hassle.</li>
+                            </ul>
                         </div>
 
                         <a href="{% url 'timary:register' %}" class="btn btn-primary btn-lg rounded-xl">
@@ -132,11 +136,8 @@
                     <div>
                         <div class="flex justify-center mt-20">
                             <a href="{% url 'timary:register' %}" class="btn btn-primary">
-                                I needed this yesterday
+                                Start your free 30 day trial
                             </a>
-                        </div>
-                        <div class="flex justify-center mt-2">
-                            <label class="text-center text-sm">Free 30 day trial</label>
                         </div>
                     </div>
                 </div>
@@ -190,11 +191,8 @@
                     <div>
                         <div class="flex justify-center mt-16">
                             <a href="{% url 'timary:register' %}" class="btn btn-primary">
-                                Sounds good to me, sign me up
+                                Start your free 30 day trial
                             </a>
-                        </div>
-                        <div class="flex justify-center mt-2">
-                            <label class="text-center text-sm">Free 30 day trial</label>
                         </div>
                     </div>
                 </div>
@@ -208,106 +206,77 @@
                             Automate how your invoices are tracked, paid and organized for tax season.
                         </p>
                     </div>
-                    <div class="flex flex-wrap lg:w-4/5 sm:mx-auto sm:mb-2 -mx-2">
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Simple logging of hours</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-5 justify-items-center md:max-w-screen lg:max-w-7xl mx-auto gap-y-5">
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Time tracking</h2>
+                                <p>Log the hours you spent working without any friction.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/time_tracking.png" %}" alt="Time tracking"/></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Custom invoicing scheduling</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Recurring schedules</h2>
+                                <p>Recurring invoices are supported as well as single invoices.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/recurring_schedules.png" %}" alt="Recurring schedules" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">In-app payments</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">In-app payments</h2>
+                                <p>You clients can pay with any bank that Stripe supports.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/app_payments.png" %}" alt="In app payments" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">SMS hours tracking</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">SMS time tracking</h2>
+                                <p>Log your hours simply by sending us a text!</p>
                             </div>
+                            <figure><img src="https://daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg" alt="Shoes" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Bookkeeping integrations</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Bookkeeping integrations</h2>
+                                <p>We support five of the most popular accounting services to sync your bookkeeping data.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/bookkeeping_integrations.png" %}" alt="Bookkeeping integrations" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Synced timer across devices </span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Synced timer</h2>
+                                <p>Need to track on the go? Pick up where you left off on another device.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/synced_timer.png" %}" alt="Synced timer" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Custom invoice branding</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Custom invoice branding</h2>
+                                <p>Customize the invoice your clients receive.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/custom_invoices.png" %}" alt="Custom invoices" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Repeating hour scheduler</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Repeating hour scheduler</h2>
+                                <p>Why repeat yourself? Set a schedule for your recurring tasks.</p>
                             </div>
+                            <figure><img src="{% static "timary/landing_page/repeating_hours.png" %}" alt="Repeating hours" /></figure>
                         </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Stats breakdown per invoice</span>
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title">Stats breakdown per invoice</h2>
+                                <p>See how you're doing over the course of the project.</p>
                             </div>
-                        </div>
-                        <div class="p-2 sm:w-1/2 w-full">
-                            <div class="bg-gray-800 rounded flex p-4 h-full items-center">
-                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="text-indigo-400 w-6 h-6 flex-shrink-0 mr-4" viewBox="0 0 24 24">
-                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-                                    <path d="M22 4L12 14.01l-3-3"></path>
-                                </svg>
-                                <span class="title-font font-medium text-white">Plus much more!</span>
-                            </div>
+                            <figure><img src="{% static "timary/landing_page/invoice_stats.png" %}" alt="Invoice stats" /></figure>
                         </div>
                     </div>
-                    <div>
-                        <div class="flex justify-center mt-16">
+                    <div class="mt-16">
+                        <p class="text-lg text-center mb-4">Plus many more on the way!</p>
+                        <div class="flex justify-center">
                             <a href="{% url 'timary:register' %}" class="btn btn-primary">
-                                Say no more, I'm in!
+                                Start your free 30 day trial
                             </a>
-                        </div>
-                        <div class="flex justify-center mt-2">
-                            <label class="text-center text-sm">Free 30 day trial</label>
                         </div>
                     </div>
                 </div>
@@ -440,7 +409,7 @@
                             <div class="flex-grow pl-6">
                                 <h2 class="text-white text-lg title-font font-medium mb-2">You ignore what April 15th is</h2>
                                 <p class="leading-relaxed text-base">
-                                    As we all try our best to be on the IRS's good side, sometimes the universe doesn't care. With Timary on your side, keep the tax man as far away from your place as possible with up to date accounting so tax season is no longer dreadful.
+                                    As we all try our best to be on the IRS's good side, sometimes the universe doesn't care. With Timary on your side, keep the tax folks as far away from your place as possible with up to date accounting so tax season is no longer dreadful.
                                 </p>
                             </div>
                         </div>
@@ -448,11 +417,8 @@
                     <div>
                         <div class="flex justify-center mt-16">
                             <a href="{% url 'timary:register' %}" class="btn btn-primary">
-                                Continue to start your free trial
+                                Start your free 30 day trial
                             </a>
-                        </div>
-                        <div class="flex justify-center mt-2">
-                            <label class="text-center text-sm">Free 30 day trial</label>
                         </div>
                     </div>
                 </div>
@@ -559,11 +525,8 @@
                     <div>
                         <div class="flex justify-center mt-16">
                             <a href="{% url 'timary:register' %}" class="btn btn-primary">
-                                Continue to start your free trial
+                                Start your free 30 day trial
                             </a>
-                        </div>
-                        <div class="flex justify-center mt-2">
-                            <label class="text-center text-sm">Free 30 day trial</label>
                         </div>
                     </div>
                 </div>

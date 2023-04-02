@@ -20,6 +20,7 @@ runp:
 
 static:
 	make build
+	rm -rf staticfiles
 	python manage.py collectstatic --no-input
 	git restore staticfiles/admin
 	git add staticfiles/css staticfiles/staticfiles.json timarytailwind/static/css
