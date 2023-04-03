@@ -23,7 +23,7 @@ static:
 	rm -rf staticfiles
 	python manage.py collectstatic --no-input
 	git restore staticfiles/admin
-	git add staticfiles/css staticfiles/staticfiles.json timarytailwind/static/css
+	git add staticfiles/css staticfiles/staticfiles.json timarytailwind/static/css staticfiles/timary
 .PHONY: static
 
 build:
