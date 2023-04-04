@@ -199,11 +199,11 @@
             </div>
         </div>
         <div class="flex justify-center my-5">
-            <div hx-get="{% url 'timary:update_timer' %}"
-                id="update-timer" hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
+            <div id="update-timer"
+                hx-get="{% url 'timary:update_timer' %}"
+                hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
                 hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
-                hx-swap="none"
-            >
+                hx-swap="none">
                 <span class="font-mono text-2xl countdown flex justify-center my-5">
                     <span id="timer_hour">00</span>:
                     <span id="timer_min">00</span>:
@@ -292,6 +292,15 @@
                         update_timer(hoursTimer.getTime());
                     }, 100)
                 }
+
+                // If the device goes offline, update the timer if it's paused/stop to prevent timer from resuming on new page load
+                window.addEventListener("online", function(e) {
+                    if (timerIsPaused() || timerHasStopped()) {
+                        fetch(`/update_timer/?timerVal=${getTimerVal()}&timerPaused=${timerIsPaused()}&timerStopped=${timerHasStopped()}`,{
+                            credentials: "include",
+                        })
+                    }
+                })
             </script>
         </div>
     </div>
