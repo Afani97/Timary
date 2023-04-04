@@ -63,6 +63,15 @@
         </script>
     </head>
     <body class="static h-screen">
+        {% if request.user.is_authenticated %}
+            <div class="toast toast-start hidden" style="z-index: 1000" id="offline-msg">
+                <div class="alert alert-warning">
+                    <div>
+                        <span>It looks like you're offline, can't make any updates without an internet connection.</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         {% include "partials/_navbar.html" %}
 
@@ -129,6 +138,12 @@
                     }
                 }
             }
+            window.addEventListener("offline", function() {
+                htmx.removeClass(htmx.find("#offline-msg"), "hidden")
+            })
+            window.addEventListener("online", function() {
+                htmx.addClass(htmx.find("#offline-msg"), "hidden")
+            })
         </script>
 
         {% block js %}{% endblock %}
