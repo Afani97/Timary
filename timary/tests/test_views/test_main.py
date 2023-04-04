@@ -8,8 +8,14 @@ from django.utils.http import urlencode
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import Invoice, User
-from timary.tests.factories import HoursLineItemFactory, InvoiceFactory, UserFactory
+from timary.tests.factories import (
+    HoursLineItemFactory,
+    InvoiceFactory,
+    SentInvoiceFactory,
+    UserFactory,
+)
 from timary.tests.test_views.basetest import BaseTest
+from timary.views import get_pending_sent_invoices
 
 
 class TestMain(BaseTest):
@@ -51,12 +57,14 @@ class TestMain(BaseTest):
             invoice__user=self.user,
             date_tracked=timezone.now() - relativedelta(months=1),
         )
+        SentInvoiceFactory(user=self.user)
         response = self.client.get(reverse("timary:dashboard_stats"))
 
         hours = HoursManager(self.user)
 
         context = hours.get_hours_tracked()
         context["new_hour_form"] = HoursLineItemForm(user=self.user)
+        context.update(get_pending_sent_invoices(self.user))
 
         rendered_template = self.setup_template(
             "partials/_dashboard_stats.html",

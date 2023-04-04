@@ -143,10 +143,3 @@ class HourStats:
             self.current_month.replace(day=1) - timedelta(days=1),
         )
         return self.get_stats(date_range)
-
-    def get_this_year_stats(self):
-        date_range = (
-            self.current_month.replace(month=1, day=1),
-            self.current_month,
-        )
-        return self.get_stats(date_range)

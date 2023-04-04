@@ -115,6 +115,5 @@ class HoursManager:
         context = {
             "current_month": hour_stats.get_current_month_stats(),
             "last_month": hour_stats.get_last_month_stats(),
-            "current_year": hour_stats.get_this_year_stats(),
         }
         return context

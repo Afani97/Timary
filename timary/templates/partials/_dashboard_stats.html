@@ -26,8 +26,8 @@
         <div class="stat-desc">earnings: ${{ last_month.total_amount | floatformat:-2 }}</div>
     </div>
     <div class="stat hidden md:block">
-        <div class="stat-title">YTD stats</div>
-        <div class="stat-value">{{ current_year.total_hours | floatformat:-2 }}</div>
-        <div class="stat-desc">earnings: ${{ current_year.total_amount | floatformat:-2 }}</div>
+        <div class="stat-title">Pending invoices</div>
+        <div class="stat-value">{{ pending_invoices.num_pending | floatformat:-2 }}</div>
+        <div class="stat-desc">owed: ${{ pending_invoices.balance | floatformat:-2 }}</div>
     </div>
 </div>

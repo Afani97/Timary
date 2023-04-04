@@ -28,7 +28,7 @@
                     hx-get="{% url 'timary:repeat_hours' %}"
                     hx-target="#hours-list"
                     hx-swap="outerHTML"
-                    _="on click add .loading to me"
+                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
                 >
                     Repeat previous day?
                 </button>

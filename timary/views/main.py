@@ -2,18 +2,33 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Sum
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
-from timary.models import User
+from timary.models import SentInvoice, User
 from timary.utils import show_active_timer
 
 
 def bad_request(request, exception):
     return redirect(reverse("timary:landing_page"))
+
+
+def get_pending_sent_invoices(user):
+    sent_invoices_pending = SentInvoice.objects.filter(user=user).exclude(
+        Q(paid_status=SentInvoice.PaidStatus.PAID)
+        | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
+    )
+    balance_owed = sent_invoices_pending.aggregate(owed=Sum("total_price"))
+    return {
+        "pending_invoices": {
+            "num_pending": sent_invoices_pending.count(),
+            "balance": balance_owed["owed"] or 0,
+        }
+    }
 
 
 @login_required
@@ -36,6 +51,7 @@ def index(request):
         context["frequent_options"] = show_most_frequent_options
     context.update(show_active_timer(user))
     context.update(hours_manager.get_hours_tracked())
+    context.update(get_pending_sent_invoices(request.user))
     return render(request, "timary/index.html", context=context)
 
 
@@ -46,6 +62,7 @@ def dashboard_stats(request):
     context = hours_manager.get_hours_tracked()
     context["new_hour_form"] = HoursLineItemForm(user=request.user)
     context.update(show_active_timer(request.user))
+    context.update(get_pending_sent_invoices(request.user))
     response = render(
         request,
         "partials/_dashboard_stats.html",
