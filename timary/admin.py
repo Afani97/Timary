@@ -65,6 +65,8 @@ def unarchive_invoices(modeladmin, request, queryset):
 
 class InvoiceAdminMixin:
     list_display = ["title"]
+    list_filter = ("is_paused", "is_archived")
+    search_fields = ("title", "user__first_name", "user__email", "email_id")
     actions = [pause_invoices, unpause_invoices, archive_invoices, unarchive_invoices]
 
 
@@ -116,6 +118,19 @@ def resend_invoice(sent_invoice):
 
 class SentInvoiceAdmin(admin.ModelAdmin):
     actions = ["resend_sent_invoice", "cancel_sent_invoice"]
+    list_filter = (
+        "invoice__is_paused",
+        "invoice__is_archived",
+        "date_sent",
+        "date_paid",
+    )
+    search_fields = (
+        "invoice__title",
+        "user__first_name",
+        "user__email",
+        "email_id",
+        "total_price",
+    )
 
     @admin.action(description="Resend selected sent invoices")
     def resend_sent_invoice(self, request, queryset):
@@ -144,6 +159,14 @@ class SentInvoiceAdmin(admin.ModelAdmin):
 class HoursLineItemAdmin(admin.ModelAdmin):
     actions = ["cancel_recurring_hours"]
     ordering = ["-created_at"]
+    list_filter = ("date_tracked",)
+    search_fields = (
+        "invoice__title",
+        "invoice__is_paused",
+        "invoice__is_archived",
+        "invoice__user__first_name",
+        "invoice__user__email",
+    )
 
     @admin.action(description="Cancel recurring schedule for selected hour line items")
     def cancel_recurring_hours(self, request, queryset):
@@ -165,6 +188,18 @@ class UserAdmin(admin.ModelAdmin):
         "stripe_payouts_enabled",
         "accounting_org",
     ]
+    search_fields = (
+        "email",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "referral_id",
+        "referrer_id",
+    )
+    list_filter = (
+        "stripe_subscription_status",
+        "stripe_payouts_enabled",
+    )
     actions = ["cancel_subscriptions", "re_add_subscriptions"]
 
     @admin.action(description="Cancel subscription for selected users")
@@ -206,6 +241,12 @@ class UserAdmin(admin.ModelAdmin):
             )
 
 
+class ExpensesAdmin(admin.ModelAdmin):
+    list_display = ["description", "date_tracked", "cost"]
+    list_filter = ("invoice__is_paused", "invoice__is_archived", "date_tracked")
+    search_fields = ("description", "invoice__title", "date_tracked", "cost")
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(IntervalInvoice, IntervalInvoiceAdmin)
 admin.site.register(MilestoneInvoice, MilestoneInvoiceAdmin)
@@ -213,7 +254,7 @@ admin.site.register(WeeklyInvoice, WeeklyInvoiceAdmin)
 admin.site.register(SingleInvoice)
 admin.site.register(SentInvoice, SentInvoiceAdmin)
 admin.site.register(HoursLineItem, HoursLineItemAdmin)
-admin.site.register(Expenses)
+admin.site.register(Expenses, ExpensesAdmin)
 
 
 class SendEmailForm(forms.Form):
