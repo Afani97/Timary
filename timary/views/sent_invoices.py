@@ -4,9 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from weasyprint import HTML
+from weasyprint import CSS, HTML
 
 from timary.forms import HoursLineItemForm
 from timary.invoice_builder import InvoiceBuilder
@@ -289,14 +290,20 @@ def download_sent_invoice_copy(request, sent_invoice_id):
     if request.user != sent_invoice.user:
         raise Http404
 
-    msg_body = InvoiceBuilder(sent_invoice.user).send_invoice_download_copy(
-        {
-            "sent_invoice": sent_invoice,
-            "line_items": sent_invoice.get_rendered_line_items(),
-        }
+    html = HTML(
+        string=render_to_string(
+            "invoices/print/print.html",
+            {
+                "sent_invoice": sent_invoice,
+                "client": sent_invoice.invoice.client,
+                "user": sent_invoice.user,
+                "line_items": sent_invoice.get_line_items(),
+                "user_timezone": sent_invoice.user.timezone,
+            },
+        )
     )
-    html = HTML(string=msg_body)
-    html.write_pdf(target="/tmp/mypdf.pdf")
+    stylesheet = CSS(string=render_to_string("invoices/print/print.css", {}))
+    html.write_pdf(target="/tmp/mypdf.pdf", stylesheets=[stylesheet])
 
     fs = FileSystemStorage("/tmp")
     with fs.open("mypdf.pdf") as pdf:

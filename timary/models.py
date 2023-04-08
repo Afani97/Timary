@@ -310,6 +310,9 @@ class Invoice(PolymorphicModel, BaseModel):
     def get_hours_stats(self):
         raise NotImplementedError()
 
+    def get_line_items(self, sent_invoice_id):
+        raise NotImplementedError()
+
     def render_line_items(self, sent_invoice_id):
         raise NotImplementedError()
 
@@ -425,6 +428,16 @@ class SingleInvoice(Invoice):
                     and sent_invoice.accounting_invoice_id is not None
                 )
         return False
+
+    def get_line_items(self, sent_invoice_id):
+        if self.installments > 1:
+            # Add one installment to include this sent invoice in amount
+            line_items = self.line_items.all().annotate(
+                total_amount=(F("quantity") * F("unit_price")) / self.installments
+            )
+            return line_items
+        else:
+            return self.line_items.all()
 
     def render_line_items(self, sent_invoice_id):
         ctx = {"line_items": self.line_items.all(), "single_invoice": self}
@@ -614,6 +627,9 @@ class RecurringInvoice(Invoice):
             total_cost_amount = total_hours["total_hours"] * self.rate
 
         return round((total_cost_amount / self.total_budget), ndigits=2) * 100
+
+    def get_line_items(self, sent_invoice_id):
+        return self.get_hours_sent(sent_invoice_id).all()
 
     def render_line_items(self, sent_invoice_id):
         return render_to_string(
@@ -898,6 +914,9 @@ class SentInvoice(BaseModel):
 
     def get_hours_tracked(self):
         return self.invoice.get_hours_sent(sent_invoice_id=self.id)
+
+    def get_line_items(self):
+        return self.invoice.get_line_items(sent_invoice_id=self.id)
 
     def get_rendered_line_items(self):
         return self.invoice.render_line_items(sent_invoice_id=self.id)
