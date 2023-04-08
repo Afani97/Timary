@@ -169,7 +169,7 @@
                                 <strong>Amount Due: $175</strong>
                             </div>
                             <div>
-                                <strong>Due By:</strong>  <span id="next_week">{{ invoice_branding_config.next_weeks_date }}</span>
+                                <strong>Due By:</strong>  <span id="next_week">{{ invoice_branding_config.next_weeks_dat|date:"M. j, Y"  }}</span>
                             </div>
                         </div>
 
@@ -184,7 +184,7 @@
                         <div class="mx-1">
                             <div class="flex justify-between mt-6 text-xl font-medium">
                                 <div>Invoice #abc123def</div>
-                                <strong>{{ todays_date }}</strong>
+                                <strong>{{ todays_date|date:"M. j, Y" }}</strong>
                             </div>
                             <div class="flex justify-between pb-3 border-b border-gray-200">
                                 <div>Description</div>
