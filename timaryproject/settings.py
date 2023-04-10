@@ -97,6 +97,7 @@ TEMPLATES = [
                 "timary.context_processors.site_url",
                 "timary.context_processors.debug_mode",
                 "timary.context_processors.completed_connect_account",
+                "timary.context_processors.random_page_title",
             ],
         },
     },

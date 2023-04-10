@@ -11,6 +11,19 @@ def debug_mode(request):
     return {"debug_mode": settings.DEBUG}
 
 
+def random_page_title(request):
+    from random import choice
+
+    page_titles = [
+        "Your time tracking solution",
+        "Time tracking done right for you",
+        "Accept payments for the time you've tracked",
+        "Tired of invoicing for the same hours every week?",
+        "Time tracking, invoicing and bookkeeping. Oh my!",
+    ]
+    return {"random_page_title": choice(page_titles)}
+
+
 def completed_connect_account(request):
     # connect_status == 0 => Account complete
     # connect_status == 1 => Pending verifications
