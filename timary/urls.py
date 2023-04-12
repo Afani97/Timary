@@ -13,6 +13,7 @@ admin.site.__class__ = TimaryAdminSite
 urlpatterns = [
     path("", views.landing_page, name="landing_page"),
     path("main/", views.index, name="index"),
+    path("main/calendar", views.hours_calendar, name="calendar"),
     path("dashboard_stats/", views.dashboard_stats, name="dashboard_stats"),
     path("twilio-reply/", views.twilio_reply, name="twilio_reply"),
     path("terms/", views.terms_page, name="terms"),

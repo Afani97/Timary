@@ -1,6 +1,7 @@
 import csv
 import json
 import zoneinfo
+from calendar import HTMLCalendar
 from datetime import datetime
 
 from django.db.models import Sum
@@ -150,3 +151,52 @@ def generate_spreadsheet(response, user, year_date_range=None):
         writer.writerow([""])
 
     return response
+
+
+class Calendar(HTMLCalendar):
+    """Returns a calendar in html display dots for number of hours tracker per day + tooltip when hovering over item"""
+
+    def __init__(self, user, date):
+        self.user = user
+        self.year = date.year
+        self.month = date.month
+        super(Calendar, self).__init__()
+
+    def formatday(self, day, weekday, events):
+        events_per_day = events.filter(date_tracked__day=day)
+        d = ""
+        for event in events_per_day:
+            tooltip_class = "tooltip"
+            if weekday <= 1:
+                tooltip_class = "tooltip tooltip-right"
+            elif weekday >= 5:
+                tooltip_class = "tooltip tooltip-left"
+            d += f"""
+            <span class='{tooltip_class}' data-tip="{event.quantity}hrs for {event.invoice.title}">&#x2022;</span>
+            """
+
+        if day != 0:
+            return f"<td><span class='date'>{day}</span><ul> {d} </ul></td>"
+        return "<td></td>"
+
+    def formatweek(self, theweek, events):
+        week = ""
+        for d, weekday in theweek:
+            week += self.formatday(d, weekday, events)
+        return f"<tr> {week} </tr>"
+
+    def formatmonth(self, withyear=True):
+        from timary.models import HoursLineItem
+
+        events = HoursLineItem.objects.filter(
+            date_tracked__year=self.year,
+            date_tracked__month=self.month,
+            invoice__user=self.user,
+        ).select_related("invoice", "invoice__user")
+
+        cal = '<table border="0" cellpadding="0" cellspacing="0" class="calendar">\n'
+        cal += f"{self.formatmonthname(self.year, self.month, withyear=withyear)}\n"
+        cal += f"{self.formatweekheader()}\n"
+        for week in self.monthdays2calendar(self.year, self.month):
+            cal += f"{self.formatweek(week, events)}\n"
+        return cal

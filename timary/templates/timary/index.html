@@ -1,5 +1,40 @@
 {% extends 'timary/base.html' %}
 
+{% block css %}
+    <style>
+        .calendar {
+            width: 98%;
+            margin: auto;
+            font-size: 13px;
+        }
+        .calendar th {
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .calendar td {
+            height: 75px;
+            padding: 20px 0px 0px 5px;
+        }
+
+        .month {
+            font-size: 25px;
+        }
+
+        .date {
+            font-size: 16px;
+        }
+
+        .calendar ul {
+            max-width: 50px;
+            height: 100%;
+            padding: 5px 2px;
+        }
+
+    </style>
+{% endblock %}
+
 {% block content %}
     <h1 class="text-3xl text-center my-8 font-bold" id="dashboard-title">Dashboard</h1>
     <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-7 md:px-5">
@@ -7,6 +42,12 @@
             <div class="flex justify-center">
                 {% include 'partials/_dashboard_stats.html' %}
             </div>
+            <label for="calendar-modal" hx-get="{% url 'timary:calendar' %}" hx-target="#inner-calendar-modal" class="flex flex-row justify-center mb-5 sm:mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                View calendar
+            </label>
         </div>
         {% include "partials/_hours_list.html" %}
     </div>
@@ -20,6 +61,19 @@
                 id="close-hours-modal"
                 class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
             {% include "hours/_create.html" with form=new_hour_form %}
+        </div>
+    </div>
+    {# New hours modal #}
+
+    {# Calendar modal #}
+    <input type="checkbox" id="calendar-modal" class="modal-toggle">
+    <div id="calendar-modal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box relative bg-neutral">
+            <label
+                for="calendar-modal"
+                id="close-calendar-modal"
+                class="btn btn-sm bg-base-100 btn-circle absolute right-2 top-2">✕</label>
+            <div id="inner-calendar-modal" class="flex justify-center"></div>
         </div>
     </div>
     {# New hours modal #}

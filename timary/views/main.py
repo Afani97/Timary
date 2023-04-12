@@ -3,14 +3,16 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.html import format_html
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import SentInvoice, User
-from timary.utils import show_active_timer
+from timary.utils import Calendar, get_users_localtime, show_active_timer
 
 
 def bad_request(request, exception):
@@ -91,3 +93,12 @@ def hours_for_month(request):
         context["next_month"] = next_month
 
     return render(request, "partials/_hours_inner_list.html", context)
+
+
+@login_required()
+@require_http_methods(["GET"])
+def hours_calendar(request):
+    today = get_users_localtime(request.user)
+    cal = Calendar(request.user, today)
+    html_cal = cal.formatmonth(withyear=True)
+    return HttpResponse(format_html(html_cal))
