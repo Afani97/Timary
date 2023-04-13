@@ -1,0 +1,66 @@
+{% load tz %}
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{{ year }} Profit/Loss Summary</title>
+    </head>
+
+    <body>
+        <h1>{{ year }} Profit/Loss Summary</h1>
+        <h4>Total Gross Profit: <b>${{ total_gross_profit|floatformat:-2 }}</b></h4>
+        <h4>Total Expenses Paid: <b>${{ total_expenses_paid|floatformat:-2 }}</b></h4>
+        {% for inv in invoices_summary %}
+            <div class="inv-header">
+                <h2>{{ inv.invoice.title }}</h2>
+                <div class="inv-totals">
+                    <h4>Profit: ${{ inv.profit|floatformat:-2 }}</h4>
+                    <h4>Expenses: ${{ inv.expenses_paid|floatformat:-2 }}</h4>
+                </div>
+            </div>
+            {% if inv.profit > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date Sent</th>
+                            <th>Date Paid</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sent_invoice in inv.sent_invoices %}
+                            <tr>
+                                <td>#{{ sent_invoice.email_id }}</td>
+                                <td>{{ sent_invoice.date_sent|date:"M j, Y"}}</td>
+                                <td>{{ sent_invoice.date_paid|date:"M j, Y"}}</td>
+                                <td>${{ sent_invoice.total_price|floatformat:-2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            {% endif %}
+            {% if inv.expenses_paid > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Expense</th>
+                            <th>Date Tracked</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in inv.expenses %}
+                            <tr>
+                                <td>{{ expense.description}}</td>
+                                <td>{{ expense.date_tracked|date:"M j, Y"}}</td>
+                                <td>${{ expense.cost|floatformat:-2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            {% endif %}
+        {% endfor %}
+    </body>
+</html>

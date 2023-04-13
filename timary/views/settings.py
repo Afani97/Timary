@@ -6,13 +6,16 @@ import waffle
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
 from django.db.models import Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from stripe.error import CardError, InvalidRequestError
+from weasyprint import CSS, HTML
 
 from timary.forms import (
     InvoiceBrandingSettingsForm,
@@ -333,6 +336,68 @@ def view_tax_center(request):
     context = {"tax_summary": tax_summary}
 
     return render(request, "taxes/_tax_summary.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def download_tax_summary_pdf(request):
+    year = request.GET.get("year")
+    tz_info = zoneinfo.ZoneInfo(request.user.timezone)
+    year_date_range = (
+        datetime.datetime(year=int(year), month=1, day=1, tzinfo=tz_info),
+        datetime.datetime(year=int(year) + 1, month=1, day=1, tzinfo=tz_info),
+    )
+
+    invoices = request.user.get_all_invoices()
+
+    summary_invoices = []
+
+    total_gross_profit = 0
+    total_expenses_paid = 0
+    for invoice in invoices:
+        inv = {"invoice": invoice}
+        sent_invoices = invoice.invoice_snapshots.filter(
+            paid_status=SentInvoice.PaidStatus.PAID
+        ).filter(date_paid__range=year_date_range)
+
+        inv["sent_invoices"] = sent_invoices
+        inv["profit"] = sent_invoices.aggregate(total=Sum("total_price"))["total"] or 0
+        total_gross_profit += inv["profit"]
+
+        expenses = invoice.expenses.filter(date_tracked__range=year_date_range)
+        inv["expenses"] = expenses
+        inv["expenses_paid"] = expenses.aggregate(total=Sum("cost"))["total"] or 0
+        total_expenses_paid += inv["expenses_paid"]
+        if inv["profit"] > 0 or inv["expenses_paid"] > 0:
+            summary_invoices.append(inv)
+
+    html = HTML(
+        string=render_to_string(
+            "taxes/profit_loss_summary/summary.html",
+            {
+                "year": year,
+                "invoices_summary": summary_invoices,
+                "total_gross_profit": total_gross_profit,
+                "total_expenses_paid": total_expenses_paid,
+            },
+        )
+    )
+    stylesheet = CSS(
+        string=render_to_string("taxes/profit_loss_summary/summary.css", {})
+    )
+    html.write_pdf(target="/tmp/mypdf.pdf", stylesheets=[stylesheet])
+
+    fs = FileSystemStorage("/tmp")
+    with fs.open("mypdf.pdf") as pdf:
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response[
+            "Content-Disposition"
+        ] = f'attachment; filename="tax_summary_{year}.pdf"'
+
+    show_alert_message(
+        response, "success", "You should see the pdf downloading shortly"
+    )
+    return response
 
 
 @login_required

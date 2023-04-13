@@ -79,6 +79,7 @@ urlpatterns += [
         name="update_invoice_branding",
     ),
     path("audit/", views.audit, name="audit"),
+    path("tax_center/summary/", views.download_tax_summary_pdf, name="tax_summary_pdf"),
     path("invite/", views.invite_new_user, name="invite_new_user"),
 ]
 
