@@ -6,6 +6,7 @@ from .hours import *  # noqa
 from .main import *  # noqa
 from .other import *  # noqa
 from .profile import *  # noqa
+from .proposals import *  # noqa
 from .recurring_invoices import *  # noqa
 from .sent_invoices import *  # noqa
 from .settings import *  # noqa

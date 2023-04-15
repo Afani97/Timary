@@ -18,6 +18,7 @@ from timary.models import (
     Invoice,
     LineItem,
     MilestoneInvoice,
+    Proposal,
     RecurringInvoice,
     SingleInvoice,
     User,
@@ -302,6 +303,20 @@ class ExpensesForm(forms.ModelForm):
         if date_tracked and date_tracked.date() > timezone.now().date():
             raise ValidationError("Cannot set date into the future!")
         return date_tracked
+
+
+class ProposalForm(forms.ModelForm):
+    class Meta:
+        model = Proposal
+        fields = ["title", "body"]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "placeholder": "Proposal for...",
+                    "class": "input input-bordered border-2 text-xl w-full placeholder-gray-500 bg-neutral",
+                },
+            ),
+        }
 
 
 class ClientForm(forms.ModelForm):

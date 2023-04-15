@@ -1,0 +1,89 @@
+{% extends "timary/base.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.4/dist/trix.css">
+    <style>
+        {# Hide attachtment button #}
+        [data-trix-button-group="file-tools"] {
+            display: none!important;
+        }
+        trix-toolbar .trix-button {
+            background-color: white;
+        }
+
+        {# Fix tailwind override styles #}
+        .trix-editor {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 300;
+        }
+        .trix-editor strong {
+            font-weight: 900;
+        }
+        .trix-editor h1 {
+            font-size: 2rem !important;
+            line-height: 1.25rem !important;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .trix-editor a:not(.no-underline) {
+            text-decoration: underline;
+        }
+        .trix-editor a:visited {
+            color: green;
+        }
+        .trix-editor ul {
+            list-style-type: disc;
+            padding-left: 1rem;
+        }
+
+        .trix-editor ol {
+            list-style-type: decimal;
+            padding-left: 1rem;
+        }
+
+        .trix-editor pre {
+            display: inline-block;
+            width: 100%;
+            vertical-align: top;
+            font-family: monospace;
+            font-size: 1.5em;
+            padding: 0.5em;
+            white-space: pre;
+            background-color: #eee;
+            overflow-x: auto;
+        }
+
+        .trix-editor blockquote {
+            border: 0 solid #ccc;
+            border-left-width: 0px;
+            border-left-width: 0.3em;
+            margin-left: 0.3em;
+            padding-left: 0.6em;
+        }
+    </style>
+
+{% endblock css %}
+
+{% block content %}
+
+    <div class="max-w-4xl mx-auto mt-10">
+
+        {% if form.errors %}
+            {% include "partials/_form_errors.html" with form_errors=form.errors %}
+        {% endif %}
+
+        {% block form %}
+        {% endblock form %}
+    </div>
+
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript" src="https://www.unpkg.com/trix@2.0.4/dist/trix.umd.js"></script>
+    <script>
+
+    </script>
+{% endblock js %}

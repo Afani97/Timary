@@ -97,7 +97,7 @@ urlpatterns += [
     path("hours/<uuid:hours_id>/delete/", views.delete_hours, name="delete_hours"),
 ]
 
-# CLIENTS URLS
+# EXPENSE URLS
 urlpatterns += [
     path("expenses/<uuid:invoice_id>/", views.get_expenses, name="get_expenses"),
     path(
@@ -134,6 +134,30 @@ urlpatterns += [
         name="sync_client",
     ),
     path("clients/<uuid:client_id>/delete/", views.delete_client, name="delete_client"),
+]
+
+# PROPOSAL URLS
+urlpatterns += [
+    path(
+        "proposals/<uuid:client_id>/create/",
+        views.create_proposal,
+        name="create_proposal",
+    ),
+    path(
+        "proposals/<uuid:proposal_id>/update/",
+        views.update_proposal,
+        name="update_proposal",
+    ),
+    path(
+        "proposals/<uuid:proposal_id>/delete/",
+        views.delete_proposal,
+        name="delete_proposal",
+    ),
+    path(
+        "proposals/<uuid:proposal_id>/send/",
+        views.send_proposal,
+        name="send_proposal",
+    ),
 ]
 
 # RECURRING INVOICE URLS
