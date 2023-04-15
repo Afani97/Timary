@@ -154,6 +154,11 @@ urlpatterns += [
         name="delete_proposal",
     ),
     path(
+        "proposals/<uuid:proposal_id>/download/",
+        views.download_proposal,
+        name="download_proposal",
+    ),
+    path(
         "proposals/<uuid:proposal_id>/send/",
         views.send_proposal,
         name="send_proposal",

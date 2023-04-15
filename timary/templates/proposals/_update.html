@@ -11,13 +11,13 @@
                 Send copy to client
             </button>
             <a class="btn btn-sm"
-                hx-get="{% url 'timary:send_proposal' proposal_id=proposal.id %}" hx-swap="none"
+                href="{% url 'timary:download_proposal' proposal_id=proposal.id %}"
                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me end"
                 download
             >
                 Download pdf
             </a>
-            <button class="btn btn-ghost btn-sm"
+            <button class="btn btn-sm btn-error btn-outline"
                 hx-delete="{% url 'timary:delete_proposal' proposal_id=proposal.id %}"
                 hx-confirm="Are you sure you want to delete this proposal?">
                 Delete
@@ -35,7 +35,7 @@
             </label>
             <div>{{ form.title }}</div>
         </div>
-        <div class="h-screen">
+        <div class="">
             <input id="editor-body" type="hidden" name="body" value="{{ form.body.value }}" />
             <trix-editor input="editor-body" class="trix-editor bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
         </div>

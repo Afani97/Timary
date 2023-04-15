@@ -256,7 +256,7 @@ class Proposal(BaseModel):
     title = models.CharField(max_length=200)
     date_send = models.DateTimeField(null=True, blank=True)
     date_signed = models.DateTimeField(null=True, blank=True)
-    body = models.TextField(max_length=500)
+    body = models.TextField()
 
     def __str__(self):
         return f"{self.title}"

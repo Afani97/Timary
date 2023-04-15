@@ -1,9 +1,14 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.core.mail import EmailMultiAlternatives
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from weasyprint import CSS, HTML
 
 from timary.forms import ProposalForm
 from timary.models import Client, Proposal
@@ -132,6 +137,43 @@ def send_proposal(request, proposal_id):
     if not proposal.date_send:
         proposal.date_send = get_users_localtime(request.user)
         proposal.save()
+
+    # Send email as raw proposal body html
+    msg = EmailMultiAlternatives(
+        f"A proposal for work from {request.user.first_name}",
+        "",
+        settings.DEFAULT_FROM_EMAIL,
+        [proposal.client.email],
+    )
+    msg.attach_alternative(proposal.body, "text/html")
+
+    # Attach copy of pdf just in case
+    html = HTML(string=proposal.body)
+    stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
+    msg.attach(
+        f"{proposal.title}.pdf",
+        html.write_pdf(stylesheets=[stylesheet]),
+        "application/pdf",
+    )
+    msg.send(fail_silently=False)
+
     response = HttpResponse("")
     show_alert_message(response, "success", f"Proposal sent to {proposal.client.name}.")
+    return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def download_proposal(request, proposal_id):
+    proposal = get_object_or_404(Proposal, id=proposal_id)
+    if proposal.client.user != request.user:
+        raise Http404
+    html = HTML(string=proposal.body)
+    stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
+    html.write_pdf(target="/tmp/mypdf.pdf", stylesheets=[stylesheet])
+
+    fs = FileSystemStorage("/tmp")
+    with fs.open("mypdf.pdf") as pdf:
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{proposal.title}.pdf"'
     return response
