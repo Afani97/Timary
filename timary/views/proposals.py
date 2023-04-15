@@ -118,6 +118,7 @@ def delete_proposal(request, proposal_id):
         raise Http404
     proposal.delete()
     response = HttpResponse("")
+    response["HX-Redirect"] = "/invoices/manage/"
     show_alert_message(response, "success", "Proposal removed")
     return response
 

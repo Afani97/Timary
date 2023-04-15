@@ -2,6 +2,7 @@
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.4/dist/trix.css">
+    <script type="text/javascript" src="https://www.unpkg.com/trix@2.0.4/dist/trix.umd.js"></script>
     <style>
         {# Hide attachtment button #}
         [data-trix-button-group="file-tools"] {
@@ -68,7 +69,6 @@
 {% endblock css %}
 
 {% block content %}
-
     <div class="max-w-4xl mx-auto mt-10">
 
         {% if form.errors %}
@@ -78,12 +78,4 @@
         {% block form %}
         {% endblock form %}
     </div>
-
 {% endblock content %}
-
-{% block js %}
-    <script type="text/javascript" src="https://www.unpkg.com/trix@2.0.4/dist/trix.umd.js"></script>
-    <script>
-
-    </script>
-{% endblock js %}
