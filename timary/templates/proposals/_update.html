@@ -11,7 +11,7 @@
             {% endif %}
         </div>
 
-        <div class="flex flex-row space-x-2">
+        <div class="flex flex-row gap-2 flex-wrap">
             <button class="btn btn-sm"
                 hx-get="{% url 'timary:send_proposal' proposal_id=proposal.id %}" hx-swap="none"
                 _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me end"
