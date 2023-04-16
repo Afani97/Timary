@@ -257,7 +257,7 @@ class Proposal(BaseModel):
     date_send = models.DateTimeField(null=True, blank=True)
     user_signature = models.CharField(max_length=200)
     date_user_signed = models.DateTimeField()
-    client_signature = models.CharField(max_length=200, null=True, blank=True)
+    client_signature = models.TextField(null=True, blank=True)
     date_client_signed = models.DateTimeField(null=True, blank=True)
     body = models.TextField()
 

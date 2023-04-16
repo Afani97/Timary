@@ -1,11 +1,15 @@
+import sys
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
 from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from weasyprint import CSS, HTML
 
@@ -84,13 +88,10 @@ def create_proposal(request, client_id):
             messages.success(
                 request, "Proposal created!", extra_tags="proposal-created"
             )
-            return render(
-                request,
-                "proposals/_update.html",
-                {
-                    "proposal": proposal_saved,
-                    "form": ProposalForm(instance=proposal_saved),
-                },
+            return redirect(
+                reverse(
+                    "timary:update_proposal", kwargs={"proposal_id": proposal_saved.id}
+                )
             )
         else:
             messages.warning(
@@ -168,10 +169,29 @@ def send_proposal(request, proposal_id):
         proposal.date_send = get_users_localtime(request.user)
         proposal.save()
 
+    view_proposal_link = request.build_absolute_uri(
+        reverse(
+            "timary:client_sign_proposal",
+            kwargs={"proposal_id": proposal.id},
+        )
+    )
+
     # Send email as raw proposal body html
     msg = EmailMultiAlternatives(
         f"A proposal for work from {request.user.first_name}",
-        "",
+        f"""
+Hi {proposal.client.name},
+
+{request.user} has created a proposal for you to view.
+
+Please visit {view_proposal_link} to view and sign the proposal to continue developments.
+
+Attached below is a copy of the proposal.
+
+Regards,
+Ari from Timary
+ari@usetimary.com
+        """,
         settings.DEFAULT_FROM_EMAIL,
         [proposal.client.email],
     )
@@ -179,8 +199,6 @@ def send_proposal(request, proposal_id):
         "proposals/print/print.html", {"proposal": proposal}
     )
     html = HTML(string=proposal_body)
-    msg.attach_alternative(proposal_body, "text/html")
-
     # Attach copy of pdf just in case
     stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
     msg.attach(
@@ -213,3 +231,40 @@ def download_proposal(request, proposal_id):
         response = HttpResponse(pdf, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{proposal.title}.pdf"'
     return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def client_sign_proposal(request, proposal_id):
+    proposal = get_object_or_404(Proposal, id=proposal_id)
+    if proposal.client.user != request.user:
+        raise Http404
+
+    if proposal.date_client_signed:
+        return redirect(reverse("timary:landing_page"))
+
+    if request.method == "POST":
+        if client_signature := request.POST.get("client_signature"):
+            proposal.client_signature = client_signature
+            proposal.date_client_signed = timezone.now()
+            proposal.save()
+
+            response = HttpResponse(
+                """
+                <div class='text-2xl text-center mt-10'>Thank you for using Timary, hope to see you again soon.</div>
+                """
+            )
+            show_alert_message(response, "success", "Signature submitted.")
+            return response
+        else:
+            response = HttpResponse(status=204)
+            show_alert_message(
+                response, "error", "Unable to submit signature for proposal"
+            )
+            print(
+                f"Unable to submit signature for proposal: proposal_id={proposal.id}",
+                file=sys.stderr,
+            )
+            return response
+
+    return render(request, "proposals/client_sign.html", {"proposal": proposal})

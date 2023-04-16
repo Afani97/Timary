@@ -13,10 +13,19 @@
                 <div class="signatures">{{ proposal.user_signature }}</div>
                 <div>{{ proposal.date_user_signed|date:"M j, Y" }}</div>
             </div>
-            <div class="signatures-container" style="padding-top: 13pt;">
-                <p style="width: 200px; border-bottom: .2mm solid rgba(2, 1, 2, 0.57);"></p>
-                <div></div>
-            </div>
+            {% if not proposal.client_signature %}
+                <div class="signatures-container" style="padding-top: 13pt;">
+                    <p style="width: 200px; border-bottom: .2mm solid rgba(2, 1, 2, 0.57);"></p>
+                    <div></div>
+                </div>
+            {% else %}
+                <div class="signatures-container">
+                    <div  class="signatures">
+                        <img src="{{ proposal.client_signature }}" style="width: 300pt; margin-bottom: -50pt; padding-bottom: 15pt"/>
+                    </div>
+                    <div style>{{ proposal.date_client_signed|date:"M j, Y" }}</div>
+                </div>
+            {% endif %}
         </div>
     </body>
 </html>

@@ -163,6 +163,11 @@ urlpatterns += [
         views.send_proposal,
         name="send_proposal",
     ),
+    path(
+        "proposals/<uuid:proposal_id>/view/",
+        views.client_sign_proposal,
+        name="client_sign_proposal",
+    ),
 ]
 
 # RECURRING INVOICE URLS

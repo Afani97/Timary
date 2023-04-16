@@ -1,0 +1,235 @@
+{% extends "timary/base.html" %}
+
+{% block css %}
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.4/dist/trix.css">
+    <script type="text/javascript" src="https://www.unpkg.com/trix@2.0.4/dist/trix.umd.js"></script>
+    <style>
+        trix-toolbar {
+            display: none !important;
+        }
+
+        {# Fix tailwind override styles #}
+        .trix-editor {
+            width: 100%;
+            height: auto;
+            padding: 1.5rem;
+            font-size: 1.25rem;
+            overflow-y: auto;
+            font-weight: 300;
+        }
+        .trix-editor h1 {
+            font-size: 2rem !important;
+            line-height: 1.25rem !important;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .trix-editor a:not(.no-underline) {
+            text-decoration: underline;
+        }
+        .trix-editor a:visited {
+            color: green;
+        }
+        .trix-editor ul {
+            list-style-type: disc;
+            padding-left: 1rem;
+        }
+
+        .trix-editor ol {
+            list-style-type: decimal;
+            padding-left: 1rem;
+        }
+
+        .trix-editor pre {
+            display: inline-block;
+            width: 100%;
+            vertical-align: top;
+            font-family: monospace;
+            font-size: 1.5em;
+            padding: 0.5em;
+            white-space: pre;
+            background-color: #eee;
+            overflow-x: auto;
+        }
+
+        .trix-editor blockquote {
+            border: 0 solid #ccc;
+            border-left-width: 0px;
+            border-left-width: 0.3em;
+            margin-left: 0.3em;
+            padding-left: 0.6em;
+        }
+
+        .signature-pad {
+            position: relative;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            font-size: 10px;
+            width: 500px;
+            margin: 0 auto;
+            height: 175px;
+            border: 1px solid #e8e8e8;
+            background-color: lightgray;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.08) inset;
+            border-radius: 5px;
+            padding: 16px;
+        }
+
+        .signature-pad::before,
+        .signature-pad::after {
+            position: absolute;
+            z-index: -1;
+            content: "";
+            width: 40%;
+            height: 10px;
+            bottom: 10px;
+            background: transparent;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .signature-pad::before {
+            left: 10px;
+            -webkit-transform: skew(-3deg) rotate(-3deg);
+            transform: skew(-3deg) rotate(-3deg);
+        }
+
+        .signature-pad::after {
+            right: 10px;
+            -webkit-transform: skew(3deg) rotate(3deg);
+            transform: skew(3deg) rotate(3deg);
+        }
+
+        .signature-pad--body {
+            position: relative;
+            -webkit-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            border: 1px solid #f4f4f4;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .signature-pad--body canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.02) inset;
+        }
+
+        .signature-pad--footer {
+            color: black;
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 8px;
+        }
+
+        .signature-pad--actions {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            color: black;
+            -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+    </style>
+
+{% endblock css %}
+
+{% block content %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5 md:mt-10 sign-proposal">
+
+        <div class="overflow-y-scroll">
+            <div class="trix-editor bg-neutral border-0 rounded-lg">{{ proposal.body|safe }}</div>
+        </div>
+
+        <div class="md:relative">
+            <div class="md:fixed">
+                <div class="text-xl font-bold tracking-wider mb-4">Sign here please</div>
+                <div id="signature-pad" class="signature-pad">
+                    <div class="signature-pad--body">
+                        <canvas></canvas>
+                    </div>
+                    <div class="signature-pad--footer">
+                        <div class="description">Sign above</div>
+
+                        <div class="signature-pad--actions">
+                            <div>
+                                <button type="button" class="button clear" data-action="clear">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-10">
+                    <button class="btn btn-primary" id="client-sig-submit-btn"
+                        hx-post="{% url 'timary:client_sign_proposal' proposal_id=proposal.id %}"
+                        hx-confirm="Are you sure you want to confirm this proposal?"
+                        hx-vals='js:{client_signature: getClientSignature()}'
+                        hx-target=".sign-proposal"
+                        hx-swap="outerHTML"
+                        disabled
+                    >
+                        Submit
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+{% endblock content %}
+
+{% block js %}
+    <script>
+        // https://github.com/szimek/signature_pad/blob/gh-pages/js/app.js
+        var wrapper = document.getElementById("signature-pad");
+        var clearButton = wrapper.querySelector("[data-action=clear]");
+        var canvas = wrapper.querySelector("canvas");
+        var signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)',
+            minWidth: 1.5,
+            maxWidth: 1.5
+        });
+
+        signaturePad.addEventListener("endStroke", ()=> {
+            document.getElementById('client-sig-submit-btn').disabled = signaturePad.isEmpty();
+        })
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+
+        }
+        function getClientSignature(e) {
+
+            if (signaturePad.isEmpty()) {
+                e.preventDefault()
+                alert("Please provide a signature first.");
+            } else {
+                return signaturePad.toDataURL("image/svg+xml");
+            }
+        }
+
+        window.onresize = resizeCanvas;
+        resizeCanvas();
+        clearButton.addEventListener("click", function (event) {
+            signaturePad.clear();
+            document.getElementById('client-sig-submit-btn').disabled = true;
+        });
+
+    </script>
+{% endblock js %}
