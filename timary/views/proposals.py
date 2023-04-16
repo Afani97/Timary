@@ -118,7 +118,8 @@ def update_proposal(request, proposal_id):
     proposal_form = ProposalForm(request.POST or None, instance=proposal)
     if request.method == "POST":
         if proposal_form.is_valid():
-            proposal_updated = proposal_form.save()
+            proposal_updated = proposal_form.save(commit=False)
+            proposal_updated.save(update_fields=["title", "body"])
             messages.success(
                 request, "Proposal updated!", extra_tags="proposal-updated"
             )
@@ -175,11 +176,7 @@ def send_proposal(request, proposal_id):
             kwargs={"proposal_id": proposal.id},
         )
     )
-
-    # Send email as raw proposal body html
-    msg = EmailMultiAlternatives(
-        f"A proposal for work from {request.user.first_name}",
-        f"""
+    msg_body = f"""
 Hi {proposal.client.name},
 
 {request.user} has created a proposal for you to view.
@@ -191,7 +188,21 @@ Attached below is a copy of the proposal.
 Regards,
 Ari from Timary
 ari@usetimary.com
-        """,
+        """
+    if proposal.date_client_signed:
+        msg_body = f"""
+Hi {proposal.client.name},
+
+Attached below is a copy of the proposal {request.user} created.
+
+Regards,
+Ari from Timary
+ari@usetimary.com
+        """
+
+    msg = EmailMultiAlternatives(
+        f"A proposal for work from {request.user.first_name}",
+        msg_body,
         settings.DEFAULT_FROM_EMAIL,
         [proposal.client.email],
     )
@@ -255,6 +266,30 @@ def client_sign_proposal(request, proposal_id):
                 """
             )
             show_alert_message(response, "success", "Signature submitted.")
+            msg = EmailMultiAlternatives(
+                "A copy of the signed proposal.",
+                f"""
+Attached below is a copy of the proposal {request.user} created and {proposal.client.name} just signed.
+
+Regards,
+Ari from Timary
+ari@usetimary.com
+                """,
+                settings.DEFAULT_FROM_EMAIL,
+                [proposal.client.email, request.user.email],
+            )
+            proposal_body = render_to_string(
+                "proposals/print/print.html", {"proposal": proposal}
+            )
+            html = HTML(string=proposal_body)
+            # Attach copy of pdf just in case
+            stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
+            msg.attach(
+                f"{proposal.title}.pdf",
+                html.write_pdf(stylesheets=[stylesheet]),
+                "application/pdf",
+            )
+            msg.send(fail_silently=False)
             return response
         else:
             response = HttpResponse(status=204)
