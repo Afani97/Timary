@@ -13,6 +13,7 @@ from timary.models import (
     IntervalInvoice,
     Invoice,
     MilestoneInvoice,
+    Proposal,
     SentInvoice,
     SingleInvoice,
     User,
@@ -255,6 +256,7 @@ admin.site.register(SingleInvoice)
 admin.site.register(SentInvoice, SentInvoiceAdmin)
 admin.site.register(HoursLineItem, HoursLineItemAdmin)
 admin.site.register(Expenses, ExpensesAdmin)
+admin.site.register(Proposal)
 
 
 class SendEmailForm(forms.Form):

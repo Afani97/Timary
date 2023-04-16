@@ -11,8 +11,8 @@
             </label>
             <div>{{ form.title }}</div>
         </div>
-        <div class="h-screen">
-            <input id="body" type="hidden" name="body" value="Hello world">
+        <div>
+            <input id="body" type="hidden" name="body" value="{{ form.body.value }}">
             <trix-editor input="body" class="trix-editor bg-neutral bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
         </div>
 

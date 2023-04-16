@@ -6,13 +6,62 @@ from django.core.mail import EmailMultiAlternatives
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
-from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from weasyprint import CSS, HTML
 
 from timary.forms import ProposalForm
 from timary.models import Client, Proposal
 from timary.utils import get_users_localtime, show_alert_message
+
+PROPOSAL_TEMPLATE = """
+<div>Dear {client_name},
+<br><br>I am very excited to work with you on....
+<br><br>As discussed, please find my offer below, which outlines the project scope, deliverables,
+schedule and pricing details.
+<br><br>This quote is good for <strong>30</strong> days from delivery.
+<br><br>Please let me know if you have any questions.&nbsp;
+<br><br>{first_name} {last_name}
+</div>
+<div>
+    <br>
+</div>
+<div><strong>Description of Services</strong>
+</div>
+<div>
+Type your text here...
+<br><br><br>
+</div>
+<div>
+<strong>Deliverables</strong>
+</div>
+<div>
+Type your text here...
+<br><br><br>
+</div>
+<div>
+<strong>Project Schedule</strong>
+</div>
+<div>
+Type your text here...
+<br><br><br>
+</div>
+<div>
+<strong>Pricing and Rates</strong>
+</div>
+<div>
+Type your text here...
+<br><br><br>
+</div>
+<div>
+<strong>Payment Terms and Schedule</strong>
+</div>
+<div>
+Type your text here...
+</div>
+<div>
+<br>
+</div>
+"""
 
 
 @login_required()
@@ -21,7 +70,12 @@ def create_proposal(request, client_id):
     client = get_object_or_404(Client, id=client_id)
     if client.user != request.user:
         raise Http404
-    proposal_form = ProposalForm(request.POST or None)
+    proposal_body = PROPOSAL_TEMPLATE.format(
+        client_name=client.name,
+        first_name=client.user.first_name,
+        last_name=client.user.last_name,
+    )
+    proposal_form = ProposalForm(request.POST or None, initial={"body": proposal_body})
     if request.method == "POST":
         if proposal_form.is_valid():
             proposal_saved = proposal_form.save(commit=False)
@@ -29,18 +83,6 @@ def create_proposal(request, client_id):
             proposal_saved.save()
             messages.success(
                 request, "Proposal created!", extra_tags="proposal-created"
-            )
-            send_url = reverse(
-                "timary:send_proposal",
-                kwargs={"proposal_id": proposal_saved.id},
-            )
-            messages.info(
-                request,
-                {
-                    "msg": f"Send {client.name} this proposal now?",
-                    "link": send_url,
-                },
-                extra_tags="send-proposal",
             )
             return render(
                 request,
@@ -78,18 +120,6 @@ def update_proposal(request, proposal_id):
             proposal_updated = proposal_form.save()
             messages.success(
                 request, "Proposal updated!", extra_tags="proposal-updated"
-            )
-            send_url = reverse(
-                "timary:send_proposal",
-                kwargs={"proposal_id": proposal_updated.id},
-            )
-            messages.info(
-                request,
-                {
-                    "msg": f"Send {proposal.client.name} this updated proposal now?",
-                    "link": send_url,
-                },
-                extra_tags="send-proposal",
             )
             return render(
                 request,
