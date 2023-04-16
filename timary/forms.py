@@ -306,6 +306,12 @@ class ExpensesForm(forms.ModelForm):
 
 
 class ProposalForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ProposalForm, self).__init__(*args, **kwargs)
+        if self.instance.pk is not None:
+            self.fields["user_signature"].required = False
+            self.fields["date_user_signed"].required = False
+
     class Meta:
         model = Proposal
         fields = ["title", "body", "user_signature", "date_user_signed"]

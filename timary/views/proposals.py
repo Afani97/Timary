@@ -255,7 +255,8 @@ def client_sign_proposal(request, proposal_id):
         return redirect(reverse("timary:landing_page"))
 
     if request.method == "POST":
-        if client_signature := request.POST.get("client_signature"):
+        client_signature = request.POST.get("client_signature")
+        if client_signature is not None and len(client_signature) > 0:
             proposal.client_signature = client_signature
             proposal.date_client_signed = timezone.now()
             proposal.save()

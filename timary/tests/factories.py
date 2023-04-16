@@ -17,6 +17,7 @@ from timary.models import (
     SingleInvoice,
     User,
     WeeklyInvoice,
+    Proposal,
 )
 
 username_email = factory.Faker("email")
@@ -161,3 +162,15 @@ class ExpenseFactory(DjangoModelFactory):
     description = factory.Faker("name")
     cost = FuzzyDecimal(1, 10, 1)
     date_tracked = factory.LazyFunction(get_localtime)
+
+
+class ProposalFactory(DjangoModelFactory):
+    class Meta:
+        model = Proposal
+
+    client = factory.SubFactory(ClientFactory)
+    title = factory.Faker("name")
+    body = factory.Faker("text")
+    user_signature = factory.Faker("name")
+    date_send = factory.LazyFunction(get_localtime)
+    date_user_signed = factory.LazyFunction(get_localtime)
