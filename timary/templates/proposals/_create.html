@@ -1,0 +1,23 @@
+{% extends "proposals/base_form.html" %}
+{% block form %}
+
+    <div class="text-2xl font-bold">Proposal for {{ client.name }}</div>
+
+    <form class="md:m-5 md:p-5" action="{% url 'timary:create_proposal' client_id=client.id %}" method="post">
+        {% csrf_token %}
+        <div class="form-control mb-10">
+            <label class="label">
+                <span class="label-text">{{ form.title.label_tag }}</span>
+            </label>
+            <div>{{ form.title }}</div>
+        </div>
+        <div>
+            <input id="body" type="hidden" name="body" value="{{ form.body.value }}">
+            <trix-editor input="body" class="trix-editor bg-neutral bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
+        </div>
+
+        <div class="flex justify-center mt-20">
+            <button class="btn btn-primary">Create</button>
+        </div>
+    </form>
+{% endblock form %}

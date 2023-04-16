@@ -249,6 +249,23 @@ class Client(BaseModel):
         return True, None  # Customer synced
 
 
+class Proposal(BaseModel):
+    client = models.ForeignKey(
+        "timary.Client", on_delete=models.CASCADE, related_name="proposals"
+    )
+    title = models.CharField(max_length=200)
+    date_send = models.DateTimeField(null=True, blank=True)
+    date_signed = models.DateTimeField(null=True, blank=True)
+    body = models.TextField()
+
+    def __str__(self):
+        return f"{self.title}"
+
+    @property
+    def slug_id(self):
+        return f"{slugify(self.client.name)}-{str(self.id.int)[:6]}"
+
+
 class Invoice(PolymorphicModel, BaseModel):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=2000, null=True, blank=True)

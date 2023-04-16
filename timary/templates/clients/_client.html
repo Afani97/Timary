@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <li class="card card-bordered border-neutral bg-base-200">
     <div class="card-body flex flex-row justify-between items-center px-6">
         <div class="flex flex-col w-full">
@@ -51,4 +52,33 @@
             </a>
         </div>
     </div>
+    {% switch "can_view_proposals" %}
+        <div class="collapse collapse-arrow">
+            <input type="checkbox" />
+            <div class="collapse-title text-sm font-medium">
+                Proposals
+            </div>
+            <div class="collapse-content -mt-3">
+                <a class="btn bnt-accent btn-xs my-4" href="{% url 'timary:create_proposal' client_id=client.id %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd" />
+                    </svg>
+                    Start a new proposal
+                </a>
+                <ul class="flex flex-col space-y-3">
+                    {% for proposal in client.proposals.all %}
+                        <li class="flex flex-row justify-between space-x-2 items-baseline" id="{{ proposal.slug_id }}">
+                            <p class="text-xl font-bold overflow-x-hidden whitespace-nowrap">{{ proposal.title}}</p>
+                            <a class="tooltip cursor-pointer" data-tip="Edit" href="{% url 'timary:update_proposal' proposal_id=proposal.id %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                    <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                </svg>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endswitch %}
 </li>

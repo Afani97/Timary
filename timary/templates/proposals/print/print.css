@@ -1,0 +1,11 @@
+@page {
+    margin: 2cm;
+    @bottom-left {
+        color: #585A64;
+        content: 'Powered by Timary';
+    }
+    @bottom-right {
+        color: #585A64;
+        content: 'usetimary.com';
+    }
+}
