@@ -1,0 +1,22 @@
+{% load tz %}
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Proposal</title>
+    </head>
+
+    <body>
+        {{ proposal.body|safe }}
+
+        <div class="signatures-wrapper">
+            <div class="signatures-container">
+                <div class="signatures">{{ proposal.user_signature }}</div>
+                <div>{{ proposal.date_user_signed|date:"M j, Y" }}</div>
+            </div>
+            <div class="signatures-container" style="padding-top: 13pt;">
+                <p style="width: 200px; border-bottom: .2mm solid rgba(2, 1, 2, 0.57);"></p>
+                <div></div>
+            </div>
+        </div>
+    </body>
+</html>

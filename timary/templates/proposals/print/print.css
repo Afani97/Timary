@@ -9,3 +9,23 @@
         content: 'usetimary.com';
     }
 }
+
+.signatures-wrapper {
+    margin-top: 45pt;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.signatures-container {
+    display: block;
+    flex-direction: column;
+}
+
+.signatures {
+    font-size: 20pt;
+    font-family: Snell Roundhand, cursive;
+    width: 200px;
+    border-bottom: .2mm solid rgba(2, 1, 2, 0.57);
+    margin-bottom: 10pt;
+}

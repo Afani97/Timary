@@ -34,22 +34,44 @@
         </div>
     </div>
 
-
-    <form class="md:m-5 md:p-5" action="{% url 'timary:update_proposal' proposal_id=proposal.id %}" method="post">
+    <form class="md:m-5 md:p-5"
+        action="{% url 'timary:update_proposal' proposal_id=proposal.id %}"
+        method="post"
+    >
         {% csrf_token %}
+
         <div class="form-control mb-10">
             <label class="label">
                 <span class="label-text">{{ form.title.label_tag }}</span>
             </label>
             <div>{{ form.title }}</div>
         </div>
-        <div class="">
+
+        <div>
             <input id="editor-body" type="hidden" name="body" value="{{ form.body.value }}" />
             <trix-editor input="editor-body" class="trix-editor bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
         </div>
 
-        <div class="flex justify-center mt-20">
+        <div class="flex flex-col md:flex-row w-full mt-10 gap-4">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.user_signature.label_tag }}</span>
+                </label>
+                <div>{{ form.user_signature }}</div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">{{ form.date_user_signed.label_tag }}</span>
+                </label>
+                <div>{{ form.date_user_signed }}</div>
+            </div>
+        </div>
+
+
+        <div class="flex justify-between mt-20">
+            <a class="btn btn-outline" href="{% url 'timary:manage_invoices' %}">Cancel</a>
             <button class="btn btn-primary">Update</button>
         </div>
+
     </form>
 {% endblock form %}

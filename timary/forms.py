@@ -308,13 +308,26 @@ class ExpensesForm(forms.ModelForm):
 class ProposalForm(forms.ModelForm):
     class Meta:
         model = Proposal
-        fields = ["title", "body"]
+        fields = ["title", "body", "user_signature", "date_user_signed"]
+        labels = {"user_signature": "Your signature", "date_user_signed": "Today"}
         widgets = {
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "Proposal for...",
                     "class": "input input-bordered border-2 text-xl w-full placeholder-gray-500 bg-neutral",
                 },
+            ),
+            "user_signature": forms.TextInput(
+                attrs={
+                    "placeholder": "Your first and last name",
+                    "class": "input input-bordered border-2 text-xl w-full placeholder-gray-500 bg-neutral",
+                },
+            ),
+            "date_user_signed": DateInput(
+                attrs={
+                    "value": today(),
+                    "class": "input input-bordered border-2 text-lg w-full bg-neutral placeholder-gray-500",
+                }
             ),
         }
 

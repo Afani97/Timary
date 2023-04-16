@@ -175,10 +175,13 @@ def send_proposal(request, proposal_id):
         settings.DEFAULT_FROM_EMAIL,
         [proposal.client.email],
     )
-    msg.attach_alternative(proposal.body, "text/html")
+    proposal_body = render_to_string(
+        "proposals/print/print.html", {"proposal": proposal}
+    )
+    html = HTML(string=proposal_body)
+    msg.attach_alternative(proposal_body, "text/html")
 
     # Attach copy of pdf just in case
-    html = HTML(string=proposal.body)
     stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
     msg.attach(
         f"{proposal.title}.pdf",
@@ -198,7 +201,10 @@ def download_proposal(request, proposal_id):
     proposal = get_object_or_404(Proposal, id=proposal_id)
     if proposal.client.user != request.user:
         raise Http404
-    html = HTML(string=proposal.body)
+    proposal_body = render_to_string(
+        "proposals/print/print.html", {"proposal": proposal}
+    )
+    html = HTML(string=proposal_body)
     stylesheet = CSS(string=render_to_string("proposals/print/print.css", {}))
     html.write_pdf(target="/tmp/mypdf.pdf", stylesheets=[stylesheet])
 
