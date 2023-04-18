@@ -68,11 +68,13 @@ class TestProposals(BaseTest):
         # Date user signed shouldn't be updated
         self.assertNotEqual(proposal.date_user_signed.date(), self.today.date())
 
-    def test_update_proposal_error(self):
+    def test_cannot_update_client_signed_proposal(self):
         proposal = ProposalFactory(
+            client__user=self.user,
             date_user_signed=self.today - datetime.timedelta(days=1),
+            date_client_signed=self.today,
         )
-        self.client.post(
+        response = self.client.post(
             reverse("timary:update_proposal", kwargs={"proposal_id": proposal.id}),
             {
                 "title": "Updated proposal",
@@ -80,6 +82,10 @@ class TestProposals(BaseTest):
             },
         )
 
+        self.assertInHTML(
+            "Can't update a proposal signed by the client. Create a new one to revise current.",
+            response.content.decode(),
+        )
         proposal.refresh_from_db()
         # Don't update proposal for wrong user
         self.assertNotEqual(proposal.title, "Updated proposal")

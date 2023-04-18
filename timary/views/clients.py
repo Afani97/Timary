@@ -17,7 +17,7 @@ from timary.utils import show_alert_message
 @login_required()
 @require_http_methods(["GET"])
 def get_clients(request):
-    clients = request.user.my_clients.order_by("name")
+    clients = request.user.my_clients.prefetch_related("proposals").order_by("name")
     context = {
         "clients": clients,
     }

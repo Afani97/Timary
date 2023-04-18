@@ -308,9 +308,11 @@ class ExpensesForm(forms.ModelForm):
 class ProposalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProposalForm, self).__init__(*args, **kwargs)
-        if self.instance.pk is not None:
+        if hasattr(self.instance, "client") and self.instance.client is not None:
             self.fields["user_signature"].required = False
             self.fields["date_user_signed"].required = False
+            if self.instance.date_client_signed:
+                self.fields["title"].widget.attrs["disabled"] = True
 
     class Meta:
         model = Proposal

@@ -116,7 +116,22 @@ def update_proposal(request, proposal_id):
     if proposal.client.user != request.user:
         raise Http404
     proposal_form = ProposalForm(request.POST or None, instance=proposal)
+
     if request.method == "POST":
+        if proposal.date_client_signed:
+            messages.error(
+                request,
+                "Can't update a proposal signed by the client. Create a new one to revise current.",
+                extra_tags="update-proposal-err",
+            )
+            return render(
+                request,
+                "proposals/_update.html",
+                {
+                    "proposal": proposal,
+                    "form": ProposalForm(instance=proposal),
+                },
+            )
         if proposal_form.is_valid():
             proposal_updated = proposal_form.save(commit=False)
             proposal_updated.save(update_fields=["title", "body"])

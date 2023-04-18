@@ -51,29 +51,22 @@
         </div>
 
         <div>
-            <input id="editor-body" type="hidden" name="body" value="{{ form.body.value }}" />
-            <trix-editor input="editor-body" class="trix-editor bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
+            {% if proposal.date_client_signed %}
+                <div class="trix-editor bg-neutral border-0 rounded-lg">{{ proposal.body|safe }}</div>
+            {% else %}
+                <input id="editor-body" type="hidden" name="body" value="{{ form.body.value }}" />
+                <trix-editor input="editor-body" class="trix-editor bg-neutral border border-gray-700 border-2 border-solid rounded-lg"></trix-editor>
+            {% endif %}
         </div>
-
-        {#        <div class="flex flex-col md:flex-row w-full mt-10 gap-4">#}
-        {#            <div class="form-control w-full">#}
-        {#                <label class="label">#}
-        {#                    <span class="label-text">{{ form.user_signature.label_tag }}</span>#}
-        {#                </label>#}
-        {#                <div>{{ form.user_signature }}</div>#}
-        {#            </div>#}
-        {#            <div class="form-control w-full">#}
-        {#                <label class="label">#}
-        {#                    <span class="label-text">{{ form.date_user_signed.label_tag }}</span>#}
-        {#                </label>#}
-        {#                <div>{{ form.date_user_signed }}</div>#}
-        {#            </div>#}
-        {#        </div>#}
-
 
         <div class="flex justify-between mt-20">
             <a class="btn btn-outline" href="{% url 'timary:manage_invoices' %}">Cancel</a>
-            <button class="btn btn-primary">Update</button>
+            {% if proposal.date_client_signed %}
+                {# Don't allow to update proposals #}
+                <div></div>
+            {% else %}
+                <button class="btn btn-primary">Update</button>
+            {% endif %}
         </div>
 
     </form>
