@@ -109,8 +109,14 @@ def gather_invoices():
         ).exclude(user_active_query)
 
         for invoice in invoices_sent_only_on_mondays:
-            _ = async_task(send_invoice, invoice.id)
-        invoices_sent += len(list(invoices_sent_only_on_mondays))
+            if invoice.end_date and invoice.end_date.date() <= today.date():
+                # Pause invoice if passed end date
+                invoice.is_paused = True
+                invoice.end_date = None
+                invoice.save()
+            else:
+                _ = async_task(send_invoice, invoice.id)
+                invoices_sent += 1
 
     return f"Invoices sent: {invoices_sent}"
 

@@ -1,3 +1,4 @@
+import datetime
 import zoneinfo
 from decimal import Decimal
 
@@ -552,10 +553,10 @@ UpdateMilestoneForm = create_invoice_milestone(UpdateInvoiceForm)
 def create_invoice_weekly(superclass):
     class WeeklyForm(superclass):
         rate = forms.DecimalField(
+            label="Weekly rate",
             required=True,
             widget=forms.NumberInput(
                 attrs={
-                    "label": "Weekly rate",
                     "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
                     "placeholder": 1500,
                     "max": 1_000_000,
@@ -563,8 +564,37 @@ def create_invoice_weekly(superclass):
             ),
         )
 
+        end_date = forms.DateTimeField(
+            label="End date",
+            required=False,
+            widget=DateInput(
+                attrs={
+                    "min": (today() - datetime.timedelta(days=1)),
+                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                }
+            ),
+        )
+
         class Meta(superclass.Meta):
             model = WeeklyInvoice
+            fields = superclass.Meta.fields + ["end_date"]
+
+        def __init__(self, *args, **kwargs):
+            super(WeeklyForm, self).__init__(*args, **kwargs)
+            if (
+                self.instance
+                and self.instance.id is not None
+                and self.instance.end_date
+            ):
+                self.fields["end_date"].widget.attrs[
+                    "value"
+                ] = self.instance.end_date.date()
+
+        def clean_end_date(self):
+            end_date = self.cleaned_data.get("end_date")
+            if end_date and end_date.date() <= timezone.now().date():
+                raise ValidationError("Cannot set end date in the past.")
+            return end_date
 
     return WeeklyForm
 
@@ -596,8 +626,6 @@ class SingleInvoiceForm(InvoiceForm):
         fields = [
             "title",
             "client",
-            # "invoice_interval",
-            # "end_interval_date",
             "installments",
             "save_for_reuse",
             "due_date",

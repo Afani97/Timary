@@ -719,6 +719,8 @@ class IntervalInvoice(RecurringInvoice):
 
 
 class WeeklyInvoice(RecurringInvoice):
+    end_date = models.DateTimeField(null=True, blank=True)
+
     def __repr__(self):
         return (
             f"WeeklyInvoice(title={self.title}, "

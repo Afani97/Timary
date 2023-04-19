@@ -189,6 +189,23 @@ class TestGatherInvoices(TestCase):
         invoices_sent = gather_invoices()
         self.assertEqual("Invoices sent: 0", invoices_sent)
 
+    @patch("timary.tasks.timezone")
+    def test_pause_weekly_invoice_if_reached_end_date(self, today_mock):
+        today_mock.now.return_value = timezone.datetime(
+            2022, 8, 22, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        weekly_invoice = WeeklyInvoiceFactory(
+            end_date=timezone.datetime(
+                2022, 8, 20, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+            )
+        )
+        invoices_sent = gather_invoices()
+        self.assertEqual("Invoices sent: 0", invoices_sent)
+
+        weekly_invoice.refresh_from_db()
+        self.assertTrue(weekly_invoice.is_paused)
+        self.assertIsNone(weekly_invoice.end_date)
+
 
 class TestGatherInvoiceInstallments(TestCase):
     @patch("timary.tasks.async_task")
