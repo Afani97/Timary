@@ -24,7 +24,7 @@ from timary.forms import (
     SMSSettingsForm,
     UpdatePasswordForm,
 )
-from timary.models import Expenses, SentInvoice, User
+from timary.models import Client, Expenses, SentInvoice, User
 from timary.services.email_service import EmailService
 from timary.services.stripe_service import StripeService
 from timary.services.twilio_service import TwilioClient
@@ -199,9 +199,19 @@ def update_invoice_branding(request):
 @login_required
 @require_http_methods(["GET"])
 def update_accounting_integrations(request):
+    user: User = request.user
+    unsynced_clients = Client.objects.filter(
+        user=user, accounting_customer_id__isnull=True
+    ).count()
+    unsynced_invoices = SentInvoice.objects.filter(
+        user=user, accounting_invoice_id__isnull=True
+    ).count()
+
     context = {
-        "profile": request.user,
-        "settings": request.user.settings,
+        "profile": user,
+        "settings": user.settings,
+        "unsynced_clients": unsynced_clients,
+        "unsynced_invoices": unsynced_invoices,
     }
     return render(
         request,
