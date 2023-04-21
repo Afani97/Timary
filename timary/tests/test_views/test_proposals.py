@@ -1,7 +1,9 @@
 import datetime
+import zoneinfo
 
 from django.core import mail
 from django.urls import reverse
+from django.utils import timezone
 
 from timary.tests.factories import ClientFactory, ProposalFactory, UserFactory
 from timary.tests.test_views.basetest import BaseTest
@@ -50,9 +52,12 @@ class TestProposals(BaseTest):
         self.assertEqual(_client.proposals.count(), 0)
 
     def test_update_proposal(self):
+        tz = zoneinfo.ZoneInfo("America/New_York")
         proposal = ProposalFactory(
             client__user=self.user,
-            date_user_signed=self.today - datetime.timedelta(days=1),
+            date_user_signed=(self.today - timezone.timedelta(days=1)).astimezone(
+                tz=tz
+            ),
         )
         self.client.post(
             reverse("timary:update_proposal", kwargs={"proposal_id": proposal.id}),
@@ -66,7 +71,9 @@ class TestProposals(BaseTest):
         self.assertEqual(proposal.title, "Updated proposal")
 
         # Date user signed shouldn't be updated
-        self.assertNotEqual(proposal.date_user_signed.date(), self.today.date())
+        self.assertNotEqual(
+            proposal.date_user_signed.astimezone(tz=tz).date(), self.today.date()
+        )
 
     def test_cannot_update_client_signed_proposal(self):
         proposal = ProposalFactory(
