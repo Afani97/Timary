@@ -79,8 +79,10 @@ th {
 td {
     padding-top: 7mm;
 }
+td:first-of-type {
+    max-width: 200pt;
+}
 td:last-of-type {
-    font-weight: bold;
     text-align: right;
 }
 th, td {
@@ -94,9 +96,17 @@ th:last-of-type, td:last-of-type {
 }
 tr#total {
     border-top: .2mm solid rgba(2, 1, 2, 0.57);
-    color: rgba(2, 1, 2, 0.57);
+    color: black;
     font-size: 12pt;
-    font-weight: 400;
+    font-weight: bold;
     padding-bottom: .25cm;
     text-transform: uppercase;
+}
+tr.last-row {
+    border-bottom: .2mm solid rgba(2, 1, 2, 0.75);
+    padding-bottom: .25cm;
+}
+.single-li {
+    color: rgba(2, 1, 2, 0.57);;
+    text-align: right;
 }

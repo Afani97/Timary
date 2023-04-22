@@ -23,7 +23,7 @@
         </aside>
 
         <dl id="informations">
-            <dt>Invoice number</dt>
+            <dt>Invoice #</dt>
             <dd>{{ sent_invoice.email_id }}</dd>
             <dt>Date</dt>
             <dd>{{ sent_invoice.date_sent|date:"M j. Y"}}</dd>
@@ -32,7 +32,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Description</th>
+                    <th colspan="2">Description</th>
                     <th>Unit price</th>
                     <th>Quantity</th>
                     <th>Subtotal</th>
@@ -41,25 +41,51 @@
             <tbody>
                 {% for line_item in line_items %}
                     {% if line_item.invoice.invoice_type == "single" %}
-                        <tr>
-                            <td>{{ line_item.description}}</td>
+                        <tr {% if forloop.last %} class="last-row" {% endif %}>
+                            <td colspan="2">{{ line_item.description}}</td>
                             <td>${{ line_item.unit_price|floatformat:-2}}</td>
                             <td>{{ line_item.quantity|floatformat:-2}}</td>
                             <td>${{ line_item.total_amount|floatformat:-2 }}</td>
                         </tr>
                     {% else  %}
-                        <tr>
-                            <td>{{ line_item.date_tracked|timezone:user_timezone|date:"M j" }}</td>
+                        <tr {% if forloop.last %} class="last-row" {% endif %}>
+                            <td colspan="2">{{ line_item.date_tracked|timezone:user_timezone|date:"M j" }}</td>
                             <td>${{ sent_invoice.invoice.rate|floatformat:-2 }}</td>
                             <td>{{ line_item.quantity|floatformat:2 }}hr</td>
                             <td>${{ line_item.cost|floatformat:-2 }}</td>
                         </tr>
                     {% endif %}
                 {% endfor %}
+                {% if sent_invoice.invoice.invoice_type == "single" %}
+                    {% if sent_invoice.invoice.is_payment_late %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td colspan="2" class="single-li">Late Penalty Fee</td>
+                            <td>${{sent_invoice.invoice.late_penalty_amount|floatformat:-2 }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if sent_invoice.invoice.discount_amount %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td colspan="2" class="single-li">Discount</td>
+                            <td>- ${{ sent_invoice.invoice.discount_amount | floatformat:-2 }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if sent_invoice.invoice.tax_amount %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td colspan="2" class="single-li">Tax</td>
+                            <td>{{ sent_invoice.invoice.tax_amount | floatformat:-2 }}%</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
                 <tr id="total">
                     <td></td>
                     <td></td>
-                    <td>Total</td>
+                    <td colspan="2" class="single-li">Total</td>
                     <td>${{ sent_invoice.total_price|floatformat:-2 }}</td>
                 </tr>
             </tbody>
