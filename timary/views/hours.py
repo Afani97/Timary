@@ -362,3 +362,18 @@ def update_timer(request):
     request.user.timer_is_active = f"{timer_val},{timer_paused}"
     request.user.save()
     return HttpResponse("Ok")
+
+
+@login_required()
+@require_http_methods(["PATCH"])
+def cancel_recurring_hour(request, hours_id):
+    hours = get_object_or_404(HoursLineItem, id=hours_id)
+    if request.user != hours.invoice.user:
+        raise Http404
+    hours.cancel_recurring_hour()
+    response = render(
+        request,
+        "hours/_update.html",
+        {"hour": hours, "form": HoursLineItemForm(instance=hours, user=request.user)},
+    )
+    return response

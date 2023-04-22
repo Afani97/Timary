@@ -807,6 +807,30 @@ class TestHourLineItems(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(HoursLineItem.objects.first())
 
+    def test_cancel_recurring_hours(self):
+        now = get_users_localtime(UserFactory())
+        HoursLineItem.objects.all().delete()
+        invoice = IntervalInvoiceFactory(user=self.user)
+        self.client.post(
+            reverse("timary:create_hours"),
+            data={
+                "quantity": 1,
+                "date_tracked": now,
+                "invoice": invoice.id,
+                "recurring": True,
+                "repeat_interval_schedule": "d",
+            },
+        )
+        hours = HoursLineItem.objects.first()
+        self.assertIsNotNone(hours.recurring_logic)
+
+        response = self.client.patch(
+            reverse("timary:cancel_recurring_hour", kwargs={"hours_id": hours.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        hours.refresh_from_db()
+        self.assertIsNone(hours.recurring_logic)
+
     def test_get_hour_for_paused_invoice(self):
         user = UserFactory()
         invoice = IntervalInvoiceFactory(user=user, is_paused=True)

@@ -95,6 +95,11 @@ urlpatterns += [
     path("hours/<uuid:hours_id>/update/", views.update_hours, name="update_hours"),
     path("hours/<uuid:hours_id>/patch/", views.patch_hours, name="patch_hours"),
     path("hours/<uuid:hours_id>/delete/", views.delete_hours, name="delete_hours"),
+    path(
+        "hours/<uuid:hours_id>/cancel",
+        views.cancel_recurring_hour,
+        name="cancel_recurring_hour",
+    ),
 ]
 
 # EXPENSE URLS
