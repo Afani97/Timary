@@ -4,9 +4,8 @@
     hx-swap="outerHTML">
     <div class="stat">
         <div class="flex flex-row space-x-5 md:space-x-0 md:flex-col">
-
             <div class="-mx-2 md:mx-0">
-                <div class="stat-title">Hours logged this month</div>
+                <div class="stat-title">Hours this month</div>
                 <div class="stat-value">{{ current_month.total_hours | floatformat:-2 }}</div>
                 <div class="stat-desc">estimated earnings: ${{ current_month.total_amount | floatformat:-2 }}</div>
             </div>

@@ -1,122 +1,60 @@
 {% load filters %}
 <div class="navbar mb-2 md:px-12 shadow-lg bg-neutral text-neutral-content">
-    <div class="invisible md:visible flex-1 title-font font-medium items-center text-white">
-        {% include "partials/_logo.html" %}
-        {% if request.user.is_authenticated %}
-            <a class="text-xl ml-3" href="{% url 'timary:index' %}">
-                Timary
-            </a>
-        {% else %}
-            <a class="text-xl ml-3" href="{% url 'timary:landing_page' %}">
-                Timary
-            </a>
-        {% endif %}
-    </div>
-    <div class="flex-none hidden md:flex">
-        <div class="flex space-x-1">
-            {% if request.user.is_authenticated %}
-                {% if not request.user.onboarding_tasks_done.0 %}
-                    <div class="dropdown dropdown-end cursor-pointer">
-                        <label tabindex="0" class="mr-5 cursor-pointer">
-                            Onboarding Tasks:
-                            <span class="radial-progress ml-1"
-                                style="--value:{{ request.user.onboarding_tasks_done.1 }}; --size:2.5rem; --thickness: 2px;">
-                                <span class="text-xs">{{ request.user.onboarding_tasks_done.1 }}%</span>
-                            </span>
-                        </label>
-                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-80">
-                            {% for task, status in request.user.onboarding_tasks.items %}
-                                <li>
-                                    <a class="flex justify-between">
-                                        {% if status %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-2">
-                                                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
-                                            </svg>
-                                        {% else %}
-                                            {# Trick css into text align right #}
-                                            <span></span>
-                                        {% endif %}
-                                        <span class="text-right">{{ task|format_str }}</span>
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-                <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
-                    Home
-                </a>
-                <a class="btn btn-ghost btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
-                    Invoices
-                </a>
-                <a class="btn btn-ghost btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
-                    Profile
-                </a>
-                <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
-            {% else %}
-                <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:login' %}">
-                    Login
-                </a>
-                <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:register' %}">
-                    Register
-                </a>
+    {% if request.user.is_authenticated %}
+        <div class="hidden md:flex md:flex-1 title-font font-medium items-center text-white">
+            {% include "partials/_logo.html" %}
+            <a class="text-xl ml-3" href="{% url 'timary:index' %}"> Timary </a>
+        </div>
+        <div class="flex justify-evenly md:justify-end w-full">
+            {% if not request.user.onboarding_tasks_done.0 %}
+                <div class="hidden md:block dropdown dropdown-end cursor-pointer">
+                    <label tabindex="0" class="mr-5 cursor-pointer">
+                        Onboarding Tasks:
+                        <span class="radial-progress ml-1"
+                            style="--value:{{ request.user.onboarding_tasks_done.1 }}; --size:2.5rem; --thickness: 2px;">
+                            <span class="text-xs">{{ request.user.onboarding_tasks_done.1 }}%</span>
+                        </span>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-80">
+                        {% for task, status in request.user.onboarding_tasks.items %}
+                            <li>
+                                <a class="flex justify-between">
+                                    {% if status %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6 mr-2">
+                                            <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% else %}
+                                        {# Trick css into text align right #}
+                                        <span></span>
+                                    {% endif %}
+                                    <span class="text-right">{{ task|format_str }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% endif %}
+            <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
+                Dashboard
+            </a>
+            <a class="btn btn-ghost btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
+                Invoices
+            </a>
+            <a class="btn btn-ghost btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
+                Profile
+            </a>
+            <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
         </div>
-    </div>
-    <div class="flex md:hidden md:flex-none -mx-1 md:mx-0">
-        <div class="dropdown dropdown-left" id="dropdown-menu">
-            <div tabindex="0" class="btn m-1" id="hamburger-menu">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </div>
-            <ul tabindex="0" class="p-2 shadow menu dropdown-content bg-base-200 rounded-box w-52">
-                {% if request.user.is_authenticated %}
-                    <li>
-                        <a href="{% url 'timary:index' %}" class="{% if "main" in request.path %} font-bold bg-base-100 {% endif %}">
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'timary:manage_invoices' %}" class="{% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}">
-                            Invoices
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'timary:user_profile' %}" class="{% if "profile" in request.path %} font-bold bg-base-100 {% endif %}">
-                            Profile
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{% url 'timary:logout' %}">
-                            Logout
-                        </a>
-                    </li>
-                {% else %}
-                    <li>
-                        <a href="{% url 'timary:landing_page' %}">
-                            Home
-                        </a>
-                    </li>
-                    {% if "register" in request.path %}
-                        <li>
-                            <a href="{% url 'timary:login' %}">
-                                Login
-                            </a>
-                        </li>
-                    {% elif "login" in request.path %}
-                        <li>
-                            <a href="{% url 'timary:register' %}">
-                                Register
-                            </a>
-                        </li>
-                    {% endif %}
-
-                {% endif %}
-            </ul>
+    {% else %}
+        <div class="flex flex-1 title-font font-medium items-center text-white">
+            {% include "partials/_logo.html" %}
+            <a class="text-xl ml-3" href="{% url 'timary:landing_page' %}"> Timary </a>
         </div>
-    </div>
+        <div class="flex justify-end">
+            <a class="btn btn-ghost btn-sm rounded-btn"  href="{% url 'timary:login' %}"> Login </a>
+            <a class="btn btn-ghost btn-sm rounded-btn" href="{% url 'timary:register' %}"> Register </a>
+        </div>
+    {% endif %}
 </div>
 
 {% if request.user.is_authenticated %}

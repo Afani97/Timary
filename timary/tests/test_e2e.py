@@ -97,8 +97,8 @@ class TestUI(BaseUITest):
             client_label = f"{client.name} - {client.email}"
             page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
-            page.wait_for_selector("#dashboard-title", timeout=2000)
-            self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
+            self.assertEqual(page.inner_text("#log_hours_btn"), "LOG HOURS")
 
     @tag("ui")
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
@@ -117,8 +117,8 @@ class TestUI(BaseUITest):
             client_label = f"{client.name} - {client.email}"
             page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
-            page.wait_for_selector("#dashboard-title", timeout=2000)
-            self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
+            self.assertEqual(page.inner_text("#log_hours_btn"), "LOG HOURS")
 
     @tag("ui")
     @patch("timary.services.stripe_service.StripeService.create_customer_for_invoice")
@@ -136,14 +136,14 @@ class TestUI(BaseUITest):
             client_label = f"{client.name} - {client.email}"
             page.get_by_label("Client:").select_option(label=client_label)
             page.click('button:has-text("Add new invoice")')
-            page.wait_for_selector("#dashboard-title", timeout=2000)
-            self.assertEqual(page.inner_text("#dashboard-title"), "Dashboard")
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
+            self.assertEqual(page.inner_text("#log_hours_btn"), "LOG HOURS")
 
     @tag("ui")
     def test_log_first_hours(self):
         invoice = IntervalInvoiceFactory()
         with self.start_test(invoice.user) as page:
-            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
             page.click("#log_hours_btn")
             page.wait_for_selector("#new-hours-form", timeout=2000)
             page.fill("#id_quantity", "2")
@@ -155,7 +155,7 @@ class TestUI(BaseUITest):
     def test_log_first_hours_time_format(self):
         invoice = IntervalInvoiceFactory()
         with self.start_test(invoice.user) as page:
-            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
             page.click("#log_hours_btn")
             page.wait_for_selector("#new-hours-form", timeout=2000)
             page.fill("#id_quantity", ":25")
@@ -167,7 +167,7 @@ class TestUI(BaseUITest):
     def test_edit_hours(self):
         hours = HoursLineItemFactory()
         with self.start_test(hours.invoice.user) as page:
-            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
             page.wait_for_selector(".edit-hours", timeout=2000).click()
             page.wait_for_selector('button:has-text("Update")', timeout=2000)
             page.fill(f"#hours-list #id_{hours.slug_id}", "2")
@@ -262,7 +262,7 @@ class TestUI(BaseUITest):
         hours = HoursLineItemFactory()
         with self.start_test(hours.invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:index")}')
-            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
             page.click('a:has-text("Logout")')
             page.wait_for_selector('button:has-text("Continue")', timeout=2000)
             self.assertEqual(page.inner_text("h1"), "Login to Timary")
@@ -341,7 +341,7 @@ class TestUI(BaseUITest):
             date_tracked=get_users_localtime(invoice.user) - timezone.timedelta(days=1),
         )
         with self.start_test(invoice.user) as page:
-            page.wait_for_selector("#dashboard-title", timeout=2000)
+            page.wait_for_selector("#log_hours_btn", timeout=2000)
             page.click(".copy-hours")
             page.click('li:has-text("From")')
             self.assertEqual(page.inner_text(".stat-value"), "5")
