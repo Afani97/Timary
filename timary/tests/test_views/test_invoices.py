@@ -1048,6 +1048,26 @@ class TestRecurringInvoices(BaseTest):
         sent_invoice.refresh_from_db()
         self.assertIn("Unable to edit hours", str(response.headers))
 
+    def test_resend_a_cancelled_invoice(self):
+        sent_invoice = SentInvoiceFactory(
+            invoice=self.invoice,
+            user=self.user,
+            paid_status=SentInvoice.PaidStatus.CANCELLED,
+        )
+        response = self.client.get(
+            reverse(
+                "timary:resend_invoice_email",
+                kwargs={"sent_invoice_id": sent_invoice.id},
+            ),
+        )
+        sent_invoice.refresh_from_db()
+        self.assertEqual(sent_invoice.paid_status, SentInvoice.PaidStatus.NOT_STARTED)
+        self.assertIn(
+            f"Invoice for {sent_invoice.invoice.title} has been resent",
+            response.headers["HX-Trigger"],
+        )
+        self.assertTemplateUsed(response, "partials/_sent_invoice.html")
+
 
 class TestSingleInvoices(BaseTest):
     def setUp(self) -> None:

@@ -52,6 +52,8 @@ def resend_invoice_email(request, sent_invoice_id):
     if request.user != invoice.user:
         raise Http404
 
+    sent_invoice.paid_status = SentInvoice.PaidStatus.NOT_STARTED
+    sent_invoice.save(update_fields=["paid_status"])
     if (
         isinstance(sent_invoice.invoice, SingleInvoice)
         and sent_invoice.invoice.installments > 1
