@@ -111,12 +111,6 @@
             document.body.addEventListener('htmx:configRequest', (event) => {
                 event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
             });
-            document.addEventListener("click", (e) => {
-                if (document.activeElement.id !== "hamburger-menu") {
-                    document.getElementById("dropdown-menu").blur()
-                }
-            })
-
             // Helper methods to clean hours input.
             function filterHoursInput(e) {
                 e.value = e.value.replace(/[^0-9.:]/, '');

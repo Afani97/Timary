@@ -108,6 +108,13 @@
                             </div>
                         </div>
                         <div class="divider md:divider-horizontal"></div>
+                    {% else %}
+                        <div class="w-full">
+                            <p class="text-center mb-1">Earliest date to log</p>
+                            <p class="text-center text-sm mb-6"> {{ invoice.last_date|date:"M. j" }} </p>
+                        </div>
+
+                        <div class="divider md:divider-horizontal"></div>
                     {% endif %}
                     <div class="w-full sm:w-3/4 md:w-1/2 mx-auto">
                         <div class="flex flex-row justify-center w-full h-full md:h-[225px]">
@@ -134,6 +141,10 @@
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
+                                title: {
+                                    display: true,
+                                    text: 'Your earnings'
+                                },
                                 legend: {
                                     display: false
                                 },
