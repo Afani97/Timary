@@ -47,6 +47,7 @@ def index(request):
         "show_repeat": show_repeat_option,
         "is_main_view": True,  # Needed to show timer controls, hidden for other views
         "last_month_date": datetime.date.today() - relativedelta(months=1),
+        "date_today": get_users_localtime(user).strftime("%Y-%m-%d"),
     }
 
     if len(show_most_frequent_options) > 0:

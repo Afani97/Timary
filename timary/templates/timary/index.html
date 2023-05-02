@@ -82,13 +82,15 @@
 
 {% block js %}
     <script nonce="manage-hours">
+        const dateToday = "{{ date_today|escapejs }}"
         function clearHoursModal() {
             let errors_list = htmx.find("#new-hours-form .list-none");
             if (errors_list) {
                 errors_list.remove();
             }
             htmx.find("#id_quantity").value = 1;
-            htmx.find("#id_date_tracked").value = new Date().toISOString().split('T')[0];
+            htmx.find("#id_date_tracked").valueAsDate = dateToday
+
             let today = new Date();
             let weekLater = today.setDate(today.getDate() + 7);
             htmx.find("#id_repeat_end_date").value = (new Date(weekLater)).toISOString().split("T")[0];
