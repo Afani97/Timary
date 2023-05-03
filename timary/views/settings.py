@@ -311,12 +311,10 @@ def update_subscription(request):
 def view_tax_center(request):
     local_tz = zoneinfo.ZoneInfo(request.user.timezone)
     tax_years = [
-        "2024"
+        "2024",
     ]  # Add another year for new tax season to calculate previous year
     tax_summary = []
     for tax_year in tax_years:
-        if not waffle.switch_is_active(f"can_view_{tax_year}"):
-            continue
         previous_year_range = (
             datetime.datetime(year=int(tax_year) - 1, month=1, day=1, tzinfo=local_tz),
             datetime.datetime(year=int(tax_year), month=1, day=1, tzinfo=local_tz),
@@ -341,6 +339,7 @@ def view_tax_center(request):
                 "income_year": int(tax_year) - 1,
                 "gross_profit": gross_profit,
                 "total_expenses": total_expenses,
+                "pdf_available": waffle.switch_is_active(f"can_view_{tax_year}"),
             }
         )
     context = {"tax_summary": tax_summary}
