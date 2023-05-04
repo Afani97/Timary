@@ -19,7 +19,7 @@ def nextmonday(field, today_str):
     today = parse_datetime(today_str)
     day_shift = (weekday - today.weekday()) % 7
     next_date = (today + timezone.timedelta(days=day_shift)).date()
-    return template_date(next_date, "M. j, Y") if next_date != today.date() else "today"
+    return template_date(next_date, "M. j") if next_date != today.date() else "today"
 
 
 @register.filter(name="addf")

@@ -204,7 +204,9 @@ def update_accounting_integrations(request):
         user=user, accounting_customer_id__isnull=True
     ).count()
     unsynced_invoices = SentInvoice.objects.filter(
-        user=user, accounting_invoice_id__isnull=True
+        user=user,
+        accounting_invoice_id__isnull=True,
+        paid_status=SentInvoice.PaidStatus.PAID,
     ).count()
 
     context = {
