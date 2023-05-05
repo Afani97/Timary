@@ -44,4 +44,9 @@ upgrade:
 	playwright install
 .PHONY: upgrade
 
+update-fe:
+	python manage.py tailwind update
+	make static
+.PHONY: update-fe
+
 # TO RUN NGROK FOR TESTING: JUST TYPE 'n' in terminal
