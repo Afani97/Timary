@@ -215,16 +215,14 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
 
-    def test_get_invoice_with_hours_logged(self):
+    def test_get_invoice_details(self):
         hour = HoursLineItemFactory(invoice=self.invoice)
 
-        rendered_template = self.setup_template(
-            "invoices/interval/_card.html", {"invoice": self.invoice}
-        )
         response = self.client.get(
-            reverse("timary:get_single_invoice", kwargs={"invoice_id": self.invoice.id})
+            reverse(
+                "timary:view_invoice_details", kwargs={"invoice_id": self.invoice.id}
+            )
         )
-        self.assertHTMLEqual(rendered_template, response.content.decode("utf-8"))
         local_date = hour.date_tracked.astimezone(
             tz=zoneinfo.ZoneInfo(self.invoice.user.timezone)
         )

@@ -228,6 +228,11 @@ urlpatterns += [
         views.invoice_feedback,
         name="invoice_feedback",
     ),
+    path(
+        "invoices/<uuid:invoice_id>/details/",
+        views.view_invoice_details,
+        name="view_invoice_details",
+    ),
 ]
 
 # SINGLE INVOICE URLS

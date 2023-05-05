@@ -447,3 +447,14 @@ ari@usetimary.com
             )
 
     return render(request, "invoices/_feedback.html", {"archive_invoice": invoice})
+
+
+@login_required()
+@require_http_methods(["GET"])
+def view_invoice_details(request, invoice_id):
+    invoice = InvoiceManager(invoice_id).invoice
+
+    if request.user != invoice.user:
+        raise Http404
+
+    return render(request, "partials/_invoice_details.html", {"invoice": invoice})

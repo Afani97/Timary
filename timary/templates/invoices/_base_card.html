@@ -74,119 +74,18 @@
         </div>
         {% block footer %}
         {% endblock footer %}
-        <div tabindex="0" class="collapse collapse-arrow rounded-md -ml-3 -mr-2">
+        <div tabindex="0" class="collapse collapse-arrow rounded-md -ml-3 -mr-2"
+            hx-get="{% url 'timary:view_invoice_details' invoice_id=invoice.id %}"
+            hx-trigger="click once"
+            hx-target="find .collapse-content"
+            hx-swap="innerHTML"
+        >
             <input type="checkbox" />
             <div class="collapse-title text-xl font-medium mb-4">View more</div>
-            <div class="collapse-content" id="hours-logged">
-                <div class="flex flex-col justify-evenly md:flex-row w-full">
-                    {% if invoice.get_hours_tracked.count > 0 %}
-                        <div class="flex flex-grow flex-col items-center w-full max-w-2xl">
-                            <p class="text-center mb-1">Hours logged this period</p>
-                            <p class="text-center text-sm mb-6">
-                                <span>{{ invoice.last_date|date:"M. j" }} - </span>
-                                {% if invoice.invoice_type == "weekly" %}
-                                    {% now "c" as current_date %}
-                                    <span>{{ ""|nextmonday:current_date|title}}</span>
-                                {% else %}
-                                    <span>{{ invoice.next_date|date:"M. j" }}</span>
-                                {% endif %}
-                            </p>
-                            <div class="h-full w-3/4">
-                                <ul class="list-none"
-                                    hx-get="{% url 'timary:invoice_hour_stats' invoice_id=invoice.id %}"
-                                    hx-trigger="refreshHourStats-{{ invoice.email_id }} from:body"
-                                    hx-swap="innerHTML">
-                                    {% include 'partials/_invoice_period_hours.html' with invoice=invoice %}
-                                </ul>
-                                {% if not invoice.is_paused %}
-                                    <div class="flex justify-center">
-                                        <label
-                                            for="edit-hours-modal"
-                                            class="btn btn-outline btn-sm modal-button my-5"
-                                            hx-get="{% url 'timary:edit_invoice_hours' invoice_id=invoice.id %}"
-                                            hx-target=".inner-modal"
-                                            hx-swap="innerHTML"
-                                            _="on click add .loading to me end
-                                                on htmx:afterRequest remove .loading from me end"
-                                        >
-                                            Edit hours
-                                        </label>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="divider md:divider-horizontal"></div>
-                    {% else %}
-                        <div class="w-full">
-                            <p class="text-center mb-1">Earliest date to log</p>
-                            <p class="text-center text-sm mb-6"> {{ invoice.last_date|date:"M. j" }} </p>
-                        </div>
-
-                        <div class="divider md:divider-horizontal"></div>
-                    {% endif %}
-                    <div class="w-full sm:w-3/4 md:w-1/2 mx-auto">
-                        <div class="flex flex-row justify-center w-full h-full md:h-[225px]">
-                            <canvas id="chart-{{ invoice.email_id }}"></canvas>
-                        </div>
-                    </div>
-                    <script>
-                        delete config_{{ invoice.email_id }};
-                        config_{{ invoice.email_id }} = {
-                            type: 'bar',
-                            data: {
-                                datasets: [
-                                    {
-                                        "data": {{ invoice.get_last_six_months.1|safe }},
-                                        "label": "Earnings",
-                                        "fill": false,
-                                        "backgroundColor": ["rgba(255, 99, 132, 0.2)","rgba(255, 159, 64, 0.2)","rgba(255, 205, 86, 0.2)","rgba(75, 192, 192, 0.2)","rgba(54, 162, 235, 0.2)","rgba(153, 102, 255, 0.2)","rgba(201, 203, 207, 0.2)"],
-                                        "borderColor": ["rgb(255, 99, 132)","rgb(255, 159, 64)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)","rgb(153, 102, 255)","rgb(201, 203, 207)"],
-                                        "borderWidth": 1
-                                    }
-                                ],
-                                labels: {{ invoice.get_last_six_months.0|safe }}
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                title: {
-                                    display: true,
-                                    text: 'Your earnings'
-                                },
-                                legend: {
-                                    display: false
-                                },
-                                scales: {
-                                    yAxes: [{
-                                        ticks: {
-                                            beginAtZero: true,
-                                            autoSkip: false,
-                                            maxTicksLimit: 20
-                                        },
-                                    }]
-                                },
-                                tooltips: {
-                                    callbacks: {
-                                        title: function(tooltipItem, data) {
-                                            return data['labels'][tooltipItem[0]['index']];
-                                        },
-                                        label: function(tooltipItem, data) {
-                                            return `$${parseFloat(data['datasets'][0]['data'][tooltipItem['index']]).toFixed(2)}`;
-                                        }
-                                    },
-                                    backgroundColor: '#FFF',
-                                    titleFontSize: 16,
-                                    titleFontColor: '#0066ff',
-                                    bodyFontColor: '#000',
-                                    bodyFontSize: 14,
-                                    displayColors: false
-                                }
-                            }
-                        };
-                        new Chart(document.getElementById('chart-{{invoice.email_id}}'), config_{{ invoice.email_id }});
-                    </script>
+            <div class="collapse-content">
+                <div class="flex justify-center">
+                    <button class="btn btn-lg loading">loading</button>
                 </div>
-
             </div>
         </div>
     </div>
