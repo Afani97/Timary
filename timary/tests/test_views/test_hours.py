@@ -879,9 +879,8 @@ class TestHourLineItems(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
         user_localtime = template_time(get_users_localtime(user), "g:i a")
-        self.assertIn(
-            f"{invoice.title} - {user_localtime}", response.content.decode("utf-8")
-        )
+        self.assertIn(invoice.title, response.content.decode("utf-8"))
+        self.assertIn(user_localtime, response.content.decode("utf-8"))
 
     def test_get_hours_la_timezone(self):
         user = UserFactory()
@@ -900,6 +899,5 @@ class TestHourLineItems(BaseTest):
         )
         self.assertEqual(response.status_code, 200)
         user_localtime = template_time(users_localtime, "g:i a")
-        self.assertIn(
-            f"{invoice.title} - {user_localtime}", response.content.decode("utf-8")
-        )
+        self.assertIn(invoice.title, response.content.decode("utf-8"))
+        self.assertIn(user_localtime, response.content.decode("utf-8"))

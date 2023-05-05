@@ -3,7 +3,9 @@
     <div class="card-body flex flex-row justify-between items-center px-6">
         <div class="flex flex-col w-full">
             <h2 class="text-3xl font-bold">{{ hour.quantity|floatformat:2 }}</h2>
-            <p class="text-sm">{{ hour.invoice.title }} - {{ hour.updated_at|localtime|time:"g:i a"}}</p>
+            <p class="text-sm flex flex-row md:flex-col">
+                <span>{{ hour.invoice.title }}</span> <span class="block mx-1 md:hidden">-</span> <span>{{ hour.updated_at|localtime|time:"g:i a"}}</span>
+            </p>
             {% if hour.recurring_logic %}
                 <div class="tooltip mt-2" data-tip="This hour is on a {{ hour.recurring_logic.type }} schedule.">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
