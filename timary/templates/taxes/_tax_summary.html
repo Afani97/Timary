@@ -28,7 +28,7 @@
                         <td>${{ tax_year.total_expenses|floatformat:"-2" }}</td>
                         <td>
                             {% if tax_year.pdf_available %}
-                                <a href="{% url 'timary:tax_summary_pdf' %}?year={{ tax_year.income_year }}" download class="link underline">Download</a>
+                                <a href="{% url 'timary:tax_summary_pdf' %}?year={{ tax_year.tax_year }}" download class="link underline">Download</a>
                             {% else %}
                                 <span>Not yet</span>
                             {% endif %}
