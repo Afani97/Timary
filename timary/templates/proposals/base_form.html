@@ -8,6 +8,11 @@
         [data-trix-button-group="file-tools"] {
             display: none!important;
         }
+        trix-toolbar {
+            z-index: 20000 !important; {# Interferes with toast container #}
+            position: sticky;
+            top: 10px;
+        }
         trix-toolbar .trix-button {
             background-color: white;
         }
