@@ -140,6 +140,7 @@ def archive_invoice(request, invoice_id):
     if request.user != invoice.user:
         raise Http404
     invoice.is_archived = True
+    invoice.is_paused = False
     invoice.save()
     response = HttpResponse("", status=200)
     if request.user.get_invoices.count() == 0:

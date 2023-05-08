@@ -22,7 +22,6 @@ class HoursQuerySet(models.QuerySet):
         return (
             self.filter(
                 invoice__user=user,
-                invoice__is_archived=False,
                 date_tracked__gte=beginning_of_month,
             )
             .exclude(quantity=0)
@@ -53,7 +52,6 @@ class HoursQuerySet(models.QuerySet):
         return (
             self.filter(
                 invoice__user=user,
-                invoice__is_archived=False,
                 date_tracked__range=month_range,
             )
             .exclude(quantity=0)
