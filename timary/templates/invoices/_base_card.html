@@ -74,7 +74,7 @@
         </div>
         {% block footer %}
         {% endblock footer %}
-        <div tabindex="0" class="collapse collapse-arrow rounded-md -ml-3 -mr-2"
+        <div tabindex="0" class="collapse collapse-arrow rounded-md -ml-3 -mr-2 -mb-5"
             hx-get="{% url 'timary:view_invoice_details' invoice_id=invoice.id %}"
             hx-trigger="click once"
             hx-target="find .collapse-content"

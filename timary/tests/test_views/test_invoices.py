@@ -597,15 +597,11 @@ class TestRecurringInvoices(BaseTest):
         )
 
         self.assertInHTML(
-            f"""
-                <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
-            """,
+            f"${floatformat(s1.total_price, -2) }",
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
-            f"""
-                <div class="stat-value">${floatformat(s2.total_price, -2)}</div>
-            """,
+            f"${floatformat(s2.total_price, -2)}",
             response.content.decode("utf-8"),
         )
 
@@ -639,22 +635,15 @@ class TestRecurringInvoices(BaseTest):
         )
 
         self.assertInHTML(
-            f"""
-                <div class="stat-value">${floatformat(s1.total_price, -2) }</div>
-            """,
-            response.content.decode("utf-8"),
+            f"${floatformat(s1.total_price, -2) }", response.content.decode("utf-8")
         )
         # Only calculate sent invoices for current year
         self.assertNotIn(
-            f"""
-            <div class="stat-value">${floatformat((s2.total_price + s3.total_price), -2)}</div>
-            """,
+            f"${floatformat((s2.total_price + s3.total_price), -2)}",
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
-            f"""
-                <div class="stat-value">${floatformat(s2.total_price, -2)}</div>
-            """,
+            f"${floatformat(s2.total_price, -2)}",
             response.content.decode("utf-8"),
         )
 

@@ -3,33 +3,32 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
-    <div class="flex flex-col md:flex-row w-full mt-10 md:mt-20 md:px-5 lg:px-0">
-
-        <div class="flex flex-col space-y-5 mb-4 md:mb-0">
-            <div class="btn-group btn-group-horizontal md:btn-group-vertical justify-center"
-                _="on click take .btn-active from .btn for event.target">
-                <button class="btn btn-active"
-                    _="on click call clearInnerContent() then add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
-                    hx-get="{% url 'timary:get_invoices' %}" hx-target="#inner-content" hx-swap="innerHTML"
-                >
-                    Invoices
-                </button>
-                <button class="btn" id="new-client-tab"
-                    _="on click call clearInnerContent() then add .hidden to #new-invoice-btn then remove .hidden from #new-client-btn"
-                    hx-get="{% url 'timary:get_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
-                >
-                    Clients
-                </button>
-                <button class="btn"
-                    _="on click call clearInnerContent() then add .hidden to #new-client-btn then add .hidden to #new-invoice-btn"
-                    hx-get="{% url 'timary:get_archive_list' %}" hx-target="#inner-content" hx-swap="innerHTML"
-                >
-                    Archived Invoices
-                </button>
+    <div class="flex flex-col md:flex-row items-center md:items-baseline md:justify-between max-w-6xl mx-auto mt-5 sm:mt-10 sm:px-5">
+        <div class="tabs mb-5 md:mb-0 mx-auto md:mx-0"  _="on click take .tab-active from .tab for event.target">
+            <a class="tab tab-bordered tab-active"
+                _="on click call clearInnerContent() then add .hidden to #new-client-btn then remove .hidden from #new-invoice-btn"
+                hx-get="{% url 'timary:get_invoices' %}" hx-target="#inner-content" hx-swap="innerHTML"
+            >Invoices</a>
+            <a class="tab tab-bordered" id="new-client-tab"
+                _="on click call clearInnerContent() then add .hidden to #new-invoice-btn then remove .hidden from #new-client-btn"
+                hx-get="{% url 'timary:get_clients' %}" hx-target="#inner-content" hx-swap="innerHTML"
+            >Clients</a>
+            <a class="tab tab-bordered"
+                _="on click call clearInnerContent() then add .hidden to #new-client-btn then add .hidden to #new-invoice-btn"
+                hx-get="{% url 'timary:get_archive_list' %}" hx-target="#inner-content" hx-swap="innerHTML"
+            >Archived Clients</a>
+        </div>
+        <div class="flex flex-row gap-2">
+            <div class="hidden sm:flex flex-row gap-2 ">
+                <div class="tooltip flex flex-row items-center" data-tip="Since start of {% now "Y" %}">
+                    <span class="font-bold mr-1">${{ sent_invoices_owed|floatformat:-2 }}</span> owed
+                </div>
+                <div class="tooltip flex flex-row items-center" data-tip="Since start of {% now "Y" %}">
+                    <span class="font-bold mr-1">${{ sent_invoices_earned|floatformat:-2 }}</span> earned
+                </div>
             </div>
-            <div class="divider"></div>
             <div class="dropdown dropdown-hover dropdown-bottom dropdown-end" id="new-invoice-btn">
-                <label tabindex="0" class="btn m-1 btn-primary w-full">New invoice</label>
+                <label tabindex="0" class="btn btn-sm btn-primary">New invoice</label>
                 <div tabindex="0" class="dropdown-content">
                     <ul class="menu bg-neutral w-56 rounded-box">
                         <li
@@ -76,57 +75,22 @@
                     </ul>
                 </div>
             </div>
-            <div id="new-client-btn" class="hidden w-full">
-                <label tabindex="0" class="btn m-1 btn-primary w-full " for="new-client-modal" id="create-new-client">New client</label>
-                <div class="divider"></div>
+            <div id="new-client-btn" class="hidden flex flex-row gap-3">
                 {% if request.user.accounting_org %}
                     <div class="flex justify-center">
-                        <button
-                            hx-get="{% url 'timary:get_accounting_clients' %}"
-                            hx-target="#inner-content"
-                            hx-swap="innerHTML"
-                            class="btn btn-sm"
-                            _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
-                        >
+                        <button class="btn btn-sm" _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+                            hx-get="{% url 'timary:get_accounting_clients' %}" hx-target="#inner-content" hx-swap="innerHTML">
                             Fetch from {{ request.user.accounting_org|title }}
                         </button>
                     </div>
                 {% endif %}
-            </div>
-
-            <div class="hidden md:flex justify-center mt-5">
-                <div class="stats shadow stats-vertical">
-                    <div class="stat place-items-center">
-                        <div class="stat-value">${{ sent_invoices_owed|floatformat:-2 }}</div>
-                        <div class="tooltip" data-tip="Since start of {% now "Y" %}">
-                            <div class="stat-desc flex flex-row">
-                                <span>owed</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 ml-1">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stat place-items-center">
-                        <div class="stat-value">${{ sent_invoices_earned|floatformat:-2 }}</div>
-                        <div class="tooltip" data-tip="Since start of {% now "Y" %}">
-                            <div class="stat-desc flex flex-row">
-                                <span>earned</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 ml-1">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+                <label tabindex="0" class="btn btn-sm btn-primary" for="new-client-modal" id="create-new-client">New client</label>
             </div>
         </div>
-        <div class="divider divider-horizontal"></div>
+    </div>
 
-        <div class="flex-1 max-w-5xl mx-auto w-full mt-5 md:mt-0" id="inner-content">
-            {% include "invoices/list.html" %}
-        </div>
+    <div class="max-w-4xl mx-auto w-full mt-5 md:mt-10 sm:px-5 lg:px-0" id="inner-content">
+        {% include "invoices/list.html" %}
     </div>
 
     {# New invoice modal #}
