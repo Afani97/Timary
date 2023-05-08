@@ -1,7 +1,6 @@
 import zoneinfo
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -9,7 +8,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import ClientForm, HoursLineItemForm, InvoiceFeedbackForm, InvoiceForm
-from timary.models import Invoice, InvoiceManager, SentInvoice
+from timary.models import Invoice, InvoiceManager
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
 from timary.utils import get_users_localtime, show_active_timer, show_alert_message
@@ -45,31 +44,10 @@ def get_archived_invoices(request):
 @require_http_methods(["GET"])
 def manage_invoices(request):
     invoices = request.user.get_invoices.order_by("title")
-    beginning_of_year = get_users_localtime(request.user).replace(month=1, day=1)
-    sent_invoices_owed = (
-        request.user.sent_invoices.filter(date_sent__gte=beginning_of_year)
-        .exclude(
-            Q(paid_status=SentInvoice.PaidStatus.PAID)
-            | Q(paid_status=SentInvoice.PaidStatus.CANCELLED)
-        )
-        .aggregate(total=Sum("total_price"))
-    )
-    sent_invoices_owed = (
-        sent_invoices_owed["total"] if sent_invoices_owed["total"] else 0
-    )
-
-    sent_invoices_paid = request.user.sent_invoices.filter(
-        Q(date_sent__gte=beginning_of_year) & Q(paid_status=SentInvoice.PaidStatus.PAID)
-    ).aggregate(total=Sum("total_price"))
-    sent_invoices_paid = (
-        sent_invoices_paid["total"] if sent_invoices_paid["total"] else 0
-    )
     context = {
         "invoices": invoices,
         "new_invoice": InvoiceForm(user=request.user),
         "new_client": ClientForm(),
-        "sent_invoices_owed": sent_invoices_owed,
-        "sent_invoices_earned": sent_invoices_paid,
     }
     context.update(show_active_timer(request.user))
     return render(
