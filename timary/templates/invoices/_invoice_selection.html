@@ -83,10 +83,14 @@
 
     </div>
 
-    <div id="invoice-form"></div>
+    <div id="invoice-form">
+        <div class="flex justify-center">
+            <button class="btn btn-lg btn-ghost loading">loading</button>
+        </div>
+    </div>
 
     <div class="flex justify-center hidden mt-5" id="back-btn"
-        _="on click add .hidden to #invoice-form then remove .hidden from #invoice-selection then add .hidden to #back-btn"
+        _="on click call resetForms() then add .hidden to #invoice-form then remove .hidden from #invoice-selection then add .hidden to #back-btn"
     >
         <button>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -94,5 +98,15 @@
             </svg>
         </button>
     </div>
+    <script nonce="new-invoices">
+        var LOADER = `
+        <div class="flex justify-center">
+            <button class="btn btn-lg btn-ghost loading">loading</button>
+        </div>
+        `;
+        function resetForms() {
+            document.getElementById("invoice-form").innerHTML = LOADER;
+        }
+    </script>
 
 </div>
