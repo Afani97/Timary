@@ -16,6 +16,7 @@
                 <ul class="list-none"
                     hx-get="{% url 'timary:invoice_hour_stats' invoice_id=invoice.id %}"
                     hx-trigger="refreshHourStats-{{ invoice.email_id }} from:body"
+                    hx-target="this"
                     hx-swap="innerHTML">
                     {% include 'partials/_invoice_period_hours.html' with invoice=invoice %}
                 </ul>
