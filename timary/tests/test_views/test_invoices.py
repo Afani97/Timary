@@ -1232,6 +1232,23 @@ class TestSingleInvoices(BaseTest):
             """
             self.assertInHTML(msg, html_message)
 
+    def test_generate_invoice_qrcode(self):
+        invoice = SingleInvoiceFactory(user=self.user, status=1)
+        LineItemFactory(invoice=invoice, quantity=1, unit_price=2.5)
+        SentInvoiceFactory(invoice=invoice, user=invoice.user)
+        response = self.client.get(
+            reverse(
+                "timary:generate_qrcode_single_invoice",
+                kwargs={"single_invoice_id": invoice.id},
+            ),
+            follow=True,
+        )
+        # Qr code is redirected to the view that actually generates a qr code for a sent invoice,
+        # regardless of invoice type
+        self.assertEqual(response.status_code, 200)
+        # Lazy way of figuring out if the qr code was generated
+        self.assertIn("qrcode", response.content.decode())
+
     def test_resend_invoice(self):
         """A single invoice should only have max 1 SentInvoice"""
         invoice = SingleInvoiceFactory(user=self.user, status=1)

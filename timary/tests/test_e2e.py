@@ -258,7 +258,7 @@ class TestUI(BaseUITest):
         )
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.click('span:has-text("QR Code")')
+            page.click('span:has-text("Generate QR Code")')
             page.wait_for_selector('p:has-text("back")', timeout=3000)
             self.assertIsNotNone(page.inner_text(".qrcode"))
 

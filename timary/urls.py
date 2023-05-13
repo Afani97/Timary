@@ -264,6 +264,11 @@ urlpatterns += [
         name="update_single_invoice_status",
     ),
     path(
+        "invoices/single/<uuid:single_invoice_id>/qrcode/",
+        views.generate_qrcode_single_invoice,
+        name="generate_qrcode_single_invoice",
+    ),
+    path(
         "invoices/single-line-item/",
         views.single_invoice_line_item,
         name="single_invoice_line_item",

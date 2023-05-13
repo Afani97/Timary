@@ -11,6 +11,7 @@ from timary.forms import LineItemForm, SingleInvoiceForm
 from timary.models import LineItem, SentInvoice, SingleInvoice
 from timary.tasks import send_invoice_installment, send_invoice_reminder
 from timary.utils import get_users_localtime, show_alert_message
+from timary.views import generate_qrcode_invoice
 
 
 def format_line_items(request):
@@ -438,3 +439,54 @@ def send_first_installment(request, single_invoice_id):
             persist=True,
         )
         return response
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def generate_qrcode_single_invoice(request, single_invoice_id):
+    single_invoice_obj = get_object_or_404(SingleInvoice, id=single_invoice_id)
+    if request.user != single_invoice_obj.user:
+        raise Http404
+    sent_invoice = single_invoice_obj.get_sent_invoice()
+    invoice_is_paid = (
+        sent_invoice is not None
+        and sent_invoice.paid_status == SentInvoice.PaidStatus.PAID
+    )
+
+    if (
+        not request.user.settings["subscription_active"]
+        or invoice_is_paid
+        or single_invoice_obj.status == SingleInvoice.InvoiceStatus.DRAFT
+    ):
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": single_invoice_obj},
+        )
+        response["HX-Redirect"] = ".card"
+        show_alert_message(
+            response,
+            "warning",
+            "Unable to generate qr code for invoice.",
+            persist=True,
+        )
+        return response
+
+    if sent_invoice:
+        sent_invoice.paid_status = SentInvoice.PaidStatus.NOT_STARTED
+        sent_invoice.save()
+    else:
+        send_invoice_reminder(single_invoice_id)
+        single_invoice_obj.refresh_from_db()
+        sent_invoice = single_invoice_obj.get_sent_invoice()
+
+        if single_invoice_obj.send_reminder:
+            schedule(
+                "timary.tasks.send_invoice_reminder",
+                str(single_invoice_obj.id),
+                schedule_type="O",
+                next_run=get_users_localtime(request.user)
+                + timezone.timedelta(weeks=2),
+            )
+
+    return generate_qrcode_invoice(request, sent_invoice.id)
