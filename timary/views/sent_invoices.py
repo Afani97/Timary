@@ -26,6 +26,17 @@ def get_sent_invoice(request, sent_invoice_id):
     if request.user != sent_invoice.invoice.user:
         raise Http404
 
+    invoice = sent_invoice.invoice
+    if invoice.invoice_type() == "single" and invoice.installments == 1:
+        # To return the correct invoice card after closing a qr code
+        response = render(
+            request,
+            "partials/_single_invoice.html",
+            {"single_invoice": invoice},
+        )
+        response["HX-Retarget"] = ".card"
+        return response
+
     response = render(
         request,
         "partials/_sent_invoice.html",
@@ -341,5 +352,5 @@ def generate_qrcode_invoice(request, sent_invoice_id):
     img = qrcode.make(sent_invoice_url, image_factory=SvgPathFillImage)
     img.save(stream)
 
-    ctx = {"qrcode_img": stream.getvalue().decode()}
+    ctx = {"qrcode_img": stream.getvalue().decode(), "sent_invoice_id": sent_invoice.id}
     return render(request, "partials/_qrcode.html", ctx)

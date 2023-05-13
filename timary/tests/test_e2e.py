@@ -10,11 +10,14 @@ from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect, sync_playwright
 
+from timary.models import SingleInvoice
 from timary.tests.factories import (
     ClientFactory,
     HoursLineItemFactory,
     IntervalInvoiceFactory,
+    LineItemFactory,
     SentInvoiceFactory,
+    SingleInvoiceFactory,
     UserFactory,
 )
 from timary.utils import get_users_localtime
@@ -241,6 +244,23 @@ class TestUI(BaseUITest):
             self.assertEqual(
                 page.inner_text(".text-success"), "Successfully updated hours!"
             )
+
+    @tag("ui")
+    def test_view_qrcode_for_sent_invoice(self):
+        invoice = SingleInvoiceFactory(status=SingleInvoice.InvoiceStatus.FINAL)
+        LineItemFactory(
+            invoice=invoice,
+            date_tracked=timezone.now() - timezone.timedelta(days=1),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            user=invoice.user,
+        )
+        with self.start_test(invoice.user) as page:
+            page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
+            page.click('span:has-text("QR Code")')
+            page.wait_for_selector('p:has-text("back")', timeout=3000)
+            self.assertIsNotNone(page.inner_text(".qrcode"))
 
     @tag("ui")
     def test_edit_profile(self):
