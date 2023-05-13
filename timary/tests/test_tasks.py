@@ -604,7 +604,7 @@ class TestGatherAndSendSingleInvoices(TestCase):
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(
             mail.outbox[0].subject,
-            f"{invoice.title}'s Invoice from {invoice.user.first_name} for {self.current_month}",
+            f"{invoice.title}'s Invoice from {invoice.user.first_name} is ready to view.",
         )
         self.assertEquals(SentInvoice.objects.count(), 1)
 

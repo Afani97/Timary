@@ -463,7 +463,7 @@ def generate_qrcode_single_invoice(request, single_invoice_id):
             "partials/_single_invoice.html",
             {"single_invoice": single_invoice_obj},
         )
-        response["HX-Redirect"] = ".card"
+        response["HX-Retarget"] = f"#{single_invoice_obj.slug_title}"
         show_alert_message(
             response,
             "warning",

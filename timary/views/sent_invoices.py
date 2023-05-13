@@ -27,14 +27,18 @@ def get_sent_invoice(request, sent_invoice_id):
         raise Http404
 
     invoice = sent_invoice.invoice
-    if invoice.invoice_type() == "single" and invoice.installments == 1:
+    if (
+        invoice.invoice_type() == "single"
+        and invoice.installments == 1
+        and not invoice.is_archived
+    ):
         # To return the correct invoice card after closing a qr code
         response = render(
             request,
             "partials/_single_invoice.html",
             {"single_invoice": invoice},
         )
-        response["HX-Retarget"] = ".card"
+        response["HX-Retarget"] = f"#{invoice.slug_title}"
         return response
 
     response = render(

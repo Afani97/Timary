@@ -283,7 +283,6 @@ def send_invoice_reminder(invoice_id):
         return
 
     today = timezone.now()
-    current_month = date.strftime(today, "%m/%Y")
 
     line_items = single_invoice_obj.line_items.all()
     if sent_invoice is None:
@@ -310,11 +309,13 @@ def send_invoice_reminder(invoice_id):
         }
     )
 
+    msg_subject = f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} is ready to view."
     EmailService.send_html(
-        f"{single_invoice_obj.title}'s Invoice from {single_invoice_obj.user.first_name} for {current_month}",
+        msg_subject,
         msg_body,
         [single_invoice_obj.client.email, single_invoice_obj.client.second_email],
     )
+    sent_invoice.send_sms_message(msg_subject)
 
 
 def send_invoice(invoice_id):
