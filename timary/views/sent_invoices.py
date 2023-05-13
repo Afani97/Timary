@@ -1,5 +1,7 @@
+from io import BytesIO
 from uuid import UUID
 
+import qrcode
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse, QueryDict
@@ -7,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from qrcode.image.svg import SvgPathFillImage
 from weasyprint import CSS, HTML
 
 from timary.forms import HoursLineItemForm
@@ -318,3 +321,25 @@ def download_sent_invoice_copy(request, sent_invoice_id):
         response, "success", "You should see the pdf downloading shortly"
     )
     return response
+
+
+@login_required()
+@require_http_methods(["GET"])
+def generate_qrcode_invoice(request, sent_invoice_id):
+    sent_invoice = get_object_or_404(SentInvoice, id=sent_invoice_id)
+    if request.user != sent_invoice.user:
+        raise Http404
+
+    sent_invoice.paid_status = SentInvoice.PaidStatus.NOT_STARTED
+    sent_invoice.save()
+
+    sent_invoice_url = request.build_absolute_uri(
+        reverse("timary:pay_invoice", kwargs={"sent_invoice_id": sent_invoice.id})
+    )
+
+    stream = BytesIO()
+    img = qrcode.make(sent_invoice_url, image_factory=SvgPathFillImage)
+    img.save(stream)
+
+    ctx = {"qrcode_img": stream.getvalue().decode()}
+    return render(request, "partials/_qrcode.html", ctx)

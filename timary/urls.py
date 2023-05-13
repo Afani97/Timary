@@ -307,6 +307,11 @@ urlpatterns += [
         views.download_sent_invoice_copy,
         name="download_sent_invoice",
     ),
+    path(
+        "sent_invoices/<uuid:sent_invoice_id>/qrcode/",
+        views.generate_qrcode_invoice,
+        name="generate_qrcode_invoice",
+    ),
 ]
 
 # AUTH URLS
