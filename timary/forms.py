@@ -83,6 +83,7 @@ class HoursLineItemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user") if "user" in kwargs else None
+        self.min_date = kwargs.pop("min_date") if "min_date" in kwargs else None
 
         super(HoursLineItemForm, self).__init__(*args, **kwargs)
 
@@ -129,6 +130,11 @@ class HoursLineItemForm(forms.ModelForm):
             self.fields["quantity"].widget.attrs["id"] = f"id_{self.instance.slug_id}"
         else:
             self.fields["date_tracked"].widget.attrs["max"] = users_localtime.date()
+
+        if self.min_date:
+            self.fields["date_tracked"].widget.attrs["min"] = self.min_date.astimezone(
+                tz=zoneinfo.ZoneInfo(self.user.timezone)
+            ).date()
 
         self.fields["date_tracked"].widget.attrs["value"] = date_tracked
 

@@ -325,7 +325,9 @@ def edit_invoice_hours(request, invoice_id):
         "partials/_edit_hours.html",
         {
             "hour_forms": hour_forms,
-            "new_hours": HoursLineItemForm(user=request.user),
+            "new_hours": HoursLineItemForm(
+                user=request.user, min_date=invoice.last_date
+            ),
             "invoice": invoice,
         },
     )
