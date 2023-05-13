@@ -204,7 +204,7 @@ class HoursLineItemForm(forms.ModelForm):
                     tz=zoneinfo.ZoneInfo(self.user.timezone)
                 )
             if self.instance and self.instance.sent_invoice_id is not None:
-                # Date tracked doesn't need to be affected by this
+                # Hour attached to sent invoice doesn't need to be affected by this
                 pass
             elif date_tracked.date() < invoice_last_date.date():
                 raise ValidationError(
