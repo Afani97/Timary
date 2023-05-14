@@ -1,7 +1,4 @@
 <div id="sent-invoices-list">
-    <div class="flex flex-row justify-center w-full xs:w-3/4 sm:w-1/2 mx-auto mb-5">
-        <canvas id="myChart"></canvas>
-    </div>
     <ul>
         {% for sent_invoice in sent_invoices %}
             {% include "partials/_sent_invoice.html" with sent_invoice=sent_invoice %}
@@ -10,32 +7,4 @@
             {% endif %}
         {% endfor %}
     </ul>
-    <script>
-        var config = {
-            type: 'pie',
-            data: {
-                datasets: [{
-                    data: [{{ not_started_count }},  {{ pending_count }}, {{ paid_count }}, {{ failed_count }}, {{ cancelled_count }}],
-                    backgroundColor: [
-                        '#e6e6e6', '#ffff00', '#40bf40', '#ff3333', '#ff3333'
-                    ],
-                    label: 'Sent Invoices'
-                }],
-                labels: ["Sent", "Pending", "Paid", "Failed", "Cancelled"]
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    position: 'right',
-                    labels: {
-                        fontSize: 14,
-                        fontColor: "#fff"
-                    }
-                }
-            }
-        };
-        var ctx = document.getElementById('myChart');
-        new Chart(ctx, config);
-
-    </script>
 </div>
