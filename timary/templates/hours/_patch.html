@@ -6,8 +6,9 @@
     {% endif %}
     hx-swap="outerHTML"
     hx-target="this"
+    hx-trigger="submit"
     hx-vals='{"invoice": "{{ form.instance.invoice.id }}" }'
-    _="on htmx:beforeRequest add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
+    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
 >
 
     {% if form.errors %}
@@ -41,14 +42,12 @@
                 hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}"
                 hx-swap="outerHTML"
                 hx-target="closest form"
-                hx-disinherit="true"
-                _="on click add .loading to me"
+                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
                 type="button"
             >
                 Remove
             </button>
-            <button class="btn btn-primary btn-sm submit-btn"
-                _="on click call convertHoursInput(htmx.find('#id_{{ form.instance.slug_id }}')) then send submit to #patch-hours-{{ form.instance.slug_id }}">
+            <button class="btn btn-primary btn-sm submit-btn" type="submit">
                 Update
             </button>
         </div>

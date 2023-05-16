@@ -4,6 +4,8 @@
     hx-swap="afterend"
     hx-target="this"
     hx-vals='{"invoice": "{{ invoice.id }}" }'
+    hx-trigger="submit"
+    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -19,8 +21,7 @@
             <div class="w-full">{{ form.date_tracked }}</div>
         </div>
         <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
-            <button class="btn btn-primary btn-sm submit-btn"
-                _="on htmx:beforeRequest add .loading to me then call convertHoursInput(htmx.find('#new_hours_{{ invoice.email_id|escape }}')) then send submit to #new_hours_{{ invoice.email_id|escape }} end on htmx:afterRequest remove .loading from me">
+            <button class="btn btn-primary btn-sm submit-btn" type="submit">
                 Add new hours
             </button>
         </div>
