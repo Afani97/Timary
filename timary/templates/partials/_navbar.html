@@ -181,6 +181,7 @@
                             htmx.addClass(htmx.find("#timer_alert"), "hidden");
                         }, 15000);
                         hoursTimer.overallTime =  parseInt(activeTimerMS);
+                        hoursTimer.startTime = Date.now() - hoursTimer.overallTime
                         update_timer(hoursTimer.overallTime);
 
                         if (timerPaused === "false") {
