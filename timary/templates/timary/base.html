@@ -169,16 +169,8 @@
 
             var timer_container = document.getElementById("timer_container");
             var start_timer_btn = document.getElementById("start_timer");
-            var pause_timer_btn = document.getElementById("pause_timer");
-            var resume_timer_btn = document.getElementById("resume_timer");
-            var stop_timer_btn = document.getElementById("stop_timer");
-            var reset_timer_btn = document.getElementById("reset_timer");
-            var timer_hour_span = document.getElementById("timer_hour");
-            var timer_min_span = document.getElementById("timer_min");
-            var timer_sec_span = document.getElementById("timer_sec");
             var hoursTimer = new timaryTimer();
             let timerInterval;
-
 
             function start() {
                 hoursTimer.start();
@@ -268,35 +260,35 @@
                 // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
                 if (activeTimerMS) {
                     timer_container.classList.remove("hidden");
-                        hoursTimer.overallTime =  parseInt(activeTimerMS);
-                        hoursTimer.startTime = Date.now() - hoursTimer.overallTime
-                        update_timer(hoursTimer.overallTime);
-                        if (timerRunning === "true") {
-                            if (start_timer_btn) {
-                                start_timer_btn.classList.add("hidden")
-                            }
-                            resume();
-                        } else if (timerRunning === "false") {
-                            hoursTimer.isPaused = true;
-                            hoursTimer.isStopped = true;
+                    hoursTimer.overallTime =  parseInt(activeTimerMS);
+                    hoursTimer.startTime = Date.now() - hoursTimer.overallTime
+                    update_timer(hoursTimer.overallTime);
+                    if (timerRunning === "true") {
+                        if (start_timer_btn) {
+                            start_timer_btn.classList.add("hidden")
                         }
+                        resume();
+                    } else if (timerRunning === "false") {
+                        hoursTimer.isPaused = true;
+                        hoursTimer.isStopped = true;
+                    }
                 } else {
                     timer_container.classList.add("hidden");
                     hoursTimer.isPaused = true;
                     hoursTimer.isStopped = true;
-                 }
+                }
             })
 
             function update_timer(totalTime) {
-                {#console.log(totalTime)#}
-                timer_hour_span = document.getElementsByClassName("timer_hour")[0];
-                timer_min_span = document.getElementsByClassName("timer_min")[0];
-                timer_sec_span = document.getElementsByClassName("timer_sec")[0];
-                {#console.log(timer_hour_span)#}
+                let timer_hour_span = document.getElementsByClassName("timer_hour")[0];
+                let timer_min_span = document.getElementsByClassName("timer_min")[0];
+                let timer_sec_span = document.getElementsByClassName("timer_sec")[0];
+
                 const timeInSeconds = Math.round(totalTime / 1000);
                 let hrs = Math.floor(timeInSeconds / 3600);
                 let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
                 let secs = timeInSeconds % 60;
+
                 timer_hour_span.style.cssText = `--value: ${hrs}`;
                 timer_min_span.style.cssText = `--value: ${mins}`;
                 timer_sec_span.style.cssText = `--value: ${secs}`;
@@ -310,7 +302,7 @@
             }
 
             htmx.on("updateTimer", function(e) {
-               // Resume/pause timer if page is refreshed, etc.
+                // Resume/pause timer if page is refreshed, etc.
                 let activeTimerMS = e.detail.active_timer_ms;
                 let action = e.detail.action;
 
@@ -326,7 +318,7 @@
                         start()
                     }
                 } else if (action === "reset") {
-                   reset()
+                    reset()
                 } else if (action === "stop") {
                     stop()
                 }

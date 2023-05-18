@@ -28,7 +28,7 @@ def pause_timer(request):
     response["HX-Trigger"] = json.dumps(
         {
             "updateTimer": {
-                "active_timer_ms": 20000,
+                "active_timer_ms": 15000,
                 "action": "pause",
             },
         }
