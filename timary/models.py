@@ -1084,10 +1084,10 @@ Ari from Timary
 
 def default_tasks():
     return {
-        "first_client": False,
-        "first_invoice": False,
-        "first_hours": False,
-        "phone_number_added": False,
+        "add_first_client": False,
+        "add_first_invoice": False,
+        "add_first_hours": False,
+        "add_phone_number": False,
         "stripe_connect_complete": False,
         "accounting_service_connected": False,
     }

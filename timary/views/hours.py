@@ -61,8 +61,8 @@ def create_daily_hours(request):
             hours_saved.save()
 
     user = request.user
-    if not user.onboarding_tasks["first_hours"]:
-        user.onboarding_tasks["first_hours"] = True
+    if not user.onboarding_tasks["add_first_hours"]:
+        user.onboarding_tasks["add_first_hours"] = True
         user.save()
 
     hours_manager = HoursManager(request.user)

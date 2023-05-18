@@ -83,8 +83,8 @@ def create_invoice(request):
     invoice.save()
 
     user = request.user
-    if not user.onboarding_tasks["first_invoice"]:
-        user.onboarding_tasks["first_invoice"] = True
+    if not user.onboarding_tasks["add_first_invoice"]:
+        user.onboarding_tasks["add_first_invoice"] = True
         user.save()
 
     response = render(

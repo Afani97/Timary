@@ -47,8 +47,8 @@ def create_client(request):
         client_saved.save()
         client_saved.sync_customer()
         user = request.user
-        if not user.onboarding_tasks["first_client"]:
-            user.onboarding_tasks["first_client"] = True
+        if not user.onboarding_tasks["add_first_client"]:
+            user.onboarding_tasks["add_first_client"] = True
             user.save()
         response = render(request, "clients/_client.html", {"client": client_saved})
         response[
@@ -161,8 +161,8 @@ def get_accounting_clients(request):
                 new_client.save()
                 new_client.sync_customer()
     if len(customers) > 0:
-        if not request.user.onboarding_tasks["first_client"]:
-            request.user.onboarding_tasks["first_client"] = True
+        if not request.user.onboarding_tasks["add_first_client"]:
+            request.user.onboarding_tasks["add_first_client"] = True
             request.user.save()
     response = get_clients(request)
     show_alert_message(

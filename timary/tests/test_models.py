@@ -936,8 +936,8 @@ class TestUser(TestCase):
 
     def test_onboarding_tasks_not_all_complete(self):
         tasks = default_tasks()
-        tasks["first_client"] = True
-        tasks["first_invoice"] = True
+        tasks["add_first_client"] = True
+        tasks["add_first_invoice"] = True
         user = UserFactory(onboarding_tasks=tasks)
         tasks_done = user.onboarding_tasks_done()
         self.assertFalse(tasks_done[0])

@@ -37,10 +37,10 @@ def update_user_profile(request):
     if user_form.is_valid():
         user = user_form.save()
         if (
-            not user.onboarding_tasks["phone_number_added"]
+            not user.onboarding_tasks["add_phone_number"]
             and user.formatted_phone_number is not None
         ):
-            user.onboarding_tasks["phone_number_added"] = True
+            user.onboarding_tasks["add_phone_number"] = True
             user.save()
         response = render(request, "partials/_profile.html", {"user": user})
         show_alert_message(
