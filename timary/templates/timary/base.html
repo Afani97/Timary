@@ -128,6 +128,61 @@
 
         {% include "partials/_footer.html" %}
 
+        {# TIMER #}
+        {% if request.user.is_authenticated %}
+            <div class="toast toast-start toast-bottom bg-base-300 rounded-tr-lg" id="timer_container">
+                <div class="flex justify-center">
+                    <div id="update-timer"
+                        hx-get="{% url 'timary:update_timer' %}"
+                        hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
+                        hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
+                        hx-swap="none">
+                        <span class="font-mono text-2xl countdown flex justify-center mb-3">
+                            <span id="timer_hour">00</span>:
+                            <span id="timer_min">00</span>:
+                            <span id="timer_sec">00</span>
+                        </span>
+                        <div class="btn-group mt-0">
+                            <button id="pause_timer" class="btn btn-active hidden btn-sm md:btn-md" _="on click call pause()">
+                                <span class="hidden md:block">Pause</span>
+                                <span class="block md:hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <button id="resume_timer" class="btn btn-active hidden btn-sm md:btn-md" _="on click call resume()">
+                                <span class="hidden md:block">Resume</span>
+                                <span class="block md:hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <button id="stop_timer" class="btn hidden btn-sm md:btn-md" _="on click call stop()">
+                                <span class="hidden md:block">Stop</span>
+                                <span class="block md:hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <button id="reset_timer" class="btn hidden btn-sm md:btn-md" _="on click call reset()">
+                                <span class="hidden md:block">Reset</span>
+                                <span class="block md:hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {# TIMER #}
+
+        {# QUESTION FORM #}
         {% if request.user.is_authenticated %}
             <div class="fixed bottom-0 right-0 mr-4 mb-4">
                 <label for="questions-modal" class="btn btn-primary modal-button btn-circle">
@@ -152,6 +207,182 @@
                 </div>
             </div>
         {% endif %}
+        {# QUESTION FORM #}
+
+        <script nonce="manage-hours" defer>
+            {% include "partials/timer_class.html" %}
+
+            var timer_container = document.getElementById("timer_container");
+            var start_timer_btn = document.getElementById("start_timer");
+            var pause_timer_btn = document.getElementById("pause_timer");
+            var resume_timer_btn = document.getElementById("resume_timer");
+            var stop_timer_btn = document.getElementById("stop_timer");
+            var reset_timer_btn = document.getElementById("reset_timer");
+            var timer_hour_span = document.getElementById("timer_hour");
+            var timer_min_span = document.getElementById("timer_min");
+            var timer_sec_span = document.getElementById("timer_sec");
+            var hoursTimer = new timaryTimer();
+
+
+            function start() {
+                timer_container.classList.remove("hidden");
+                start_timer_btn.classList.add("hidden");
+                pause_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+                reset_timer_btn.classList.remove("hidden");
+                hoursTimer.start();
+                timer();
+                hoursTimer.isPaused = false;
+                hoursTimer.isStopped = false;
+            }
+
+            function resume() {
+                resume_timer_btn.classList.add("hidden");
+                pause_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+                reset_timer_btn.classList.remove("hidden");
+                hoursTimer.start();
+                timer();
+                hoursTimer.isPaused = false;
+                hoursTimer.isStopped = false;
+            }
+
+            function pause() {
+                pause_timer_btn.classList.add("hidden");
+                resume_timer_btn.classList.remove("hidden");
+                stop_timer_btn.classList.remove("hidden");
+                reset_timer_btn.classList.remove("hidden");
+                timer();
+                hoursTimer.isPaused = true;
+                hoursTimer.isStopped = false;
+
+                htmx.trigger("#update-timer", "pause_timer")
+                if (!hoursTimer.isStopped) {
+                    hoursTimer.stop();
+                }
+            }
+
+            function reset() {
+                hoursTimer.stop();
+                let reset = confirm("Are you sure you want to reset?");
+
+                if (reset) {
+                    update_timer(0);
+                    hoursTimer.reset();
+                    htmx.trigger("#update-timer", "reset_timer")
+                    resume()
+                } else {
+                    if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
+                        hoursTimer.start();
+                    }
+                }
+            }
+
+            function stop() {
+                if (!hoursTimer.isStopped) {
+                    hoursTimer.stop();
+                    hoursTimer.isStopped = true;
+                }
+
+                let stopped = confirm("Are you sure you want to stop?");
+
+                if (stopped) {
+
+                    let log_hours_btn = document.getElementById("log_hours_btn");
+                    log_hours_btn.click();
+
+                    const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
+                    let hrs = Math.floor(timeInSeconds / 3600);
+                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+
+                    let hours_input = document.getElementById("id_quantity");
+                    hours_input.value = timeToDecimal(hrs, mins);
+
+                    hoursTimer.reset();
+                    hoursTimer.isPaused = true;
+                    hoursTimer.isStopped = true;
+                    update_timer(0);
+                    timer_container.classList.add("hidden");
+                    start_timer_btn.classList.remove("hidden");
+                    resume_timer_btn.classList.add("hidden");
+                    pause_timer_btn.classList.add("hidden");
+                    stop_timer_btn.classList.add("hidden");
+                    htmx.trigger("#update-timer", "reset_timer")
+                } else {
+                    if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
+                        hoursTimer.start();
+                    }
+                }
+
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // Resume/pause timer if page is refreshed, etc.
+                let activeTimerMS = "{{ active_timer_ms|safe }}";
+                let timerPaused = "{{ timer_paused|safe }}";
+
+                // Complicated logic here, hope to simplify someday
+                // 1. If timer is active:
+                //    - Show timer ( + controls on main page )
+                //    - If timer hasn't been paused, continue the timer
+                //    - If paused, update timer time, don't continue timer
+                // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
+                if (activeTimerMS) {
+                    timer_container.classList.remove("hidden");
+                    hoursTimer.overallTime =  parseInt(activeTimerMS);
+                    hoursTimer.startTime = Date.now() - hoursTimer.overallTime
+                    update_timer(hoursTimer.overallTime);
+                    if (timerPaused === "false") {
+                        if (start_timer_btn) {
+                            start_timer_btn.classList.add("hidden")
+                        }
+                        resume();
+                    } else if (timerPaused === "true") {
+                        start_timer_btn.classList.add("hidden")
+                        pause_timer_btn.classList.add("hidden");
+                        resume_timer_btn.classList.remove("hidden");
+                        stop_timer_btn.classList.remove("hidden");
+                        reset_timer_btn.classList.remove("hidden");
+                        hoursTimer.isPaused = true;
+                        hoursTimer.isStopped = true;
+                    }
+                } else {
+                    timer_container.classList.add("hidden");
+                    hoursTimer.isPaused = true;
+                    hoursTimer.isStopped = true;
+                }
+            })
+
+            function update_timer(totalTime) {
+                const timeInSeconds = Math.round(totalTime / 1000);
+                let hrs = Math.floor(timeInSeconds / 3600);
+                let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+                let secs = timeInSeconds % 60;
+                timer_hour_span.style.cssText = `--value: ${hrs}`;
+                timer_min_span.style.cssText = `--value: ${mins}`;
+                timer_sec_span.style.cssText = `--value: ${secs}`;
+            }
+
+            function timerRunning() { return !hoursTimer.isPaused && !hoursTimer.isStopped; }
+            function timerIsPaused() { return hoursTimer.isPaused; }
+            function timerHasStopped() { return hoursTimer.isStopped; }
+            function getTimerVal() { return hoursTimer.getTime(); }
+
+            function timer() {
+                setInterval(() => {
+                    update_timer(hoursTimer.getTime());
+                }, 100)
+            }
+
+            // If the device goes offline, update the timer if it's paused/stop to prevent timer from resuming on new page load
+            window.addEventListener("online", function(e) {
+                if (timerIsPaused() || timerHasStopped()) {
+                    fetch(`/update_timer/?timerVal=${getTimerVal()}&timerPaused=${timerIsPaused()}&timerStopped=${timerHasStopped()}`,{
+                        credentials: "include",
+                    })
+                }
+            })
+        </script>
 
         <script>
             document.body.addEventListener('htmx:configRequest', (event) => {

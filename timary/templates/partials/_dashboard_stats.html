@@ -14,8 +14,8 @@
                 <label for="hours-modal" id="log_hours_btn"  class="btn btn-sm md:btn-md btn-primary">Log hours</label>
                 <button
                     id="start_timer"
-                    class="btn btn-sm md:btn-md"
-                    _="on load if {{ active_timer_ms|yesno:"true,false" }} add .hidden to me end on click call start() ">Start timer</button>
+                    class="btn btn-sm md:btn-md {% if active_timer_ms %} hidden {% endif %}"
+                    _="on click call start()">Start timer</button>
             </div>
         </div>
     </div>
