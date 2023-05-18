@@ -382,4 +382,13 @@ urlpatterns += [
     ),
 ]
 
+
+urlpatterns += [
+    path("timer/start/", views.start_timer, name="start_timer"),
+    path("timer/pause/", views.pause_timer, name="pause_timer"),
+    path("timer/stop/", views.stop_timer, name="stop_timer"),
+    path("timer/resume/", views.resume_timer, name="resume_timer"),
+    path("timer/reset/", views.reset_timer, name="reset_timer"),
+]
+
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

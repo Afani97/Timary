@@ -11,7 +11,7 @@ from timary.forms import ClientForm, HoursLineItemForm, InvoiceFeedbackForm, Inv
 from timary.models import Invoice, InvoiceManager
 from timary.services.email_service import EmailService
 from timary.tasks import send_invoice
-from timary.utils import get_users_localtime, show_active_timer, show_alert_message
+from timary.utils import get_users_localtime, show_alert_message
 
 
 @login_required()
@@ -49,7 +49,6 @@ def manage_invoices(request):
         "new_invoice": InvoiceForm(user=request.user),
         "new_client": ClientForm(),
     }
-    context.update(show_active_timer(request.user))
     return render(
         request,
         "invoices/manage_invoices.html",

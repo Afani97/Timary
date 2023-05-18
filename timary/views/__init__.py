@@ -12,4 +12,5 @@ from .sent_invoices import *  # noqa
 from .settings import *  # noqa
 from .single_invoices import *  # noqa
 from .stripe_views import *  # noqa
+from .timer import *  # noqa
 from .twilio_views import *  # noqa

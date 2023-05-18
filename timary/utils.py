@@ -29,7 +29,7 @@ def show_active_timer(user):
     if user.timer_is_active:
         active_timer_ms, timer_paused = user.timer_is_active.split(",")
         context["active_timer_ms"] = active_timer_ms
-        context["timer_paused"] = timer_paused
+        context["timer_running"] = "false"
     return context
 
 

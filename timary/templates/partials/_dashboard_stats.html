@@ -15,7 +15,11 @@
                 <button
                     id="start_timer"
                     class="btn btn-sm md:btn-md {% if active_timer_ms %} hidden {% endif %}"
-                    _="on click call start()">Start timer</button>
+                    hx-get="{% url 'timary:start_timer' %}" hx-target="#timer_container" hx-swap="innerHTML"
+                    _="on htmx:afterRequest remove .hidden from #timer_container end"
+                >
+                    Start timer
+                </button>
             </div>
         </div>
     </div>

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from timary.forms import UserForm
-from timary.utils import show_active_timer, show_alert_message
+from timary.utils import show_alert_message
 
 
 @login_required()
@@ -13,7 +13,6 @@ def user_profile(request):
         "profile": request.user,
         "settings": request.user.settings,
     }
-    context.update(show_active_timer(request.user))
     return render(request, "timary/profile.html", context)
 
 
