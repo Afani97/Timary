@@ -1156,7 +1156,7 @@ class User(AbstractUser, BaseModel):
     onboarding_tasks = models.JSONField(blank=True, null=True, default=default_tasks)
 
     # Keep track of active timer
-    timer_is_active = models.CharField(max_length=50, blank=True, null=True)
+    timer_is_active = models.JSONField(null=True, blank=True, default=dict)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"

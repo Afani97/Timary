@@ -252,6 +252,9 @@
                 let activeTimerMS = "{{ active_timer_ms|safe }}";
                 let timerRunning = "{{ timer_running|safe }}";
 
+                console.log(activeTimerMS)
+                console.log(timerRunning)
+
                 // Complicated logic here, hope to simplify someday
                 // 1. If timer is active:
                 //    - Show timer ( + controls on main page )
@@ -263,12 +266,12 @@
                     hoursTimer.overallTime =  parseInt(activeTimerMS);
                     hoursTimer.startTime = Date.now() - hoursTimer.overallTime
                     update_timer(hoursTimer.overallTime);
-                    if (timerRunning === "true") {
+                    if (timerRunning === "True") {
                         if (start_timer_btn) {
                             start_timer_btn.classList.add("hidden")
                         }
                         resume();
-                    } else if (timerRunning === "false") {
+                    } else if (timerRunning === "False") {
                         hoursTimer.isPaused = true;
                         hoursTimer.isStopped = true;
                     }
