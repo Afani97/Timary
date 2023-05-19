@@ -1093,6 +1093,10 @@ def default_tasks():
     }
 
 
+def default_timer():
+    return {"timer_running": False, "running_times": []}
+
+
 class User(AbstractUser, BaseModel):
     class StripeConnectDisabledReasons(models.IntegerChoices):
         NONE = 1, "NONE"
@@ -1156,7 +1160,7 @@ class User(AbstractUser, BaseModel):
     onboarding_tasks = models.JSONField(blank=True, null=True, default=default_tasks)
 
     # Keep track of active timer
-    timer_is_active = models.JSONField(null=True, blank=True, default=dict)
+    timer_is_active = models.JSONField(null=True, blank=True, default=default_timer)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
