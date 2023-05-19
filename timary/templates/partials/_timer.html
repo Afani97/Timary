@@ -2,7 +2,7 @@
     <span class="font-mono text-2xl countdown flex justify-center mb-3">
         <span class="timer_hour">00</span>: <span class="timer_min">00</span>: <span class="timer_sec">00</span>
     </span>
-    <div class="btn-group mt-0">
+    <div class="btn-group mt-0" id="timer-controls">
         {% if timer_running %}
             <button class="btn btn-active btn-sm md:btn-md pause-timer"
                 hx-get="{% url 'timary:pause_timer' %}" hx-target="#update-timer" hx-swap="outerHTML">

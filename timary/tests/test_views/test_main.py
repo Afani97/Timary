@@ -15,6 +15,7 @@ from timary.tests.factories import (
     UserFactory,
 )
 from timary.tests.test_views.basetest import BaseTest
+from timary.utils import show_active_timer
 from timary.views import get_pending_sent_invoices
 
 
@@ -65,6 +66,7 @@ class TestMain(BaseTest):
         context = hours.get_hours_tracked()
         context["new_hour_form"] = HoursLineItemForm(user=self.user)
         context.update(get_pending_sent_invoices(self.user))
+        context.update(show_active_timer(self.user))
 
         rendered_template = self.setup_template(
             "partials/_dashboard_stats.html",

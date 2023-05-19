@@ -41,4 +41,6 @@ def completed_connect_account(request):
 def timer(request):
     if "Hx-Request" in request.headers or not request.user.is_authenticated:
         return {}
-    return show_active_timer(request.user)
+    ctx = show_active_timer(request.user)
+    ctx.update({"is_main_view": request.path == "/main/"})
+    return ctx

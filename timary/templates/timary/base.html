@@ -170,10 +170,23 @@
             let timerInterval;
 
             function start() {
-                hoursTimer.start();
+                if (!hoursTimer.isRunning) {
+                    hoursTimer.start();
+                }
                 timer();
                 document.getElementById("timer_container").classList.remove("hidden");
-                document.getElementById("start_timer").classList.add("hidden")
+                let startBtn = document.getElementById("start_timer");
+                if (startBtn) {
+                    startBtn.classList.remove("hidden")
+                }
+            }
+
+            function resume() {
+                if (!hoursTimer.isRunning) {
+                    hoursTimer.start();
+                }
+                timer();
+                document.getElementById("timer_container").classList.remove("hidden");
             }
 
             function pause() {
@@ -199,9 +212,11 @@
                     timerInterval = null;
 
                     hoursTimer.reset();
-                    hoursTimer.stop()
+                    if (hoursTimer.isRunning) {
+                        hoursTimer.stop()
+                    }
 
-                    start()
+                    resume()
 
                     htmx.trigger("#reset-timer", "reset_timer");
                 }
@@ -221,8 +236,11 @@
 
                     document.getElementById("id_quantity").value = timeToDecimal(hrs, mins);
 
-                    hoursTimer.stop();
                     hoursTimer.reset();
+                    if (hoursTimer.isRunning) {
+                        hoursTimer.stop()
+                    }
+
                     update_timer(0);
 
                     clearInterval(timerInterval)
@@ -231,7 +249,11 @@
                     htmx.trigger("#stop-timer", "stop_timer");
 
                     document.getElementById("timer_container").classList.add("hidden")
-                    document.getElementById("start_timer").classList.remove("hidden")
+                    let startBtn = document.getElementById("start_timer");
+                    if (startBtn) {
+                        startBtn.classList.remove("hidden")
+                    }
+
                 }
             }
 
@@ -262,12 +284,13 @@
                 // Resume/pause timer if page is refreshed, etc.
                 let activeTimerMS = parseInt("{{ active_timer_ms|safe }}");
                 let timerRunning = "{{ timer_running|safe }}";
+                let isMainView = "{{ is_main_view|safe }}";
 
                 hoursTimer.overallTime = activeTimerMS;
                 update_timer(hoursTimer.overallTime);
                 if (timerRunning === "True") {
                     if (activeTimerMS !== 0) {
-                        start();
+                        resume();
                     }
                 } else {
                     if (activeTimerMS === 0) {
@@ -275,6 +298,11 @@
                     } else {
                         document.getElementById("timer_container").classList.remove("hidden");
                     }
+                }
+                if (isMainView === "True") {
+                    document.getElementById("timer-controls").classList.remove("hidden");
+                } else {
+                    document.getElementById("timer-controls").classList.add("hidden");
                 }
             })
 
@@ -289,6 +317,8 @@
                 if (action === "start" || action === "resume" || action === "pause") {
                     if (action === "pause") {
                         pause()
+                    } else if (action === "resume") {
+                        resume()
                     } else {
                         start()
                     }
