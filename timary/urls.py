@@ -27,7 +27,6 @@ urlpatterns = [
     path("questions/", views.questions, name="questions"),
     path("contract/", views.contract_builder, name="contract_builder"),
     path("stopwatch/", views.stopwatch, name="stopwatch"),
-    path("update_timer/", views.update_timer, name="update_timer"),
     path("invoice/", views.invoice_generator, name="invoice_generator"),
 ]
 
@@ -380,6 +379,15 @@ urlpatterns += [
         views.completed_connect_account,
         name="complete_connect",
     ),
+]
+
+
+urlpatterns += [
+    path("timer/start/", views.start_timer, name="start_timer"),
+    path("timer/pause/", views.pause_timer, name="pause_timer"),
+    path("timer/stop/", views.stop_timer, name="stop_timer"),
+    path("timer/resume/", views.resume_timer, name="resume_timer"),
+    path("timer/reset/", views.reset_timer, name="reset_timer"),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

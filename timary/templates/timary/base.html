@@ -128,6 +128,7 @@
 
         {% include "partials/_footer.html" %}
 
+        {# QUESTION FORM #}
         {% if request.user.is_authenticated %}
             <div class="fixed bottom-0 right-0 mr-4 mb-4">
                 <label for="questions-modal" class="btn btn-primary modal-button btn-circle">
@@ -152,6 +153,148 @@
                 </div>
             </div>
         {% endif %}
+        {# QUESTION FORM #}
+
+        {# TIMER #}
+        {% if request.user.is_authenticated %}
+            <div class="toast toast-start toast-bottom bg-base-300 rounded-tr-lg hidden" id="timer_container">
+                {% include 'partials/_timer.html' %}
+            </div>
+        {% endif %}
+        {# TIMER #}
+
+        <script nonce="manage-hours" defer>
+            {% include "partials/timer_class.html" %}
+
+            var hoursTimer = new timaryTimer();
+            let timerInterval;
+
+            function start() {
+                hoursTimer.start();
+                timer();
+                document.getElementById("timer_container").classList.remove("hidden");
+                document.getElementById("start_timer").classList.add("hidden")
+            }
+
+            function pause() {
+                clearInterval(timerInterval)
+                timerInterval = setInterval(() => {
+                    update_timer(hoursTimer.overallTime);
+                }, 100)
+
+                // Annoying this to run for a half a second to render the new paused time
+                setTimeout(function()   {
+                    clearInterval(timerInterval)
+                    timerInterval = null
+                    hoursTimer.stop();
+                }, 500)
+            }
+
+            function reset() {
+                let reset = confirm("Are you sure you want to reset?");
+
+                if (reset) {
+                    update_timer(0);
+                    clearInterval(timerInterval)
+                    timerInterval = null;
+
+                    hoursTimer.reset();
+                    hoursTimer.stop()
+
+                    start()
+
+                    htmx.trigger("#reset-timer", "reset_timer");
+                }
+            }
+
+            function stop() {
+                let stopped = confirm("Are you sure you want to stop?");
+
+                if (stopped) {
+
+                    let log_hours_btn = document.getElementById("log_hours_btn");
+                    log_hours_btn.click();
+
+                    const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
+                    let hrs = Math.floor(timeInSeconds / 3600);
+                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+
+                    document.getElementById("id_quantity").value = timeToDecimal(hrs, mins);
+
+                    hoursTimer.stop();
+                    hoursTimer.reset();
+                    update_timer(0);
+
+                    clearInterval(timerInterval)
+                    timerInterval = null;
+
+                    htmx.trigger("#stop-timer", "stop_timer");
+
+                    document.getElementById("timer_container").classList.add("hidden")
+                    document.getElementById("start_timer").classList.remove("hidden")
+                }
+            }
+
+            function update_timer(totalTime) {
+                let timer_hour_span = document.getElementsByClassName("timer_hour")[0];
+                let timer_min_span = document.getElementsByClassName("timer_min")[0];
+                let timer_sec_span = document.getElementsByClassName("timer_sec")[0];
+
+                const timeInSeconds = Math.round(totalTime / 1000);
+                let hrs = Math.floor(timeInSeconds / 3600);
+                let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
+                let secs = timeInSeconds % 60;
+
+                timer_hour_span.style.cssText = `--value: ${hrs}`;
+                timer_min_span.style.cssText = `--value: ${mins}`;
+                timer_sec_span.style.cssText = `--value: ${secs}`;
+            }
+
+
+            function timer() {
+                timerInterval = setInterval(() => {
+                    update_timer(hoursTimer.getTime());
+                }, 100)
+            }
+
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // Resume/pause timer if page is refreshed, etc.
+                let activeTimerMS = parseInt("{{ active_timer_ms|safe }}");
+                let timerRunning = "{{ timer_running|safe }}";
+
+                hoursTimer.overallTime = activeTimerMS;
+                update_timer(hoursTimer.overallTime);
+                if (timerRunning === "True") {
+                    if (activeTimerMS !== 0) {
+                        start();
+                    }
+                } else {
+                    if (activeTimerMS === 0) {
+                        document.getElementById("timer_container").classList.add("hidden");
+                    } else {
+                        document.getElementById("timer_container").classList.remove("hidden");
+                    }
+                }
+            })
+
+            htmx.on("updateTimer", function(e) {
+                // Resume/pause timer if page is refreshed, etc.
+                let activeTimerMS = e.detail.active_timer_ms;
+                let action = e.detail.action;
+
+                hoursTimer.overallTime = activeTimerMS;
+                update_timer(activeTimerMS);
+
+                if (action === "start" || action === "resume" || action === "pause") {
+                    if (action === "pause") {
+                        pause()
+                    } else {
+                        start()
+                    }
+                }
+            });
+        </script>
 
         <script>
             document.body.addEventListener('htmx:configRequest', (event) => {

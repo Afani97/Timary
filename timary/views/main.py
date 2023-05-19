@@ -52,7 +52,6 @@ def index(request):
 
     if len(show_most_frequent_options) > 0:
         context["frequent_options"] = show_most_frequent_options
-    context.update(show_active_timer(user))
     context.update(hours_manager.get_hours_tracked())
     context.update(get_pending_sent_invoices(request.user))
     return render(request, "timary/index.html", context=context)
@@ -64,8 +63,8 @@ def dashboard_stats(request):
     hours_manager = HoursManager(request.user)
     context = hours_manager.get_hours_tracked()
     context["new_hour_form"] = HoursLineItemForm(user=request.user)
-    context.update(show_active_timer(request.user))
     context.update(get_pending_sent_invoices(request.user))
+    context.update(show_active_timer(request.user))
     response = render(
         request,
         "partials/_dashboard_stats.html",

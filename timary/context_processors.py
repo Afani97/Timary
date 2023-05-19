@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from timary.models import User
+from timary.utils import show_active_timer
 
 
 def site_url(request):
@@ -35,3 +36,9 @@ def completed_connect_account(request):
         elif user_connect_reason == User.StripeConnectDisabledReasons.PENDING:
             return {"connect_status": 1}
     return {"connect_status": 2}
+
+
+def timer(request):
+    if "Hx-Request" in request.headers or not request.user.is_authenticated:
+        return {}
+    return show_active_timer(request.user)

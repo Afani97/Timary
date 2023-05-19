@@ -5,7 +5,7 @@
             {% include "partials/_logo.html" %}
             <a class="text-xl ml-3" href="{% url 'timary:index' %}"> Timary </a>
         </div>
-        <div class="flex justify-evenly md:justify-end w-full">
+        <div class="flex justify-evenly md:justify-end w-full md:gap-2">
             {% if not request.user.onboarding_tasks_done.0 %}
                 <div class="hidden md:block dropdown dropdown-end cursor-pointer">
                     <label tabindex="0" class="mr-5 cursor-pointer">
@@ -34,16 +34,16 @@
                     </ul>
                 </div>
             {% endif %}
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
                 Dashboard
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
                 Invoices
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
                 Profile
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
         </div>
     {% else %}
         <div class="flex flex-1 title-font font-medium items-center text-white">
@@ -80,123 +80,3 @@
     {% endif %}
 </div>
 <div id="toast-messages" class="toast toast-top toast-center w-1/3" style="z-index: 10000 !important;"></div>
-
-{# Timer #}
-{% if request.user.is_authenticated %}
-    <div class="my-10 hidden max-w-xl mx-auto px-3 md:px-0 " id="timer_container">
-        <div class="alert alert-info shadow-lg alert-msg" id="timer_alert">
-            <div class="flex flex-row justify-between w-full px-3">
-                <span>Don't close this tab! The timer will stop.</span>
-                <span>
-                    <svg _="on click remove closest .alert-msg" xmlns="http://www.w3.org/2000/svg"  class="stroke-current flex-shrink-0 h-6 w-6 " fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </span>
-            </div>
-        </div>
-        <div class="flex justify-center my-5">
-            <div id="update-timer"
-                hx-get="{% url 'timary:update_timer' %}"
-                hx-trigger="every 1s [timerRunning()], reset_timer from:body, pause_timer from:body"
-                hx-vals='js:{timerVal: getTimerVal(), timerPaused: timerIsPaused(), timerStopped: timerHasStopped()}'
-                hx-swap="none">
-                <span class="font-mono text-2xl countdown flex justify-center my-5">
-                    <span id="timer_hour">00</span>:
-                    <span id="timer_min">00</span>:
-                    <span id="timer_sec">00</span>
-                </span>
-                <div class="btn-group">
-                    <button id="pause_timer" class="btn btn-active hidden" _="on click call pause()">Pause</button>
-                    <button id="resume_timer" class="btn btn-active hidden" _="on click call resume()">Resume</button>
-                    <button id="stop_timer" class="btn hidden" _="on click call stop()">Stop</button>
-                    <button id="reset_timer" class="btn hidden" _="on click call reset()">Reset</button>
-                </div>
-            </div>
-            <script nonce="manage-hours">
-                {% include "partials/timer_class.html" %}
-
-                var timer_container = document.getElementById("timer_container");
-                var timer_hour_span = document.getElementById("timer_hour");
-                var timer_min_span = document.getElementById("timer_min");
-                var timer_sec_span = document.getElementById("timer_sec");
-                var hoursTimer = new timaryTimer();
-
-                document.addEventListener("DOMContentLoaded", () => {
-                    // Resume/pause timer if page is refreshed, etc.
-                    let activeTimerMS = "{{ active_timer_ms|safe }}";
-                    let timerPaused = "{{ timer_paused|safe }}";
-                    let isMainView = "{{ is_main_view|safe }}";
-
-                    // Complicated logic here, hope to simplify someday
-                    // 1. If timer is active:
-                    //    - Show timer ( + controls on main page )
-                    //    - If timer hasn't been paused, continue the timer
-                    //    - If paused, update timer time, don't continue timer
-                    // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
-                    if (activeTimerMS) {
-                        timer_container.classList.remove("hidden");
-                        setTimeout(function () {
-                            htmx.addClass(htmx.find("#timer_alert"), "hidden");
-                        }, 15000);
-                        hoursTimer.overallTime =  parseInt(activeTimerMS);
-                        hoursTimer.startTime = Date.now() - hoursTimer.overallTime
-                        update_timer(hoursTimer.overallTime);
-
-                        if (timerPaused === "false") {
-                            if (isMainView === "True") {
-                                start_timer_btn.classList.add("hidden")
-                                resume();
-                            } else {
-                                hoursTimer.start();
-                                timer();
-                            }
-                            hoursTimer.isPaused = false;
-                            hoursTimer.isStopped = false;
-                        } else if (timerPaused === "true") {
-                            if (isMainView === "True") {
-                                start_timer_btn.classList.add("hidden")
-                                pause_timer_btn.classList.add("hidden");
-                                resume_timer_btn.classList.remove("hidden");
-                                stop_timer_btn.classList.remove("hidden");
-                                reset_timer_btn.classList.remove("hidden");
-                            }
-                            hoursTimer.isPaused = true;
-                            hoursTimer.isStopped = true;
-                        }
-                    } else {
-                        hoursTimer.isPaused = true;
-                        hoursTimer.isStopped = true;
-                    }
-                })
-
-                function update_timer(totalTime) {
-                    const timeInSeconds = Math.round(totalTime / 1000);
-                    let hrs = Math.floor(timeInSeconds / 3600);
-                    let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
-                    let secs = timeInSeconds % 60;
-                    timer_hour_span.style.cssText = `--value: ${hrs}`;
-                    timer_min_span.style.cssText = `--value: ${mins}`;
-                    timer_sec_span.style.cssText = `--value: ${secs}`;
-                }
-
-                function timerRunning() { return !hoursTimer.isPaused && !hoursTimer.isStopped; }
-                function timerIsPaused() { return hoursTimer.isPaused; }
-                function timerHasStopped() { return hoursTimer.isStopped; }
-                function getTimerVal() { return hoursTimer.getTime(); }
-
-                function timer() {
-                    setInterval(() => {
-                        update_timer(hoursTimer.getTime());
-                    }, 100)
-                }
-
-                // If the device goes offline, update the timer if it's paused/stop to prevent timer from resuming on new page load
-                window.addEventListener("online", function(e) {
-                    if (timerIsPaused() || timerHasStopped()) {
-                        fetch(`/update_timer/?timerVal=${getTimerVal()}&timerPaused=${timerIsPaused()}&timerStopped=${timerHasStopped()}`,{
-                            credentials: "include",
-                        })
-                    }
-                })
-            </script>
-        </div>
-    </div>
-{% endif %}

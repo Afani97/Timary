@@ -3,6 +3,7 @@ import json
 import zoneinfo
 from calendar import HTMLCalendar
 from datetime import datetime
+from functools import reduce
 
 from django.db.models import Sum
 from django.utils import timezone
@@ -27,10 +28,22 @@ def show_alert_message(
 def show_active_timer(user):
     context = {}
     if user.timer_is_active:
-        active_timer_ms, timer_paused = user.timer_is_active.split(",")
-        context["active_timer_ms"] = active_timer_ms
-        context["timer_paused"] = timer_paused
+        running_times = (
+            user.timer_is_active["running_times"]
+            if "running_times" in user.timer_is_active
+            else []
+        )
+        timer_running = user.timer_is_active["timer_running"]
+        if timer_running:
+            now = datetime.timestamp(datetime.now())
+            running_times.append(now - int(user.timer_is_active["time_started"]))
+        context["active_timer_ms"] = calculate_accumulative_time(running_times)
+        context["timer_running"] = timer_running
     return context
+
+
+def calculate_accumulative_time(times):
+    return reduce(lambda a, b: a + b, times, 0) * 1000
 
 
 def simulate_requests_response(status_code, error_num, message):
