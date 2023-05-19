@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods
 from timary.forms import HoursLineItemForm
 from timary.hours_manager import HoursManager
 from timary.models import SentInvoice, User
-from timary.utils import Calendar, get_users_localtime
+from timary.utils import Calendar, get_users_localtime, show_active_timer
 
 
 def bad_request(request, exception):
@@ -64,6 +64,7 @@ def dashboard_stats(request):
     context = hours_manager.get_hours_tracked()
     context["new_hour_form"] = HoursLineItemForm(user=request.user)
     context.update(get_pending_sent_invoices(request.user))
+    context.update(show_active_timer(request.user))
     response = render(
         request,
         "partials/_dashboard_stats.html",

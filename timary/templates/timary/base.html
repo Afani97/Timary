@@ -175,30 +175,22 @@
             function start() {
                 hoursTimer.start();
                 timer();
-                hoursTimer.isPaused = false;
-                hoursTimer.isStopped = false;
-            }
-
-            function resume() {
-                hoursTimer.start();
-                timer();
-                hoursTimer.isPaused = false;
-                hoursTimer.isStopped = false;
             }
 
             function pause() {
                 clearInterval(timerInterval)
-                timerInterval = null;
+                timerInterval = setInterval(() => {
+                    update_timer(hoursTimer.overallTime);
+                }, 100)
 
-                if (!hoursTimer.isStopped) {
+                setTimeout(function()   {
+                    clearInterval(timerInterval)
+                    timerInterval = null
                     hoursTimer.stop();
-                }
-                hoursTimer.isPaused = true;
-                hoursTimer.isStopped = false;
+                }, 500)
             }
 
             function reset() {
-                hoursTimer.stop();
                 let reset = confirm("Are you sure you want to reset?");
 
                 if (reset) {
@@ -206,20 +198,13 @@
                     clearInterval(timerInterval)
                     timerInterval = null;
                     hoursTimer.reset();
-                    resume()
-                } else {
-                    if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
-                        hoursTimer.start();
-                    }
+                    hoursTimer.stop()
+                    start()
+                    htmx.trigger("#reset-timer", "reset_timer");
                 }
             }
 
             function stop() {
-                if (!hoursTimer.isStopped) {
-                    hoursTimer.stop();
-                    hoursTimer.isStopped = true;
-                }
-
                 let stopped = confirm("Are you sure you want to stop?");
 
                 if (stopped) {
@@ -227,60 +212,19 @@
                     let log_hours_btn = document.getElementById("log_hours_btn");
                     log_hours_btn.click();
 
-                    const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
+                    const timeInSeconds = Math.round(hoursTimer.overallTime / 1000);
                     let hrs = Math.floor(timeInSeconds / 3600);
                     let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
 
                     let hours_input = document.getElementById("id_quantity");
                     hours_input.value = timeToDecimal(hrs, mins);
-
+                    hoursTimer.stop();
                     hoursTimer.reset();
-                    hoursTimer.isPaused = true;
-                    hoursTimer.isStopped = true;
                     update_timer(0);
                     clearInterval(timerInterval)
                     timerInterval = null;
-                } else {
-                    if (!hoursTimer.isPaused && !hoursTimer.isStopped) {
-                        hoursTimer.start();
-                    }
                 }
             }
-
-            document.addEventListener("DOMContentLoaded", () => {
-                // Resume/pause timer if page is refreshed, etc.
-                let activeTimerMS = "{{ active_timer_ms|safe }}";
-                let timerRunning = "{{ timer_running|safe }}";
-
-                console.log(activeTimerMS)
-                console.log(timerRunning)
-
-                // Complicated logic here, hope to simplify someday
-                // 1. If timer is active:
-                //    - Show timer ( + controls on main page )
-                //    - If timer hasn't been paused, continue the timer
-                //    - If paused, update timer time, don't continue timer
-                // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
-                if (activeTimerMS) {
-                    timer_container.classList.remove("hidden");
-                    hoursTimer.overallTime =  parseInt(activeTimerMS);
-                    hoursTimer.startTime = Date.now() - hoursTimer.overallTime
-                    update_timer(hoursTimer.overallTime);
-                    if (timerRunning === "True") {
-                        if (start_timer_btn) {
-                            start_timer_btn.classList.add("hidden")
-                        }
-                        resume();
-                    } else if (timerRunning === "False") {
-                        hoursTimer.isPaused = true;
-                        hoursTimer.isStopped = true;
-                    }
-                } else {
-                    timer_container.classList.add("hidden");
-                    hoursTimer.isPaused = true;
-                    hoursTimer.isStopped = true;
-                }
-            })
 
             function update_timer(totalTime) {
                 let timer_hour_span = document.getElementsByClassName("timer_hour")[0];
@@ -304,37 +248,51 @@
                 }, 100)
             }
 
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // Resume/pause timer if page is refreshed, etc.
+                let activeTimerMS = "{{ active_timer_ms|safe }}";
+                let timerRunning = "{{ timer_running|safe }}";
+
+                // Complicated logic here, hope to simplify someday
+                // 1. If timer is active:
+                //    - Show timer ( + controls on main page )
+                //    - If timer hasn't been paused, continue the timer
+                //    - If paused, update timer time, don't continue timer
+                // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
+                hoursTimer.overallTime =  parseInt(activeTimerMS);
+                update_timer(hoursTimer.overallTime);
+                if (timerRunning === "True") {
+                    timer_container.classList.remove("hidden");
+                    if (parseInt(activeTimerMS) !== 0) {
+                        if (start_timer_btn) {
+                            start_timer_btn.classList.add("hidden")
+                        }
+                        start();
+                    }
+                } else {
+                    timer_container.classList.add("hidden");
+                }
+            })
+
             htmx.on("updateTimer", function(e) {
                 // Resume/pause timer if page is refreshed, etc.
                 let activeTimerMS = e.detail.active_timer_ms;
                 let action = e.detail.action;
 
+                hoursTimer.overallTime = activeTimerMS;
+                update_timer(activeTimerMS);
+
                 if (action === "start" || action === "resume" || action === "pause") {
-                    hoursTimer.overallTime = activeTimerMS;
-                    hoursTimer.startTime = Date.now() - hoursTimer.overallTime
-                    update_timer(hoursTimer.overallTime);
-                    if (action === "resume") {
-                        resume();
-                    } else if (action === "pause") {
+                    if (action === "pause") {
                         pause()
-                    } else if (action === "start") {
+                    } else {
                         start()
                     }
-                } else if (action === "reset") {
-                    reset()
                 } else if (action === "stop") {
                     stop()
                 }
             });
-
-            // If the device goes offline, update the timer if it's paused/stop to prevent timer from resuming on new page load
-            window.addEventListener("online", function(e) {
-                if (timerIsPaused() || timerHasStopped()) {
-                    fetch(`/update_timer/?timerVal=${getTimerVal()}&timerPaused=${timerIsPaused()}&timerStopped=${timerHasStopped()}`,{
-                        credentials: "include",
-                    })
-                }
-            })
         </script>
 
         <script>

@@ -14,7 +14,7 @@
                 <label for="hours-modal" id="log_hours_btn"  class="btn btn-sm md:btn-md btn-primary">Log hours</label>
                 <button
                     id="start_timer"
-                    class="btn btn-sm md:btn-md {% if active_timer_ms %} hidden {% endif %}"
+                    class="btn btn-sm md:btn-md {% if active_timer_ms != 0 and timer_running %} hidden {% endif %}"
                     hx-get="{% url 'timary:start_timer' %}" hx-target="#timer_container" hx-swap="innerHTML"
                     _="on htmx:afterRequest remove .hidden from #timer_container end"
                 >

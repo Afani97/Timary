@@ -54,13 +54,23 @@ def pause_timer(request):
 
 @login_required
 def stop_timer(request):
-    # request.user.timer_is_active = "20000,false"
+    user_timer = request.user.timer_is_active
+    current_running_times = list(user_timer["running_times"])
+    if "time_started" in user_timer:
+        now = datetime.datetime.timestamp(datetime.datetime.now())
+        current_running_times.append(now - int(user_timer["time_started"]))
+    total_time = calculate_accumulative_time(current_running_times)
+    timer = {
+        "running_times": [],
+        "timer_running": False,
+    }
+    request.user.timer_is_active = timer
     request.user.save()
     response = render(request, "partials/_timer.html", {"timer_running": False})
     response["HX-Trigger"] = json.dumps(
         {
             "updateTimer": {
-                "active_timer_ms": 20000,
+                "active_timer_ms": total_time,
                 "action": "stop",
             },
         }
@@ -92,7 +102,12 @@ def resume_timer(request):
 
 @login_required
 def reset_timer(request):
-    # request.user.timer_is_active = "0,false"
+    timer = {
+        "running_times": [],
+        "timer_running": True,
+        "time_started": datetime.datetime.timestamp(datetime.datetime.now()),
+    }
+    request.user.timer_is_active = timer
     request.user.save()
     response = render(request, "partials/_timer.html", {"timer_running": True})
     response["HX-Trigger"] = json.dumps(

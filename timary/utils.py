@@ -27,7 +27,7 @@ def show_alert_message(
 
 def show_active_timer(user):
     context = {}
-    if user.timer_is_active is not None:
+    if user.timer_is_active:
         running_times = (
             user.timer_is_active["running_times"]
             if "running_times" in user.timer_is_active
@@ -37,8 +37,7 @@ def show_active_timer(user):
         if timer_running:
             now = datetime.timestamp(datetime.now())
             running_times.append(now - int(user.timer_is_active["time_started"]))
-        timer_ms = calculate_accumulative_time(running_times)
-        context["active_timer_ms"] = timer_ms
+        context["active_timer_ms"] = calculate_accumulative_time(running_times)
         context["timer_running"] = timer_running
     return context
 
