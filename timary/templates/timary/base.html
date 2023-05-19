@@ -163,18 +163,17 @@
         {% endif %}
         {# TIMER #}
 
-
         <script nonce="manage-hours" defer>
             {% include "partials/timer_class.html" %}
 
-            var timer_container = document.getElementById("timer_container");
-            var start_timer_btn = document.getElementById("start_timer");
             var hoursTimer = new timaryTimer();
             let timerInterval;
 
             function start() {
                 hoursTimer.start();
                 timer();
+                document.getElementById("timer_container").classList.remove("hidden");
+                document.getElementById("start_timer").classList.add("hidden")
             }
 
             function pause() {
@@ -183,6 +182,7 @@
                     update_timer(hoursTimer.overallTime);
                 }, 100)
 
+                // Annoying this to run for a half a second to render the new paused time
                 setTimeout(function()   {
                     clearInterval(timerInterval)
                     timerInterval = null
@@ -197,9 +197,12 @@
                     update_timer(0);
                     clearInterval(timerInterval)
                     timerInterval = null;
+
                     hoursTimer.reset();
                     hoursTimer.stop()
+
                     start()
+
                     htmx.trigger("#reset-timer", "reset_timer");
                 }
             }
@@ -212,17 +215,23 @@
                     let log_hours_btn = document.getElementById("log_hours_btn");
                     log_hours_btn.click();
 
-                    const timeInSeconds = Math.round(hoursTimer.overallTime / 1000);
+                    const timeInSeconds = Math.round(hoursTimer.getTime() / 1000);
                     let hrs = Math.floor(timeInSeconds / 3600);
                     let mins = Math.floor((timeInSeconds - (hrs * 3600)) / 60);
 
-                    let hours_input = document.getElementById("id_quantity");
-                    hours_input.value = timeToDecimal(hrs, mins);
+                    document.getElementById("id_quantity").value = timeToDecimal(hrs, mins);
+
                     hoursTimer.stop();
                     hoursTimer.reset();
                     update_timer(0);
+
                     clearInterval(timerInterval)
                     timerInterval = null;
+
+                    htmx.trigger("#stop-timer", "stop_timer");
+
+                    document.getElementById("timer_container").classList.add("hidden")
+                    document.getElementById("start_timer").classList.remove("hidden")
                 }
             }
 
@@ -251,27 +260,21 @@
 
             document.addEventListener("DOMContentLoaded", () => {
                 // Resume/pause timer if page is refreshed, etc.
-                let activeTimerMS = "{{ active_timer_ms|safe }}";
+                let activeTimerMS = parseInt("{{ active_timer_ms|safe }}");
                 let timerRunning = "{{ timer_running|safe }}";
 
-                // Complicated logic here, hope to simplify someday
-                // 1. If timer is active:
-                //    - Show timer ( + controls on main page )
-                //    - If timer hasn't been paused, continue the timer
-                //    - If paused, update timer time, don't continue timer
-                // 2. If timer not active, keep timer hidden + pause/stop timer to prevent background calls
-                hoursTimer.overallTime =  parseInt(activeTimerMS);
+                hoursTimer.overallTime = activeTimerMS;
                 update_timer(hoursTimer.overallTime);
                 if (timerRunning === "True") {
-                    timer_container.classList.remove("hidden");
-                    if (parseInt(activeTimerMS) !== 0) {
-                        if (start_timer_btn) {
-                            start_timer_btn.classList.add("hidden")
-                        }
+                    if (activeTimerMS !== 0) {
                         start();
                     }
                 } else {
-                    timer_container.classList.add("hidden");
+                    if (activeTimerMS === 0) {
+                        document.getElementById("timer_container").classList.add("hidden");
+                    } else {
+                        document.getElementById("timer_container").classList.remove("hidden");
+                    }
                 }
             })
 
@@ -289,8 +292,6 @@
                     } else {
                         start()
                     }
-                } else if (action === "stop") {
-                    stop()
                 }
             });
         </script>

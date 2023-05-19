@@ -5,7 +5,7 @@
             {% include "partials/_logo.html" %}
             <a class="text-xl ml-3" href="{% url 'timary:index' %}"> Timary </a>
         </div>
-        <div class="flex justify-evenly md:justify-end w-full">
+        <div class="flex justify-evenly md:justify-end w-full md:gap-2">
             {% if not request.user.onboarding_tasks_done.0 %}
                 <div class="hidden md:block dropdown dropdown-end cursor-pointer">
                     <label tabindex="0" class="mr-5 cursor-pointer">
@@ -34,16 +34,16 @@
                     </ul>
                 </div>
             {% endif %}
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "main" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:index' %}">
                 Dashboard
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "invoices" in request.path %} font-bold bg-base-100 {% endif %}"  href="{% url 'timary:manage_invoices' %}">
                 Invoices
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn {% if "profile" in request.path %} font-bold bg-base-100 {% endif %}" href="{% url 'timary:user_profile' %}">
                 Profile
             </a>
-            <a class="btn btn-ghost btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
+            <a class="btn btn-ghost btn-xs px-3 md:btn-sm rounded-btn" href="{%  url 'timary:logout' %}">Logout</a>
         </div>
     {% else %}
         <div class="flex flex-1 title-font font-medium items-center text-white">
