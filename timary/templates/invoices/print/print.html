@@ -27,6 +27,13 @@
             <dd>{{ sent_invoice.email_id }}</dd>
             <dt>Date</dt>
             <dd>{{ sent_invoice.date_sent|date:"M j. Y"}}</dd>
+            <dt>Status</dt>
+            <dd>
+                {{ sent_invoice.date_paid|yesno:"Paid,Not Paid" }}
+                {% if sent_invoice.date_paid %}
+                    on {{ sent_invoice.date_paid|date:"M j. Y"}}
+                {% endif %}
+            </dd>
         </dl>
 
         <table>
