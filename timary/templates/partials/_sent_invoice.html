@@ -41,7 +41,7 @@
                     <a hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
                         hx-target="closest li"
                         hx-swap="outerHTML"
-                        class="btn btn-secondary"
+                        class="btn btn-secondary btn-sm"
                         _="on htmx:beforeRequest add .loading to me"
                         {% if invoice_resent %} disabled="disabled" {% endif %}
                     >
@@ -59,7 +59,7 @@
                 <a hx-get="{% url 'timary:sync_sent_invoice' sent_invoice_id=sent_invoice.id %}"
                     hx-target="closest li"
                     hx-swap="outerHTML"
-                    class="btn btn-accent btn-outline"
+                    class="btn btn-accent btn-sm btn-outline"
                     _="on htmx:beforeRequest add .loading to me"
                 >
                     Sync Invoice
@@ -69,45 +69,44 @@
                 <p class="text-yellow-300">To sync this invoice, the client needs to be synced first.</p>
             {% endif %}
 
-            {# EDIT/CANCEL INVOICE BUTTONS #}
-            {% if not sent_invoice.invoice.installments or sent_invoice.invoice.installments == 1 %}
-                {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
-                    <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-5 mt-4">
-                        {% if sent_invoice.invoice.invoice_type != "weekly" and sent_invoice.invoice.invoice_type != "single" %}
+            {% if not sent_invoice.invoice.is_archived %}
+                {# EDIT/CANCEL INVOICE BUTTONS #}
+                {% if not sent_invoice.invoice.installments or sent_invoice.invoice.installments == 1 %}
+                    {% if sent_invoice.paid_status == 0 or sent_invoice.paid_status == 3 %}
+                        <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-5 mt-4">
+                            {% if sent_invoice.invoice.invoice_type != "weekly" and sent_invoice.invoice.invoice_type != "single" %}
+                                <div class="flex flex-row place-content-baseline cursor-pointer text-sm"
+                                    hx-get="{% url 'timary:edit_sent_invoice_hours' sent_invoice_id=sent_invoice.id %}"
+                                    hx-target="#sent-invoices-list"
+                                    hx-swap="outerHTML">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
+                                        <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                        <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                    </svg>
+                                    <span>Edit</span>
+                                </div>
+                            {% endif %}
                             <div class="flex flex-row place-content-baseline cursor-pointer text-sm"
-                                hx-get="{% url 'timary:edit_sent_invoice_hours' sent_invoice_id=sent_invoice.id %}"
-                                hx-target="#sent-invoices-list"
+                                hx-get="{% url 'timary:cancel_invoice' sent_invoice_id=sent_invoice.id %}"
+                                hx-confirm="Are you sure you want to cancel this invoice?"
+                                hx-target="closest li"
                                 hx-swap="outerHTML">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
-                                    <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span>Edit</span>
+                                Cancel
                             </div>
-                        {% endif %}
-                        <div class="flex flex-row place-content-baseline cursor-pointer text-sm"
-                            hx-get="{% url 'timary:cancel_invoice' sent_invoice_id=sent_invoice.id %}"
-                            hx-confirm="Are you sure you want to cancel this invoice?"
+                        </div>
+                    {% endif %}
+                    {% if sent_invoice.paid_status == 4 %}
+                        <div class="btn btn-secondary btn-sm"
+                            hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
+                            hx-confirm="Are you sure you want to resend this invoice?"
                             hx-target="closest li"
                             hx-swap="outerHTML">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Cancel
+                            Resend again?
                         </div>
-                    </div>
-                {% endif %}
-                {% if sent_invoice.paid_status == 4 %}
-                    <div class="flex flex-row place-content-baseline cursor-pointer text-sm"
-                        hx-get="{% url 'timary:resend_invoice_email' sent_invoice_id=sent_invoice.id %}"
-                        hx-confirm="Are you sure you want to resend this invoice?"
-                        hx-target="closest li"
-                        hx-swap="outerHTML">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                        </svg>
-                        Resend?
-                    </div>
+                    {% endif %}
                 {% endif %}
             {% endif %}
 
@@ -118,7 +117,7 @@
                 <span class="text-sm">Download copy</span>
             </a>
 
-            {% if sent_invoice.paid_status != 2 %}
+            {% if sent_invoice.paid_status != 2 and not sent_invoice.invoice.is_archived %}
                 <a hx-get="{% url 'timary:generate_qrcode_invoice' sent_invoice_id=sent_invoice.id %}"
                     hx-target="closest .sent-invoice-actions"
                     hx-swap="innerHTML"

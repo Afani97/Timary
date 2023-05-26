@@ -804,7 +804,7 @@ class TestRecurringInvoices(BaseTest):
         )
         self.assertIn("Sent updated invoice", str(response.headers))
 
-    def test_edit_sent_invoice_hours_including_archived_invoics(self):
+    def test_edit_sent_invoice_hours_including_archived_invoice(self):
         invoice = IntervalInvoiceFactory(user=self.user, is_archived=True)
         sent_invoice = SentInvoiceFactory(invoice=invoice, user=self.user)
         hour1 = HoursLineItemFactory(invoice=invoice, date_tracked=invoice.last_date)
