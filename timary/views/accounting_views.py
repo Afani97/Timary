@@ -89,7 +89,7 @@ def accounting_disconnect(request):
     user.save()
     return render(
         request,
-        "partials/settings/account/../templates/partials/settings/bookkeeping/_edit_accounting.html",
+        "partials/settings/bookkeeping/_edit_accounting.html",
         {"settings": user.settings},
     )
 

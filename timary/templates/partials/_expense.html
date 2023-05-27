@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
-            <button class="btn btn-error btn-sm btn-outline"
+            <button class="btn btn-error btn-sm md:btn-md btn-outline"
                 hx-trigger="click"
                 hx-delete="{% url 'timary:delete_expenses' expenses_id=form.instance.id %}"
                 hx-confirm="Are you sure you want to remove this expense?"
@@ -44,7 +44,7 @@
             >
                 Remove
             </button>
-            <button class="btn btn-primary btn-sm submit-btn" type="submit">Update</button>
+            <button class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">Update</button>
         </div>
     </div>
 
