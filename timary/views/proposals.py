@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -168,6 +168,10 @@ def delete_proposal(request, proposal_id):
     proposal = get_object_or_404(Proposal, id=proposal_id)
     if proposal.client.user != request.user:
         raise Http404
+    if proposal.date_client_signed is not None:
+        return HttpResponseBadRequest(
+            reason="Can't delete a proposal if the client already signed"
+        )
     proposal.delete()
     response = HttpResponse("")
     response["HX-Redirect"] = "/invoices/manage/"

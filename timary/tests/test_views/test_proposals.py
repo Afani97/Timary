@@ -111,6 +111,26 @@ class TestProposals(BaseTest):
         _client.refresh_from_db()
         self.assertEqual(_client.proposals.count(), 0)
 
+    def test_cannot_delete_proposal_if_client_signed(self):
+        _client = ClientFactory(user=self.user)
+        proposal = ProposalFactory(
+            client=_client,
+            date_user_signed=self.today - datetime.timedelta(days=1),
+            date_client_signed=self.today,
+        )
+
+        response = self.client.delete(
+            reverse("timary:delete_proposal", kwargs={"proposal_id": proposal.id})
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.reason_phrase,
+            "Can't delete a proposal if the client already signed",
+        )
+
+        _client.refresh_from_db()
+        self.assertNotEqual(_client.proposals.count(), 0)
+
     def test_send_pdf_to_client_to_sign(self):
         proposal = ProposalFactory(
             client__user=self.user,

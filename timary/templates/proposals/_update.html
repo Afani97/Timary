@@ -28,11 +28,13 @@
             >
                 Download pdf
             </a>
-            <button class="btn btn-sm btn-error btn-outline"
-                hx-delete="{% url 'timary:delete_proposal' proposal_id=proposal.id %}"
-                hx-confirm="Are you sure you want to delete this proposal?">
-                Delete
-            </button>
+            {% if not proposal.date_client_signed %}
+                <button class="btn btn-sm btn-error btn-outline"
+                    hx-delete="{% url 'timary:delete_proposal' proposal_id=proposal.id %}"
+                    hx-confirm="Are you sure you want to delete this proposal?">
+                    Delete
+                </button>
+            {% endif %}
 
         </div>
     </div>
