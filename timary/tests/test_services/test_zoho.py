@@ -205,7 +205,7 @@ class TestZohoService(TestCase):
 
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_org_mock):
             auth_token = ZohoService.get_auth_tokens(get_request)
-            self.assertEquals(auth_token, "abc123")
+            self.assertEqual(auth_token, "abc123")
 
     def test_oauth_error(self):
         rf = RequestFactory()
@@ -219,7 +219,7 @@ class TestZohoService(TestCase):
     def test_refresh_tokens(self):
         with HTTMock(ZohoMocks.zoho_oauth_mock):
             refresh_token = ZohoService.get_refreshed_tokens(self.user)
-            self.assertEquals(refresh_token, "abc123")
+            self.assertEqual(refresh_token, "abc123")
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -227,7 +227,7 @@ class TestZohoService(TestCase):
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_customer_mock):
             ZohoService.create_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -250,7 +250,7 @@ class TestZohoService(TestCase):
         ):
             ZohoService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
+            self.assertEqual(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
         self.user.accounting_org_id = "abc123"
@@ -273,7 +273,7 @@ class TestZohoService(TestCase):
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_update_customer_mock):
             ZohoService.update_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_update_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -288,4 +288,4 @@ class TestZohoService(TestCase):
         self.user.accounting_org_id = "abc123"
         with HTTMock(ZohoMocks.zoho_oauth_mock, ZohoMocks.zoho_fetch_customers_mock):
             customers = ZohoService.get_customers(self.user)
-            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")
+            self.assertEqual(customers[0]["accounting_customer_id"], "abc123")

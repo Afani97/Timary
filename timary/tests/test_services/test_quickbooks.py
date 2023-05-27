@@ -159,7 +159,7 @@ class TestQuickbooksService(TestCase):
 
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
             auth_token = QuickbooksService.get_auth_tokens(get_request)
-            self.assertEquals(auth_token, "abc123")
+            self.assertEqual(auth_token, "abc123")
 
     def test_oauth_token_error(self):
         rf = RequestFactory()
@@ -173,7 +173,7 @@ class TestQuickbooksService(TestCase):
     def test_refresh_tokens(self):
         with HTTMock(QuickbookMocks.quickbook_oauth_mock):
             refresh_token = QuickbooksService.get_refreshed_tokens(self.user)
-            self.assertEquals(refresh_token, "abc123")
+            self.assertEqual(refresh_token, "abc123")
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -183,7 +183,7 @@ class TestQuickbooksService(TestCase):
         ):
             QuickbooksService.create_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -210,7 +210,7 @@ class TestQuickbooksService(TestCase):
         ):
             QuickbooksService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
+            self.assertEqual(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
         self.user.accounting_org_id = "abc123"
@@ -237,7 +237,7 @@ class TestQuickbooksService(TestCase):
         ):
             QuickbooksService.update_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_update_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -256,4 +256,4 @@ class TestQuickbooksService(TestCase):
             QuickbookMocks.quickbooks_fetch_customers_mock,
         ):
             customers = QuickbooksService.get_customers(self.user)
-            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")
+            self.assertEqual(customers[0]["accounting_customer_id"], "abc123")

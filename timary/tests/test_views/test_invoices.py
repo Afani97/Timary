@@ -588,7 +588,7 @@ class TestRecurringInvoices(BaseTest):
             response.headers["HX-Trigger"],
         )
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
         self.client.logout()
 
     def test_generate_invoice(self):
@@ -598,8 +598,8 @@ class TestRecurringInvoices(BaseTest):
             reverse("timary:generate_invoice", kwargs={"invoice_id": self.invoice.id}),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} is ready to view.",
         )
@@ -619,7 +619,7 @@ class TestRecurringInvoices(BaseTest):
         invoice.refresh_from_db()
         self.assertEqual(invoice.milestone_step, 4)
         self.assertEqual(response.status_code, 200)
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_cannot_generate_invoice_if_paused(self):
         invoice = IntervalInvoiceFactory(is_paused=True, user=self.user)
@@ -629,7 +629,7 @@ class TestRecurringInvoices(BaseTest):
             reverse("timary:generate_invoice", kwargs={"invoice_id": invoice.id}),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
         self.assertIn(
             "Cannot send an invoice while it is been paused", str(response.headers)
         )

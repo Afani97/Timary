@@ -213,7 +213,7 @@ class TestSageService(TestCase):
 
         with HTTMock(SageMocks.sage_oauth_mock):
             _ = SageService.get_auth_tokens(get_request)
-            self.assertEquals(self.user.accounting_org_id, "abc123")
+            self.assertEqual(self.user.accounting_org_id, "abc123")
 
     def test_oauth_error(self):
         rf = RequestFactory()
@@ -227,7 +227,7 @@ class TestSageService(TestCase):
     def test_refresh_tokens(self):
         with HTTMock(SageMocks.sage_oauth_mock):
             refresh_token = SageService.get_refreshed_tokens(self.user)
-            self.assertEquals(refresh_token, "abc123")
+            self.assertEqual(refresh_token, "abc123")
 
     def test_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -235,7 +235,7 @@ class TestSageService(TestCase):
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_customer_mock):
             SageService.create_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_create_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -259,7 +259,7 @@ class TestSageService(TestCase):
         ):
             SageService.create_invoice(sent_invoice)
             sent_invoice.refresh_from_db()
-            self.assertEquals(sent_invoice.accounting_invoice_id, "abc123")
+            self.assertEqual(sent_invoice.accounting_invoice_id, "abc123")
 
     def test_error_create_invoice(self):
         self.user.sage_account_id = "abc123"
@@ -283,7 +283,7 @@ class TestSageService(TestCase):
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_update_customer_mock):
             SageService.update_customer(client)
             client.refresh_from_db()
-            self.assertEquals(client.accounting_customer_id, "abc123")
+            self.assertEqual(client.accounting_customer_id, "abc123")
 
     def test_error_update_customer(self):
         self.user.accounting_org_id = "abc123"
@@ -298,4 +298,4 @@ class TestSageService(TestCase):
         self.user.accounting_org_id = "abc123"
         with HTTMock(SageMocks.sage_oauth_mock, SageMocks.sage_fetch_customers_mock):
             customers = SageService.get_customers(self.user)
-            self.assertEquals(customers[0]["accounting_customer_id"], "abc123")
+            self.assertEqual(customers[0]["accounting_customer_id"], "abc123")

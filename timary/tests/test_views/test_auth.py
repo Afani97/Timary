@@ -17,8 +17,8 @@ class TestAuthViews(TestCase):
             reverse("timary:login"),
             {"email": self.user.email, "password": "Apple101!"},
         )
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, reverse("timary:index"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("timary:index"))
 
     def test_login_failed(self):
         response = self.client.post(
@@ -46,8 +46,8 @@ class TestAuthViews(TestCase):
                 "second_token": "token_2",
             },
         )
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, reverse("timary:manage_invoices"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("timary:manage_invoices"))
         self.assertTrue(user_onboard_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
@@ -73,8 +73,8 @@ class TestAuthViews(TestCase):
                 "referrer_id": "abc123",
             },
         )
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, reverse("timary:manage_invoices"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("timary:manage_invoices"))
         self.assertTrue(user_onboard_mock.assert_called_once)
 
     @patch("timary.services.stripe_service.StripeService.create_payment_intent")
@@ -131,11 +131,11 @@ class TestAuthViews(TestCase):
 
         response = self.client.get(reverse("timary:logout"))
 
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, "/login/?next=/logout/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/login/?next=/logout/")
 
     def test_logout_failed_redirect(self):
         response = self.client.get(reverse("timary:logout"))
 
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(response.url, "/login/?next=/logout/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/login/?next=/logout/")

@@ -273,7 +273,7 @@ class TestGatherHours(TestCase):
     def test_gather_0_hours(self):
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 0)
+        self.assertEqual(HoursLineItem.objects.count(), 0)
 
     def test_gather_0_hours_with_archived_invoice(self):
         HoursLineItemFactory(
@@ -350,7 +350,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
     def test_gather_1_hour(self):
         HoursLineItemFactory(
@@ -364,7 +364,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 2)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
 
     @patch("timary.tasks.timezone")
     def test_gather_2_hour(self, date_mock):
@@ -393,7 +393,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("2 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 4)
+        self.assertEqual(HoursLineItem.objects.count(), 4)
 
     def test_passing_recurring_logic(self):
         hours = HoursLineItemFactory(
@@ -407,7 +407,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 2)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
 
         hours.refresh_from_db()
         self.assertIsNone(hours.recurring_logic)
@@ -428,7 +428,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
         hours.refresh_from_db()
         self.assertIsNotNone(hours.recurring_logic)
@@ -450,7 +450,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
 
         hours.refresh_from_db()
         self.assertIsNotNone(hours.recurring_logic)
@@ -473,7 +473,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("0 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 1)
+        self.assertEqual(HoursLineItem.objects.count(), 1)
         self.assertTrue(update_weeks_mock.assert_called_once)
 
     @patch("timary.models.HoursLineItem.cancel_recurring_hour")
@@ -495,7 +495,7 @@ class TestGatherHours(TestCase):
         )
         hours_added = gather_recurring_hours()
         self.assertEqual("1 hours added.", hours_added)
-        self.assertEquals(HoursLineItem.objects.count(), 2)
+        self.assertEqual(HoursLineItem.objects.count(), 2)
         self.assertTrue(cancel_hours_mock.assert_called_once)
 
 
@@ -601,12 +601,12 @@ class TestGatherAndSendSingleInvoices(TestCase):
         invoice = SingleInvoiceFactory(client=fake_client)
         LineItemFactory(invoice=invoice)
         send_invoice_reminder(invoice.id)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"{invoice.title}'s Invoice from {invoice.user.first_name} is ready to view.",
         )
-        self.assertEquals(SentInvoice.objects.count(), 1)
+        self.assertEqual(SentInvoice.objects.count(), 1)
 
     def test_do_not_send_invoice_reminder_if_pending_or_paid(self):
         fake_client = ClientFactory()
@@ -618,7 +618,7 @@ class TestGatherAndSendSingleInvoices(TestCase):
             date_sent=timezone.now() - timezone.timedelta(days=1),
         )
         send_invoice_reminder(invoice.id)
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
         self.assertNotEqual(sent_invoice.date_sent.date(), timezone.now().date())
 
 
@@ -638,12 +638,12 @@ class TestSendInvoice(TestCase):
     def test_send_one_invoice(self):
         hours = HoursLineItemFactory()
         send_invoice(hours.invoice.id)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"{hours.invoice.title}'s Invoice from {hours.invoice.user.first_name} is ready to view.",
         )
-        self.assertEquals(SentInvoice.objects.count(), 1)
+        self.assertEqual(SentInvoice.objects.count(), 1)
 
     def test_sent_invoices_hours(self):
         two_days_ago = self.todays_date - timezone.timedelta(days=2)
@@ -656,11 +656,11 @@ class TestSendInvoice(TestCase):
         h3 = HoursLineItemFactory(date_tracked=self.todays_date, invoice=invoice)
 
         send_invoice(invoice.id)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(SentInvoice.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(SentInvoice.objects.count(), 1)
 
         sent_invoice = SentInvoice.objects.first()
-        self.assertEquals(
+        self.assertEqual(
             sent_invoice.total_price,
             (h1.quantity + h2.quantity + h3.quantity) * invoice.rate,
         )
@@ -677,11 +677,11 @@ class TestSendInvoice(TestCase):
         h3 = HoursLineItemFactory(date_tracked=self.todays_date, invoice=invoice)
 
         send_invoice(invoice.id)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(SentInvoice.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(SentInvoice.objects.count(), 1)
 
         sent_invoice = SentInvoice.objects.first()
-        self.assertEquals(
+        self.assertEqual(
             sent_invoice.total_price,
             (h2.quantity + h3.quantity) * invoice.rate,
         )
@@ -697,7 +697,7 @@ class TestSendInvoice(TestCase):
         send_invoice(hours.invoice.id)
         self.assertEqual(len(mail.outbox), 0)
 
-        self.assertEquals(SentInvoice.objects.count(), 0)
+        self.assertEqual(SentInvoice.objects.count(), 0)
 
     def test_dont_send_invoice_if_skipped_hours(self):
         hours = HoursLineItemFactory(quantity=0)
@@ -707,25 +707,25 @@ class TestSendInvoice(TestCase):
         hours_tracked, total_amount = hours.invoice.get_hours_stats()
 
         self.assertEqual(len(mail.outbox), 0)
-        self.assertEquals(hours_tracked.count(), 0)
-        self.assertEquals(total_amount, 0)
-        self.assertEquals(SentInvoice.objects.count(), 0)
+        self.assertEqual(hours_tracked.count(), 0)
+        self.assertEqual(total_amount, 0)
+        self.assertEqual(SentInvoice.objects.count(), 0)
 
     def test_send_two_invoice_and_subjects(self):
         hours1 = HoursLineItemFactory()
         hours2 = HoursLineItemFactory()
         send_invoice(hours1.invoice.id)
         send_invoice(hours2.invoice.id)
-        self.assertEquals(len(mail.outbox), 2)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"{hours1.invoice.title}'s Invoice from {hours1.invoice.user.first_name} is ready to view.",
         )
-        self.assertEquals(
+        self.assertEqual(
             mail.outbox[1].subject,
             f"{hours2.invoice.title}'s Invoice from {hours2.invoice.user.first_name} is ready to view.",
         )
-        self.assertEquals(SentInvoice.objects.count(), 2)
+        self.assertEqual(SentInvoice.objects.count(), 2)
 
     def test_invoice_context(self):
         invoice = IntervalInvoiceFactory(rate=25)
@@ -898,7 +898,7 @@ class TestSendInvoice(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
         hours.invoice.refresh_from_db()
-        self.assertEquals(SentInvoice.objects.count(), 0)
+        self.assertEqual(SentInvoice.objects.count(), 0)
 
 
 class TestSendInvoiceInstallment(TestCase):
@@ -923,12 +923,12 @@ class TestSendInvoiceInstallment(TestCase):
         sent_invoice = invoice.get_sent_invoice().first()
         self.assertIsNotNone(sent_invoice.due_date)
         self.assertEqual(sent_invoice.total_price, 50)
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"{invoice.title}'s Installment Invoice from {invoice.user.first_name} for {self.current_month}",
         )
-        self.assertEquals(SentInvoice.objects.count(), 1)
+        self.assertEqual(SentInvoice.objects.count(), 1)
 
     def test_send_installment_return_if_installments_all_sent(self):
         invoice = SingleInvoiceFactory(
@@ -938,8 +938,8 @@ class TestSendInvoiceInstallment(TestCase):
         SentInvoiceFactory(invoice=invoice)
         invoice_sent = send_invoice_installment(invoice.id)
         self.assertFalse(invoice_sent)
-        self.assertEquals(len(mail.outbox), 0)
-        self.assertEquals(SentInvoice.objects.count(), 2)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(SentInvoice.objects.count(), 2)
 
     def test_send_installment_renders_valid_items(self):
         invoice = SingleInvoiceFactory(
@@ -993,19 +993,19 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         send_weekly_updates()
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_dont_send_weekly_update_if_no_active_invoices(self):
         IntervalInvoiceFactory(is_paused=True)
         send_weekly_updates()
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_dont_send_weekly_update_if_no_non_archived_invoices(self):
         IntervalInvoiceFactory(is_archived=True)
         send_weekly_updates()
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
     @patch("timary.tasks.timezone")
     def test_dont_send_weekly_update_if_no_hours_logged(self, today_mock):
@@ -1015,7 +1015,7 @@ class TestWeeklyInvoiceUpdates(TestCase):
         today_mock.now.return_value = todays_date
         IntervalInvoiceFactory()
         send_weekly_updates()
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
     @patch("timary.tasks.timezone")
     def test_send_weekly_update(self, today_mock):
@@ -1045,8 +1045,8 @@ class TestWeeklyInvoiceUpdates(TestCase):
 
         send_weekly_updates()
 
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             f"Here is a weekly progress update for {invoice.title}",
         )
@@ -1077,8 +1077,8 @@ class TestRemindUsersToLogHours(TestCase):
 
         remind_users_to_log_hours()
 
-        self.assertEquals(len(mail.outbox), 1)
-        self.assertEquals(
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
             mail.outbox[0].subject,
             "Adding hours this week?",
         )
@@ -1098,7 +1098,7 @@ class TestRemindUsersToLogHours(TestCase):
 
         remind_users_to_log_hours()
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
     @patch("timary.tasks.timezone")
     def test_send_weekly_reminder_only_if_active_invoices(self, today_mock):
@@ -1123,4 +1123,4 @@ class TestRemindUsersToLogHours(TestCase):
 
         remind_users_to_log_hours()
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
