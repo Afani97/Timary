@@ -1,5 +1,5 @@
 {% load filters waffle_tags %}
-<li class="card card-bordered border-neutral bg-base-200" id="{{ single_invoice.slug_title }}">
+<li class="card card-bordered border-neutral bg-base-300" id="{{ single_invoice.slug_title }}">
     <div class="card-body">
         <div class="flex justify-between">
             <div class="flex items-center mb-4 overflow-x-hidden">
@@ -10,7 +10,7 @@
                 <label tabindex="0" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </label>
-                <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-neutral rounded-box w-64 md:w-80 z-auto">
+                <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-200 rounded-box w-64 md:w-80 z-auto">
                     {% if single_invoice.can_edit %}
                         <li>
                             <a class="btn btn-sm" href="{% url 'timary:update_single_invoice' single_invoice_id=single_invoice.id %}">
