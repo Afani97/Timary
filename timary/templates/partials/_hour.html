@@ -22,7 +22,7 @@
         {% endif %}
         {% if not hour.sent_invoice_id and not hour.invoice.is_paused and not hour.invoice.is_archived %}
             <div class="card-actions flex flex-col space-y-2">
-                <a class="btn btn-sm edit-hours"
+                <a class="btn btn-sm btn-neutral edit-hours"
                     hx-get="{% url 'timary:edit_hours' hour.id %}"
                     hx-target="closest li"
                     hx-swap="outerHTML"

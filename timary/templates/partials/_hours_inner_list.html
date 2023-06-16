@@ -7,7 +7,7 @@
             <div class="text-3xl font-medium text-left md:text-left tracking-wide">{{ hours.grouper }}</div>
             <div class="dropdown dropdown-bottom dropdown-end">
                 <label tabindex="0" class="link-hover copy-hours">Copy hours...</label>
-                <ul tabindex="0" class="dropdown-content menu shadow bg-base-100 rounded-box w-52">
+                <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52">
                     <li class="bg-base-300">
                         <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'-1'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
                             _="on click add .loading to me">

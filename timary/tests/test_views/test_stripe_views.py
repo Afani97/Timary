@@ -157,7 +157,7 @@ class TestStripeViews(BaseTest):
             <div class="form-control my-4 col-span-2">
                 <label class="label"><span class="label-text">Confirm your email</span></label>
                 <input type="text" name="email" placeholder="john@appleseed.com" classes="col-span-2"
-                class="input input-bordered border-2 text-lg bg-neutral
+                class="input input-bordered border-2 bg-base-300 text-lg
                 focus:border-primary focus:ring-0 focus:ring-primary w-full placeholder-gray-500"
                 required id="id_email">
             </div>
@@ -165,7 +165,7 @@ class TestStripeViews(BaseTest):
             <div class="form-control my-4 col-span-2">
                 <label class="label"><span class="label-text">Confirm your first name</span></label>
                 <input type="text" name="first_name" placeholder="John" classes="col-span-2"
-                class="input input-bordered border-2 text-lg bg-neutral
+                class="input input-bordered border-2 bg-base-300 text-lg
                 focus:border-primary focus:ring-0 focus:ring-primary w-full placeholder-gray-500"
                 required id="id_first_name">
             </div>

@@ -651,7 +651,7 @@ class TestRecurringInvoices(BaseTest):
         self.assertInHTML(
             f"""
             <input type="text" name="quantity" value="{str(round(hours1.quantity, 2))}" value="1.0"
-            class="input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500"
+            class="input input-bordered border-2 bg-base-300 text-lg hours-input w-full placeholder-gray-500"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours1.slug_id}">
             """,
@@ -660,7 +660,7 @@ class TestRecurringInvoices(BaseTest):
         self.assertInHTML(
             f"""
             <input type="text" name="quantity" value="{str(round(hours2.quantity, 2))}" value="1.0"
-            class="input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500"
+            class="input input-bordered border-2 bg-base-300 text-lg hours-input w-full placeholder-gray-500"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours2.slug_id}">
             """,
@@ -669,7 +669,7 @@ class TestRecurringInvoices(BaseTest):
         self.assertNotIn(
             f"""
             <input type="text" name="quantity" value="{str(round(hours3.quantity, 2))}" value="1.0"
-            class="input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500"
+            class="input input-bordered border-2 bg-base-300 text-lg hours-input w-full placeholder-gray-500"
             _="on input call filterHoursInput(me) end on blur call convertHoursInput(me) end"
             required id="id_{hours3.slug_id}">
             """,

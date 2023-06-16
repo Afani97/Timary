@@ -59,24 +59,27 @@ class TestUserProfile(BaseTest):
         response = self.client.get(reverse("timary:edit_user_profile"))
         self.assertInHTML(
             f'<input type="email" name="email" value="{self.user.email}" placeholder="john@appleseed.com"'
-            f'class="input input-bordered border-2 text-lg w-full placeholder-gray-500" required '
+            f'class="input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500" required '
             f'id="id_email">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="first_name" value="{self.user.first_name}" placeholder="John"'
-            f'class="input input-bordered border-2 text-lg w-full placeholder-gray-500" required id="id_first_name">',
+            f'class="input input-bordered border-2 bg-base-300 text-lg w-full '
+            f'placeholder-gray-500" required id="id_first_name">',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="last_name" value="{self.user.last_name}"'
             f'placeholder="Appleseed"'
-            f'class="input input-bordered border-2 text-lg w-full placeholder-gray-500" id="id_last_name"> ',
+            f'class="input input-bordered border-2 bg-base-300 text-lg w-full '
+            f'placeholder-gray-500" id="id_last_name"> ',
             response.content.decode("utf-8"),
         )
         self.assertInHTML(
             f'<input type="text" name="phone_number" value="{self.user.phone_number}" placeholder="+13334445555" '
-            f'class="input input-bordered border-2 text-lg w-full placeholder-gray-500" id="id_phone_number">',
+            f'class="input input-bordered border-2 bg-base-300 text-lg w-full '
+            f'placeholder-gray-500" id="id_phone_number">',
             response.content.decode("utf-8"),
         )
 

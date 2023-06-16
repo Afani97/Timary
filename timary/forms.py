@@ -55,7 +55,7 @@ class HoursLineItemForm(forms.ModelForm):
         required=True,
         widget=DateInput(
             attrs={
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -146,7 +146,8 @@ class HoursLineItemForm(forms.ModelForm):
             "quantity": forms.TextInput(
                 attrs={
                     "value": 1.0,
-                    "class": "input input-bordered border-2 text-lg hours-input w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg "
+                    "hours-input w-full placeholder-gray-500",
                     "_": "on input call filterHoursInput(me) end on blur call convertHoursInput(me) end",
                 },
             ),
@@ -288,19 +289,19 @@ class ExpensesForm(forms.ModelForm):
             "description": forms.TextInput(
                 attrs={
                     "placeholder": "New item... - Equipment",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 },
             ),
             "date_tracked": DateInput(
                 attrs={
                     "value": today(),
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
             "cost": forms.NumberInput(
                 attrs={
                     "placeholder": "125.00",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
         }
@@ -329,19 +330,22 @@ class ProposalForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "Proposal for...",
-                    "class": "input input-bordered border-2 text-xl w-full placeholder-gray-500 bg-neutral",
+                    "class": "input input-bordered border-2 bg-base-300 text-xl w-full "
+                    "placeholder-gray-500 bg-base-300",
                 },
             ),
             "user_signature": forms.TextInput(
                 attrs={
                     "placeholder": "Your first and last name",
-                    "class": "input input-bordered border-2 text-xl w-full placeholder-gray-500 bg-neutral",
+                    "class": "input input-bordered border-2 bg-base-300 text-xl w-full "
+                    "placeholder-gray-500 bg-base-300",
                 },
             ),
             "date_user_signed": DateInput(
                 attrs={
                     "value": today(),
-                    "class": "input input-bordered border-2 text-lg w-full bg-neutral placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full "
+                    "bg-base-300 placeholder-gray-500",
                 }
             ),
         }
@@ -355,7 +359,7 @@ class ClientForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -372,19 +376,19 @@ class ClientForm(forms.ModelForm):
             "name": forms.TextInput(
                 attrs={
                     "placeholder": "John Smith",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
             "email": forms.EmailInput(
                 attrs={
                     "placeholder": "john@company.com",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
             "address": forms.TextInput(
                 attrs={
                     "placeholder": "123 Main St, New York, NY",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
         }
@@ -419,12 +423,12 @@ class InvoiceForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "New Saas App...",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
             "client": forms.Select(
                 attrs={
-                    "class": "select select-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "select select-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
         }
@@ -455,7 +459,7 @@ class UpdateInvoiceForm(InvoiceForm):
             attrs={
                 "min": 1,
                 "max": 1_000_000,
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 "placeholder": "10000",
             }
         ),
@@ -477,7 +481,7 @@ def create_invoice_interval(superclass):
                     "min": 1,
                     "max": 1000,
                     "step": "0.01",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 },
             ),
         )
@@ -494,7 +498,7 @@ def create_invoice_interval(superclass):
                 **superclass.Meta.widgets,
                 "invoice_interval": forms.Select(
                     attrs={
-                        "class": "select select-bordered border-2 text-lg w-full placeholder-gray-500",
+                        "class": "select select-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                     }
                 ),
             }
@@ -516,7 +520,7 @@ def create_invoice_milestone(superclass):
                     "min": 1,
                     "max": 1000,
                     "step": "0.01",
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 },
             ),
         )
@@ -526,7 +530,7 @@ def create_invoice_milestone(superclass):
                     "placeholder": 3,
                     "min": 2,
                     "max": 12,
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
         )
@@ -563,7 +567,7 @@ def create_invoice_weekly(superclass):
             required=True,
             widget=forms.NumberInput(
                 attrs={
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                     "placeholder": 1500,
                     "max": 1_000_000,
                 }
@@ -576,7 +580,7 @@ def create_invoice_weekly(superclass):
             widget=DateInput(
                 attrs={
                     "min": (today() - datetime.timedelta(days=1)),
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
                 }
             ),
         )
@@ -622,7 +626,7 @@ class SingleInvoiceForm(InvoiceForm):
         widget=DateInput(
             attrs={
                 "value": next_month(),
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -646,25 +650,50 @@ class SingleInvoiceForm(InvoiceForm):
             "tax_amount": "Tax",
         }
         widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
+                }
+            ),
+            "due_date": DateInput(
+                attrs={
+                    "class": "input input-bordered border-2 bg-base-300 text-xl w-full placeholder-gray-500",
+                }
+            ),
             "client": forms.Select(
                 attrs={
-                    "class": "select select-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "select select-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
             "invoice_interval": forms.Select(
                 attrs={
-                    "class": "select select-bordered bg-neutral border-2 text-lg w-full placeholder-gray-500",
+                    "class": "select select-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
             "end_interval_date": DateInput(
                 attrs={
                     "value": next_month(),
-                    "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                    "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
+                }
+            ),
+            "discount_amount": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
+                }
+            ),
+            "tax_amount": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
+                }
+            ),
+            "late_penalty_amount": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
             "installments": forms.Select(
                 attrs={
-                    "class": "select select-bordered bg-neutral border-2 text-lg w-full placeholder-gray-500",
+                    "class": "select select-bordered bg-base-300 border-2 text-lg w-full placeholder-gray-500",
                 }
             ),
         }
@@ -728,7 +757,7 @@ class PayInvoiceForm(forms.Form):
             attrs={
                 "placeholder": "john@appleseed.com",
                 "classes": "col-span-2",
-                "class": "input input-bordered border-2 text-lg bg-neutral placeholder-gray-500 "
+                "class": "input input-bordered border-2 text-lg bg-base-300 placeholder-gray-500 "
                 "focus:border-primary focus:ring-0 focus:ring-primary w-full",
             }
         ),
@@ -739,7 +768,7 @@ class PayInvoiceForm(forms.Form):
             attrs={
                 "placeholder": "John",
                 "classes": "col-span-2",
-                "class": "input input-bordered border-2 text-lg bg-neutral placeholder-gray-500 "
+                "class": "input input-bordered border-2 text-lg bg-base-300 placeholder-gray-500 "
                 "focus:border-primary focus:ring-0 focus:ring-primary w-full",
             }
         ),
@@ -778,7 +807,7 @@ class UserForm(forms.ModelForm):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -787,7 +816,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John",
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -796,7 +825,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Appleseed",
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -806,7 +835,7 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
-                "class": "input input-bordered border-2 text-lg w-full placeholder-gray-500",
+                "class": "input input-bordered border-2 bg-base-300 text-lg w-full placeholder-gray-500",
             }
         ),
     )
@@ -895,7 +924,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "john@appleseed.com",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
@@ -906,7 +935,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "John Appleseed",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
@@ -917,7 +946,7 @@ class RegisterForm(forms.ModelForm):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
             },
         ),
@@ -965,7 +994,7 @@ class LoginForm(forms.Form):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "johns@awesomeemail.com",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7 mb-2",
             }
         ),
@@ -976,7 +1005,7 @@ class LoginForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
@@ -1017,7 +1046,7 @@ class ReferralInviteForm(forms.Form):
         required=False,
         widget=forms.EmailInput(
             attrs={
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
                 "placeholder": "Enter email here",
             }
@@ -1028,7 +1057,7 @@ class ReferralInviteForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "+13334445555",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7",
             }
         ),
@@ -1053,7 +1082,7 @@ class UpdatePasswordForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-700/100",
             }
         ),
@@ -1065,7 +1094,7 @@ class UpdatePasswordForm(forms.Form):
             attrs={
                 "placeholder": "*********",
                 "type": "password",
-                "class": "input input-bordered border-2 bg-neutral text-xl "
+                "class": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-700/100",
             }
         ),

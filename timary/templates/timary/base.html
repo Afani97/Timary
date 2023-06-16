@@ -8,7 +8,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         {% if debug_mode %}
-            <link href="https://cdn.jsdelivr.net/npm/daisyui@2.50.0/dist/full.css" rel="stylesheet" type="text/css" />
+            <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.1/dist/full.css" rel="stylesheet" type="text/css" />
             <script src="https://cdn.tailwindcss.com"></script>
         {% else %}
             {% tailwind_css %}
@@ -45,7 +45,7 @@
                 alertMessage.classList.add('text-center');
                 alertMessage.innerHTML = `
                 <div class="alert ${alertType} flex justify-between w-full">
-                    <div>
+                    <div class="flex flex-row gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>${message}</span>
                     </div>
@@ -104,7 +104,7 @@
                         </div>
                     {% elif connect_status == 2 %}
                         <div class="alert alert-warning max-w-3xl mx-auto">
-                            <div class="flex-1">
+                            <div class="flex flex-row gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                                 <label class="mx-3 text-center">
                                     You need to complete your Stripe payment
@@ -145,7 +145,7 @@
                     <form hx-post="/questions/">
                         <h3 class="text-lg font-bold">Let me get you unstuck</h3>
                         <p class="py-4">If something can be done better or you are getting an error, please let me know!</p>
-                        <textarea name="question" class="textarea textarea-bordered bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" rows="7" placeholder="I need help with..." required></textarea>
+                        <textarea name="question" class="textarea textarea-bordered bg-base-300 text-xl w-full placeholder-gray-500 placeholder-opacity-7" rows="7" placeholder="I need help with..." required></textarea>
                         <div class="flex justify-center mt-4">
                             <button type="submit" class="btn btn-primary mx-auto">Submit</button>
                         </div>

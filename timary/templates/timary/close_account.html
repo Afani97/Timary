@@ -18,10 +18,10 @@
             {% csrf_token %}
             <div class="mb-5 form-control">
                 <label>Enter your password to cancel your subscription & account:</label>
-                <input class="input input-bordered border-2 text-lg" name="password" type="password" />
+                <input class="input input-bordered border-2 bg-base-300 text-lg" name="password" type="password" />
             </div>
             {% if error %}
-                <p class="text-lg text-center">{{ error}}</p>
+                <p class="text-lg text-center">{{ error }}</p>
             {% endif %}
 
             <div class="flex justify-center">

@@ -59,7 +59,7 @@
                         <span class="label-text">End on:</span>
                     </label>
                     {% now "Y-m-d" as today %}
-                    <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered border-2 h-8" min="{% now "Y-m-d" %}" value="{{today|adddays:"7"|date:"Y-m-d"}}"/>
+                    <input type="date" name="repeat_end_date" id="id_repeat_end_date" class="input input-bordered bg-base-300 border-2 h-8" min="{% now "Y-m-d" %}" value="{{today|adddays:"7"|date:"Y-m-d"}}"/>
                 </div>
             </div>
             <div class="form-control w-full" id="recurring-wrapper">

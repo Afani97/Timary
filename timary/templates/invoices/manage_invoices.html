@@ -19,10 +19,10 @@
             >Archived Invoices</a>
         </div>
         <div class="flex flex-row gap-2">
-            <div class="dropdown dropdown-hover dropdown-bottom dropdown-end" id="new-invoice-btn">
+            <div class="dropdown dropdown-hover dropdown-bottom dropdown-end z-50" id="new-invoice-btn">
                 <label tabindex="0" class="btn btn-sm btn-primary">New invoice</label>
                 <div tabindex="0" class="dropdown-content">
-                    <ul class="menu bg-neutral w-56 rounded-box">
+                    <ul class="menu bg-base-300 rounded-box">
                         <li
                             hx-get="{% url 'timary:create_invoice' %}?type=interval"
                             hx-target="#new-invoice-inner"

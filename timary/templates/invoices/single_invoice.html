@@ -30,7 +30,7 @@
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.title.label_tag }}</span>
                 </label>
-                <div>{{ invoice_form.title|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7"}}</div>
+                <div>{{ invoice_form.title}}</div>
                 {% if invoice_form.title.errors %}
                     <div class="text-error pl-2">{{ invoice_form.title.errors }}</div>
                 {% endif %}
@@ -52,7 +52,7 @@
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.due_date.label_tag }}</span>
                 </label>
-                <div>{{ invoice_form.due_date|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div>{{ invoice_form.due_date }}</div>
                 {% if invoice_form.due_date.errors %}
                     <div class="text-error pl-2">{{ invoice_form.due_date.errors }}</div>
                 {% endif %}
@@ -82,7 +82,7 @@
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.discount_amount.label_tag }}</span>
                 </label>
-                <div>{{ invoice_form.discount_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div>{{ invoice_form.discount_amount }}</div>
                 <div class="label"><span class="label-text-alt">Optional</span></div>
                 {% if invoice_form.discount_amount.errors %}
                     <div class="text-error pl-2">{{ invoice_form.discount_amount.errors }}</div>
@@ -92,7 +92,7 @@
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.tax_amount.label_tag }}</span>
                 </label>
-                <div>{{ invoice_form.tax_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div>{{ invoice_form.tax_amount }}</div>
                 <div class="label"><span class="label-text-alt">Optional</span></div>
                 {% if invoice_form.tax_amount.errors %}
                     <div class="text-error pl-2">{{ invoice_form.tax_amount.errors }}</div>
@@ -118,7 +118,7 @@
                 <label class="label">
                     <span class="label-text font-bold text-xl">{{ invoice_form.late_penalty_amount.label_tag }}</span>
                 </label>
-                <div>{{ invoice_form.late_penalty_amount|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div>{{ invoice_form.late_penalty_amount }}</div>
                 {% if invoice_form.late_penalty_amount.errors %}
                     <div class="text-error pl-2">{{ invoice_form.late_penalty_amount.errors }}</div>
                 {% endif %}

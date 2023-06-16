@@ -11,7 +11,7 @@
             <span class="label-text">{{ line_item_form.description.label_tag }}</span>
         </label>
         <div class="flex flex-row w-full items-center">
-            <div class="w-full">{{ line_item_form.description|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+            <div class="w-full">{{ line_item_form.description|addclass:"input input-bordered border-2 bg-base-300 text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
         </div>
         {% if line_item_form.description.errors %}
             <div class="text-error pl-2">{{ line_item_form.description.errors }}</div>
@@ -23,7 +23,7 @@
                 <span class="label-text">{{ line_item_form.quantity.label_tag }}</span>
             </label>
             <div class="flex flex-row w-full items-center">
-                <div class="w-full">{{ line_item_form.quantity|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div class="w-full">{{ line_item_form.quantity|addclass:"input input-bordered border-2 bg-base-300 text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
             </div>
             {% if line_item_form.quantity.errors %}
                 <div class="text-error pl-2">{{ line_item_form.quantity.errors }}</div>
@@ -34,7 +34,7 @@
                 <span class="label-text">{{ line_item_form.unit_price.label_tag }}</span>
             </label>
             <div class="flex flex-row w-full items-center">
-                <div class="w-full">{{ line_item_form.unit_price|addclass:"input input-bordered border-2 bg-neutral text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
+                <div class="w-full">{{ line_item_form.unit_price|addclass:"input input-bordered border-2 bg-base-300 text-xl w-full placeholder-gray-500 placeholder-opacity-7" }}</div>
             </div>
             {% if line_item_form.unit_price.errors %}
                 <div class="text-error pl-2">{{ line_item_form.unit_price.errors }}</div>

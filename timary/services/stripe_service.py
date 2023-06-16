@@ -44,7 +44,7 @@ class StripeService:
                 },
             },
             "classes": {
-                "base": "input input-bordered border-2 bg-neutral text-xl "
+                "base": "input input-bordered border-2 bg-base-300 text-xl "
                 "w-full placeholder-gray-500 placeholder-opacity-7 px-2 py-3"
             },
         }
