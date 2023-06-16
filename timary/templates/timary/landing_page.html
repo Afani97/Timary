@@ -9,7 +9,7 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="bg-neutral">
         <meta name="theme-color" content="#1A1D23">
         {% if debug_mode %}
-            <link href="https://cdn.jsdelivr.net/npm/daisyui@2.42.1/dist/full.css" rel="stylesheet" type="text/css" />
+            <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.1/dist/full.css" rel="stylesheet" type="text/css" />
             <script src="https://cdn.tailwindcss.com"></script>
         {% else %}
             {% tailwind_css %}
@@ -18,7 +18,7 @@
     </head>
     <body>
         <div>
-            <header class="navbar mb-14 md:px-12 shadow-lg bg-neutral text-neutral-content w-full">
+            <header class="navbar mb-14 md:px-12 shadow-lg bg-base-300 text-neutral-content w-full">
                 <div class="flex w-full flex-col md:flex-row items-center md:justify-between">
                     <a href="{% url 'timary:landing_page' %}" class="flex title-font font-medium items-center text-white mb-2 sm:mb-0">
                         {% include "partials/_logo.html" %}
