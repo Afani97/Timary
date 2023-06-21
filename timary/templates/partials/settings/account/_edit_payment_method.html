@@ -1,4 +1,8 @@
-<div hx-post="{% url 'timary:update_payment_method_settings' %}" hx-target="this" hx-swap="outerHTML" hx-trigger="stripe-tokens" hx-include="[name='first_token'],[name='second_token']"
+<div hx-post="{% url 'timary:update_payment_method_settings' %}"
+    hx-target="this"
+    hx-swap="outerHTML"
+    hx-trigger="stripe-tokens"
+    hx-include="[name='first_token'],[name='second_token']"
     class="col-span-3"
     id="update-payment-element"
 >
@@ -17,10 +21,13 @@
     </div>
 
     <div class="flex justify-center space-x-10 mt-4">
-        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="#update-payment-element" hx-swap="outerHTML" class="btn btn-ghost btn-sm md:btn-md"  _="on click add .loading to me">
+        <a hx-get="{% url 'timary:settings_partial' setting='payment_method' %}" hx-target="#update-payment-element" hx-swap="outerHTML" class="btn btn-ghost btn-sm md:btn-md"
+            _="on click remove .hidden from .loading in me end">
+            <span class="loading loading-spinner loading-xs hidden"></span>
             Cancel
         </a>
-        <button class="btn btn-disabled update-btn btn-sm md:btn-md" _="on click add .loading to me then call updateCard()">
+        <button class="btn btn-disabled update-btn btn-sm md:btn-md" _="on click remove .hidden from .loading in me then call updateCard()">
+            <span class="loading loading-spinner loading-xs hidden"></span>
             Update
         </button>
     </div>

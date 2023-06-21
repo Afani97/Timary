@@ -5,8 +5,9 @@
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
         hx-confirm="Are you sure you want to re-subscribe?"
-        _="on htmx:beforeRequest add .loading to me"
+        _="on htmx:beforeRequest remove .hidden from .loading in me end"
     >
+        <span class="loading loading-spinner loading-xs hidden"></span>
         Subscribe
     </a>
 </div>

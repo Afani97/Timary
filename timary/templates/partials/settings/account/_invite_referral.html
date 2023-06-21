@@ -1,7 +1,7 @@
 <div class="wrapper">
     {% if success %}
         <div class="alert alert-success shadow-lg max-w-xl mx-auto my-2">
-            <div>
+            <div class="flex flex-row gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>{{ success }}</span>
             </div>
@@ -9,7 +9,7 @@
     {% endif %}
     {% if error %}
         <div class="alert alert-warning shadow-lg max-w-xl mx-auto my-2">
-            <div>
+            <div class="flex flex-row gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>{{ error }}</span>
             </div>
@@ -28,7 +28,6 @@
                     hx-target="closest .wrapper"
                     hx-swap="outerHTML"
                     class="btn"
-                    _="on htmx:beforeRequest add .loading to me"
                 >
                     Send
                 </span>
@@ -40,21 +39,24 @@
             </label>
             <label class="input-group">
                 {{ invite_form.phone_number }}
-                <span
+                <div
                     hx-post="{% url 'timary:invite_new_user' %}"
                     hx-include="[name='phone_number']"
                     hx-target="closest .wrapper"
                     hx-swap="outerHTML"
                     class="btn"
-                    _="on htmx:beforeRequest add .loading to me"
                 >
                     Send
-                </span>
+                </div>
             </label>
         </div>
     </form>
 
     <div class="card-actions flex justify-center mt-10">
-        <a hx-get="{% url 'timary:settings_partial' setting='referral'%}" hx-target="closest .wrapper" hx-swap="outerHTML" class="btn btn-sm btn-ghost" _="on click add .loading to me">Close</a>
+        <a hx-get="{% url 'timary:settings_partial' setting='referral'%}" hx-target="closest .wrapper" hx-swap="outerHTML" class="btn btn-sm btn-ghost"
+            _="on htmx:beforeRequest remove .hidden from .loading in me end">
+            <span class="loading loading-spinner loading-xs hidden"></span>
+            Close
+        </a>
     </div>
 </div>

@@ -4,7 +4,7 @@
     hx-target="this"
     hx-encoding="multipart/form-data"
     id="update-hours-form"
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -56,7 +56,14 @@
 
     </div>
     <div class="card-actions mb-5 flex justify-center space-x-10 ">
-        <a class="btn btn-ghost btn-sm md:btn-md" hx-get="{% url 'timary:user_profile_partial' %}" hx-target="closest form" hx-swap="outerHTML" _="on click add .loading to me"> Cancel </a>
-        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit"> Update </button>
+        <a class="btn btn-ghost btn-sm md:btn-md" hx-get="{% url 'timary:user_profile_partial' %}" hx-target="closest form" hx-swap="outerHTML"
+            _="on click remove .hidden from .loading in me end">
+            <span class="loading loading-spinner loading-xs hidden"></span>
+            Cancel
+        </a>
+        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
+            <span class="loading loading-spinner loading-xs hidden"></span>
+            Update
+        </button>
     </div>
 </form>

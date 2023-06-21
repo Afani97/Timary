@@ -9,7 +9,7 @@
         hx-target="#clients-list"
         id="new-client-form"
     {% endif %}
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -54,14 +54,18 @@
     <div class="card-actions flex justify-center space-x-5 mb-4">
         {% if form.initial %}
             <button hx-get="{% url 'timary:get_client' client_id=form.instance.id %}" hx-target="closest form" hx-swap="outerHTML"
-                class="btn btn-ghost btn-sm md:btn-md" type="button">
+                class="btn btn-ghost btn-sm md:btn-md" type="button"
+                _="on htmx:beforeRequest remove .hidden from .loading in me end">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Cancel
             </button>
             <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Update
             </button>
         {% else %}
             <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Add new client
             </button>
         {% endif %}

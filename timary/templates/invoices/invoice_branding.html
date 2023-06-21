@@ -15,7 +15,8 @@
         <div class="flex">
             <div class="w-2/5">
                 <div class="w-3/4">
-                    <form hx-post="{% url 'timary:update_invoice_branding' %}" hx-swap="none">
+                    <form hx-post="{% url 'timary:update_invoice_branding' %}" hx-swap="none"
+                        _="on htmx:beforeRequest remove .hidden from .loading in .submit-btn end on htmx:afterRequest add .hidden to .loading in .submit-btn end">
                         {% csrf_token %}
                         <div class="form-control">
                             <label class="label" for="due_date">
@@ -142,9 +143,10 @@
                         </div>
                         <div class="divider"></div>
                         <div class="flex justify-center">
-                            <button class="btn btn-primary" type="submit" id="submit_btn"
-                                _="on click add .loading to me"
-                            >Update</button>
+                            <button class="btn btn-primary submit-btn" >
+                                <span class="loading loading-spinner loading-xs hidden"></span>
+                                Update
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -264,8 +266,5 @@
             date.setDate(date.getDate() + numWeeks * 7);
             return date.toLocaleDateString('en-us', { month:"short", day:"2-digit", year: "numeric"});
         }
-        htmx.on("showMessage", function(e) {
-            htmx.removeClass(htmx.find("#submit_btn"), "loading")
-        })
     </script>
 {% endblock %}

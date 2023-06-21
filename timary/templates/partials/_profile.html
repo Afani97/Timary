@@ -15,7 +15,8 @@
                 hx-get="{% url 'timary:edit_user_profile' %}"
                 hx-target="#user-profile"
                 hx-swap="outerHTML"
-                _="on click add .loading to me">
+                _="on click remove .hidden from .loading in me end">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Edit
             </button>
         </div>

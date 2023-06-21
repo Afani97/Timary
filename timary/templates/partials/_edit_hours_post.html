@@ -5,7 +5,7 @@
     hx-target="this"
     hx-vals='{"invoice": "{{ invoice.id }}" }'
     hx-trigger="submit"
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -22,6 +22,7 @@
         </div>
         <div class="card-actions justify-center md:justify-end mt-4 space-x-4">
             <button class="btn btn-primary btn-sm submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Add new hours
             </button>
         </div>

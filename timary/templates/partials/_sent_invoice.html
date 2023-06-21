@@ -42,9 +42,10 @@
                         hx-target="closest li"
                         hx-swap="outerHTML"
                         class="btn btn-secondary btn-sm"
-                        _="on htmx:beforeRequest add .loading to me"
+                        _="on htmx:beforeRequest remove .hidden from .loading in me end"
                         {% if invoice_resent %} disabled="disabled" {% endif %}
                     >
+                        <span class="loading loading-spinner loading-xs hidden"></span>
                         {% if invoice_resent %}
                             Invoice resent
                         {% else %}
@@ -60,8 +61,9 @@
                     hx-target="closest li"
                     hx-swap="outerHTML"
                     class="btn btn-accent btn-sm btn-outline"
-                    _="on htmx:beforeRequest add .loading to me"
+                    _="on htmx:beforeRequest remove .hidden from .loading in me end"
                 >
+                    <span class="loading loading-spinner loading-xs hidden"></span>
                     Sync Invoice
                 </a>
             {% endif %}

@@ -33,7 +33,8 @@
                     {% endblock actions %}
                     <li>
                         <a hx-get="{% url 'timary:archive_invoice' invoice_id=invoice.id %}" hx-confirm="Are you sure you want to archive this invoice?" hx-target="closest #{{ invoice.slug_title }}" hx-swap="outerHTML" class="btn btn-sm"
-                            _="on htmx:beforeRequest add .loading to me">
+                            _="on htmx:beforeRequest remove .hidden from .loading in me end">
+                            <span class="loading loading-spinner loading-xs hidden"></span>
                             Archive
                         </a>
                     </li>

@@ -6,8 +6,9 @@
         hx-target="closest .wrapper"
         hx-swap="outerHTML"
         hx-confirm="Are you sure you want to cancel? No data will be lost but you can't receive payments anymore"
-        _="on htmx:beforeRequest add .loading to me"
+        _="on htmx:beforeRequest remove .hidden from .loading in me end"
     >
+        <span class="loading loading-spinner loading-xs hidden"></span>
         Cancel
     </a>
 </div>

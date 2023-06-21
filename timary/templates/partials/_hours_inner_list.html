@@ -10,7 +10,8 @@
                 <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52">
                     <li class="bg-base-300">
                         <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'-1'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
-                            _="on click add .loading to me">
+                            _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest add .hidden to .loading in me end">
+                            <span class="loading loading-spinner loading-xs hidden"></span>
                             From {{ hours.grouper|adddays:"-1"|date:"M. j, Y"}}
                         </a>
                     </li>
@@ -18,7 +19,8 @@
                     {% if today != hours.grouper %}
                         <li class="bg-base-300">
                             <a hx-get="{% url 'timary:repeat_hours' %}?from={{ hours.grouper|adddays:'0'|date:'M. j, Y' }}&to={{ hours.grouper|adddays:'1'|date:'M. j, Y' }}" hx-target="#hours-list" hx-swap="outerHTML"
-                                _="on click add .loading to me">
+                                _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest add .hidden to .loading in me end">
+                                <span class="loading loading-spinner loading-xs hidden"></span>
                                 To {{ hours.grouper|adddays:"1"|date:"M. j, Y"}}
                             </a>
                         </li>
@@ -45,8 +47,9 @@
             hx-get="{% url 'timary:hours_for_month' %}?month={{ last_month_date|date:"M. j, Y" }}"
             hx-target="#hours-inner-list"
             hx-swap="innerHTML"
-            _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest go to the top of the body"
+            _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest go to the top of the body"
         >
+            <span class="loading loading-spinner loading-xs hidden"></span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
@@ -57,12 +60,13 @@
                 hx-get="{% url 'timary:hours_for_month' %}?month={{ next_month|date:"M. j, Y" }}"
                 hx-target="#hours-inner-list"
                 hx-swap="innerHTML"
-                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest go to the top of the body"
+                _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest go to the top of the body"
             >
                 {{ next_month|date:"M Y"  }}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 ml-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
+                <span class="loading loading-spinner loading-xs hidden"></span>
             </div>
         {% else %}
             <div></div>

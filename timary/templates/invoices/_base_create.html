@@ -3,7 +3,7 @@
     hx-swap="beforeend"
     hx-target="#invoices-list"
     id="new-invoice-form"
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
     {% if form.errors %}
         {% include "partials/_form_errors.html" with form_errors=form.errors %}
@@ -41,6 +41,9 @@
         {% block hidden_invoice_type %}{% endblock %}
     </div>
     <div class="card-actions flex justify-center">
-        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn mb-4" type="submit"> Add new invoice</button>
+        <button hx-trigger="enterKey, click" class="btn btn-primary btn-sm md:btn-md submit-btn mb-4" type="submit">
+            <span class="loading loading-spinner loading-xs hidden"></span>
+            Add new invoice
+        </button>
     </div>
 </form>

@@ -8,7 +8,7 @@
     hx-target="this"
     hx-trigger="submit"
     hx-vals='{"invoice": "{{ form.instance.invoice.id }}" }'
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
 
     {% if form.errors %}
@@ -42,12 +42,14 @@
                 hx-delete="{% url 'timary:delete_hours' hours_id=form.instance.id %}"
                 hx-swap="outerHTML"
                 hx-target="closest form"
-                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+                _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest add .hidden to .loading in me end"
                 type="button"
             >
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Remove
             </button>
             <button class="btn btn-primary btn-sm submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Update
             </button>
         </div>

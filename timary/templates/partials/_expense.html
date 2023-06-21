@@ -4,7 +4,7 @@
     hx-target="this"
     id="expense-{{ form.instance.slug_id }}"
     hx-trigger="submit"
-    _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
+    _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
 >
 
     {% if form.errors %}
@@ -40,11 +40,15 @@
                 hx-swap="outerHTML"
                 hx-target="closest form"
                 type="button"
-                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me end"
+                _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest add .hidden to .loading in me end"
             >
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Remove
             </button>
-            <button class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">Update</button>
+            <button class="btn btn-primary btn-sm md:btn-md submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
+                Update
+            </button>
         </div>
     </div>
 

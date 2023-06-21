@@ -16,8 +16,9 @@
                     id="start_timer"
                     class="btn btn-sm md:btn-md {% if active_timer_ms != 0 or timer_running %} hidden {% endif %}"
                     hx-get="{% url 'timary:start_timer' %}" hx-target="#timer_container" hx-swap="innerHTML"
-                    _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .hidden from #timer_container then add .hidden to me then remove .loading from me end"
+                    _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest remove .hidden from #timer_container then add .hidden to me then add .hidden to .loading in me end"
                 >
+                    <span class="loading loading-spinner loading-xs hidden"></span>
                     Start timer
                 </button>
             </div>

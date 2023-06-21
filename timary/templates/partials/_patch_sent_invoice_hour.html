@@ -12,12 +12,15 @@
         hx-target="#patch-hours-{{ form.instance.slug_id }}"
         hx-vals='{"invoice": "{{ form.instance.invoice.id }}", "hour_id": "{{ form.instance.id }}"}'
         hx-trigger="submit"
-        _="on submit add .loading to .submit-btn in me end on htmx:afterRequest remove .loading from .submit-btn in me end"
+        _="on submit remove .hidden from .loading in .submit-btn in me end on htmx:afterRequest add .hidden to .loading in .submit-btn in me end"
     >
         <div class="flex flex-row space-x-5 w-full items-center">
             <div>{{ form.date_tracked.value|date:"M j" }}</div>
             <div>{{ form.quantity }}</div>
-            <button class="btn btn-primary btn-sm submit-btn" type="submit">Update</button>
+            <button class="btn btn-primary btn-sm submit-btn" type="submit">
+                <span class="loading loading-spinner loading-xs hidden"></span>
+                Update
+            </button>
 
             <button class="btn btn-error btn-sm btn-outline w-20"
                 hx-trigger="click"
@@ -25,9 +28,10 @@
                 hx-confirm="Are you sure you want to remove this hour"
                 hx-swap="outerHTML"
                 hx-target="#patch-hours-{{ form.instance.slug_id }}"
-                _="on htmx:beforeRequest add .loading to me end on htmx:afterRequest remove .loading from me"
+                _="on htmx:beforeRequest remove .hidden from .loading in me end on htmx:afterRequest add .hidden to .loading in me end"
                 type="button"
             >
+                <span class="loading loading-spinner loading-xs hidden"></span>
                 Remove
             </button>
         </div>
