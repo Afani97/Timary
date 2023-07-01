@@ -621,6 +621,23 @@ class TestGatherAndSendSingleInvoices(TestCase):
         self.assertEqual(len(mail.outbox), 0)
         self.assertNotEqual(sent_invoice.date_sent.date(), timezone.now().date())
 
+    def test_do_not_send_invoice_reminder_if_pending_or_paid_for_installments(self):
+        fake_client = ClientFactory()
+        invoice = SingleInvoiceFactory(client=fake_client, installments=2)
+        LineItemFactory(invoice=invoice)
+        SentInvoiceFactory(
+            invoice=invoice,
+            paid_status=SentInvoice.PaidStatus.PAID,
+            date_sent=timezone.now() - timezone.timedelta(days=1),
+        )
+        SentInvoiceFactory(
+            invoice=invoice,
+            paid_status=SentInvoice.PaidStatus.PAID,
+            date_sent=timezone.now() - timezone.timedelta(days=14),
+        )
+        send_invoice_reminder(invoice.id)
+        self.assertEqual(len(mail.outbox), 0)
+
 
 class TestSendInvoice(TestCase):
     def setUp(self) -> None:

@@ -1,5 +1,6 @@
 import random
 import zoneinfo
+from unittest.mock import patch
 
 from django.db.models import Sum
 from django.template.defaultfilters import floatformat
@@ -56,9 +57,15 @@ class TestHourLineItems(BaseTest):
             hours_not_invoiced_template,
         )
 
-    def test_get_quick_hours(self):
-        users_time = get_users_localtime(self.user)
-        yesterday = users_time - timezone.timedelta(days=1)
+    @patch("timary.models.timezone")
+    @patch("timary.querysets.get_users_localtime")
+    def test_get_quick_hours(self, localtime_mock, date_mock):
+        date = timezone.datetime(
+            2023, 2, 10, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        localtime_mock.return_value = date
+        date_mock.now.return_value = date
+        yesterday = date - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(user=self.user)
         HoursLineItemFactory(invoice=invoice, quantity=2, date_tracked=yesterday)
         HoursLineItemFactory(invoice=invoice, quantity=3, date_tracked=yesterday)
@@ -72,9 +79,17 @@ class TestHourLineItems(BaseTest):
         self.assertIn("Add 3.0hr", response_content)
         self.assertIn("Add 4.0hr", response_content)
 
-    def test_get_quick_hours_only_non_paused_or_archived_invoices(self):
-        users_time = get_users_localtime(self.user)
-        yesterday = users_time - timezone.timedelta(days=1)
+    @patch("timary.models.timezone")
+    @patch("timary.querysets.get_users_localtime")
+    def test_get_quick_hours_excluding_paused_or_archived_invoices(
+        self, localtime_mock, date_mock
+    ):
+        date = timezone.datetime(
+            2023, 2, 10, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        localtime_mock.return_value = date
+        date_mock.now.return_value = date
+        yesterday = date - timezone.timedelta(days=1)
         invoice = IntervalInvoiceFactory(user=self.user)
         paused_invoice = IntervalInvoiceFactory(user=self.user, is_paused=True)
         archived_invoice = IntervalInvoiceFactory(user=self.user, is_archived=True)
@@ -92,9 +107,17 @@ class TestHourLineItems(BaseTest):
         self.assertNotIn("Add 3.0hr", response_content)
         self.assertIn("Add 4.0hr", response_content)
 
-    def test_get_quick_hours_excluding_completed_milestones(self):
-        users_time = get_users_localtime(self.user)
-        yesterday = users_time - timezone.timedelta(days=1)
+    @patch("timary.models.timezone")
+    @patch("timary.querysets.get_users_localtime")
+    def test_get_quick_hours_excluding_completed_milestones(
+        self, localtime_mock, date_mock
+    ):
+        date = timezone.datetime(
+            2023, 2, 10, tzinfo=zoneinfo.ZoneInfo("America/New_York")
+        )
+        localtime_mock.return_value = date
+        date_mock.now.return_value = date
+        yesterday = date - timezone.timedelta(days=1)
         HoursLineItem.objects.all().delete()
         invoice = IntervalInvoiceFactory(user=self.user)
         milestone = MilestoneInvoiceFactory(

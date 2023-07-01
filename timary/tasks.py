@@ -275,6 +275,8 @@ def gather_single_invoices_before_due_date():
 
 def send_invoice_reminder(invoice_id):
     single_invoice_obj = SingleInvoice.objects.get(id=invoice_id)
+    if single_invoice_obj.installments != 1:
+        return
     sent_invoice = single_invoice_obj.get_sent_invoice()
     if sent_invoice and (
         sent_invoice.paid_status == SentInvoice.PaidStatus.PENDING
