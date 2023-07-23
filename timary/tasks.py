@@ -486,16 +486,16 @@ def remind_users_to_log_hours():
         ).count()
 
         if hours_logged == 0:
-            EmailService.send_html(
+            EmailService.send_plain(
                 "Adding hours this week?",
                 f"""
-Hi {user.first_name.title()},
+                Hi {user.first_name.title()},
 
 It looks like you didn't add any hours this week.
 
 Timary has multiple options to add hours quickly, i.e. copy hours previously added, repeating hours.
 
-If you have questions please don't hesitate to ask at ari@usetimary.com.
+If you have questions please don't hesitate to ask at ari@usetimary.com
 
 Aristotel
 ari@usetimary.com
