@@ -822,6 +822,17 @@ class TestSendInvoice(TestCase):
             """
             self.assertInHTML(msg, html_message)
 
+    def test_invoice_preview_not_sent_if_hours_not_logged_for_invoice_period(self):
+        user = UserFactory()
+        invoice = IntervalInvoiceFactory(
+            user=user,
+            rate=25,
+            next_date=timezone.now() - timezone.timedelta(days=1),
+        )
+        send_invoice_preview(invoice.id)
+
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_invoice_cannot_accept_payments_without_stripe_enabled(self):
         fake_client = ClientFactory()
         invoice = IntervalInvoiceFactory(

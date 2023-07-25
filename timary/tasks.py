@@ -359,6 +359,9 @@ def send_invoice_preview(invoice_id):
     if not invoice.user.settings["subscription_active"]:
         return
     hours_tracked, total_amount = invoice.get_hours_stats()
+    if hours_tracked.count() <= 0:
+        # There is nothing to invoice don't send a preview.
+        return
     msg_body = InvoiceBuilder(invoice.user).send_invoice_preview(
         {
             "invoice": invoice,
