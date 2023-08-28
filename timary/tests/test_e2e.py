@@ -206,7 +206,7 @@ class TestUI(BaseUITest):
         )
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.click('input[type="checkbox"]')
+            page.click(".collapse-title")
             page.wait_for_selector(".modal-button", timeout=2000)
             page.click(".modal-button")
             page.wait_for_selector(
@@ -377,7 +377,7 @@ class TestUI(BaseUITest):
         )
         with self.start_test(invoice.user) as page:
             page.goto(f'{self.live_server_url}{reverse("timary:manage_invoices")}')
-            page.click('input[type="checkbox"]')
+            page.click(".collapse-title")
             page.wait_for_selector(".modal-button", timeout=2000)
             page.click(".modal-button")
             page.wait_for_selector(
